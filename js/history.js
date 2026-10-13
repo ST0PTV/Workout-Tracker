@@ -5,6 +5,7 @@ import * as store from './store.js';
 import { nowISO } from './util.js';
 import { createSet, sessionSummary, hardSets, validateSession, SET_TYPES } from './model.js';
 import { getPlan } from './plans.js';
+import * as SETS from './sets.js';
 
 const exercisesById = () => Object.fromEntries(store.get('exercises').map((e) => [e.id, e]));
 
@@ -66,19 +67,21 @@ export function setValues(draft, entryId, setId, values) {
   return true;
 }
 
-// Aufwärm <-> Arbeit. Drop-Sätze haben noch keine Oberfläche (ab v1.2) und bleiben unverändert.
+// Aufwärm <-> Arbeit (Kurzweg); Drop/Rest-Pause bleiben unverändert – dafür setType.
 export function toggleType(draft, entryId, setId) {
   const set = findSet(draft, entryId, setId);
-  if (!set || set.type === 'drop') return false;
+  if (!set || SETS.hasStages(set.type)) return false;
   set.type = set.type === 'warmup' ? 'work' : 'warmup';
   return true;
 }
 
+// Satz-Objekt im Entwurf für die Stufen-/Markierungs-Helfer aus sets.js (v1.2).
+export const draftSet = (draft, entryId, setId) => findSet(draft, entryId, setId);
+
 export function setType(draft, entryId, setId, type) {
   const set = findSet(draft, entryId, setId);
   if (!set || !SET_TYPES.includes(type)) return false;
-  set.type = type;
-  if (type !== 'drop') set.drops = [];
+  SETS.setType(set, type);
   return true;
 }
 
@@ -130,7 +133,7 @@ export function saveEdited(draft) {
   for (const e of next.entries) {
     for (const x of e.sets) {
       if (x.completedAt === null) x.completedAt = next.endedAt;
-      if (x.type !== 'drop') x.drops = [];
+      SETS.cleanStages(x);
     }
   }
   next.restTimer = null;

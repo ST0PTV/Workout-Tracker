@@ -16,9 +16,10 @@ export function e1rm(weightKg, reps) {
   return reps === 1 ? weightKg : weightKg * (1 + reps / 30);
 }
 
-const isWorkLike = (s) => s.completedAt !== null && (s.type === 'work' || s.type === 'drop');
+const isWorkLike = (s) => s.completedAt !== null && (s.type === 'work' || s.type === 'drop' || s.type === 'restpause');
 
-// Ein Eintrag pro Training, älteste zuerst. Bei Drop-Sätzen zählt die erste (schwerste) Stufe.
+// Ein Eintrag pro Training, älteste zuerst. Bei Drop- und Rest-Pause-Sätzen zählt für Top-Satz und e1RM
+// nur die erste Stufe; Volumen und Wdh. zählen alle Stufen.
 export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {}) {
   const rows = [];
   for (const s of sessions) {
@@ -37,12 +38,12 @@ export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {
       if (est !== null && (!best || est > best.value)) best = { value: est, weightKg: w, reps: r };
       volume += w * r;
       reps += r;
-      if (x.type === 'drop') for (const d of x.drops) { volume += (d.weightKg || 0) * (d.reps || 0); reps += d.reps || 0; }
+      if (x.type === 'drop' || x.type === 'restpause') for (const d of x.drops) { volume += (d.weightKg || 0) * (d.reps || 0); reps += d.reps || 0; }
     }
     rows.push({
       sessionId: s.id,
       date: s.startedAt,
-      sets: sets.map((x) => ({ type: x.type, weightKg: x.weightKg, reps: x.reps, drops: x.drops })),
+      sets: sets.map((x) => ({ type: x.type, weightKg: x.weightKg, reps: x.reps, drops: x.drops, tags: x.tags })),
       hardSets: sets.length,
       topSet: top,
       e1rm: best,

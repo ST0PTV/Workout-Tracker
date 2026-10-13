@@ -16,6 +16,8 @@ import { openProgress, hasHistory } from './progress-view.js';
 import { parseWeight, parseReps, fmtNum } from './input.js';
 import { weightWarning } from './model.js';
 import { typoText } from './diary-view.js';
+import * as SETS from './sets.js';
+import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
 
 const ui = { current: null, sessionId: null };
 let tick = null;
@@ -102,17 +104,6 @@ function openNoteEditor(exercise, rerender) {
   setTimeout(() => area.focus(), 250);
 }
 
-function openSetMenu(entry, set, rerender) {
-  const sheet = openSheet(h('div', {},
-    h('button', { class: 'opt', type: 'button', onclick: () => {
-      S.updateSet(entry.id, set.id, { type: set.type === 'warmup' ? 'work' : 'warmup' }); sheet.close(); rerender();
-    } }, h('span', { class: 'ic' }, icon('edit', { size: 22 })), h('span', {}, h('b', {}, set.type === 'warmup' ? 'Als Arbeitssatz zählen' : 'Als Aufwärmsatz markieren'), h('small', {}, 'Aufwärmsätze zählen nicht für Volumen und Fortschritt'))),
-    h('button', { class: 'opt', type: 'button', onclick: () => {
-      S.removeSet(entry.id, set.id); sheet.close(); rerender();
-    } }, h('span', { class: 'ic danger-text' }, icon('trash', { size: 22 })), h('span', {}, h('b', {}, 'Satz entfernen')))
-  ), { title: set.type === 'warmup' ? 'Aufwärmsatz' : 'Satz' });
-}
-
 function openAddExercise(rerender, afterAdd) {
   const state = { query: '' };
   const listBox = h('div');
@@ -190,7 +181,7 @@ function finishFlow(rerender) {
 
 // ---------- Übungsseite (A) ----------
 
-function setRow(d, set, i, workNo, rerender) {
+function setRow(d, set, i, workNo, rerender, isQuick = false) {
   const done = set.completedAt !== null;
   const w = h('input', { class: 'val', type: 'text', inputmode: 'decimal', enterkeyhint: 'next', value: fmtNum(set.weightKg), 'aria-label': `Satz ${i + 1} Gewicht in kg`, placeholder: '–' });
   const r = h('input', { class: 'val', type: 'text', inputmode: 'numeric', enterkeyhint: 'done', value: fmtNum(set.reps), 'aria-label': `Satz ${i + 1} Wiederholungen`, placeholder: '–' });
@@ -214,9 +205,22 @@ function setRow(d, set, i, workNo, rerender) {
   const onChange = () => { const v = commit(); if (v) S.updateSet(d.entry.id, set.id, v); };
   w.addEventListener('change', onChange);
   r.addEventListener('change', onChange);
-  const label = set.type === 'warmup' ? 'A' : String(workNo);
-  return h('div', { class: `setrow${done ? ' done' : ''}${set.type === 'warmup' ? ' warm' : ''}` },
-    h('button', { class: 'sn', type: 'button', 'aria-label': `Satz ${label}: Optionen`, onclick: () => openSetMenu(d.entry, set, rerender) }, label),
+  const label = SETS.setLabel(set, workNo);
+  const eid = d.entry.id;
+  const current = () => S.activeSession()?.entries.find((e) => e.id === eid)?.sets.find((x) => x.id === set.id) || null;
+  const ok = (r) => { if (!r.ok) toast(r.errors[0], { error: true }); return r.ok; };
+  const openMenu = () => openSetSheet({
+    title: set.type === 'warmup' ? 'Aufwärmsatz' : `Satz ${label}`,
+    get: current,
+    after: rerender,
+    act: {
+      setType: (t) => ok(S.setSetType(eid, set.id, t)),
+      toggleTag: (tag) => ok(S.toggleTag(eid, set.id, tag)),
+      remove: () => ok(S.removeSet(eid, set.id))
+    }
+  });
+  const row = h('div', { class: `setrow${done ? ' done' : ''}${set.type === 'warmup' ? ' warm' : ''}${SETS.hasStages(set.type) ? ' staged' : ''}` },
+    h('button', { class: 'sn', type: 'button', 'aria-label': `Satz ${label}: Typ und Markierungen`, onclick: openMenu }, label),
     w, r,
     h('button', { class: `ck${done ? ' on' : ''}`, type: 'button', 'aria-pressed': String(done), 'aria-label': done ? 'Satz wieder öffnen' : 'Satz erledigt', onclick: () => {
       if (done) { S.uncompleteSet(d.entry.id, set.id); rerender(); return; }
@@ -226,13 +230,27 @@ function setRow(d, set, i, workNo, rerender) {
       if (!res.ok) { toast(res.errors[0], { error: true }); return; }
       rerender();
     } }, done ? icon('check', { size: 22 }) : null), hint);
+  return [
+    row,
+    tagChips(set),
+    ...stageRows(set, {
+      after: rerender,
+      act: {
+        update: (i, v) => ok(S.updateStage(eid, set.id, i, v)),
+        remove: (i) => ok(S.removeStage(eid, set.id, i)),
+        add: () => ok(S.addStage(eid, set.id))
+      }
+    }),
+    isQuick ? quickButtons(set, { onQuick: (type) => { if (ok(S.quickStage(eid, set.id, type))) rerender(); } }) : null
+  ];
 }
 
 function exercisePage(v, d, rerender) {
   const ex = d.exercise;
   const n = v.entries.length;
   let workNo = 0;
-  const rows = d.entry.sets.map((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender));
+  const quickAt = lastCompletedIndex(d.entry.sets);
+  const rows = d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt)).filter(Boolean);
   const lastSets = d.last ? d.last.sets.filter((x) => x.type !== 'warmup') : [];
   const isLast = d.index === n - 1;
   return h('div', { class: 'ex-page' },

@@ -10,6 +10,8 @@ import { parseWeight, parseReps, fmtNum } from './input.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
+import * as SETS from './sets.js';
+import { openSetSheet, stageRows, tagChips } from './set-view.js';
 
 const fmtLong = (iso) => new Date(iso).toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'numeric' });
 const fmtFull = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -48,9 +50,7 @@ export function diaryList(rerender) {
 
 // ---------- Detail und Bearbeiten ----------
 
-function setLabel(set, workNo) {
-  return set.type === 'warmup' ? 'A' : set.type === 'drop' ? `${workNo}D` : String(workNo);
-}
+const setLabel = SETS.setLabel;
 
 function readView(s) {
   const byId = exercisesById();
@@ -67,8 +67,8 @@ function readView(s) {
         h('h2', {}, ex?.name || 'Unbekannte Übung'),
         h('div', { class: 'diary-sets' }, en.sets.map((x) => {
           const no = x.type === 'warmup' ? 0 : ++workNo;
-          const val = x.weightKg !== null ? `${fmtKgText(x.weightKg)} kg × ${x.reps ?? '–'}` : `${x.reps ?? '–'} Wdh.`;
-          return h('div', { class: `dset${x.type === 'warmup' ? ' warm' : ''}` }, h('span', { class: 'sn' }, setLabel(x, no)), h('span', {}, val));
+          const val = x.weightKg !== null ? `${SETS.formatSet(x).replace(' × ', ' kg × ')}` : `${x.reps ?? '–'} Wdh.`;
+          return h('div', { class: `dset${x.type === 'warmup' ? ' warm' : ''}` }, h('span', { class: 'sn' }, setLabel(x, no)), h('span', {}, val, tagChips(x)));
         })));
     })
   ];
@@ -105,13 +105,32 @@ export function openDiaryEntry(id, rerender) {
     r.addEventListener('input', check);
     queueMicrotask(check);
     const row = h('div', { class: `setrow edit${set.type === 'warmup' ? ' warm' : ''}` },
-      h('button', { class: 'sn', type: 'button', disabled: set.type === 'drop', 'aria-label': set.type === 'warmup' ? 'Aufwärmsatz: als Arbeitssatz zählen' : 'Arbeitssatz: als Aufwärmsatz markieren',
-        onclick: () => { H.toggleType(state.draft, entry.id, set.id); draw(); } }, setLabel(set, workNo)),
+      h('button', { class: 'sn', type: 'button', 'aria-label': `Satz ${setLabel(set, workNo)}: Typ und Markierungen`,
+        onclick: () => openSetSheet({
+          title: set.type === 'warmup' ? 'Aufwärmsatz' : `Satz ${setLabel(set, workNo)}`,
+          get: () => (state.draft ? H.draftSet(state.draft, entry.id, set.id) : null),
+          after: draw,
+          act: {
+            setType: (t) => H.setType(state.draft, entry.id, set.id, t),
+            toggleTag: (tag) => { const x = H.draftSet(state.draft, entry.id, set.id); if (!x) return false; SETS.toggleTag(x, tag); return true; },
+            remove: () => { state.invalid.delete(key); return H.removeSet(state.draft, entry.id, set.id); }
+          }
+        }) }, setLabel(set, workNo)),
       w, r,
       h('button', { class: 'ck rm', type: 'button', 'aria-label': `Satz ${setLabel(set, workNo)} löschen`, onclick: () => {
         H.removeSet(state.draft, entry.id, set.id); state.invalid.delete(key); draw();
       } }, icon('close', { size: 18 })));
-    return [row, hint];
+    const draftSet = () => H.draftSet(state.draft, entry.id, set.id);
+    return [row, hint, tagChips(set), ...stageRows(set, {
+      after: draw,
+      keyPrefix: `${set.id}:`,
+      invalid: (k, bad) => { if (bad) state.invalid.add(k); else state.invalid.delete(k); },
+      act: {
+        update: (i, v) => SETS.updateStage(draftSet(), i, v),
+        remove: (i) => SETS.removeStage(draftSet(), i),
+        add: () => SETS.addStage(draftSet())
+      }
+    })];
   }
 
   function editView() {
@@ -124,7 +143,7 @@ export function openDiaryEntry(id, rerender) {
           leaveEdit();
         } }, 'Abbrechen'),
         h('button', { class: 'btn primary', type: 'button', onclick: save }, 'Fertig')),
-      h('p', { class: 'muted small' }, 'Tipp auf die Satznummer: Aufwärm- oder Arbeitssatz. Datum und Dauer sind nicht bearbeitbar.'),
+      h('p', { class: 'muted small' }, 'Tipp auf die Satznummer: Satztyp und Markierungen. Datum und Dauer sind nicht bearbeitbar.'),
       d.entries.map((en) => {
         const ex = byId[en.exerciseId];
         let workNo = 0;
@@ -171,7 +190,7 @@ export function openDiaryEntry(id, rerender) {
   function draw() {
     const s = H.getFinished(id);
     if (!s) { sheet?.close(); return; }
-    if (state.mode === 'edit') { body.replaceChildren(...editView().flat(2).filter(Boolean)); return; }
+    if (state.mode === 'edit') { state.invalid.clear(); body.replaceChildren(...editView().flat(2).filter(Boolean)); return; }
     body.replaceChildren(...readView(s).flat(),
       h('button', { class: 'btn primary block', type: 'button', onclick: () => { state.draft = H.startEdit(id); state.mode = 'edit'; draw(); } }, icon('edit', { size: 18 }), 'Bearbeiten'));
   }

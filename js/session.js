@@ -6,6 +6,7 @@ import { nowISO } from './util.js';
 import { createSession, createEntry, createSet, prefillSets, startSessionFromPlan, needsWarmupHint, lastPerformance, validateSession, sessionSummary } from './model.js';
 import { getPlan } from './plans.js';
 import { effectiveRest } from './rest.js';
+import * as SETS from './sets.js';
 import { startRest, adjustRest } from './timer.js';
 
 function exercisesById() {
@@ -69,7 +70,7 @@ export function finish() {
   const s = activeSession();
   if (!s) return { ok: false, errors: ['Kein laufendes Training.'] };
   const done = s.entries
-    .map((e) => ({ ...e, sets: e.sets.filter((x) => x.completedAt !== null) }))
+    .map((e) => ({ ...e, sets: e.sets.filter((x) => x.completedAt !== null).map((x) => SETS.cleanStages({ ...x, drops: [...x.drops] })) }))
     .filter((e) => e.sets.length);
   if (!done.length) return { ok: false, errors: ['Noch kein Satz erledigt. Training verwerfen?'], empty: true };
   return save({ ...s, entries: done, endedAt: nowISO(), restTimer: null });
@@ -109,7 +110,7 @@ export function updateSet(entryId, setId, values) {
     if (!set) return 'Satz nicht gefunden.';
     const allowed = ['weightKg', 'reps', 'type', 'drops', 'tags', 'durationSec', 'distanceM'];
     for (const k of Object.keys(values)) if (allowed.includes(k)) set[k] = values[k];
-    if (set.type !== 'drop') set.drops = [];
+    if (!SETS.hasStages(set.type)) set.drops = [];
   });
 }
 
@@ -128,6 +129,29 @@ export function addSet(entryId, type = 'work') {
     entry.sets.push(createSet({ type: 'work', weightKg: prev?.weightKg ?? null, reps: prev?.reps ?? null }));
   });
 }
+
+// ---------- Satztyp, Stufen, Markierungen (v1.2) ----------
+
+function onSet(entryId, setId, fn) {
+  return update((s) => {
+    const { set } = findSet(s, entryId, setId);
+    if (!set) return 'Satz nicht gefunden.';
+    return fn(set) === false ? 'Aktion nicht möglich.' : undefined;
+  });
+}
+
+export const setSetType = (entryId, setId, type) => onSet(entryId, setId, (set) => { SETS.setType(set, type); });
+export const addStage = (entryId, setId) => onSet(entryId, setId, (set) => (SETS.addStage(set) ? undefined : false));
+export const updateStage = (entryId, setId, index, values) => onSet(entryId, setId, (set) => SETS.updateStage(set, index, values));
+export const removeStage = (entryId, setId, index) => onSet(entryId, setId, (set) => SETS.removeStage(set, index));
+export const toggleTag = (entryId, setId, tag) => onSet(entryId, setId, (set) => { SETS.toggleTag(set, tag); });
+
+// Schnellknopf (Variante C): erledigten Arbeitssatz in Drop/Rest-Pause umwandeln und die erste Folge-Stufe anlegen.
+export const quickStage = (entryId, setId, type) => onSet(entryId, setId, (set) => {
+  if (!SETS.hasStages(type) || set.completedAt === null || set.type === 'warmup') return false;
+  if (set.type !== type) SETS.setType(set, type);
+  return SETS.addStage(set) ? undefined : false;
+});
 
 export function removeSet(entryId, setId) {
   return update((s) => {

@@ -5,10 +5,10 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 1.1.0 (Trainings-Tagebuch mit Bearbeiten, deployt am 2026-10-13), Cache `wt-cache-v8`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis (alle 2026-10-13).
-- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings.
-- **Nächster Schritt:** v1.2 Satz-Markierungen und Drop-Stufen in der UI (vorher Recherche: Rest-Pause-/Drop-Sätze als harte Sätze).
+- **Live:** 1.2.0 (Drop- und Rest-Pause-Sätze, Markierungen, deployt am 2026-10-13), Cache `wt-cache-v9`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe (alle 2026-10-13).
+- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen.
+- **Nächster Schritt:** v1.3 Übungsgruppen mit Tausch im Training (Datenmodell-Felder `groupIds`, `groupId`, `plannedExerciseId` vorher kritisch gegenlesen).
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
 ## Rahmenbedingungen
@@ -48,6 +48,9 @@ js/training-view.js     Training-Tab: Start, Übungsseite (A), Übersicht (B), P
 js/progress.js          Fortschritt ohne DOM: e1RM (Epley, 1–10 Wdh.), Verlauf je Training, Rauschschwelle 5 %, Zusammenfassung
 js/progress-info.js     Erklärtext „e1RM (Schätzung)“ und Quellen
 js/progress-view.js     Fortschritt-Tab mit Umschalter „Übungen | Trainings“, Liste mit Mini-Verlauf, Detail (Kacheln, SVG-Diagramm mit ±5-%-Band, Tabelle), Editor-Panel
+js/sets.js              Satztypen ohne DOM: Stufen (drop/restpause), Markierungen, Zählregeln-Kommentar, formatSet, setLabel
+js/set-info.js          Erklärtext Drop/Rest-Pause und Quellen (PubMed-geprüft 2026-10-13)
+js/set-view.js          Satz-Sheet (Typ, Markierungen, Entfernen), Stufenzeilen, Markierungs-Chips, Schnellknöpfe – für Training und Tagebuch
 js/input.js             Zahlen-Eingaben für Sätze (Gewicht mit Komma, Wdh. ganzzahlig, Grenzen) – gemeinsam für Training und Tagebuch
 js/history.js           Tagebuch ohne DOM: Liste abgeschlossener Trainings, Entwurf bearbeiten, speichern (mit Validierung), löschen
 js/diary-view.js        Tagebuch-Liste (Karten nach Monat), Detail-Sheet, Bearbeiten-Modus mit Abbrechen/Fertig, Tippfehler-Hinweistext
@@ -55,7 +58,7 @@ js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Einstellungen; re-exportiert die übrigen Tab-Ansichten
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sw)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, sw)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -81,13 +84,13 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 `entries[] { id, exerciseId, plannedExerciseId|null, groupId|null, sets[] }`, `restTimer { entryId, startedAt, durationSec } | null` (seit v0.5, optional ohne Schemaänderung).
 `exerciseId` ist die tatsächlich gemachte Übung; nach einem Tausch steht die geplante in `plannedExerciseId`.
 
-**Satz** – `id`, `type` (`warmup` | `work` | `drop`), `weightKg|null`, `reps|null` (ganzzahlig), `durationSec|null`, `distanceM|null` (Cardio), `drops[] { weightKg, reps }` (nur bei `drop`, UI ab v1.x), `tags[]` (Schlüssel aus `SET_TAGS` oder `custom:<Text>`, UI ab v1.x), `completedAt|null` (null = vorbelegt, noch nicht gemacht).
+**Satz** – `id`, `type` (`warmup` | `work` | `drop` | `restpause`; `restpause` seit v1.2 ohne Schemaänderung), `weightKg|null`, `reps|null` (ganzzahlig) = erste Stufe, `durationSec|null`, `distanceM|null` (Cardio), `drops[] { weightKg, reps }` = Folge-Stufen (nur bei `drop` und `restpause`, UI seit v1.2), `tags[]` (Schlüssel aus `SET_TAGS`: `stretch-hold`, `partials`, `failure`, oder `custom:<Text>` bis 30 Zeichen; UI seit v1.2; `rest-pause` ist seit v1.2 keine Markierung mehr), `completedAt|null` (null = vorbelegt, noch nicht gemacht).
 
 **Einstellungen (`settings`)** – `focus[]` (Standard `['strength']`), `weightUnit` (`kg`), `restSeconds` (120).
 
 **Berechnungen (`model.js`)**
 - Volumen = Gewicht × Wdh., nur `strength`; Drop-Stufen zählen alle; Aufwärmsätze nie. `bodyweight`: Volumen 0 (Körpergewicht wird bewusst nicht gespeichert), nur Wdh.
-- Harte Sätze = abgeschlossene `work`- und `drop`-Sätze; ein Drop-Satz = 1.
+- Harte Sätze = abgeschlossene `work`-, `drop`- und `restpause`-Sätze; jeder = 1 (Konvention, keine Studie legt eine Umrechnung fest). Volumen und Gesamt-Wdh. zählen alle Stufen; Top-Satz und e1RM nur die erste Stufe.
 - `lastPerformance` / `prefillSets`: Vorbelegung mit Satzzahl, Typen und Werten der letzten Ausführung derselben Übung. Kommt die Übung in einem Training mehrfach vor, zählt der **letzte** Eintrag mit erledigten Sätzen (seit v1.1).
 - `bestWeight` / `weightWarning` (v1.1): Tippfehler-Hinweis, wenn ein Gewicht mehr als `TYPO_FACTOR` (2) × das schwerste erledigte Gewicht der Übung in abgeschlossenen Trainings ist. Nicht blockierend; Schwelle ist eine Design-Entscheidung ohne Beleg.
 - `needsWarmupHint`: Hinweis, wenn eine primäre Muskelgruppe im laufenden Training noch nicht (primär oder sekundär) mit erledigten Sätzen belastet wurde.
@@ -139,6 +142,16 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Fortschritt und Vorbelegung lesen immer aus `wt_sessions`; Korrekturen wirken also sofort. Ein bereits laufendes Training behält seine beim Start erzeugte Vorbelegung.
 - Tippfehler-Hinweis erscheint beim Bearbeiten (Vergleich ohne das bearbeitete Training) und beim Loggen.
 
+## Satztypen und Markierungen (v1.2)
+
+- Variante A + C: Tipp auf die Satznummer öffnet das Satz-Sheet (`set-view.js`: Typ Aufwärm/Arbeit/Drop/Rest-Pause, Markierungen, „+ Eigene“ per `prompt()`, Entfernen, ℹ zur Zählweise). Schnellknöpfe „+ Drop“ / „+ Rest-Pause“ nur unter dem zuletzt abgehakten Arbeitssatz (`lastCompletedIndex`); `S.quickStage` wandelt den Satz um und legt die erste Stufe an.
+- Stufenzeilen unter dem Satz mit „+ Stufe“ / „+ Mini-Satz“. Neue Rest-Pause-Stufe übernimmt das Gewicht der vorigen; Drop-Stufe bleibt leer (Platzhalter = voriges Gewicht).
+- Stufen ohne Wdh. gelten als nicht gemacht und werden beim Beenden (`S.finish`) und Speichern im Tagebuch (`H.saveEdited`) entfernt (`cleanStages`). Typwechsel zu Aufwärm/Arbeit löscht Stufen (mit Rückfrage im Sheet).
+- Training speichert jede Änderung sofort (`session.js`: `setSetType`, `addStage`, `updateStage`, `removeStage`, `toggleTag`, `quickStage`); das Tagebuch ändert den Entwurf (`H.draftSet` + Helfer aus `sets.js`).
+- Vorbelegung übernimmt Typ, Stufen und Markierungen der letzten Ausführung (Kopie).
+- Anzeige überall über `formatSet`: „80 × 8 + 60 × 6“, Rest-Pause mit gleichem Gewicht „80 × 7 + 3“; Kurzzeichen A, 1, 2D, 3RP.
+- Achtung: `element.replaceChildren(...)` schreibt `null` als Text – vorher `.filter(Boolean)` (der Helfer `h()` überspringt null).
+
 ## Konventionen (gemeinsam mit Calorie Tracker und Rezepte-App geplant)
 
 - IDs: UUID (String). Zeitstempel: ISO-8601 UTC (String).
@@ -162,7 +175,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Der iOS-Speicher einer Homescreen-PWA ist nach bisherigem Wissen vom Safari-Tab getrennt (nicht verifiziert). Backup-Import also immer in der App selbst ausführen.
 - `sw.js` kann keine ES-Module importieren; `CACHE_VERSION` muss daher manuell mit der App-Version abgestimmt werden.
 - Teilen-Menü (`navigator.share` mit Datei) für den Backup-Export ist auf dem iPhone ungetestet.
-- Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. Gruppen-, Drop- und Markierungsfelder vor v1.x kritisch gegenlesen.
+- Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. Gruppenfelder vor v1.3 kritisch gegenlesen. `prompt()` für eigene Markierungen in der Homescreen-App ungetestet.
 - Muskelzuordnungen beruhen überwiegend auf EMG-Studien (Aktivität ≠ Wachstum); bei 6 Pool-Übungen ist die Belastbarkeit „niedrig“ (keine Studie zur Übung selbst).
 - Sheets nutzen `92vh`; auf dem iPhone mit eingeblendeter Tastatur ungetestet.
 - iOS kann eine Homescreen-PWA im Hintergrund beenden; JS-Timer laufen dann nicht. Deshalb zeitstempelbasiert und sofortiges Speichern (auf dem iPhone noch ungetestet).
