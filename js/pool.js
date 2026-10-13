@@ -38,6 +38,7 @@ const P = (ref, name, equipment, primary, secondary, info, kind = 'strength') =>
   basis: info.basis,
   note: info.note || '',
   others: info.others || [],
+  involved: info.involved || null, // nur Cardio: beteiligte Muskeln zur Info (zählen nicht)
   sources: info.sources
 });
 
@@ -908,7 +909,235 @@ export const POOL = [
       S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'EMG: hängendes Knieheben unter den stärksten Übungen für gerade und schräge Bauchmuskeln.'),
       S('StatPearls: Iliopsoas Muscle', 'https://www.statpearls.com/point-of-care/23367', 'Anatomie: Iliopsoas ist der wichtigste Hüftbeuger.')
     ]
-  }, 'bodyweight')
+  }, 'bodyweight'),
+
+  // v1.8 Runde 3 (Recherche 2026-10-13, Drive → Research - Exercise Pool)
+  P('floor-crunch', 'Crunch (Boden)', 'bodyweight', ['abs'], ['obliques'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Rückenlage, Knie gebeugt; nur Schulterblätter abheben, LWS bleibt am Boden. Langsam ablassen.',
+    sources: [
+      S('Escamilla et al. 2006, J Orthop Sports Phys Ther', '10.2519/jospt.2006.36.2.45', 'EMG-Vergleich: Crunch gehört zu den Übungen mit höchster Aktivität im oberen/unteren Rectus und in beiden Obliques.'),
+      S('Youdas et al. 2008, J Strength Cond Res', '10.1519/JSC.0b013e31818745bf', 'EMG von Rectus, Obliques und Rectus femoris beim Crunch im Vergleich zu Ab-Slide, Beinstoß und Seitstütz.'),
+      S('Lehman & McGill 2001, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/11319934/', 'Curl-up und Beinheben: keine messbaren Unterschiede zwischen oberem und unterem Rectus-Anteil.')
+    ]
+  }, 'bodyweight'),
+  P('machine-crunch', 'Crunch an der Maschine', 'machine', ['abs'], ['obliques', 'hip-flexors'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Sitzend, Brust zum Becken einrollen statt aus der Hüfte ziehen. Gewicht so wählen, dass die Rumpfbeugung sauber bleibt.',
+    sources: [
+      S('Sundstrup et al. 2012, Int J Sports Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/22893857/', 'Sitz-Crunch-Maschine bei 10RM: Rectus ca. 84 % MVIC, Rectus femoris ca. 65 %; Rectus und Obliquus externus am aktivsten.')
+    ]
+  }),
+  P('reverse-crunch', 'Reverse Crunch', 'bodyweight', ['abs'], ['obliques', 'hip-flexors'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Rückenlage, Knie angewinkelt; Becken vom Boden einrollen, nicht nur Beine schwingen. Schrägbank erhöht die Schwierigkeit.',
+    sources: [
+      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Reverse Crunch auf 30°-Schräge: hohe Aktivität in Rectus und Obliquus internus, aber auch hohe Rectus-femoris-Aktivität.'),
+      S('King 2018, Neurosci Lett', '10.1016/j.neulet.2018.03.058', 'EMG bei Sit-up und Reverse Crunch: Rectus als Hauptbeweger, Obliquus externus und Transversus eher stabilisierend.')
+    ]
+  }, 'bodyweight'),
+  P('ab-wheel-rollout', 'Ab-Wheel Rollout', 'bodyweight', ['abs'], ['obliques', 'lats'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Aus dem Kniestand starten; nur so weit ausrollen, wie die LWS neutral bleibt. Steigerung: längerer Weg, später aus dem Stand.',
+    others: ['Trizeps/Brust (Rad-Variante Ab Slide)'],
+    sources: [
+      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Rollout mit Power Wheel: höchste Aktivität in Rectus, Obliques und Latissimus; Rückenstrecker gering.'),
+      S('Escamilla et al. 2006, J Orthop Sports Phys Ther', '10.2519/jospt.2006.36.2.45', 'Ab Slide (Rollgerät): hohe Rectus-/Obliques-Aktivität, dazu Brust, Trizeps, Latissimus; wenig Rectus femoris.'),
+      S('Youdas et al. 2008, J Strength Cond Res', '10.1519/JSC.0b013e31818745bf', 'Ab Slide mit höchster Bauchmuskel-EMG der vier Übungen und geringster Rectus-femoris-Aktivität.')
+    ]
+  }, 'bodyweight'),
+  P('plank', 'Unterarmstütz (Plank)', 'bodyweight', ['abs'], ['obliques'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Unterarme unter den Schultern, Körper gerade, Becken leicht nach hinten kippen. Steigerung: Ellbogen weiter nach vorn.',
+    others: ['M. serratus anterior'],
+    sources: [
+      S('Schoenfeld et al. 2014, Sports Biomech', '10.1080/14763141.2014.942355', 'Plank mit langem Hebel und Beckenkippung nach hinten steigert Rectus- und Obliquus-externus-EMG ggü. Standard-Plank.'),
+      S('Cortell-Tormo et al. 2017, J Strength Cond Res', '10.1519/JSC.0000000000001689', 'Becken- und Schulterblattposition verändern die EMG von Rectus, Obliques und Rückenstrecker im Plank deutlich.'),
+      S('Byrne et al. 2014, J Strength Cond Res', '10.1519/JSC.0000000000000510', 'EMG im Boden-Plank und Schlingen-Varianten: Rectus, Obliquus externus, Serratus anterior aktiv; Schlingen erhöhen Bauch-EMG.')
+    ]
+  }, 'bodyweight'),
+  P('lying-leg-raise', 'Beinheben liegend', 'bodyweight', ['abs', 'hip-flexors'], ['obliques'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Rückenlage, LWS am Boden halten; Beine nur so tief senken, wie das gelingt. Knie beugen macht es leichter.',
+    sources: [
+      S('Park & Park 2019, J Back Musculoskelet Rehabil', '10.3233/BMR-181122', 'Isometrisches beidseitiges Beinheben zeigte höhere Rectus-EMG als der Plank (n=18 Frauen).'),
+      S('Marchetti et al. 2011, J Sports Sci Med', 'https://pubmed.ncbi.nlm.nih.gov/24149878/', 'Beinheben und Curl-up aktivieren oberen und unteren Rectus mit leicht verschiedenem Muster; Muskel arbeitet als Einheit.'),
+      S('Bordoni & Varacallo, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas ist der Hauptbeuger im Hüftgelenk; bei fixiertem Bein beugt er den Rumpf.')
+    ]
+  }, 'bodyweight'),
+  P('sit-up', 'Sit-up / Negativ-Sit-up', 'bodyweight', ['abs', 'hip-flexors'], ['obliques'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Knie gebeugt, Rumpf Wirbel für Wirbel aufrollen. Negativ-Variante: auf Schrägbank mit Kopf unten, kontrolliert ablassen.',
+    sources: [
+      S('Escamilla et al. 2006, J Orthop Sports Phys Ther', '10.2519/jospt.2006.36.2.45', 'Sit-up mit gebeugten Knien: hohe Obliques-Aktivität und mit die höchste Rectus-femoris-Aktivität der getesteten Übungen.'),
+      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Auch hier zählt der Sit-up mit gebeugten Knien zu den Übungen mit hoher Hüftbeuger-(Rectus-femoris-)Aktivität.'),
+      S('Siccardi et al. 2023, StatPearls: Psoas Major', 'https://www.ncbi.nlm.nih.gov/books/NBK535418/', 'Anatomie: Beidseitiger Psoas hilft, den Rumpf aus der Rückenlage aufzurichten, und beugt die Hüfte.')
+    ]
+  }, 'bodyweight'),
+  P('captains-chair-knee-raise', 'Knieheben im Stütz (Captain\'s Chair)', 'bodyweight', ['abs', 'hip-flexors'], ['obliques'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Unterarme auf den Polstern, Rücken an der Lehne; Knie heben und Becken einrollen, ohne Schwung. Langsam absenken.',
+    sources: [
+      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Hängendes Knieheben in Armschlaufen (verwandte Variante): mit die höchste Rectus- und Obliques-EMG der Studie.'),
+      S('Bordoni & Varacallo, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas als Hauptbeuger der Hüfte; Knieheben ist primär Hüftbeugung.')
+    ]
+  }, 'bodyweight'),
+  P('side-plank', 'Seitstütz', 'bodyweight', ['obliques'], ['abductors', 'lower-back', 'abs'], {
+    confidence: 'medium', basis: 'EMG (Oberfläche + Feindraht)',
+    note: 'Unterarm unter Schulter, Hüfte in Linie mit Körper halten. Leichter auf den Knien, schwerer auf den Füßen.',
+    others: ['Quadratus lumborum', 'Transversus abdominis'],
+    sources: [
+      S('Escamilla et al. 2016, Sports Health', '10.1177/1941738116653931', 'Oberflächen-EMG: Seitstütz auf Füßen aktiviert äußere Obliques stärker als auf Knien; seitliche Übungen aktivieren die Rückenstrecker am stärksten.'),
+      S('Youdas et al. 2014, Sports Health', '10.1177/1941738114539266', 'EMG bei Seitstütz-Varianten: Obliquus externus und Glut. medius deutlich aktiv, meist stärker auf der Stützseite.'),
+      S('Juker et al. 1998, Med Sci Sports Exerc', '10.1097/00005768-199802000-00020', 'Feindraht-EMG: Seitstütz erzielte viel Aktivität der Bauchwand bei wenig Psoas-Aktivität; die Autoren bewerten ihn als beste Bauchwandübung.')
+    ]
+  }, 'bodyweight'),
+  P('pallof-press', 'Pallof Press', 'cable', ['obliques'], ['abs'], {
+    confidence: 'low', basis: 'Anatomie; keine EMG-Studie zur Pallof Press',
+    note: 'Seitlich zum Kabel, Griff an der Brust, Arme strecken, ohne dass der Rumpf mitdreht. Kniend leichter, Stand schmal schwerer.',
+    others: ['Transversus abdominis', 'Quadratus lumborum'],
+    sources: [
+      S('Juan-Recio et al. 2025, Medicina (Kaunas)', '10.3390/medicina61020312', 'Beschleunigung am Becken bei 5 Pallof-Varianten: Kniend am leichtesten; schmaler/Tandemstand und instabile Unterlage erschweren. Kein EMG.'),
+      S('Kumar et al. 2001, Eur J Appl Physiol', '10.1007/s004210100510', 'EMG bei maximaler isometrischer Rumpfrotation im Sitz: Bei Männern stark aktiv waren u. a. der gegenseitige Obliquus externus und der Latissimus.')
+    ]
+  }),
+  P('dumbbell-side-bend', 'Seitbeugen mit Kurzhantel', 'dumbbell', ['obliques'], ['lower-back', 'abs'], {
+    confidence: 'medium', basis: 'EMG (andere Last: Wasserweste)',
+    note: 'Hantel in einer Hand, langsam zur Seite neigen und mit der Gegenseite aufrichten. Kein Schwung, Seite wechseln. Auch am Kabel möglich.',
+    others: ['Quadratus lumborum'],
+    sources: [
+      S('Kang & Park 2026, J Funct Morphol Kinesiol', '10.3390/jfmk11010089', 'Seitbeugen mit Wasserweste (8–16 kg): EMG von RA, EO, IO und Rückenstrecker steigt mit der Last. Hantel/Kabel selbst wurden nicht untersucht.'),
+      S('Rabello et al. 2015, J Back Musculoskelet Rehabil', '10.3233/BMR-140508', 'Isometrisch am Dynamometer: Obliquus externus bei seitlicher Beugung weniger aktiv als bei Beugung nach vorn oder Rotation.')
+    ]
+  }),
+  P('russian-twist', 'Russian Twist', 'bodyweight', ['obliques'], ['abs', 'hip-flexors'], {
+    confidence: 'low', basis: 'Anatomie; keine EMG-Studie zum Russian Twist',
+    note: 'Oberkörper leicht zurückgelehnt, aus dem Brustkorb drehen. Füße am Boden ist leichter. Zusatzgewicht optional, Bewegung kontrolliert.',
+    others: ['Transversus abdominis'],
+    sources: [
+      S('Kumar et al. 2001, Eur J Appl Physiol', '10.1007/s004210100510', 'EMG bei isometrischer Rumpfrotation: Der gegenseitige Obliquus externus gehört zu den am stärksten aktivierten Muskeln (bei Männern).'),
+      S('Bordoni & Varacallo, StatPearls: Iliopsoas', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger der Hüfte und kann bei fixierten Beinen den Rumpf beugen.')
+    ]
+  }, 'bodyweight'),
+  P('bicycle-crunch', 'Fahrrad-Crunch', 'bodyweight', ['obliques', 'abs'], ['hip-flexors'], {
+    confidence: 'medium', basis: 'EMG (Pilates-Variante Criss-Cross) + Anatomie',
+    note: 'Langsam: Schulter zum gegenüberliegenden Knie drehen, anderes Bein strecken. Unteren Rücken am Boden halten, nicht am Kopf ziehen.',
+    others: ['Transversus abdominis'],
+    sources: [
+      S('Pereira et al. 2017, J Manipulative Physiol Ther', '10.1016/j.jmpt.2017.02.010', 'EMG: Criss-Cross (entspricht weitgehend dem Fahrrad-Crunch) zeigte unter drei Pilates-Übungen die höchste Aktivität von Rectus und Obliques.'),
+      S('Bordoni & Varacallo, StatPearls: Iliopsoas', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger des Oberschenkels. Er beugt die Hüfte beim Anziehen des Knies.')
+    ]
+  }, 'bodyweight'),
+  P('standing-cable-hip-flexion', 'Hüftbeugen am Kabel (stehend)', 'cable', ['hip-flexors'], ['abs', 'obliques'], {
+    confidence: 'medium', basis: 'EMG (Feindraht, isometrische Hüftbeugung) + Anatomie',
+    note: 'Fußschlaufe am unteren Kabel, Knie gegen Widerstand bis Hüfthöhe heben. Becken ruhig halten, nicht nach hinten lehnen. Seite wechseln.',
+    others: ['Tensor fasciae latae', 'Sartorius'],
+    sources: [
+      S('Juker et al. 1998, Med Sci Sports Exerc', '10.1097/00005768-199802000-00020', 'Feindraht-EMG am Psoas: Der höchste Wert trat bei maximaler Hüftbeugung auf. Eine Kabelübung wurde nicht getestet.'),
+      S('Bordoni & Varacallo, StatPearls: Iliopsoas', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas als Hauptbeuger des Oberschenkels, zusätzlich beteiligt an Adduktion und Außenrotation.'),
+      S('Hu et al. 2010, J Biomech', '10.1016/j.jbiomech.2009.09.035', 'Feindraht-EMG beim aktiven gestreckten Beinheben: Psoas und Iliacus aktiv, schräge und quere Bauchmuskeln arbeiten mit und stabilisieren das Becken.')
+    ]
+  }),
+  P('dead-bug', 'Dead Bug', 'bodyweight', ['obliques', 'abs'], ['hip-flexors'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Rückenlage, Arme und Knie oben. Gegenüberliegenden Arm und Bein langsam strecken, unterer Rücken bleibt am Boden.',
+    others: ['Transversus abdominis'],
+    sources: [
+      S('Pereira et al. 2017, J Manipulative Physiol Ther', '10.1016/j.jmpt.2017.02.010', 'EMG: Beim Dead Bug waren die Obliques stärker aktiv als Rectus abdominis und Multifidus. Gesamtaktivität niedriger als beim Criss-Cross.'),
+      S('Hu et al. 2010, J Biomech', '10.1016/j.jbiomech.2009.09.035', 'Feindraht-EMG beim Beinheben in Rückenlage (andere Übung): Psoas/Iliacus aktiv, Bauchwand stabilisiert das Becken gegen den Zug der Hüftbeuger.')
+    ]
+  }, 'bodyweight'),
+  P('l-sit', 'L-Sitz', 'bodyweight', ['hip-flexors', 'abs'], ['quads', 'triceps'], {
+    confidence: 'medium', basis: 'EMG (Variante V-Sit) + Anatomie',
+    note: 'Auf Barren oder Griffen stützen, Schultern nach unten, Beine gestreckt waagerecht halten. Leichter: Knie angewinkelt (Tuck).',
+    others: ['Tensor fasciae latae', 'Unterer Trapezius'],
+    sources: [
+      S('Guimaraes et al. 1991, J Sports Med Phys Fitness', 'https://pubmed.ncbi.nlm.nih.gov/1836517/', 'Oberflächen-EMG: V-Sit und Beinheben im Hang zeigten die höchste Aktivität im unteren Rectus abdominis. Rectus femoris gemessen, Iliopsoas nicht.'),
+      S('Devorski et al. 2021, J Sport Rehabil', '10.1123/jsr.2020-0485', 'EMG: Der V-Sit belastete vor allem die Bauchmuskeln und kaum Schulter- oder Rückenmuskeln. Hüftbeuger wurden nicht gemessen.'),
+      S('Juker et al. 1998, Med Sci Sports Exerc', '10.1097/00005768-199802000-00020', 'Feindraht-EMG: Der Psoas ist bei Sit-ups deutlich und bei maximaler Hüftbeugung am stärksten aktiv. Das stützt die Rolle der Hüftbeuger.')
+    ]
+  }, 'bodyweight'),
+
+  // ---------- Cardio ----------
+  // v1.8 Runde 3: Muskeln nur in `involved` (Infoblatt), nicht in `muscles` – Cardio zählt nicht für die Muskelkarte.
+  P('treadmill-running', 'Laufband (Laufen)', 'machine', [], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Not-Aus-Clip an der Kleidung befestigen und frei laufen, ohne dich an den Griffen festzuhalten.',
+    involved: { primary: ['quads', 'glutes', 'calves'], secondary: ['hamstrings', 'hip-flexors'] },
+    sources: [
+      S('Swanson & Caldwell 2000, Med Sci Sports Exerc', '10.1097/00005768-200006000-00018', 'EMG am Laufband eben vs. 30 % Steigung: Waden, Quadrizeps, Gesäß bergauf in der Standphase aktiver, Hamstrings weniger; Hüftbeuger arbeiten in der Schwungphase.'),
+      S('Esculier et al. 2015, Gait Posture', '10.1016/j.gaitpost.2015.02.020', 'EMG beim Laufbandlaufen von Gesäß, Quadrizeps und Soleus; diese Muskeln gelten als repräsentativ fürs Laufen.')
+    ]
+  }, 'cardio'),
+  P('incline-treadmill-walking', 'Gehen am Laufband mit Steigung', 'machine', [], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Steigung schrittweise erhöhen, frei gehen ohne Festhalten an den Griffen. Mehr Steigung und Tempo fordern Gesäß und Waden stärker.',
+    involved: { primary: ['glutes', 'quads', 'calves'], secondary: ['hamstrings', 'lower-back'] },
+    sources: [
+      S('Franz & Kram 2012, Gait Posture', '10.1016/j.gaitpost.2011.08.025', 'Laufband bis +9°: Hüft-, Knie- und Sprunggelenkstrecker (Gesäß, Beinbeuger, Quadrizeps, Waden) deutlich aktiver als eben, verstärkt bei höherem Tempo.'),
+      S('Kundu et al. 2024, Int J Exerc Sci', '10.70252/GMWV8349', 'Steiles Gehen am Laufband erhöht die integrierte EMG u. a. von Gesäß, Vastus lateralis, Waden und Rückenstrecker.')
+    ]
+  }, 'cardio'),
+  P('stationary-bike', 'Fahrradergometer', 'machine', [], [], {
+    confidence: 'high', basis: 'MRT + EMG',
+    note: 'Sattelhöhe etwa auf Höhe des seitlichen Hüftknochens (Trochanter) einstellen. Ein zu tiefer Sattel belastet das Knie stärker.',
+    others: ['Tibialis anterior'],
+    involved: { primary: ['quads'], secondary: ['glutes', 'hamstrings', 'calves'] },
+    sources: [
+      S('Harber et al. 2012, J Appl Physiol', '10.1152/japplphysiol.00786.2012', '12 Wochen Ergometertraining: Quadrizepsvolumen im MRT bei jungen und älteren Männern um ca. 5–6 % größer.'),
+      S('Bing et al. 2024, Biomed Eng Online', '10.1186/s12938-024-01199-y', 'EMG am Ergometer: Rectus femoris und Bizeps femoris steigen mit der Last, die Wade mit der Sattelhöhe; ca. 100 % Trochanterhöhe ist sinnvoll.'),
+      S('Bouillon et al. 2016, Int J Sports Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/27104052/', 'Vergleich von Ergometer, Liegerad, Laufband und ElliptiGO: Gesäß und Beinbeuger nur gering bis mäßig aktiv, Wade am aufrechten Rad am höchsten.')
+    ]
+  }, 'cardio'),
+  P('rowing-machine', 'Rudergerät', 'machine', [], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Reihenfolge: erst Beine, dann Rumpf, dann Arme. Rücken neutral halten, bei Ermüdung nicht rund werden.',
+    others: ['Brachioradialis'],
+    involved: { primary: ['quads', 'lats'], secondary: ['glutes', 'hamstrings', 'lower-back', 'biceps', 'upper-back', 'calves'] },
+    sources: [
+      S('Gerževič et al. 2011, J Strength Cond Res', '10.1519/JSC.0b013e3181fb4111', 'EMG von 10 Muskeln am Ruderergometer: Beinstrecker, Schultergürtelstrecker (Latissimus) und Armbeuger sind am stärksten gefordert, Rumpf- und Hüftstrecker weniger.'),
+      S('Bazzucchi et al. 2013, Eur J Appl Physiol', '10.1007/s00421-012-2550-2', 'Bei Elite-Ruderern sind Trapezius, Latissimus, Bizeps und Quadrizeps am Ergometer stärker aktiv als im Boot.'),
+      S('Nugent et al. 2021, Br J Sports Med', '10.1136/bjsports-2020-102533', 'Review: Gesunde Ruderer arbeiten überwiegend mit den Rumpfstreckern. Ermüdung erhöht die Lendenbeugung beim Auslagepunkt, am Ergometer stärker.')
+    ]
+  }, 'cardio'),
+  P('elliptical-trainer', 'Crosstrainer', 'machine', [], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Aufrecht stehen und die ganze Fußsohle auf dem Pedal lassen. Die Haltegriffe nur zum Mitschwingen nutzen, nicht zum Abstützen.',
+    others: ['Tibialis anterior'],
+    involved: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'calves', 'abductors'] },
+    sources: [
+      S('Burnfield et al. 2010, Phys Ther', '10.2522/ptj.20090033', 'Vier Crosstrainer vs. Gehen: Gesäß und Vastus lateralis aktiver, Waden, mediale Beinbeuger und Tibialis weniger, Gluteus medius ähnlich. Armarbeit wurde nicht gemessen.')
+    ]
+  }, 'cardio'),
+  P('stair-stepper', 'Treppensteiger / Stepper', 'machine', [], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Aufrecht steigen und das Körpergewicht nicht auf die Griffe stützen. Ganze Stufen nutzen statt kurzer Trippelschritte.',
+    involved: { primary: ['quads'], secondary: ['glutes', 'hamstrings', 'calves'] },
+    sources: [
+      S('You et al. 2020, Gait Posture', '10.1016/j.gaitpost.2020.02.003', 'EMG am Steptrainer: Vastus lateralis und Bizeps femoris arbeiten gemeinsam (Ko-Aktivierung), dazu Kniekräfte gemessen. Vergleich mit einem seitlich schwingenden Gerät.'),
+      S('Halder et al. 2018, Ergonomics', '10.1080/00140139.2018.1473644', 'Treppenmaschine bei drei Steigtempi: EMG der Beinmuskeln steigt mit dem Tempo, lokale Ermüdung begrenzt die Dauer.')
+    ]
+  }, 'cardio'),
+  P('ski-erg', 'SkiErg', 'machine', [], [], {
+    confidence: 'medium', basis: 'EMG (Doppelstockschub auf Rollski) + Biomechanik',
+    note: 'Zug aus Rumpf und Hüfte einleiten und die Knie leicht mitbeugen, nicht nur aus den Armen ziehen.',
+    others: ['Teres major', 'Beinmuskulatur (unspezifisch)'],
+    involved: { primary: ['lats', 'triceps'], secondary: ['chest', 'abs'] },
+    sources: [
+      S('Lindinger et al. 2009, Eur J Appl Physiol', '10.1007/s00421-009-1018-5', 'EMG beim Doppelstockschub (Rollski, Laufband): Trizeps, Latissimus, großer Brustmuskel und Teres major aktiv, mit dem Tempo steigend.'),
+      S('Danielsen et al. 2015, Med Sci Sports Exerc', '10.1249/MSS.0000000000000723', 'Am Skiergometer leisten Beine und Rumpf einen großen Teil der Muskelarbeit, v. a. in der Erholungsphase vor dem Stockeinsatz.'),
+      S('Bucher et al. 2018, Eur J Appl Physiol', '10.1007/s00421-018-3938-4', 'Gezielte Ermüdung der Rumpfmuskeln senkt die Leistung im Doppelstockschub am Skiergometer deutlich, der Rumpf ist also maßgeblich beteiligt.')
+    ]
+  }, 'cardio'),
+  P('air-bike', 'Air Bike (Assault Bike)', 'machine', [], [], {
+    confidence: 'low', basis: 'Biomechanik (Rad- + Armkurbel-Studien, kein Air-Bike-EMG)',
+    note: 'Sattel wie am Ergometer einstellen und die Griffe gleichmäßig drücken und ziehen. Der Luftwiderstand steigt, je schneller du trittst.',
+    involved: { primary: ['quads'], secondary: ['glutes', 'hamstrings', 'biceps', 'triceps'] },
+    sources: [
+      S('Harber et al. 2012, J Appl Physiol', '10.1152/japplphysiol.00786.2012', 'Reines Beinkurbeln (Ergometer) vergrößert den Quadrizeps im MRT. Übertragung auf das Air Bike ist eine Ableitung.'),
+      S('Vegter et al. 2021, Front Physiol', '10.3389/fphys.2021.599514', 'Beim Armkurbeln nutzen Personen v. a. die Armbeuger (Ziehen), die Armstrecker (Drücken) oder beides, je nach individueller Strategie.')
+    ]
+  }, 'cardio'),
 ];
 
 export function poolEntry(ref) {

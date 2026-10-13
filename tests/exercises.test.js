@@ -71,7 +71,7 @@ test('Suche ignoriert Groß-/Kleinschreibung, Umlaute und findet Notizen', () =>
 test('Gruppierung nach Region des ersten primären Muskels, alphabetisch; Regionsfilter nach primären Muskeln', () => {
   const list = POOL.map((p) => ({ ...p, note: '' }));
   const sections = lib.groupedExercises(list);
-  assert.deepEqual(sections.map((s) => s.key), ['chest', 'shoulders', 'back', 'arms', 'core', 'legs']);
+  assert.deepEqual(sections.map((s) => s.key), ['chest', 'shoulders', 'back', 'arms', 'core', 'legs', 'cardio']);
   const legs = sections.find((s) => s.key === 'legs').items.map((e) => e.name);
   assert.deepEqual(legs, [...legs].sort((a, b) => a.localeCompare(b, 'de')));
   const filtered = lib.groupedExercises(list, { region: 'arms' });

@@ -33,7 +33,7 @@ function infoButton(label, onClick) {
 function regionChips(active, onPick) {
   return h('div', { class: 'chips', role: 'toolbar', 'aria-label': 'Nach Körperregion filtern' },
     h('button', { class: `chip${active ? '' : ' on'}`, type: 'button', 'aria-pressed': String(!active), onclick: () => onPick(null) }, 'Alle'),
-    lib.REGIONS.map((r) => h('button', { class: `chip${active === r.key ? ' on' : ''}`, type: 'button', 'aria-pressed': String(active === r.key), onclick: () => onPick(active === r.key ? null : r.key) }, r.label))
+    lib.FILTER_REGIONS.map((r) => h('button', { class: `chip${active === r.key ? ' on' : ''}`, type: 'button', 'aria-pressed': String(active === r.key), onclick: () => onPick(active === r.key ? null : r.key) }, r.label))
   );
 }
 
@@ -84,9 +84,12 @@ export function openEvidence(ref) {
   const muscleLinks = (keys) => (keys.length
     ? h('span', { class: 'wrap' }, keys.map((m) => h('button', { class: 'chip small', type: 'button', onclick: () => openMuscleInfo(m) }, MUSCLES[m], icon('info', { size: 14, cls: 'inline' }))))
     : h('span', { class: 'muted' }, '–'));
+  // Cardio (v1.8): Muskeln nur zur Info, sie zählen nicht für die Muskelkarte.
+  const m = p.involved || p.muscles;
   openSheet(h('div', { class: 'info' },
-    h('p', {}, h('b', {}, 'Primär: '), muscleLinks(p.muscles.primary)),
-    h('p', {}, h('b', {}, 'Sekundär: '), muscleLinks(p.muscles.secondary)),
+    p.involved ? h('p', { class: 'muted small' }, 'Cardio zählt nicht für die Muskelkarte. Die Muskeln unten sind nur zur Information.') : null,
+    h('p', {}, h('b', {}, p.involved ? 'Hauptsächlich beteiligt: ' : 'Primär: '), muscleLinks(m.primary)),
+    h('p', {}, h('b', {}, p.involved ? 'Mitbeteiligt: ' : 'Sekundär: '), muscleLinks(m.secondary)),
     p.others.length ? h('p', {}, h('b', {}, 'Außerdem beteiligt: '), p.others.join('; ')) : null,
     h('p', {}, h('b', {}, 'Belastbarkeit: '), h('span', { class: `conf ${p.confidence}` }, CONFIDENCE[p.confidence]), ` · ${p.basis}`),
     p.note ? h('p', {}, p.note) : null,
@@ -137,7 +140,7 @@ function openPool(rerender) {
   const chipsWrap = body.querySelector('.chips-wrap');
   const chip = (on, label, onclick) => h('button', { class: `chip small${on ? ' on' : ''}`, type: 'button', 'aria-pressed': String(on), onclick }, label);
   const drawChips = () => {
-    const region = lib.REGIONS.find((r) => r.key === local.region);
+    const region = lib.FILTER_REGIONS.find((r) => r.key === local.region);
     chipsWrap.replaceChildren(...[
       regionChips(local.region, (r) => { local.region = r; local.muscle = null; drawChips(); draw(); }),
       region && region.muscles.length > 1 ? h('div', { class: 'chips', role: 'toolbar', 'aria-label': 'Nach Muskel filtern' },

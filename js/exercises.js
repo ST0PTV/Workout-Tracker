@@ -14,17 +14,25 @@ export const REGIONS = [
   { key: 'legs', label: 'Beine', muscles: ['glutes', 'quads', 'hamstrings', 'adductors', 'abductors', 'calves'] }
 ];
 
+// v1.8: Cardio als eigene Filter-Region ohne Muskeln. Cardio-Übungen zählen nicht zur Muskelkarte;
+// beteiligte Muskeln stehen nur im Infoblatt (Pool-Feld `involved`).
+export const CARDIO_REGION = { key: 'cardio', label: 'Cardio', muscles: [] };
+export const FILTER_REGIONS = [...REGIONS, CARDIO_REGION];
+
 export function regionOf(muscle) {
   return REGIONS.find((r) => r.muscles.includes(muscle))?.key ?? null;
 }
 
 // Region einer Übung = Region des ersten primären Muskels.
 export function exerciseRegion(ex) {
+  if (ex.kind === 'cardio') return 'cardio';
   return regionOf(ex.muscles.primary[0]) ?? 'other';
 }
 
 export function inRegion(ex, regionKey) {
   if (!regionKey) return true;
+  if (regionKey === 'cardio') return ex.kind === 'cardio';
+  if (ex.kind === 'cardio') return false;
   const r = REGIONS.find((x) => x.key === regionKey);
   return !!r && ex.muscles.primary.some((m) => r.muscles.includes(m));
 }
@@ -43,6 +51,7 @@ export function muscleLabel(key) {
 
 // "Brust · Trizeps, vordere Schulter"
 export function muscleSummary(ex) {
+  if (ex.kind === 'cardio' && !ex.muscles.primary.length) return 'Cardio';
   const p = ex.muscles.primary.map(muscleLabel).join(', ');
   const s = ex.muscles.secondary.map(muscleLabel).join(', ');
   return s ? `${p} · ${s}` : p;
@@ -60,7 +69,7 @@ export function getExercise(id) {
 export function groupedExercises(exercises, { query = '', region = null } = {}) {
   const filtered = exercises.filter((e) => matchesQuery(e, query) && inRegion(e, region));
   const sections = [];
-  for (const r of [...REGIONS, { key: 'other', label: 'Ohne Muskelgruppe' }]) {
+  for (const r of [...FILTER_REGIONS, { key: 'other', label: 'Ohne Muskelgruppe' }]) {
     const items = filtered.filter((e) => exerciseRegion(e) === r.key).sort((a, b) => a.name.localeCompare(b.name, 'de'));
     if (items.length) sections.push({ key: r.key, label: r.label, items });
   }

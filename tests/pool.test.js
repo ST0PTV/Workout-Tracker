@@ -19,7 +19,15 @@ test('jeder Eintrag: gültiger Typ, Gerät, mind. ein primärer Muskel, keine Do
   for (const p of POOL) {
     assert.ok(M.EXERCISE_KINDS.includes(p.kind), p.ref);
     assert.ok(p.equipment in EQUIPMENT, p.ref);
-    assert.ok(p.muscles.primary.length >= 1, p.ref);
+    if (p.kind === 'cardio') {
+      // v1.8: Cardio zählt nicht für die Muskelkarte – Muskeln nur als Info in `involved`.
+      assert.deepEqual(p.muscles, { primary: [], secondary: [] }, p.ref);
+      assert.ok(p.involved && p.involved.primary.length >= 1, p.ref);
+      assert.ok([...p.involved.primary, ...p.involved.secondary].every((m) => m in M.MUSCLES), p.ref);
+    } else {
+      assert.ok(p.muscles.primary.length >= 1, p.ref);
+      assert.equal(p.involved, null, p.ref);
+    }
     const overlap = p.muscles.primary.filter((m) => p.muscles.secondary.includes(m));
     assert.deepEqual(overlap, [], p.ref);
     assert.equal(p.verification, 'verified', p.ref);
@@ -104,6 +112,26 @@ test('v1.7 Runde 2: Körpergewichtsübungen haben kind = bodyweight', () => {
   for (const ref of ['chin-up', 'inverted-row', 'bench-dips', 'feet-elevated-push-up']) {
     assert.equal(poolEntry(ref).kind, 'bodyweight', ref);
   }
+});
+
+test('v1.8 Runde 3: Bauch, schräge Bauchmuskeln, Hüftbeuger und Cardio erreichen die Zielzahlen', () => {
+  const count = {};
+  for (const p of POOL) for (const m of p.muscles.primary) count[m] = (count[m] || 0) + 1;
+  for (const [m, min] of Object.entries({ abs: 6, obliques: 5, 'hip-flexors': 3 })) assert.ok(count[m] >= min, `${m}: ${count[m]} < ${min}`);
+  assert.ok(POOL.filter((p) => p.kind === 'cardio').length >= 6);
+  assert.ok(POOL.length >= 120, `nur ${POOL.length}`);
+});
+
+test('v1.8: Cardio aus dem Pool landet in der Region Cardio, nicht bei den Muskeln', async () => {
+  const lib = await import('../js/exercises.js');
+  const bike = exerciseFromPool(poolEntry('stationary-bike'));
+  assert.equal(bike.kind, 'cardio');
+  assert.equal(lib.exerciseRegion(bike), 'cardio');
+  assert.ok(lib.inRegion(bike, 'cardio'));
+  assert.ok(!lib.inRegion(bike, 'legs'));
+  assert.equal(lib.muscleSummary(bike), 'Cardio');
+  assert.ok(!lib.inRegion(poolEntry('plank'), 'cardio'));
+  assert.deepEqual(lib.groupedExercises([bike]).map((s) => s.key), ['cardio']);
 });
 
 done();
