@@ -1,8 +1,11 @@
 // Backup-Export/-Import mit versioniertem Schema.
-// Schema (Version 1):
-// { app: "workout-tracker", schemaVersion: 1, exportedAt: ISO, data: { exercises[], plans[], sessions[], settings{} } }
+// Format: { app: "workout-tracker", schemaVersion, exportedAt: ISO,
+//           data: { exercises[], groups[], plans[], sessions[], settings{} } }
+// Ältere Schema-Versionen werden beim Import migriert (js/migrate.js).
 import * as store from './store.js';
 import { nowISO } from './util.js';
+import { migrateData } from './migrate.js';
+import { validateData } from './model.js';
 
 export const BACKUP_APP = 'workout-tracker';
 
@@ -21,59 +24,52 @@ export function backupFilename(date = new Date()) {
   return `workout-tracker-backup-${stamp}.json`;
 }
 
-// Platz für spätere Schema-Migrationen: ältere Versionen schrittweise auf die aktuelle heben.
-function migrate(backup) {
-  return backup;
-}
-
-// Prüft eine geparste Datei. Gibt { ok, errors[], backup?, summary? } zurück. Ändert nichts.
+// Prüft eine geparste Datei: Kopf → Migration → Struktur → Inhalte und Verweise.
+// Gibt { ok, errors[], backup?, summary? } zurück. Ändert nichts.
 export function validateBackup(obj) {
-  const errors = [];
   if (!obj || typeof obj !== 'object' || Array.isArray(obj)) {
     return { ok: false, errors: ['Datei enthält kein gültiges Backup-Objekt.'] };
   }
-  if (obj.app !== BACKUP_APP) errors.push('Kein Backup dieser App (Feld "app" passt nicht).');
-  if (!Number.isInteger(obj.schemaVersion)) errors.push('Schema-Version fehlt oder ist ungültig.');
-  else if (obj.schemaVersion > store.SCHEMA_VERSION) {
-    errors.push(`Backup stammt aus einer neueren App-Version (Schema ${obj.schemaVersion}, hier ${store.SCHEMA_VERSION}).`);
-  } else if (obj.schemaVersion < 1) errors.push('Schema-Version ungültig.');
+  if (obj.app !== BACKUP_APP) return { ok: false, errors: ['Kein Backup dieser App (Feld "app" passt nicht).'] };
+  if (!obj.data || typeof obj.data !== 'object' || Array.isArray(obj.data)) return { ok: false, errors: ['Feld "data" fehlt.'] };
 
-  const data = obj.data;
-  if (!data || typeof data !== 'object') errors.push('Feld "data" fehlt.');
-  else {
-    for (const key of store.COLLECTIONS) {
-      if (!Array.isArray(data[key])) errors.push(`"${key}" fehlt oder ist keine Liste.`);
-      else {
-        const ids = new Set();
-        for (const item of data[key]) {
-          if (!item || typeof item.id !== 'string' || !item.id) {
-            errors.push(`Eintrag ohne gültige id in "${key}".`);
-            break;
-          }
-          if (ids.has(item.id)) {
-            errors.push(`Doppelte id in "${key}".`);
-            break;
-          }
-          ids.add(item.id);
-        }
-      }
+  const errors = [];
+  // Struktur vor der Migration: vorhandene Sammlungen müssen Listen mit eindeutigen ids sein.
+  for (const key of store.COLLECTIONS) {
+    const list = obj.data[key];
+    if (list === undefined && key === 'groups' && obj.schemaVersion === 1) continue; // in v1 noch nicht vorhanden
+    if (!Array.isArray(list)) { errors.push(`"${key}" fehlt oder ist keine Liste.`); continue; }
+    const ids = new Set();
+    for (const item of list) {
+      if (!item || typeof item.id !== 'string' || !item.id) { errors.push(`Eintrag ohne gültige id in "${key}".`); break; }
+      if (ids.has(item.id)) { errors.push(`Doppelte id in "${key}".`); break; }
+      ids.add(item.id);
     }
-    if (data.settings !== undefined && (typeof data.settings !== 'object' || data.settings === null || Array.isArray(data.settings))) {
-      errors.push('"settings" ist kein Objekt.');
-    }
+  }
+  const settings = obj.data.settings;
+  if (settings !== undefined && (typeof settings !== 'object' || settings === null || Array.isArray(settings))) {
+    errors.push('"settings" ist kein Objekt.');
   }
   if (errors.length) return { ok: false, errors };
 
-  const backup = migrate(obj);
+  const migrated = migrateData(obj.data, obj.schemaVersion);
+  if (!migrated.ok) return { ok: false, errors: migrated.errors };
+
+  const contentErrors = validateData(migrated.data);
+  if (contentErrors.length) return { ok: false, errors: contentErrors };
+
+  const data = migrated.data;
   return {
     ok: true,
     errors: [],
-    backup,
+    backup: { ...obj, schemaVersion: store.SCHEMA_VERSION, data },
     summary: {
-      exportedAt: backup.exportedAt || null,
-      exercises: backup.data.exercises.length,
-      plans: backup.data.plans.length,
-      sessions: backup.data.sessions.length
+      exportedAt: obj.exportedAt || null,
+      fromSchema: obj.schemaVersion,
+      exercises: data.exercises.length,
+      groups: data.groups.length,
+      plans: data.plans.length,
+      sessions: data.sessions.length
     }
   };
 }
@@ -91,11 +87,5 @@ export function parseBackupText(text) {
 // Spielt ein bereits validiertes Backup ein und ersetzt alle Daten.
 export function applyBackup(validated) {
   if (!validated || !validated.ok) return false;
-  const data = validated.backup.data;
-  return store.replaceAll({
-    exercises: data.exercises,
-    plans: data.plans,
-    sessions: data.sessions,
-    settings: data.settings || {}
-  });
+  return store.replaceAll(validated.backup.data);
 }
