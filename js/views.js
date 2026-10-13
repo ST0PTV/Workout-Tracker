@@ -40,9 +40,7 @@ export function plansView() {
   return placeholder('Pläne', 'Trainingspläne aus deinen Übungen zusammenstellen.', 'v0.4');
 }
 
-export function exercisesView() {
-  return placeholder('Übungen', 'Übungen anlegen und aus einem recherchierten Startpool wählen.', 'v0.3');
-}
+export { exercisesView } from './exercises-view.js';
 
 async function exportBackup() {
   const payload = backup.buildBackup();

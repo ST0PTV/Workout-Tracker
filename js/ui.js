@@ -1,5 +1,6 @@
 // UI-Grundbausteine: Router, Tab-Leiste, Toast.
 import { h } from './util.js';
+import { closeAllSheets } from './sheet.js';
 
 const ICONS = {
   train: '<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>',
@@ -50,13 +51,17 @@ export function toast(message, { error = false } = {}) {
 export function startRouter(routes) {
   const view = document.getElementById('view');
   const tabbar = document.getElementById('tabbar');
+  let lastPath = null;
   const render = () => {
     const path = currentPath();
+    const samePage = path === lastPath;
+    lastPath = path;
+    const y = window.scrollY;
     renderTabbar(tabbar, path);
     view.replaceChildren(routes[path]());
-    window.scrollTo(0, 0);
+    window.scrollTo(0, samePage ? y : 0); // Neu-Rendern derselben Seite behält die Scrollposition
   };
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', () => { closeAllSheets(); render(); });
   render();
   return render;
 }
