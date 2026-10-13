@@ -6,7 +6,8 @@ import { h } from './util.js';
 import * as store from './store.js';
 import * as H from './history.js';
 import { weightWarning, sessionSummary } from './model.js';
-import { parseWeight, parseReps, fmtNum } from './input.js';
+import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm } from './input.js';
+import { INTENSITIES } from './model.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
@@ -55,6 +56,38 @@ const setLabel = SETS.setLabel;
 // v1.3: Hinweis auf die geplante Übung nach einem Tausch.
 const insteadOf = (en, byId) => (en.plannedExerciseId ? h('div', { class: 'badge-line' }, h('span', { class: 'badge-instead' }, `statt ${byId[en.plannedExerciseId]?.name || 'geplanter Übung'}`)) : null);
 
+// v1.4: Anzeige je Übungstyp (Kraft „80 kg × 8“, Körpergewicht „KG × 8“ / „+5 × 5“, Cardio „20:00 · 4,6 km · Mittel“).
+export function setText(x, kind = 'strength') {
+  const t = SETS.formatSet(x, kind);
+  if (kind === 'cardio') return x.intensity ? `${t} · ${INTENSITIES[x.intensity]}` : t;
+  return kind === 'strength' && x.weightKg !== null ? t.replace(' × ', ' kg × ') : t;
+}
+
+// datetime-local ⇄ ISO (Ortszeit)
+const toLocalInput = (iso) => { const d = new Date(iso); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
+const fmtClock = (iso) => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+// v1.4 (Entscheidung 5 B): Zeit-Sheet für Beginn und Ende; Dauer wird berechnet.
+function openTimeSheet(draft, onDone) {
+  const a = h('input', { class: 'input', type: 'datetime-local', value: toLocalInput(draft.startedAt), 'aria-label': 'Beginn' });
+  const b = h('input', { class: 'input', type: 'datetime-local', value: toLocalInput(draft.endedAt), 'aria-label': 'Ende' });
+  const info = h('p', { class: 'muted small' });
+  const upd = () => {
+    const min = Math.round((Date.parse(new Date(b.value)) - Date.parse(new Date(a.value))) / 60000);
+    info.textContent = Number.isFinite(min) && min > 0 ? `Dauer ${durText(min)}. Die Zeitpunkte der Sätze werden mitverschoben.` : 'Das Ende muss nach dem Beginn liegen.';
+  };
+  a.addEventListener('input', upd); b.addEventListener('input', upd); upd();
+  const sheet = openSheet(h('div', { class: 'editor' },
+    h('div', { class: 'field' }, h('label', {}, 'Beginn'), a),
+    h('div', { class: 'field' }, h('label', {}, 'Ende'), b),
+    info,
+    h('button', { class: 'btn primary block', type: 'button', onclick: () => {
+      const r = H.setTimes(draft, new Date(a.value).toISOString(), new Date(b.value).toISOString());
+      if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+      sheet.close(); onDone();
+    } }, 'Übernehmen')), { title: 'Zeit' });
+}
+
 function readView(s) {
   const byId = exercisesById();
   const sum = sessionSummary(s, byId);
@@ -71,7 +104,7 @@ function readView(s) {
         insteadOf(en, byId),
         h('div', { class: 'diary-sets' }, en.sets.map((x) => {
           const no = x.type === 'warmup' ? 0 : ++workNo;
-          const val = x.weightKg !== null ? `${SETS.formatSet(x).replace(' × ', ' kg × ')}` : `${x.reps ?? '–'} Wdh.`;
+          const val = setText(x, ex?.kind);
           return h('div', { class: `dset${x.type === 'warmup' ? ' warm' : ''}` }, h('span', { class: 'sn' }, setLabel(x, no)), h('span', {}, val, tagChips(x)));
         })));
     })
@@ -87,20 +120,36 @@ export function openDiaryEntry(id, rerender) {
 
   const leaveEdit = () => { state.mode = 'view'; state.draft = null; state.invalid.clear(); draw(); };
 
-  function editRow(entry, set, workNo, exId) {
+  function editRow(entry, set, workNo, exId, kind = 'strength') {
     const key = set.id;
-    const w = h('input', { class: 'val', type: 'text', inputmode: 'decimal', value: fmtNum(set.weightKg), placeholder: '–', 'aria-label': `Satz ${setLabel(set, workNo)} Gewicht in kg` });
-    const r = h('input', { class: 'val', type: 'text', inputmode: 'numeric', value: fmtNum(set.reps), placeholder: '–', 'aria-label': `Satz ${setLabel(set, workNo)} Wiederholungen` });
+    const cardio = kind === 'cardio';
+    const bw = kind === 'bodyweight';
+    const w = cardio
+      ? h('input', { class: 'val', type: 'text', inputmode: 'numeric', value: fmtDuration(set.durationSec), placeholder: 'mm:ss', 'aria-label': 'Dauer' })
+      : h('input', { class: 'val', type: 'text', inputmode: bw ? 'text' : 'decimal', value: bw ? fmtAdded(set.weightKg) : fmtNum(set.weightKg), placeholder: bw ? 'KG' : '–', 'aria-label': `Satz ${setLabel(set, workNo)} ${bw ? 'Zusatzgewicht' : 'Gewicht'} in kg` });
+    const r = cardio
+      ? h('input', { class: 'val', type: 'text', inputmode: 'decimal', value: fmtKm(set.distanceM), placeholder: '–', 'aria-label': 'Strecke in km' })
+      : h('input', { class: 'val', type: 'text', inputmode: 'numeric', value: fmtNum(set.reps), placeholder: '–', 'aria-label': `Satz ${setLabel(set, workNo)} Wiederholungen` });
     const hint = h('div', { class: 'hint typo', hidden: true }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}));
     const check = () => {
-      const weightKg = parseWeight(w.value);
+      if (cardio) {
+        const durationSec = parseDuration(w.value);
+        const distanceM = parseDistanceKm(r.value);
+        w.classList.toggle('bad', Number.isNaN(durationSec));
+        r.classList.toggle('bad', Number.isNaN(distanceM));
+        if (Number.isNaN(durationSec) || Number.isNaN(distanceM)) state.invalid.add(key); else state.invalid.delete(key);
+        if (!Number.isNaN(durationSec)) H.setValues(state.draft, entry.id, set.id, { durationSec });
+        if (!Number.isNaN(distanceM)) H.setValues(state.draft, entry.id, set.id, { distanceM });
+        return;
+      }
+      const weightKg = bw ? parseAddedWeight(w.value) : parseWeight(w.value);
       const reps = parseReps(r.value);
       w.classList.toggle('bad', Number.isNaN(weightKg));
       r.classList.toggle('bad', Number.isNaN(reps));
       if (Number.isNaN(weightKg) || Number.isNaN(reps)) state.invalid.add(key); else state.invalid.delete(key);
       if (!Number.isNaN(weightKg)) H.setValues(state.draft, entry.id, set.id, { weightKg });
       if (!Number.isNaN(reps)) H.setValues(state.draft, entry.id, set.id, { reps });
-      const warn = Number.isNaN(weightKg) ? null : weightWarning(exId, weightKg, store.get('sessions'), { excludeSessionId: state.draft.id });
+      const warn = Number.isNaN(weightKg) || bw ? null : weightWarning(exId, weightKg, store.get('sessions'), { excludeSessionId: state.draft.id });
       w.classList.toggle('warnval', !!warn);
       hint.hidden = !warn;
       if (warn) hint.lastChild.textContent = typoText(warn.best);
@@ -147,15 +196,19 @@ export function openDiaryEntry(id, rerender) {
           leaveEdit();
         } }, 'Abbrechen'),
         h('button', { class: 'btn primary', type: 'button', onclick: save }, 'Fertig')),
-      h('p', { class: 'muted small' }, 'Tipp auf die Satznummer: Satztyp und Markierungen. Datum und Dauer sind nicht bearbeitbar.'),
+      h('button', { class: 'card time-line', type: 'button', 'aria-label': 'Beginn und Ende ändern', onclick: () => openTimeSheet(d, draw) },
+        h('span', { class: 't' }, h('b', {}, `${fmtLong(d.startedAt)} · ${fmtClock(d.startedAt)}–${fmtClock(d.endedAt)}`), h('small', {}, durText(H.durationMin(d)))),
+        icon('edit', { size: 18 })),
+      h('p', { class: 'muted small' }, 'Tipp auf die Zeit: Beginn und Ende ändern. Tipp auf die Satznummer: Satztyp und Markierungen.'),
       d.entries.map((en) => {
         const ex = byId[en.exerciseId];
+        const kind = ex?.kind || 'strength';
         let workNo = 0;
         return h('div', { class: 'card sets diary-ex' },
           h('h2', {}, ex?.name || 'Unbekannte Übung'),
           insteadOf(en, byId),
-          h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
-          en.sets.length ? en.sets.flatMap((x) => editRow(en, x, x.type === 'warmup' ? 0 : ++workNo, en.exerciseId)) : h('p', { class: 'muted small center' }, 'Keine Sätze – die Übung fällt beim Speichern weg.'),
+          h('div', { class: 'hdrrow' }, h('span', {}, kind === 'cardio' ? 'Abs.' : 'Satz'), h('span', {}, kind === 'cardio' ? 'Dauer' : kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, kind === 'cardio' ? 'km' : 'Wdh.'), h('span', {}, '')),
+          en.sets.length ? en.sets.flatMap((x) => editRow(en, x, x.type === 'warmup' ? 0 : ++workNo, en.exerciseId, kind)) : h('p', { class: 'muted small center' }, 'Keine Sätze – die Übung fällt beim Speichern weg.'),
           h('div', { class: 'nav2' },
             h('button', { class: 'btn', type: 'button', onclick: () => { H.addSet(d, en.id, 'work'); draw(); } }, icon('plus', { size: 18 }), 'Satz'),
             h('button', { class: 'btn danger-text', type: 'button', 'aria-label': `${ex?.name || 'Übung'} aus dem Training entfernen`, onclick: () => {

@@ -1,7 +1,7 @@
 // Gruppen-Oberfläche (v1.3, Variante A + „statt … · zurück“ aus C).
 // - Übungs-Editor: Gruppen-Chips (Zugehörigkeit), „+ Neue Gruppe“, „Gruppen verwalten“ (umbenennen, löschen).
-// - Training: Knopf „Tauschen“ (nur wenn es Kandidaten gibt) öffnet ein Sheet mit Kandidaten und „Zuletzt …“;
-//   nach einem erledigten Satz fügt die Auswahl die Übung dahinter ein (Entscheidung b).
+// - Training: Kandidaten-Zeilen (candidateLine, swapOptions) für das Aufklappen unter dem Titel (v1.4, Variante B);
+//   nach einem erledigten Satz fügt die Auswahl die Übung dahinter ein (Entscheidung b, v1.3).
 import { h } from './util.js';
 import * as store from './store.js';
 import * as G from './groups.js';
@@ -90,11 +90,11 @@ export function openGroupManager(onChange = () => {}) {
 
 // ---------- Training ----------
 
-function candidateLine(ex, entry) {
+export function candidateLine(ex, entry) {
   const last = lastPerformance(ex.id, finished());
   if (last) {
     const sets = last.sets.filter((x) => x.type !== 'warmup');
-    return `Zuletzt ${fmtDay(last.date)}: ${formatLastSets(sets)}`;
+    return `Zuletzt ${fmtDay(last.date)}: ${formatLastSets(sets, ex.kind)}`;
   }
   const n = entry.targetSets ?? ex.defaultWorkSets;
   return `Noch nicht trainiert · ${n} ${n === 1 ? 'Satz' : 'Sätze'} ${entry.targetSets ? 'aus dem Plan' : '(Standard)'}`;
@@ -102,24 +102,3 @@ function candidateLine(ex, entry) {
 
 // Kandidaten für den Eintrag; leer → kein Knopf.
 export const swapOptions = (entry) => G.swapCandidates(entry);
-
-export function openSwapSheet(entry, { onDone }) {
-  const { groupIds, candidates } = G.swapCandidates(entry);
-  const hasDone = entry.sets.some((x) => x.completedAt !== null);
-  const names = G.groupNames(groupIds);
-  const sheet = openSheet(h('div', {},
-    h('p', { class: 'muted small' }, hasDone
-      ? 'Hier ist schon ein Satz erledigt. Die Auswahl kommt als eigene Übung direkt dahinter; die erledigten Sätze bleiben.'
-      : 'Nur für dieses Training. Die neue Übung startet mit ihren Werten vom letzten Mal.'),
-    h('div', { class: 'card list' }, candidates.map((ex) => h('button', { class: 'row', type: 'button', onclick: () => {
-      const r = S.swapEntry(entry.id, ex.id);
-      if (!r.ok) { toast(r.errors[0], { error: true }); return; }
-      sheet.close();
-      toast(r.mode === 'inserted' ? `${ex.name} dahinter eingefügt.` : `Getauscht: ${ex.name}.`);
-      onDone(r);
-    } },
-      h('span', { class: 't' }, h('b', {}, ex.name), h('small', {}, candidateLine(ex, entry))),
-      h('span', { class: 'pill-act' }, hasDone ? 'Einfügen' : 'Tauschen'))))
-  ), { title: names.length ? `Tauschen · ${names.join(', ')}` : 'Tauschen' });
-  return sheet;
-}

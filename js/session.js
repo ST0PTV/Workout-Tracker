@@ -3,8 +3,9 @@
 // damit nichts verloren geht, wenn iOS die App im Hintergrund beendet.
 import * as store from './store.js';
 import { nowISO } from './util.js';
-import { createSession, createEntry, createSet, prefillSets, startSessionFromPlan, needsWarmupHint, lastPerformance, validateSession, sessionSummary, swapEntryExercise } from './model.js';
+import { createSession, createEntry, createSet, prefillSets, startSessionFromPlan, needsWarmupHint, lastPerformance, validateSession, sessionSummary, swapEntryExercise, completionError } from './model.js';
 import { getPlan } from './plans.js';
+import { isEmptySet } from './history.js';
 import { effectiveRest } from './rest.js';
 import * as SETS from './sets.js';
 import { startRest, adjustRest } from './timer.js';
@@ -70,7 +71,7 @@ export function finish() {
   const s = activeSession();
   if (!s) return { ok: false, errors: ['Kein laufendes Training.'] };
   const done = s.entries
-    .map((e) => ({ ...e, sets: e.sets.filter((x) => x.completedAt !== null).map((x) => SETS.cleanStages({ ...x, drops: [...x.drops] })) }))
+    .map((e) => ({ ...e, sets: e.sets.filter((x) => x.completedAt !== null && !isEmptySet(x)).map((x) => SETS.cleanStages({ ...x, drops: [...x.drops] })) }))
     .filter((e) => e.sets.length);
   if (!done.length) return { ok: false, errors: ['Noch kein Satz erledigt. Training verwerfen?'], empty: true };
   return save({ ...s, entries: done, endedAt: nowISO(), restTimer: null });
@@ -85,14 +86,18 @@ export function discard() {
 
 // ---------- Sätze ----------
 
-// Satz abhaken: Werte übernehmen, Zeitstempel setzen und die Satzpause der Übung starten.
+// Satz abhaken: Werte übernehmen, Zeitstempel setzen und die Satzpause starten.
+// v1.4: ohne Werte kein Haken (completionError); Cardio-Einheiten starten keine Satzpause.
 export function completeSet(entryId, setId, values = {}) {
   return update((s) => {
     const { entry, set } = findSet(s, entryId, setId);
     if (!set) return 'Satz nicht gefunden.';
-    Object.assign(set, values, { completedAt: nowISO() });
     const ex = exercisesById()[entry.exerciseId];
-    s.restTimer = startRest(entryId, effectiveRest(ex, store.get('settings')));
+    const kind = ex?.kind || 'strength';
+    const err = completionError({ ...set, ...values }, kind);
+    if (err) return err;
+    Object.assign(set, values, { completedAt: nowISO() });
+    if (kind !== 'cardio') s.restTimer = startRest(entryId, effectiveRest(ex, store.get('settings'), entry));
   });
 }
 
@@ -108,7 +113,7 @@ export function updateSet(entryId, setId, values) {
   return update((s) => {
     const { set } = findSet(s, entryId, setId);
     if (!set) return 'Satz nicht gefunden.';
-    const allowed = ['weightKg', 'reps', 'type', 'drops', 'tags', 'durationSec', 'distanceM'];
+    const allowed = ['weightKg', 'reps', 'type', 'drops', 'tags', 'durationSec', 'distanceM', 'intensity'];
     for (const k of Object.keys(values)) if (allowed.includes(k)) set[k] = values[k];
     if (!SETS.hasStages(set.type)) set.drops = [];
   });
@@ -191,6 +196,7 @@ export function swapEntry(entryId, exerciseId) {
     next.entries.splice(i + 1, 0, createEntry(ex.id, {
       groupId: entry.groupId,
       targetSets: entry.targetSets ?? null,
+      restSeconds: entry.restSeconds ?? null,
       sets: prefillSets(ex, finishedSessions(), entry.targetSets ?? null)
     }));
     mode = 'inserted';

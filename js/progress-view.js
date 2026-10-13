@@ -8,7 +8,9 @@ import { exerciseProgress, progressSummary, exercisesWithHistory, fmtKg, NOISE_P
 import { PROGRESS_INFO, PROGRESS_CHECKED_AT, E1RM_LABEL, E1RM_EXPLAIN } from './progress-info.js';
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
-import { diaryList } from './diary-view.js';
+import { diaryList, setText } from './diary-view.js';
+import { musclesPanel } from './muscle-view.js';
+import { fmtDuration, fmtKm, fmtPace } from './input.js';
 import { formatSet } from './sets.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -24,8 +26,8 @@ function svgEl(tag, attrs = {}) {
 }
 
 // Sätze kompakt: "85 × 6, 85 × 5 + 60 × 6" (Drop-/Rest-Pause-Stufen mit +, v1.2 aus sets.js)
-function fmtSets(sets) {
-  return sets.map((s) => formatSet(s)).join(', ');
+function fmtSets(sets, kind = 'strength') {
+  return sets.map((s) => formatSet(s, kind)).join(', ');
 }
 
 export function hasHistory(exerciseId) {
@@ -129,6 +131,7 @@ export function progressPanel(exercise) {
   if (!rows.length) {
     return h('div', { class: 'progress-panel' }, h('p', { class: 'muted' }, 'Noch kein abgeschlossenes Training mit dieser Übung. Der Verlauf erscheint nach dem ersten Training.'));
   }
+  if (exercise.kind === 'cardio') return cardioPanel(rows);
   const sum = progressSummary(rows);
   const isStrength = exercise.kind === 'strength';
   const est = rows.filter((r) => r.e1rm);
@@ -136,7 +139,7 @@ export function progressPanel(exercise) {
 
   const tiles = h('div', { class: 'tiles' },
     h('div', { class: 'tile' }, h('small', {}, 'Bester Satz'),
-      h('b', {}, isStrength || sum.bestTop.weightKg ? `${fmtKg(sum.bestTop.weightKg)} × ${sum.bestTop.reps}` : `${sum.bestTop.reps} Wdh.`),
+      h('b', {}, isStrength ? `${fmtKg(sum.bestTop.weightKg)} × ${sum.bestTop.reps}` : setText({ weightKg: sum.bestTop.weightKg || null, reps: sum.bestTop.reps, drops: [] }, 'bodyweight')),
       h('span', {}, `gemessen · ${fmtDate(sum.bestTop.date)}`)),
     isStrength
       ? h('div', { class: 'tile' }, h('small', {}, 'e1RM ', h('span', { class: 'est' }, 'Schätzung')),
@@ -165,7 +168,7 @@ export function progressPanel(exercise) {
     h('thead', {}, h('tr', {}, h('th', {}, 'Datum'), h('th', {}, 'Arbeitssätze'), h('th', { class: 'n' }, isStrength ? h('span', {}, 'e1RM ', h('span', { class: 'est' }, '≈')) : 'Wdh.'))),
     h('tbody', {}, [...rows].reverse().map((r) => h('tr', {},
       h('td', {}, fmtDay(r.date)),
-      h('td', {}, fmtSets(r.sets)),
+      h('td', {}, fmtSets(r.sets, exercise.kind)),
       h('td', { class: 'n' }, isStrength
         ? (r.e1rm ? [fmtKg(r.e1rm.value), r.change ? h('small', {}, `${fmtPct(r.change.pct)}${r.change.withinNoise ? ' · Rauschen' : ''}`) : null] : h('span', { class: 'muted' }, '–'))
         : String(r.totalReps))))));
@@ -174,6 +177,21 @@ export function progressPanel(exercise) {
     h('div', { class: 'sec' }, 'Alle Trainings'),
     h('div', { class: 'card tbl-card' }, table),
     h('p', { class: 'muted small' }, 'Ohne Aufwärmsätze. Werte nur innerhalb dieser Übung vergleichen.'));
+}
+
+// v1.4 Cardio: gemessene Werte (Dauer, Strecke) und daraus berechnetes Tempo; kein Diagramm, keine Kalorien.
+function cardioPanel(rows) {
+  const last = rows[rows.length - 1];
+  const fmt = (r) => [r.durationSec ? fmtDuration(r.durationSec) : null, r.distanceM ? `${fmtKm(r.distanceM)} km` : null].filter(Boolean).join(' · ') || '–';
+  return h('div', { class: 'progress-panel' },
+    h('div', { class: 'tiles' },
+      h('div', { class: 'tile' }, h('small', {}, 'Zuletzt'), h('b', {}, fmt(last)), h('span', {}, fmtDate(last.date))),
+      h('div', { class: 'tile' }, h('small', {}, 'Trainings'), h('b', {}, String(rows.length)), h('span', {}, 'abgeschlossen'))),
+    h('div', { class: 'sec' }, 'Alle Einheiten'),
+    h('div', { class: 'card tbl-card' }, h('table', { class: 'tbl' },
+      h('thead', {}, h('tr', {}, h('th', {}, 'Datum'), h('th', {}, 'Einheit'), h('th', { class: 'n' }, 'Tempo'))),
+      h('tbody', {}, [...rows].reverse().map((r) => h('tr', {}, h('td', {}, fmtDay(r.date)), h('td', {}, fmt(r)), h('td', { class: 'n' }, fmtPace(r.durationSec, r.distanceM) || '–')))))),
+    h('p', { class: 'muted small' }, 'Tempo = Dauer ÷ Strecke (pro km). Werte nur innerhalb dieser Übung vergleichen.'));
 }
 
 export function openProgress(exerciseId) {
@@ -185,7 +203,7 @@ export function openProgress(exerciseId) {
 // ---------- Tab ----------
 
 function trendLabel(ex) {
-  if (ex.kind !== 'strength') return h('span', { class: 'trend noise' }, ex.kind === 'bodyweight' ? 'Körpergewicht' : '');
+  if (ex.kind !== 'strength') return h('span', { class: 'trend noise' }, ex.kind === 'bodyweight' ? 'Körpergewicht' : 'Cardio');
   const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
   const sum = progressSummary(rows);
   if (!sum.estimatePoints) return h('span', { class: 'trend noise' }, 'nur Wdh. > 10');
@@ -204,11 +222,12 @@ function exerciseList() {
       h('div', { class: 'card list' }, list.map(({ exercise: ex, sessions }) => {
         const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
         const lastRow = rows[rows.length - 1];
-        const values = ex.kind === 'strength' ? rows.filter((r) => r.e1rm).map((r) => r.e1rm.value) : rows.map((r) => r.totalReps);
+        const values = ex.kind === 'strength' ? rows.filter((r) => r.e1rm).map((r) => r.e1rm.value) : ex.kind === 'cardio' ? rows.map((r) => r.distanceM || r.durationSec) : rows.map((r) => r.totalReps);
         const top = lastRow.topSet;
+        const lastText = ex.kind === 'cardio' ? setText(lastRow, 'cardio') : ex.kind === 'bodyweight' ? setText({ ...top, drops: [] }, 'bodyweight') : top.weightKg ? `${fmtKg(top.weightKg)} × ${top.reps}` : `${top.reps} Wdh.`;
         return h('button', { class: 'row prow', type: 'button', onclick: () => openProgress(ex.id) },
           h('span', { class: 't' }, h('b', {}, ex.name),
-            h('small', {}, `${sessions} ${sessions === 1 ? 'Training' : 'Trainings'} · zuletzt ${top.weightKg ? `${fmtKg(top.weightKg)} × ${top.reps}` : `${top.reps} Wdh.`}`)),
+            h('small', {}, `${sessions} ${sessions === 1 ? 'Training' : 'Trainings'} · zuletzt ${lastText}`)),
           sparkline(values),
           trendLabel(ex));
       }))]
@@ -218,7 +237,7 @@ function exerciseList() {
 
 export function progressView(rerender = () => {}) {
   const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },
-    [['exercises', 'Übungen'], ['sessions', 'Trainings']].map(([k, label]) =>
+    [['exercises', 'Übungen'], ['sessions', 'Trainings'], ['muscles', 'Muskeln']].map(([k, label]) =>
       h('button', { type: 'button', role: 'tab', class: tabState.mode === k ? 'on' : '', 'aria-selected': String(tabState.mode === k),
         onclick: () => { if (tabState.mode !== k) { tabState.mode = k; rerender(); } } }, label)));
   return h('section', { class: 'progress' },
@@ -227,5 +246,5 @@ export function progressView(rerender = () => {}) {
         ? h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So wird Fortschritt berechnet', onclick: openProgressInfo }, icon('info', { size: 20 }))
         : null),
     seg,
-    tabState.mode === 'exercises' ? exerciseList() : diaryList(rerender));
+    tabState.mode === 'exercises' ? exerciseList() : tabState.mode === 'muscles' ? musclesPanel(rerender) : diaryList(rerender));
 }

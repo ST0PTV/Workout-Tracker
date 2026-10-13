@@ -77,6 +77,7 @@ test('Satz hinzufügen zählt als erledigt; Aufwärmsatz landet vor den Arbeitss
   assert.equal(w.weightKg, 85);
   const a = H.addSet(d, en.id, 'warmup');
   assert.equal(en.sets[0].id, a.id);
+  H.setValues(d, en.id, a.id, { weightKg: 40, reps: 10 }); // v1.4: leere Sätze fallen beim Speichern weg
   assert.ok(H.saveEdited(d).ok);
   const saved = H.getFinished(typo.id);
   assert.equal(saved.entries[0].sets.length, 4);
@@ -109,12 +110,12 @@ test('Übung entfernen; Übung ohne Sätze fällt weg; ohne Übungen wird nicht 
   assert.equal(H.getFinished(typo.id).entries.length, 1, 'unverändert');
 });
 
-test('Ungültige Werte werden wie beim Loggen abgelehnt; Datum/Dauer gesperrt', () => {
+test('Ungültige Werte werden wie beim Loggen abgelehnt; Ende vor Beginn wird abgelehnt (v1.4)', () => {
   const d = H.startEdit(typo.id);
   H.setValues(d, d.entries[0].id, d.entries[0].sets[0].id, { reps: 2.5 });
   assert.equal(H.saveEdited(d).ok, false);
   const d2 = H.startEdit(typo.id);
-  d2.startedAt = T(2);
+  d2.startedAt = new Date(Date.parse(d2.endedAt) + 60000).toISOString();
   assert.equal(H.saveEdited(d2).ok, false);
 });
 

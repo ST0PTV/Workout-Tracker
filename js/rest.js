@@ -13,7 +13,9 @@ export function stepRest(sec, delta) {
   return clampRest(sec + delta * REST_STEP);
 }
 
-export function effectiveRest(exercise, settings) {
+// Reihenfolge (v1.4): Pause nur in diesem Plan (am Trainingseintrag) → Pause der Übung → Standard.
+export function effectiveRest(exercise, settings, entry = null) {
+  if (Number.isInteger(entry?.restSeconds)) return entry.restSeconds;
   const own = exercise?.restSeconds;
   return Number.isInteger(own) ? own : settings.restSeconds;
 }

@@ -109,6 +109,21 @@ export function settingsView(rerender) {
     h(
       'div',
       { class: 'card' },
+      h('h2', {}, 'Figur'),
+      h('p', { class: 'muted small' }, 'Für Muskelkarte und Übungs-Piktogramme. Nur die Darstellung ändert sich, die Muskeln und die Zählung sind gleich.'),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Figur' },
+        [['male', 'Männlich'], ['female', 'Weiblich']].map(([k, label]) => {
+          const on = (store.get('settings').figure || 'male') === k;
+          return h('button', { type: 'button', role: 'radio', class: on ? 'on' : '', 'aria-checked': String(on), onclick: () => {
+            if (on) return;
+            if (!store.set('settings', { ...store.get('settings'), figure: k })) { toast('Speichern fehlgeschlagen.', { error: true }); return; }
+            rerender();
+          } }, label);
+        }))
+    ),
+    h(
+      'div',
+      { class: 'card' },
       h('h2', {}, 'Info'),
       kv('App', APP_NAME),
       kv('Version', APP_VERSION),

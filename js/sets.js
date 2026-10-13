@@ -6,6 +6,7 @@
 // - ein Drop- oder Rest-Pause-Satz zählt als 1 harter Satz;
 // - Volumen und Gesamt-Wdh. zählen alle Stufen;
 // - bester Satz und e1RM nur aus der ersten Stufe (sonst würden Gesamt-Wdh. die Schätzung aufblähen).
+import { fmtDuration, fmtKm } from './input.js';
 
 export const STAGE_TYPES = ['drop', 'restpause'];
 export const hasStages = (type) => STAGE_TYPES.includes(type);
@@ -84,8 +85,17 @@ export function tagLabel(tag, labels) {
 const num = (n) => (n === null || n === undefined ? '–' : (Math.round(n * 100) / 100).toLocaleString('de-DE', { maximumFractionDigits: 2 }));
 
 // "85 × 8", Drop: "85 × 8 + 60 × 6", Rest-Pause mit gleichem Gewicht: "50 × 12 + 4 + 3".
-export function formatSet(set) {
-  const base = `${num(set.weightKg)} × ${num(set.reps)}`;
+// v1.4: kind-abhängig. Cardio "20:00 · 4,6 km"; Körpergewicht "KG × 8" bzw. "+5 × 5" / "−10 × 6" (Unterstützung);
+// ohne Gewicht und ohne bekannten Typ "8 Wdh.".
+export function formatSet(set, kind = null) {
+  if (kind === 'cardio' || (set.reps === null && (set.durationSec || set.distanceM))) {
+    return [set.durationSec ? fmtDuration(set.durationSec) : null, set.distanceM ? `${fmtKm(set.distanceM)} km` : null].filter(Boolean).join(' · ') || '–';
+  }
+  let w;
+  if (kind === 'bodyweight') w = set.weightKg === null || set.weightKg === 0 ? 'KG' : `${set.weightKg > 0 ? '+' : '−'}${num(Math.abs(set.weightKg))}`;
+  else if (set.weightKg === null && set.reps !== null && !set.drops?.length) return `${num(set.reps)} Wdh.`;
+  else w = num(set.weightKg);
+  const base = `${w} × ${num(set.reps)}`;
   if (!hasStages(set.type) || !set.drops?.length) return base;
   const rest = set.drops.map((d) => (set.type === 'restpause' && d.weightKg === set.weightKg ? num(d.reps) : `${num(d.weightKg)} × ${num(d.reps)}`));
   return [base, ...rest].join(' + ');

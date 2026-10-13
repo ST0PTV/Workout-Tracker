@@ -13,14 +13,15 @@ import { restState } from './timer.js';
 import { formatDuration } from './rest.js';
 import { WARMUP_HINT, WARMUP_INFO, WARMUP_CHECKED_AT } from './warmup-info.js';
 import { openProgress, hasHistory } from './progress-view.js';
-import { parseWeight, parseReps, fmtNum } from './input.js';
-import { weightWarning } from './model.js';
+import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm, fmtPace } from './input.js';
+import { weightWarning, placeholderFor, INTENSITIES } from './model.js';
 import { typoText } from './diary-view.js';
 import * as SETS from './sets.js';
 import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
-import { openSwapSheet, swapOptions } from './group-view.js';
+import { swapOptions, candidateLine } from './group-view.js';
+import { miniFigure } from './figure.js';
 
-const ui = { current: null, sessionId: null };
+const ui = { current: null, sessionId: null, swapOpen: null };
 let tick = null;
 
 const fmtDay = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -115,7 +116,7 @@ function openAddExercise(rerender, afterAdd) {
         const r = S.addEntry(e.id);
         if (!r.ok) { toast(r.errors[0], { error: true }); return; }
         sheet.close(); toast(`${e.name} hinzugefügt.`); afterAdd(); rerender();
-      } }, h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e))), icon('plus', { size: 18 }))))))
+      } }, h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e))), icon('plus', { size: 18 }))))))
       : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Neue Übungen legst du im Tab „Übungen“ an.')]));
   };
   const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });
@@ -184,19 +185,23 @@ function finishFlow(rerender) {
 
 function setRow(d, set, i, workNo, rerender, isQuick = false) {
   const done = set.completedAt !== null;
-  const w = h('input', { class: 'val', type: 'text', inputmode: 'decimal', enterkeyhint: 'next', value: fmtNum(set.weightKg), 'aria-label': `Satz ${i + 1} Gewicht in kg`, placeholder: '–' });
-  const r = h('input', { class: 'val', type: 'text', inputmode: 'numeric', enterkeyhint: 'done', value: fmtNum(set.reps), 'aria-label': `Satz ${i + 1} Wiederholungen`, placeholder: '–' });
+  const bw = d.exercise?.kind === 'bodyweight';
+  // v1.4 (Entscheidung 6 A): graue Platzhalter = vorheriger Satz bzw. letzte Ausführung; der Haken übernimmt sie.
+  const ph = done ? null : placeholderFor(d.entry, i, d.last);
+  const phW = ph ? (bw ? (ph.weightKg ? fmtAdded(ph.weightKg) : 'KG') : fmtNum(ph.weightKg)) : (bw ? 'KG' : '–');
+  const w = h('input', { class: 'val', type: 'text', inputmode: bw ? 'text' : 'decimal', enterkeyhint: 'next', value: bw ? fmtAdded(set.weightKg) : fmtNum(set.weightKg), 'aria-label': `Satz ${i + 1} ${bw ? 'Zusatzgewicht' : 'Gewicht'} in kg`, placeholder: phW });
+  const r = h('input', { class: 'val', type: 'text', inputmode: 'numeric', enterkeyhint: 'done', value: fmtNum(set.reps), 'aria-label': `Satz ${i + 1} Wiederholungen`, placeholder: ph ? fmtNum(ph.reps) : '–' });
   const commit = () => {
-    const weightKg = parseWeight(w.value);
+    const weightKg = bw ? parseAddedWeight(w.value) : parseWeight(w.value);
     const reps = parseReps(r.value);
-    if (Number.isNaN(weightKg) || Number.isNaN(reps)) { toast('Bitte gültige Zahlen eingeben (Gewicht z. B. 82,5).', { error: true }); return null; }
+    if (Number.isNaN(weightKg) || Number.isNaN(reps)) { toast(bw ? 'Bitte gültige Zahlen eingeben (Zusatzgewicht z. B. +5 oder -10).' : 'Bitte gültige Zahlen eingeben (Gewicht z. B. 82,5).', { error: true }); return null; }
     return { weightKg, reps };
   };
   // Tippfehler-Hinweis (v1.1): nicht blockierend, Vergleich mit abgeschlossenen Trainings.
   const hint = h('div', { class: 'hint typo', hidden: true }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}));
   const checkTypo = () => {
     const kg = parseWeight(w.value);
-    const warn = Number.isNaN(kg) ? null : weightWarning(d.entry.exerciseId, kg, store.get('sessions'));
+    const warn = Number.isNaN(kg) || bw ? null : weightWarning(d.entry.exerciseId, kg, store.get('sessions'));
     w.classList.toggle('warnval', !!warn);
     hint.hidden = !warn;
     if (warn) hint.lastChild.textContent = typoText(warn.best);
@@ -227,8 +232,15 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
       if (done) { S.uncompleteSet(d.entry.id, set.id); rerender(); return; }
       const v = commit();
       if (!v) return;
+      // Leere Felder übernehmen die Platzhalter (nur wenn beide Werte fehlen oder nur die Wdh. fehlen).
+      if (ph && v.reps === null) { v.reps = ph.reps; if (v.weightKg === null) v.weightKg = ph.weightKg; }
       const res = S.completeSet(d.entry.id, set.id, v);
-      if (!res.ok) { toast(res.errors[0], { error: true }); return; }
+      if (!res.ok) {
+        w.classList.toggle('bad', v.weightKg === null && !bw);
+        r.classList.toggle('bad', v.reps === null);
+        toast(res.errors[0], { error: true });
+        return;
+      }
       rerender();
     } }, done ? icon('check', { size: 22 }) : null), hint);
   return [
@@ -246,11 +258,11 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
   ];
 }
 
-// v1.3: „statt <geplant> · zurück“ (aus C) und Knopf „Tauschen“ (A, nur wenn es Kandidaten gibt).
+// v1.3: „statt <geplant> · zurück“; v1.4 (Entscheidung 2 B): „Tauschen“ klappt die Kandidaten unter dem Titel auf.
 function swapLine(d, rerender) {
   const planned = d.entry.plannedExerciseId ? lib.getExercise(d.entry.plannedExerciseId) : null;
   const { candidates } = swapOptions(d.entry);
-  if (!planned && !candidates.length) return null;
+  if (!planned && !candidates.length) return [];
   const back = () => {
     const r = S.swapEntry(d.entry.id, planned.id);
     if (!r.ok) { toast(r.errors[0], { error: true }); return; }
@@ -258,10 +270,70 @@ function swapLine(d, rerender) {
     if (r.mode === 'inserted') ui.current = r.index;
     rerender();
   };
-  return h('div', { class: 'swapline' },
-    planned ? h('span', { class: 'muted small' }, `statt ${planned.name} · `, h('button', { class: 'link small', type: 'button', onclick: back }, 'zurück')) : h('span'),
-    candidates.length ? h('button', { class: 'btn small swap-btn', type: 'button', onclick: () => openSwapSheet(d.entry, { onDone: (r) => { if (r.mode === 'inserted') ui.current = r.index; rerender(); } }) },
-      icon('swap', { size: 16 }), ' Tauschen') : null);
+  const open = ui.swapOpen === d.entry.id && candidates.length > 0;
+  const hasDone = d.entry.sets.some((x) => x.completedAt !== null);
+  const pick = (ex) => {
+    const r = S.swapEntry(d.entry.id, ex.id);
+    if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+    ui.swapOpen = null;
+    toast(r.mode === 'inserted' ? `${ex.name} dahinter eingefügt.` : `Getauscht: ${ex.name}.`);
+    if (r.mode === 'inserted') ui.current = r.index;
+    rerender();
+  };
+  const sex = store.get('settings').figure;
+  return [
+    h('div', { class: 'swapline' },
+      planned ? h('span', { class: 'muted small' }, `statt ${planned.name} · `, h('button', { class: 'link small', type: 'button', onclick: back }, 'zurück')) : h('span'),
+      candidates.length ? h('button', { class: `btn small swap-btn${open ? ' on' : ''}`, type: 'button', 'aria-expanded': String(open), onclick: () => { ui.swapOpen = open ? null : d.entry.id; rerender(); } },
+        icon('swap', { size: 16 }), ' Tauschen') : null),
+    open ? h('div', { class: 'card list swap-list' },
+      hasDone ? h('p', { class: 'muted small swap-note' }, 'Schon ein Satz erledigt: Die Auswahl kommt als eigene Übung direkt dahinter.') : null,
+      candidates.map((ex) => h('button', { class: 'row', type: 'button', onclick: () => pick(ex) },
+        h('span', { class: 'fig-ic' }, miniFigure(ex, sex)),
+        h('span', { class: 't' }, h('b', {}, ex.name), h('small', {}, candidateLine(ex, d.entry))),
+        h('span', { class: 'pill-act' }, hasDone ? 'Einfügen' : 'Tauschen')))) : null
+  ];
+}
+
+// v1.4 (Entscheidung 4 C): Cardio als eine Einheit – Dauer, Strecke, optional Intensität; Tempo berechnet. Keine Kalorien.
+function cardioCard(d, rerender) {
+  let set = d.entry.sets[0];
+  if (!set) { S.addSet(d.entry.id, 'work'); set = S.activeSession().entries.find((e) => e.id === d.entry.id).sets[0]; }
+  const done = set.completedAt !== null;
+  const dur = h('input', { class: 'big-in', type: 'text', inputmode: 'numeric', value: fmtDuration(set.durationSec), placeholder: d.last ? fmtDuration(d.last.sets[0]?.durationSec) || 'mm:ss' : 'mm:ss', 'aria-label': 'Dauer (Minuten oder mm:ss)', disabled: done });
+  const km = h('input', { class: 'big-in', type: 'text', inputmode: 'decimal', value: fmtKm(set.distanceM), placeholder: d.last ? fmtKm(d.last.sets[0]?.distanceM) || '–' : '–', 'aria-label': 'Strecke in km', disabled: done });
+  const pace = h('p', { class: 'muted small' });
+  const read = () => {
+    const durationSec = parseDuration(dur.value);
+    const distanceM = parseDistanceKm(km.value);
+    dur.classList.toggle('bad', Number.isNaN(durationSec));
+    km.classList.toggle('bad', Number.isNaN(distanceM));
+    const p = Number.isNaN(durationSec) || Number.isNaN(distanceM) ? null : fmtPace(durationSec, distanceM);
+    pace.textContent = p ? `Tempo ${p}` : 'Dauer als Minuten (z. B. 20) oder mm:ss.';
+    return Number.isNaN(durationSec) || Number.isNaN(distanceM) ? null : { durationSec, distanceM };
+  };
+  const save = () => { const v = read(); if (v) S.updateSet(d.entry.id, set.id, v); };
+  dur.addEventListener('input', read); km.addEventListener('input', read);
+  dur.addEventListener('change', save); km.addEventListener('change', save);
+  read();
+  const intens = h('div', { class: 'chips' }, Object.entries(INTENSITIES).map(([k, label]) => h('button', { type: 'button', class: `chip${set.intensity === k ? ' on' : ''}`, 'aria-pressed': String(set.intensity === k), disabled: done,
+    onclick: () => { S.updateSet(d.entry.id, set.id, { intensity: set.intensity === k ? null : k }); rerender(); } }, label)));
+  return h('div', { class: 'card cardio' },
+    h('div', { class: 'cardio-row' },
+      h('label', { class: 'cf' }, h('span', { class: 'ctl-label' }, 'Dauer'), dur),
+      h('label', { class: 'cf' }, h('span', { class: 'ctl-label' }, 'Strecke km'), km)),
+    h('span', { class: 'ctl-label' }, 'Intensität (optional)'),
+    intens,
+    pace,
+    h('button', { class: `btn block${done ? '' : ' primary'}`, type: 'button', onclick: () => {
+      if (done) { S.uncompleteSet(d.entry.id, set.id); rerender(); return; }
+      let v = read();
+      if (!v) { toast('Bitte gültige Werte eingeben (Dauer z. B. 20:00, Strecke z. B. 4,6).', { error: true }); return; }
+      if (v.durationSec === null && v.distanceM === null && d.last?.sets[0]) v = { durationSec: d.last.sets[0].durationSec, distanceM: d.last.sets[0].distanceM };
+      const r = S.completeSet(d.entry.id, set.id, v);
+      if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+      rerender();
+    } }, done ? [icon('check', { size: 18 }), ' Erledigt – wieder öffnen'] : 'Einheit erledigt'));
 }
 
 function exercisePage(v, d, rerender) {
@@ -269,24 +341,25 @@ function exercisePage(v, d, rerender) {
   const n = v.entries.length;
   let workNo = 0;
   const quickAt = lastCompletedIndex(d.entry.sets);
-  const rows = d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt)).filter(Boolean);
+  const cardio = ex?.kind === 'cardio';
+  const rows = cardio ? [] : d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt)).filter(Boolean);
   const lastSets = d.last ? d.last.sets.filter((x) => x.type !== 'warmup') : [];
   const isLast = d.index === n - 1;
   return h('div', { class: 'ex-page' },
     ex ? h('div', {},
       h('h2', { class: 'exh' }, ex.name),
       h('div', { class: 'sub2' }, lib.muscleSummary(ex)),
-      swapLine(d, rerender),
+      ...swapLine(d, rerender),
       h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
         icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
     d.warmupHint ? h('div', { class: 'hint' }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}, WARMUP_HINT),
       h('button', { class: 'link', type: 'button', onclick: openWarmupInfo }, 'Mehr')) : null,
-    h('div', { class: 'lastl' }, h('span', {}, lastSets.length ? `Zuletzt ${fmtDay(d.last.date)}: ${P.formatLastSets(lastSets)}` : 'Noch nicht trainiert'),
+    h('div', { class: 'lastl' }, h('span', {}, lastSets.length ? `Zuletzt ${fmtDay(d.last.date)}: ${P.formatLastSets(lastSets, ex?.kind)}` : 'Noch nicht trainiert'),
       ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null),
-    h('div', { class: 'card sets' },
-      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
+    cardio ? cardioCard(d, rerender) : h('div', { class: 'card sets' },
+      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
       rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.')),
-    h('div', { class: 'nav2' },
+    cardio ? null : h('div', { class: 'nav2' },
       h('button', { class: 'btn', type: 'button', onclick: () => { S.addSet(d.entry.id, 'warmup'); rerender(); } }, icon('plus', { size: 18 }), 'Aufwärmsatz'),
       h('button', { class: 'btn', type: 'button', onclick: () => { S.addSet(d.entry.id, 'work'); rerender(); } }, icon('plus', { size: 18 }), 'Satz')),
     h('div', { class: 'nav2' },
