@@ -1,4 +1,4 @@
-// Fortschritt (Variante A + B): eigener Tab mit allen trainierten Übungen (Mini-Verlauf, Trend),
+// Fortschritt (Variante A + B, ab v1.1 mit Tagebuch „Trainings“): eigener Tab mit allen trainierten Übungen (Mini-Verlauf, Trend),
 // Detail pro Übung als Sheet – erreichbar aus dem Tab, aus dem Übungs-Editor und aus dem Training.
 // Gemessene Werte (bester Satz) und Schätzwerte (e1RM) sind immer getrennt und als solche beschriftet.
 import { h } from './util.js';
@@ -8,6 +8,7 @@ import { exerciseProgress, progressSummary, exercisesWithHistory, fmtKg, NOISE_P
 import { PROGRESS_INFO, PROGRESS_CHECKED_AT, E1RM_LABEL, E1RM_EXPLAIN } from './progress-info.js';
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
+import { diaryList } from './diary-view.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const fmtDay = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -194,25 +195,39 @@ function trendLabel(ex) {
   return h('span', { class: `trend${sum.trend.withinNoise ? ' noise' : ''}` }, fmtPct(sum.trend.pct), sum.trend.withinNoise ? h('small', {}, 'Rauschen') : null);
 }
 
-export function progressView() {
+// v1.1: Umschalter „Übungen | Trainings“ (Variante C). Der Modus bleibt beim Neu-Rendern erhalten.
+const tabState = { mode: 'exercises' };
+
+function exerciseList() {
   const all = lib.listExercises({ includeArchived: true });
   const list = exercisesWithHistory(all, finished());
+  return list.length
+    ? [h('p', { class: 'sub' }, `Trend der geschätzten Maximalkraft (e1RM, Schätzung) seit dem ersten Training. Unter ±${NOISE_PCT} % ist normales Tagesrauschen.`),
+      h('div', { class: 'card list' }, list.map(({ exercise: ex, sessions }) => {
+        const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
+        const lastRow = rows[rows.length - 1];
+        const values = ex.kind === 'strength' ? rows.filter((r) => r.e1rm).map((r) => r.e1rm.value) : rows.map((r) => r.totalReps);
+        const top = lastRow.topSet;
+        return h('button', { class: 'row prow', type: 'button', onclick: () => openProgress(ex.id) },
+          h('span', { class: 't' }, h('b', {}, ex.name),
+            h('small', {}, `${sessions} ${sessions === 1 ? 'Training' : 'Trainings'} · zuletzt ${top.weightKg ? `${fmtKg(top.weightKg)} × ${top.reps}` : `${top.reps} Wdh.`}`)),
+          sparkline(values),
+          trendLabel(ex));
+      }))]
+    : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('progress', { size: 44 })), h('h2', {}, 'Noch kein Verlauf'),
+      h('p', { class: 'muted' }, 'Nach dem ersten abgeschlossenen Training siehst du hier für jede Übung deinen besten Satz und den Verlauf.'));
+}
+
+export function progressView(rerender = () => {}) {
+  const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },
+    [['exercises', 'Übungen'], ['sessions', 'Trainings']].map(([k, label]) =>
+      h('button', { type: 'button', role: 'tab', class: tabState.mode === k ? 'on' : '', 'aria-selected': String(tabState.mode === k),
+        onclick: () => { if (tabState.mode !== k) { tabState.mode = k; rerender(); } } }, label)));
   return h('section', { class: 'progress' },
     h('div', { class: 'title-row' }, h('h1', {}, 'Fortschritt'),
-      h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So wird Fortschritt berechnet', onclick: openProgressInfo }, icon('info', { size: 20 }))),
-    list.length
-      ? [h('p', { class: 'sub' }, `Trend der geschätzten Maximalkraft (e1RM, Schätzung) seit dem ersten Training. Unter ±${NOISE_PCT} % ist normales Tagesrauschen.`),
-        h('div', { class: 'card list' }, list.map(({ exercise: ex, sessions }) => {
-          const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
-          const lastRow = rows[rows.length - 1];
-          const values = ex.kind === 'strength' ? rows.filter((r) => r.e1rm).map((r) => r.e1rm.value) : rows.map((r) => r.totalReps);
-          const top = lastRow.topSet;
-          return h('button', { class: 'row prow', type: 'button', onclick: () => openProgress(ex.id) },
-            h('span', { class: 't' }, h('b', {}, ex.name),
-              h('small', {}, `${sessions} ${sessions === 1 ? 'Training' : 'Trainings'} · zuletzt ${top.weightKg ? `${fmtKg(top.weightKg)} × ${top.reps}` : `${top.reps} Wdh.`}`)),
-            sparkline(values),
-            trendLabel(ex));
-        }))]
-      : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('progress', { size: 44 })), h('h2', {}, 'Noch kein Verlauf'),
-        h('p', { class: 'muted' }, 'Nach dem ersten abgeschlossenen Training siehst du hier für jede Übung deinen besten Satz und den Verlauf.')));
+      tabState.mode === 'exercises'
+        ? h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So wird Fortschritt berechnet', onclick: openProgressInfo }, icon('info', { size: 20 }))
+        : null),
+    seg,
+    tabState.mode === 'exercises' ? exerciseList() : diaryList(rerender));
 }

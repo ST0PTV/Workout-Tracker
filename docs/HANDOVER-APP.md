@@ -5,10 +5,10 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 1.0.0 (Fortschritt pro Übung, deployt am 2026-10-13), Cache `wt-cache-v7`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle (alle 2026-10-13).
-- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training).
-- **Nächster Schritt:** v1.0 Fortschritt (Tabelle und Diagramm pro Übung).
+- **Live:** 1.1.0 (Trainings-Tagebuch mit Bearbeiten, deployt am 2026-10-13), Cache `wt-cache-v8`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis (alle 2026-10-13).
+- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings.
+- **Nächster Schritt:** v1.2 Satz-Markierungen und Drop-Stufen in der UI (vorher Recherche: Rest-Pause-/Drop-Sätze als harte Sätze).
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
 ## Rahmenbedingungen
@@ -47,12 +47,15 @@ js/warmup-info.js       Aufwärm-Hinweis (Text) und Evidenz mit Quellen
 js/training-view.js     Training-Tab: Start, Übungsseite (A), Übersicht (B), Pausen-Leiste, Zusammenfassung, Link „Verlauf“
 js/progress.js          Fortschritt ohne DOM: e1RM (Epley, 1–10 Wdh.), Verlauf je Training, Rauschschwelle 5 %, Zusammenfassung
 js/progress-info.js     Erklärtext „e1RM (Schätzung)“ und Quellen
-js/progress-view.js     Fortschritt-Tab (Liste mit Mini-Verlauf), Detail (Kacheln, SVG-Diagramm mit ±5-%-Band, Tabelle), Editor-Panel
+js/progress-view.js     Fortschritt-Tab mit Umschalter „Übungen | Trainings“, Liste mit Mini-Verlauf, Detail (Kacheln, SVG-Diagramm mit ±5-%-Band, Tabelle), Editor-Panel
+js/input.js             Zahlen-Eingaben für Sätze (Gewicht mit Komma, Wdh. ganzzahlig, Grenzen) – gemeinsam für Training und Tagebuch
+js/history.js           Tagebuch ohne DOM: Liste abgeschlossener Trainings, Entwurf bearbeiten, speichern (mit Validierung), löschen
+js/diary-view.js        Tagebuch-Liste (Karten nach Monat), Detail-Sheet, Bearbeiten-Modus mit Abbrechen/Fertig, Tippfehler-Hinweistext
 js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Einstellungen; re-exportiert die übrigen Tab-Ansichten
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, sw)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sw)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -85,7 +88,8 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 **Berechnungen (`model.js`)**
 - Volumen = Gewicht × Wdh., nur `strength`; Drop-Stufen zählen alle; Aufwärmsätze nie. `bodyweight`: Volumen 0 (Körpergewicht wird bewusst nicht gespeichert), nur Wdh.
 - Harte Sätze = abgeschlossene `work`- und `drop`-Sätze; ein Drop-Satz = 1.
-- `lastPerformance` / `prefillSets`: Vorbelegung mit Satzzahl, Typen und Werten der letzten Ausführung derselben Übung.
+- `lastPerformance` / `prefillSets`: Vorbelegung mit Satzzahl, Typen und Werten der letzten Ausführung derselben Übung. Kommt die Übung in einem Training mehrfach vor, zählt der **letzte** Eintrag mit erledigten Sätzen (seit v1.1).
+- `bestWeight` / `weightWarning` (v1.1): Tippfehler-Hinweis, wenn ein Gewicht mehr als `TYPO_FACTOR` (2) × das schwerste erledigte Gewicht der Übung in abgeschlossenen Trainings ist. Nicht blockierend; Schwelle ist eine Design-Entscheidung ohne Beleg.
 - `needsWarmupHint`: Hinweis, wenn eine primäre Muskelgruppe im laufenden Training noch nicht (primär oder sekundär) mit erledigten Sätzen belastet wurde.
 - `swapEntryExercise`, `startSessionFromPlan`, `exerciseHistory` (Top-Satz, harte Sätze, Volumen pro Training), `sessionSummary`.
 - `validateData` prüft alle Objekte und die Verweise zwischen den Sammlungen.
@@ -125,6 +129,15 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Regeln: nur Arbeits- und Drop-Sätze (Aufwärmsätze nie); Drop-Satz zählt für Top-Satz/e1RM mit der ersten Stufe, im Volumen mit allen Stufen. e1RM nur für `strength` und Sätze mit 1–10 Wdh.; Änderung < 5 % = „Rauschen“. Nie zwischen Übungen vergleichen.
 - Variante B: Übungs-Editor hat bei vorhandener Historie den Umschalter „Details | Verlauf“; im Training erscheint neben „Zuletzt …“ ein Link „Verlauf“.
 - Recherche und Grenzen: Drive → Research & Sources, Abschnitt 3; offene Punkte in Unverified & To Verify.
+
+## Trainings-Tagebuch (v1.1)
+
+- Fortschritt-Tab, Umschalter „Übungen | Trainings“ (Variante C; Modus bleibt beim Neu-Rendern erhalten). Karten nach Monat: Planname (oder „Freies Training“), Datum, Dauer, Arbeitssätze, Kurzfassung „Übung Arbeitssätze“ (max. 3, dann „+n“). Laufende Trainings erscheinen nicht.
+- Detail-Sheet: Dauer, Arbeitssätze, Volumen, Sätze pro Übung; „Bearbeiten“ startet einen Entwurf (Kopie). Gespeichert wird erst mit „Fertig“ – anders als im laufenden Training, damit Durchsehen nichts verändert. „Abbrechen“ fragt bei Änderungen nach; Schließen per ✕/Wischen verwirft still mit Hinweis-Toast (Sheet kann Schließen nicht verhindern).
+- Bearbeitbar: Gewicht/Wdh. (gleiche Regeln wie beim Loggen, `js/input.js`), Satz hinzufügen (gilt als erledigt mit `completedAt = endedAt`), Satz löschen, Aufwärm ↔ Arbeit (Drop-Sätze noch nicht), Übung entfernen, Training löschen (mit Bestätigung). **Nicht** bearbeitbar: Datum und Dauer (Backlog).
+- Speichern: Übungen ohne Sätze fallen weg; bleibt keine übrig, wird „Training löschen“ angeboten. `validateSession` muss bestehen. Laufendes Training ist für `history.js` gesperrt.
+- Fortschritt und Vorbelegung lesen immer aus `wt_sessions`; Korrekturen wirken also sofort. Ein bereits laufendes Training behält seine beim Start erzeugte Vorbelegung.
+- Tippfehler-Hinweis erscheint beim Bearbeiten (Vergleich ohne das bearbeitete Training) und beim Loggen.
 
 ## Konventionen (gemeinsam mit Calorie Tracker und Rezepte-App geplant)
 

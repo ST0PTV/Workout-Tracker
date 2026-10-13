@@ -380,3 +380,22 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .ex-seg { margin-bottom: 14px; }
 .lastl { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .hist-link { flex: none; min-height: 36px; padding: 0 4px; font-size: 13px; }
+
+/* v1.1 Trainings-Tagebuch und Tippfehler-Hinweis */
+.setrow > .hint.typo { grid-column: 1 / -1; margin: 2px 0 4px; }
+.hint[hidden] { display: none; }
+.setrow .val.warnval { border-color: var(--warn); color: var(--warn); }
+.setrow .val.bad { border-color: var(--danger); color: var(--danger); }
+.setrow.edit .ck.rm { border-width: 1px; color: var(--muted); }
+.setrow .sn:disabled { cursor: default; }
+.diary-card .pc-top b { font-size: 17px; }
+.diary-ex h2 { margin-bottom: 6px; }
+.diary-ex .nav2 { margin-top: 8px; }
+.diary-sets { display: grid; gap: 2px; }
+.dset { display: grid; grid-template-columns: 36px 1fr; padding: 6px 0; font-size: 15px; }
+.dset + .dset { border-top: 1px solid rgba(255, 255, 255, 0.07); }
+.dset .sn { color: var(--muted); }
+.dset.warm .sn { color: var(--warn); font-weight: 700; }
+.diary-detail .stats { margin-bottom: 14px; }
+.edit-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: sticky; top: 0; z-index: 2; padding: 4px 0 8px;
+  background: rgba(22, 29, 62, 0.98); }
