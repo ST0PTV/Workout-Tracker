@@ -5,7 +5,7 @@ import { trainingView, plansView, exercisesView, settingsView } from './views.js
 const boot = store.init();
 
 const router = startRouter({
-  '/': () => trainingView(),
+  '/': () => trainingView(() => router()),
   '/plans': () => plansView(() => router()),
   '/exercises': () => exercisesView(() => router()),
   '/settings': () => settingsView(() => router())

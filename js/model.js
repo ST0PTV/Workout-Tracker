@@ -112,7 +112,8 @@ export function createEntry(exerciseId, fields = {}) {
 
 export function createSession(fields = {}) {
   const now = nowISO();
-  return { id: uuid(), planId: null, startedAt: now, endedAt: null, note: '', entries: [], createdAt: now, updatedAt: now, ...fields };
+  // restTimer (seit v0.5, optional): { entryId, startedAt, durationSec } oder null – laufende Satzpause
+  return { id: uuid(), planId: null, startedAt: now, endedAt: null, note: '', entries: [], restTimer: null, createdAt: now, updatedAt: now, ...fields };
 }
 
 // ---------- Validierung ----------
@@ -204,6 +205,10 @@ export function validateSession(x) {
   if (!isISO(x.startedAt)) err.push(`Training ${x.id}: startedAt ungültig.`);
   if (x.endedAt !== null && !isISO(x.endedAt)) err.push(`Training ${x.id}: endedAt ungültig.`);
   if (!isStr(x.note)) err.push(`Training ${x.id}: Notiz ungültig.`);
+  if (x.restTimer !== undefined && x.restTimer !== null) {
+    const t = x.restTimer;
+    if (typeof t !== 'object' || !isId(t.entryId) || !isISO(t.startedAt) || !(Number.isInteger(t.durationSec) && t.durationSec > 0)) err.push(`Training ${x.id}: Pausen-Timer ungültig.`);
+  }
   if (!Array.isArray(x.entries)) err.push(`Training ${x.id}: entries ist keine Liste.`);
   else {
     for (const en of x.entries) {

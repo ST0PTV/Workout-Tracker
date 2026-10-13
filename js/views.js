@@ -1,4 +1,4 @@
-// Ansichten. In v0.1 sind Training, Pläne und Übungen Platzhalter; Einstellungen enthält das Backup.
+// Ansichten: Einstellungen (Backup, Standard-Pause, Info); die Tabs Training, Pläne und Übungen kommen aus eigenen Modulen.
 import { h } from './util.js';
 import { APP_NAME, APP_VERSION } from './version.js';
 import * as store from './store.js';
@@ -8,36 +8,8 @@ import { icon } from './icons.js';
 import { stepper } from './controls.js';
 import { stepRest, formatDuration } from './rest.js';
 
-function placeholderCard(text, version) {
-  return h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, `Kommt in ${version}`), h('p', { class: 'muted' }, text));
-}
+export { trainingView } from './training-view.js';
 
-function placeholder(title, text, version) {
-  return h('section', {}, h('h1', {}, title), placeholderCard(text, version));
-}
-
-export function trainingView() {
-  const c = store.counts();
-  return h(
-    'section',
-    {},
-    h('h1', {}, 'Training'),
-    h('p', { class: 'sub' }, 'Logge deine Sätze schnell und einhändig. Alle Daten bleiben auf diesem Gerät.'),
-    h(
-      'div',
-      { class: 'card' },
-      h('div', { class: 'stats' },
-        stat(c.exercises, 'Übungen'),
-        stat(c.plans, 'Pläne'),
-        stat(c.sessions, 'Trainings'))
-    ),
-    placeholderCard('Training loggen mit Werten vom letzten Mal, Aufwärm-Hinweis und Pausentimer.', 'v0.5')
-  );
-}
-
-function stat(value, label) {
-  return h('div', { class: 'stat' }, h('b', {}, value), h('span', {}, label));
-}
 
 export { plansView } from './plans-view.js';
 
