@@ -3,7 +3,7 @@
 // damit nichts verloren geht, wenn iOS die App im Hintergrund beendet.
 import * as store from './store.js';
 import { nowISO } from './util.js';
-import { createSession, createEntry, createSet, prefillSets, startSessionFromPlan, needsWarmupHint, lastPerformance, validateSession, sessionSummary } from './model.js';
+import { createSession, createEntry, createSet, prefillSets, startSessionFromPlan, needsWarmupHint, lastPerformance, validateSession, sessionSummary, swapEntryExercise } from './model.js';
 import { getPlan } from './plans.js';
 import { effectiveRest } from './rest.js';
 import * as SETS from './sets.js';
@@ -171,6 +171,36 @@ export function addEntry(exerciseId) {
     if (!ex) return 'Übung nicht gefunden.';
     s.entries.push(createEntry(exerciseId, { sets: prefillSets(ex, finishedSessions()) }));
   });
+}
+
+// Tausch (v1.3, Entscheidung b): ohne erledigten Satz wird die Übung des Eintrags ersetzt;
+// mit erledigtem Satz bleibt der Eintrag und die neue Übung kommt als eigener Eintrag direkt dahinter
+// (gleiche Gruppe, gleiche Plan-Satzzahl). Ergebnis: { ok, mode: 'swapped' | 'inserted', index }.
+export function swapEntry(entryId, exerciseId) {
+  const s = activeSession();
+  if (!s) return { ok: false, errors: ['Kein laufendes Training.'] };
+  const i = s.entries.findIndex((e) => e.id === entryId);
+  if (i < 0) return { ok: false, errors: ['Übung nicht gefunden.'] };
+  const ex = exercisesById()[exerciseId];
+  if (!ex) return { ok: false, errors: ['Übung nicht gefunden.'] };
+  const entry = s.entries[i];
+  if (entry.exerciseId === exerciseId) return { ok: false, errors: ['Diese Übung ist schon eingetragen.'] };
+  const next = structuredClone(s);
+  let mode;
+  if (entry.sets.some((x) => x.completedAt !== null)) {
+    next.entries.splice(i + 1, 0, createEntry(ex.id, {
+      groupId: entry.groupId,
+      targetSets: entry.targetSets ?? null,
+      sets: prefillSets(ex, finishedSessions(), entry.targetSets ?? null)
+    }));
+    mode = 'inserted';
+  } else {
+    next.entries[i] = swapEntryExercise(entry, ex, finishedSessions());
+    if (next.restTimer?.entryId === entry.id) next.restTimer = null;
+    mode = 'swapped';
+  }
+  const r = save(next);
+  return r.ok ? { ...r, mode, index: mode === 'inserted' ? i + 1 : i } : r;
 }
 
 export function removeEntry(entryId) {

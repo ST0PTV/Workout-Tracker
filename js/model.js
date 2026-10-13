@@ -217,6 +217,7 @@ export function validateSession(x) {
       if (!en || !isId(en.id) || !isId(en.exerciseId)) { err.push(`Training ${x.id}: Eintrag ohne id/exerciseId.`); continue; }
       if (en.plannedExerciseId !== null && !isId(en.plannedExerciseId)) err.push(`Training ${x.id}: plannedExerciseId ungültig.`);
       if (en.groupId !== null && !isId(en.groupId)) err.push(`Training ${x.id}: groupId ungültig.`);
+      if (en.targetSets !== undefined && en.targetSets !== null && !(Number.isInteger(en.targetSets) && en.targetSets > 0)) err.push(`Training ${x.id}: targetSets ungültig.`);
       if (!Array.isArray(en.sets)) err.push(`Training ${x.id}: sets ist keine Liste.`);
       else for (const s of en.sets) err.push(...validateSet(s, `Training ${x.id}: `));
     }
@@ -404,13 +405,17 @@ export function exerciseHistory(exerciseId, sessions, kind = 'strength') {
 }
 
 // Tausch im Training: ersetzt die Übung eines Eintrags durch eine andere (nur für dieses Training).
-// Die ursprünglich geplante Übung bleibt in plannedExerciseId erhalten; Sätze werden neu vorbelegt.
+// Die ursprünglich geplante Übung bleibt in plannedExerciseId erhalten; Tausch zurück auf die geplante
+// setzt plannedExerciseId wieder auf null (v1.3). Sätze werden neu vorbelegt – vom letzten Mal der neuen
+// Übung, ohne Historie mit der Satzzahl aus dem Plan (entry.targetSets), sonst deren Standard.
+// Nur für Einträge ohne erledigte Sätze gedacht; die Prüfung macht session.swapEntry.
 export function swapEntryExercise(entry, newExercise, sessions) {
+  const planned = entry.plannedExerciseId ?? entry.exerciseId;
   return {
     ...entry,
-    plannedExerciseId: entry.plannedExerciseId ?? entry.exerciseId,
+    plannedExerciseId: newExercise.id === planned ? null : planned,
     exerciseId: newExercise.id,
-    sets: prefillSets(newExercise, sessions)
+    sets: prefillSets(newExercise, sessions, entry.targetSets ?? null)
   };
 }
 
@@ -421,6 +426,7 @@ export function startSessionFromPlan(plan, exercisesById, sessions) {
     .filter((it) => exercisesById[it.exerciseId])
     .map((it) => createEntry(it.exerciseId, {
       groupId: it.groupId,
+      targetSets: it.targetSets ?? null, // v1.3: für die Vorbelegung nach einem Tausch
       sets: prefillSets(exercisesById[it.exerciseId], sessions, it.targetSets)
     }));
   return session;

@@ -8,6 +8,7 @@ import * as lib from './exercises.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
+import { groupField } from './group-view.js';
 import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import * as store from './store.js';
@@ -224,6 +225,7 @@ export function openEditor(existing, rerender) {
     h('div', { class: 'field' }, h('label', {}, 'Name'), nameInput),
     h('div', { class: 'field' }, h('label', {}, 'Typ'), kindBox),
     musclesBox,
+    groupField(ex),
     h('div', { class: 'field' }, h('label', {}, 'Arbeitssätze (Standard)'),
       h('div', { class: 'step' },
         h('button', { type: 'button', 'aria-label': 'Weniger Sätze', onclick: () => step(-1) }, icon('minus')), setsValue,
