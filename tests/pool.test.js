@@ -81,4 +81,15 @@ test('poolRefsInLibrary erkennt übernommene Einträge', () => {
   assert.deepEqual([...poolRefsInLibrary(lib)], [POOL[0].ref], 'archivierte zählen nicht');
 });
 
+test('v1.5 Runde 1: Schultern, Waden, Hüfte, unterer Rücken mit mindestens 4 Übungen (primär); Quellen-Notizen kurz', () => {
+  const count = {};
+  for (const p of POOL) for (const m of p.muscles.primary) count[m] = (count[m] || 0) + 1;
+  for (const m of ['front-delts', 'side-delts', 'rear-delts', 'calves', 'adductors', 'abductors', 'lower-back']) assert.ok(count[m] >= 4, `${m}: ${count[m]}`);
+  assert.ok(POOL.length >= 70);
+  for (const p of POOL) {
+    assert.ok(p.note.length <= 140, `${p.ref}: Notiz zu lang`);
+    for (const s of p.sources) assert.ok(s.note.length <= 170, `${p.ref}: Quellen-Notiz zu lang`);
+  }
+});
+
 done();

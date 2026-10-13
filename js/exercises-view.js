@@ -99,17 +99,20 @@ export function openEvidence(ref) {
 // ---------- Startpool ----------
 
 function openPool(rerender) {
-  const local = { query: '', region: null };
+  const local = { query: '', region: null, muscle: null, equip: null };
   const listBox = h('div');
   const draw = () => {
     const inLib = poolRefsInLibrary(lib.listExercises());
     const items = POOL
-      .filter((p) => lib.matchesQuery({ name: p.name, note: '' }, local.query) && lib.inRegion(p, local.region))
+      .filter((p) => lib.matchesQuery({ name: p.name, note: '' }, local.query) && lib.inRegion(p, local.region)
+        && (!local.muscle || p.muscles.primary.includes(local.muscle)) && (!local.equip || p.equipment === local.equip))
       .sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    countLine.textContent = items.length === POOL.length ? `${POOL.length} Übungen` : `${items.length} von ${POOL.length} Übungen`;
     listBox.replaceChildren(items.length
       ? h('div', { class: 'card list' }, items.map((p) => {
         const added = inLib.has(p.ref);
         return h('div', { class: 'row', 'data-ref': p.ref },
+          h('span', { class: 'fig-ic' }, miniFigure(p, store.get('settings').figure)),
           h('button', { class: 't plain', type: 'button', onclick: () => openEvidence(p.ref), 'aria-label': `${p.name}: Muskeln und Quellen` },
             h('b', {}, p.name, h('span', { class: 'eq' }, EQUIPMENT[p.equipment])),
             h('small', {}, lib.muscleSummary(p))),
@@ -123,13 +126,26 @@ function openPool(rerender) {
       }))
       : h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden.'));
   };
+  // v1.5: bei vielen Übungen zusätzlich Muskel (innerhalb der Region) und Gerät filtern.
+  const countLine = h('p', { class: 'muted small pool-count' });
   const body = h('div', {},
-    h('p', { class: 'muted small' }, `${POOL.length} Grundübungen. Tippe auf eine Übung für Muskeln und Quellen, auf „+“ zum Übernehmen.`),
+    h('p', { class: 'muted small' }, 'Tippe auf eine Übung für Muskeln und Quellen, auf „+“ zum Übernehmen.'),
     searchField('', 'Im Pool suchen', (v) => { local.query = v; draw(); }),
     h('div', { class: 'chips-wrap' }),
+    countLine,
     listBox);
   const chipsWrap = body.querySelector('.chips-wrap');
-  const drawChips = () => chipsWrap.replaceChildren(regionChips(local.region, (r) => { local.region = r; drawChips(); draw(); }));
+  const chip = (on, label, onclick) => h('button', { class: `chip small${on ? ' on' : ''}`, type: 'button', 'aria-pressed': String(on), onclick }, label);
+  const drawChips = () => {
+    const region = lib.REGIONS.find((r) => r.key === local.region);
+    chipsWrap.replaceChildren(...[
+      regionChips(local.region, (r) => { local.region = r; local.muscle = null; drawChips(); draw(); }),
+      region && region.muscles.length > 1 ? h('div', { class: 'chips', role: 'toolbar', 'aria-label': 'Nach Muskel filtern' },
+        region.muscles.map((m) => chip(local.muscle === m, MUSCLES[m], () => { local.muscle = local.muscle === m ? null : m; drawChips(); draw(); }))) : null,
+      h('div', { class: 'chips', role: 'toolbar', 'aria-label': 'Nach Gerät filtern' },
+        Object.entries(EQUIPMENT).map(([k, label]) => chip(local.equip === k, label, () => { local.equip = local.equip === k ? null : k; drawChips(); draw(); })))
+    ].filter(Boolean));
+  };
   drawChips();
   draw();
   openSheet(body, { title: 'Startpool', full: true });
