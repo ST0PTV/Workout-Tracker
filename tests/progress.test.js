@@ -80,6 +80,15 @@ test('Übungen mit Verlauf: zuletzt trainierte zuerst, laufendes Training zählt
   assert.equal(list[1].sessions, 4);
 });
 
+test('Übung zweimal im selben Training zählt als ein Training', () => {
+  const twice = M.createSession({ startedAt: T(4), endedAt: T(4), entries: [M.createEntry('ex-2', { sets: [set(50, 10)] }), M.createEntry('ex-2', { sets: [set(55, 8)] })] });
+  const list = G.exercisesWithHistory([{ id: 'ex-2', name: 'B' }], [twice]);
+  assert.equal(list[0].sessions, 1);
+  const rows = G.exerciseProgress('ex-2', [twice]);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].hardSets, 2);
+});
+
 test('Formatierung kg', () => {
   assert.equal(G.fmtKg(82.5), '82,5');
   assert.equal(G.fmtKg(110), '110');

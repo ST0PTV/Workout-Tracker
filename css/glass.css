@@ -336,3 +336,47 @@ body.sheet-open { overflow: hidden; }
 .start-card .btn { margin-top: 12px; }
 /* Toast über der Pausen-Leiste, damit beide lesbar bleiben */
 body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px); }
+
+/* ---------- v1.0: Fortschritt ---------- */
+.tabbar .tab { font-size: 10.5px; letter-spacing: -0.01em; white-space: nowrap; }
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.title-row h1 { margin-bottom: 8px; }
+.row.prow { gap: 10px; }
+.spark { flex: none; overflow: visible; }
+.sp-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.sp-dot { fill: var(--accent); }
+.trend { flex: none; min-width: 58px; text-align: right; font-size: 13px; font-weight: 600; color: #c9d6ff; }
+.trend small { display: block; font-weight: 500; font-size: 11px; color: var(--muted); margin-top: 1px; }
+.trend.noise { color: var(--muted); font-weight: 500; font-size: 12px; }
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.tile { padding: 12px; border-radius: 16px; background: var(--glass); border: 1px solid var(--glass-border); }
+.tile small { display: block; font-size: 12px; color: var(--muted); }
+.tile b { display: block; font-size: 22px; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.tile span { font-size: 12px; color: var(--muted); }
+.est { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 6px; background: rgba(255, 207, 122, 0.15); color: #ffe2a8; vertical-align: 1px; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.ctitle { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #d8def5; margin: 0 2px 6px; }
+.ctitle .info-btn { width: 32px; height: 32px; }
+.chart-card { padding: 8px 6px 10px; margin-bottom: 8px; }
+.chart { display: block; width: 100%; height: auto; font-family: inherit; touch-action: manipulation; }
+.ch-grid { stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; }
+.ch-tick { fill: #8c96bd; font-size: 10px; }
+.ch-end { fill: var(--text); font-size: 11px; font-weight: 600; }
+.ch-band { fill: rgba(110, 231, 216, 0.10); }
+.ch-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ch-dot { fill: var(--accent); stroke: var(--bg-1); stroke-width: 2; }
+.ch-dot.sel { stroke: var(--text); }
+.ch-hit { fill: transparent; cursor: pointer; }
+.ch-read { font-size: 13px; color: var(--text); text-align: center; margin: 4px 6px 2px; min-height: 18px; font-variant-numeric: tabular-nums; }
+.ch-legend { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 4px; font-size: 11.5px; }
+.band-swatch { width: 14px; height: 10px; border-radius: 3px; background: rgba(110, 231, 216, 0.25); }
+.tbl-card { padding: 4px 6px; overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tbl th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); text-align: left; padding: 8px; font-weight: 600; }
+.tbl td { padding: 9px 8px; border-top: 1px solid rgba(255, 255, 255, 0.07); vertical-align: top; }
+.tbl td:first-child { white-space: nowrap; color: #c9d6ff; }
+.tbl .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tbl td small { display: block; color: var(--muted); font-size: 11.5px; }
+.progress-panel > p.small { margin: 6px 2px 0; line-height: 1.4; }
+.ex-seg { margin-bottom: 14px; }
+.lastl { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hist-link { flex: none; min-height: 36px; padding: 0 4px; font-size: 13px; }

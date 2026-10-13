@@ -86,10 +86,11 @@ export function exercisesWithHistory(exercises, sessions) {
   const count = new Map();
   for (const s of sessions) {
     if (s.endedAt === null) continue;
-    for (const e of s.entries) {
-      if (!e.sets.some(isWorkLike)) continue;
-      count.set(e.exerciseId, (count.get(e.exerciseId) || 0) + 1);
-      if (!last.has(e.exerciseId) || Date.parse(s.startedAt) > Date.parse(last.get(e.exerciseId))) last.set(e.exerciseId, s.startedAt);
+    // Pro Training zählt jede Übung einmal, auch wenn sie mehrfach eingetragen ist.
+    const ids = new Set(s.entries.filter((e) => e.sets.some(isWorkLike)).map((e) => e.exerciseId));
+    for (const id of ids) {
+      count.set(id, (count.get(id) || 0) + 1);
+      if (!last.has(id) || Date.parse(s.startedAt) > Date.parse(last.get(id))) last.set(id, s.startedAt);
     }
   }
   return exercises

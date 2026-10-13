@@ -1,6 +1,6 @@
 import * as store from './store.js';
 import { startRouter, toast } from './ui.js';
-import { trainingView, plansView, exercisesView, settingsView } from './views.js';
+import { trainingView, plansView, exercisesView, progressView, settingsView } from './views.js';
 
 const boot = store.init();
 
@@ -8,6 +8,7 @@ const router = startRouter({
   '/': () => trainingView(() => router()),
   '/plans': () => plansView(() => router()),
   '/exercises': () => exercisesView(() => router()),
+  '/progress': () => progressView(),
   '/settings': () => settingsView(() => router())
 });
 
