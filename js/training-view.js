@@ -12,6 +12,7 @@ import { icon } from './icons.js';
 import { restState } from './timer.js';
 import { formatDuration } from './rest.js';
 import { WARMUP_HINT, WARMUP_INFO, WARMUP_CHECKED_AT } from './warmup-info.js';
+import { openProgress, hasHistory } from './progress-view.js';
 
 const ui = { current: null, sessionId: null };
 let tick = null;
@@ -244,7 +245,8 @@ function exercisePage(v, d, rerender) {
         icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
     d.warmupHint ? h('div', { class: 'hint' }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}, WARMUP_HINT),
       h('button', { class: 'link', type: 'button', onclick: openWarmupInfo }, 'Mehr')) : null,
-    h('div', { class: 'lastl' }, lastSets.length ? `Zuletzt ${fmtDay(d.last.date)}: ${P.formatLastSets(lastSets)}` : 'Noch nicht trainiert'),
+    h('div', { class: 'lastl' }, h('span', {}, lastSets.length ? `Zuletzt ${fmtDay(d.last.date)}: ${P.formatLastSets(lastSets)}` : 'Noch nicht trainiert'),
+      ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null),
     h('div', { class: 'card sets' },
       h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
       rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.')),

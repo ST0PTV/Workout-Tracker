@@ -8,6 +8,7 @@ export const TABS = [
   { path: '/', label: 'Training', icon: 'train' },
   { path: '/plans', label: 'Pläne', icon: 'plans' },
   { path: '/exercises', label: 'Übungen', icon: 'exercises' },
+  { path: '/progress', label: 'Fortschritt', icon: 'progress' },
   { path: '/settings', label: 'Einstellungen', icon: 'settings' }
 ];
 

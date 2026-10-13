@@ -5,9 +5,9 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 0.5.0 (Training loggen, deployt am 2026-10-13), Cache `wt-cache-v6`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis (alle 2026-10-13).
-- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung).
+- **Live:** 1.0.0 (Fortschritt pro Übung, deployt am 2026-10-13), Cache `wt-cache-v7`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle (alle 2026-10-13).
+- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training).
 - **Nächster Schritt:** v1.0 Fortschritt (Tabelle und Diagramm pro Übung).
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
@@ -44,12 +44,15 @@ js/plans-view.js        Pläne-Tab: Kartenliste (A), Ablauf mit „Zuletzt“ un
 js/session.js           Laufendes Training: starten, Sätze, Übungen, Pause, beenden/verwerfen, Anzeige-Daten
 js/timer.js             Pausen-Timer aus Zeitstempeln (Start + Dauer), ±15 s; kein Ton
 js/warmup-info.js       Aufwärm-Hinweis (Text) und Evidenz mit Quellen
-js/training-view.js     Training-Tab: Start, Übungsseite (A), Übersicht (B), Pausen-Leiste, Zusammenfassung
+js/training-view.js     Training-Tab: Start, Übungsseite (A), Übersicht (B), Pausen-Leiste, Zusammenfassung, Link „Verlauf“
+js/progress.js          Fortschritt ohne DOM: e1RM (Epley, 1–10 Wdh.), Verlauf je Training, Rauschschwelle 5 %, Zusammenfassung
+js/progress-info.js     Erklärtext „e1RM (Schätzung)“ und Quellen
+js/progress-view.js     Fortschritt-Tab (Liste mit Mini-Verlauf), Detail (Kacheln, SVG-Diagramm mit ±5-%-Band, Tabelle), Editor-Panel
 js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
-js/views.js             Ansichten (Training, Pläne, Einstellungen; Übungen aus exercises-view.js)
+js/views.js             Einstellungen; re-exportiert die übrigen Tab-Ansichten
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, sw)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -115,6 +118,14 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Übersicht (Sheet): springen, umsortieren, entfernen, Übung hinzufügen, beenden, verwerfen.
 - Beenden: nicht abgehakte Sätze und leere Übungen werden verworfen; ohne erledigten Satz wird angeboten, das Training zu verwerfen. Zusammenfassung: Dauer, Arbeitssätze, Volumen (nur `strength`, ohne Aufwärmsätze).
 
+## Fortschritt (v1.0)
+
+- Tab „Fortschritt“ (5. Tab): alle Übungen mit mindestens einem **abgeschlossenen** Training, zuletzt trainierte zuerst; Mini-Verlauf (e1RM, bei Körpergewicht Gesamt-Wdh.) und Gesamttrend erster → letzter Schätzwert. Laufende Trainings zählen nicht.
+- Detail (Sheet): Kachel „Bester Satz“ (gemessen: schwerstes Gewicht, bei Gleichstand mehr Wdh.) und Kachel „e1RM (Schätzung)“ (letzter Schätzwert). SVG-Diagramm: Linie = e1RM je Training, x-Achse zeitproportional, Band = ±5 % um jeden Punkt (typische Formel-Ungenauigkeit, **keine** aus den Daten berechnete Unsicherheit). Tippen auf einen Punkt zeigt Datum, Satz, Wert, Änderung. Tabelle aller Trainings (neueste zuerst).
+- Regeln: nur Arbeits- und Drop-Sätze (Aufwärmsätze nie); Drop-Satz zählt für Top-Satz/e1RM mit der ersten Stufe, im Volumen mit allen Stufen. e1RM nur für `strength` und Sätze mit 1–10 Wdh.; Änderung < 5 % = „Rauschen“. Nie zwischen Übungen vergleichen.
+- Variante B: Übungs-Editor hat bei vorhandener Historie den Umschalter „Details | Verlauf“; im Training erscheint neben „Zuletzt …“ ein Link „Verlauf“.
+- Recherche und Grenzen: Drive → Research & Sources, Abschnitt 3; offene Punkte in Unverified & To Verify.
+
 ## Konventionen (gemeinsam mit Calorie Tracker und Rezepte-App geplant)
 
 - IDs: UUID (String). Zeitstempel: ISO-8601 UTC (String).
@@ -142,6 +153,8 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Muskelzuordnungen beruhen überwiegend auf EMG-Studien (Aktivität ≠ Wachstum); bei 6 Pool-Übungen ist die Belastbarkeit „niedrig“ (keine Studie zur Übung selbst).
 - Sheets nutzen `92vh`; auf dem iPhone mit eingeblendeter Tastatur ungetestet.
 - iOS kann eine Homescreen-PWA im Hintergrund beenden; JS-Timer laufen dann nicht. Deshalb zeitstempelbasiert und sofortiges Speichern (auf dem iPhone noch ungetestet).
+- e1RM-Formeln sind an Sätzen bis zum Muskelversagen validiert; Sätze mit Reserve ergeben zu niedrige Schätzungen. Für Frauen, Maschinen- und Isolationsübungen ist die Genauigkeit schlechter belegt.
+- Fünf Tabs: Beschriftung auf 10,5 px verkleinert; auf kleinen iPhones (SE) ungetestet.
 - CSS-Klassen sind global: `.row` ist die Listenzeile. In v0.3 hat das die Backup-Buttons in den Einstellungen gestaucht (behoben in v0.4 mit `.btn-row`). Neue Klassen vorher auf Kollisionen prüfen.
 
 ## Offene Punkte

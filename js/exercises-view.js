@@ -11,6 +11,7 @@ import { icon } from './icons.js';
 import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import * as store from './store.js';
+import { progressPanel, hasHistory } from './progress-view.js';
 
 const KIND_LABEL = { strength: 'Kraft', bodyweight: 'Körpergewicht', cardio: 'Cardio' };
 const VERIF_LABEL = {
@@ -231,7 +232,22 @@ export function openEditor(existing, rerender) {
     h('div', { class: 'field' }, h('label', {}, 'Notiz'), noteInput, sourceBox),
     !isNew ? h('button', { class: 'btn block subtle', type: 'button', onclick: archive }, ex.archived ? 'Wiederherstellen' : 'Archivieren') : null,
     h('button', { class: 'btn primary block sticky-bottom', type: 'submit' }, ex.archived ? 'Speichern (archiviert)' : 'Speichern'));
-  const sheet = openSheet(body, { title: isNew ? 'Neue Übung' : ex.name || 'Übung', full: true });
+  // Variante B: Verlauf direkt in der Übung (nur wenn es abgeschlossene Trainings gibt).
+  let content = body;
+  if (!isNew && hasHistory(ex.id)) {
+    const panel = h('div', { hidden: true });
+    const segBox = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' });
+    const show = (which) => {
+      body.hidden = which !== 'details';
+      panel.hidden = which !== 'history';
+      if (which === 'history') panel.replaceChildren(progressPanel(lib.getExercise(ex.id) || ex));
+      segBox.replaceChildren(...[['details', 'Details'], ['history', 'Verlauf']].map(([k, label]) =>
+        h('button', { type: 'button', role: 'tab', 'aria-selected': String(k === which), class: k === which ? 'on' : '', onclick: () => show(k) }, label)));
+    };
+    show('details');
+    content = h('div', {}, segBox, body, panel);
+  }
+  const sheet = openSheet(content, { title: isNew ? 'Neue Übung' : ex.name || 'Übung', full: true });
   if (isNew) setTimeout(() => nameInput.focus(), 250);
 }
 

@@ -15,6 +15,8 @@ export { plansView } from './plans-view.js';
 
 export { exercisesView } from './exercises-view.js';
 
+export { progressView } from './progress-view.js';
+
 async function exportBackup() {
   const payload = backup.buildBackup();
   const text = JSON.stringify(payload, null, 2);
