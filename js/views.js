@@ -79,7 +79,7 @@ async function importBackup(file, rerender) {
   const s = result.summary;
   const when = s.exportedAt ? new Date(s.exportedAt).toLocaleString('de-DE') : 'unbekannt';
   const ok = confirm(
-    `Backup vom ${when} einspielen?\n\n${s.exercises} Übungen, ${s.plans} Pläne, ${s.sessions} Trainings.\n\n` +
+    `Backup vom ${when} einspielen?\n\n${s.exercises} Übungen, ${s.groups} Gruppen, ${s.plans} Pläne, ${s.sessions} Trainings.\n\n` +
       'Achtung: Alle aktuellen Daten in der App werden ersetzt.'
   );
   if (!ok) return;

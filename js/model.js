@@ -1,0 +1,387 @@
+// Datenmodell (Schema v2): Konstanten, Fabriken, Validierung und reine Berechnungen.
+// Kein Zugriff auf localStorage oder DOM – dadurch in Node testbar.
+//
+// Grundsätze (Decisions in Drive):
+// - Gewichtshistorie hängt an der konkreten Übung, nicht am Plan. Ein Tausch im Training
+//   loggt also die tatsächlich gemachte Übung.
+// - Gruppen (= Bewegungsmuster, z. B. "Beine Grundübung") sind eine eigene Sammlung;
+//   Übungen verweisen per groupIds darauf.
+// - Satztypen: warmup (geloggt, zählt nicht für Volumen/Fortschritt), work, drop
+//   (ein harter Satz; alle Stufen zählen ins Volumen).
+import { uuid, nowISO } from './util.js';
+
+export const SCHEMA_VERSION = 2;
+
+export const EXERCISE_KINDS = ['strength', 'bodyweight', 'cardio'];
+export const SET_TYPES = ['warmup', 'work', 'drop'];
+
+// Satz-Markierungen (UI ab v1.x). Eigene Markierungen sind als "custom:<Text>" erlaubt.
+export const SET_TAGS = {
+  'rest-pause': 'Rest-Pause',
+  'stretch-hold': 'Stretch halten',
+  partials: 'Teilwiederholungen',
+  failure: 'Bis Muskelversagen'
+};
+
+// Muskel-Taxonomie. Bewusst grob (18 Einträge), damit Zuordnung und Muskelkarte handhabbar bleiben.
+export const MUSCLES = {
+  chest: 'Brust',
+  'front-delts': 'Vordere Schulter',
+  'side-delts': 'Seitliche Schulter',
+  'rear-delts': 'Hintere Schulter',
+  lats: 'Latissimus',
+  'upper-back': 'Oberer Rücken / Trapez',
+  'lower-back': 'Unterer Rücken',
+  biceps: 'Bizeps',
+  triceps: 'Trizeps',
+  forearms: 'Unterarme',
+  abs: 'Bauch',
+  obliques: 'Seitliche Bauchmuskeln',
+  glutes: 'Gesäß',
+  quads: 'Quadrizeps',
+  hamstrings: 'Beinbeuger',
+  adductors: 'Adduktoren',
+  abductors: 'Abduktoren',
+  calves: 'Waden'
+};
+
+export const VERIFICATION = ['verified', 'training-knowledge', 'user'];
+
+export const DEFAULT_SETTINGS = {
+  focus: ['strength'],
+  weightUnit: 'kg',
+  restSeconds: 120
+};
+
+// ---------- Fabriken ----------
+
+export function createExercise(fields = {}) {
+  const now = nowISO();
+  return {
+    id: uuid(),
+    name: '',
+    kind: 'strength',
+    muscles: { primary: [], secondary: [] },
+    groupIds: [],
+    defaultWorkSets: 3,
+    note: '',
+    source: { origin: 'custom', ref: null, verification: 'user', checkedAt: null },
+    archived: false,
+    createdAt: now,
+    updatedAt: now,
+    ...fields
+  };
+}
+
+export function createGroup(fields = {}) {
+  const now = nowISO();
+  return { id: uuid(), name: '', createdAt: now, updatedAt: now, ...fields };
+}
+
+export function createPlanItem(exerciseId, fields = {}) {
+  return { id: uuid(), exerciseId, groupId: null, targetSets: null, ...fields };
+}
+
+export function createPlan(fields = {}) {
+  const now = nowISO();
+  return { id: uuid(), name: '', items: [], archived: false, createdAt: now, updatedAt: now, ...fields };
+}
+
+export function createSet(fields = {}) {
+  return {
+    id: uuid(),
+    type: 'work',
+    weightKg: null,
+    reps: null,
+    durationSec: null,
+    distanceM: null,
+    drops: [],
+    tags: [],
+    completedAt: null,
+    ...fields
+  };
+}
+
+export function createEntry(exerciseId, fields = {}) {
+  return { id: uuid(), exerciseId, plannedExerciseId: null, groupId: null, sets: [], ...fields };
+}
+
+export function createSession(fields = {}) {
+  const now = nowISO();
+  return { id: uuid(), planId: null, startedAt: now, endedAt: null, note: '', entries: [], createdAt: now, updatedAt: now, ...fields };
+}
+
+// ---------- Validierung ----------
+// Jede Funktion gibt eine Liste von Fehlertexten zurück (leer = gültig).
+
+const isStr = (v) => typeof v === 'string';
+const isId = (v) => isStr(v) && v.length > 0;
+const isISO = (v) => isStr(v) && !Number.isNaN(Date.parse(v));
+const isNullableNum = (v, { int = false } = {}) =>
+  v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0 && (!int || Number.isInteger(v)));
+const isStrArray = (v) => Array.isArray(v) && v.every(isStr);
+
+export function validateExercise(e) {
+  const err = [];
+  if (!e || typeof e !== 'object') return ['Übung ist kein Objekt.'];
+  if (!isId(e.id)) err.push('Übung ohne id.');
+  if (!isStr(e.name) || !e.name.trim()) err.push(`Übung ${e.id}: Name fehlt.`);
+  if (!EXERCISE_KINDS.includes(e.kind)) err.push(`Übung ${e.id}: unbekannter Typ "${e.kind}".`);
+  if (!e.muscles || !isStrArray(e.muscles.primary) || !isStrArray(e.muscles.secondary)) err.push(`Übung ${e.id}: Muskelgruppen fehlen.`);
+  else {
+    const unknown = [...e.muscles.primary, ...e.muscles.secondary].filter((m) => !(m in MUSCLES));
+    if (unknown.length) err.push(`Übung ${e.id}: unbekannte Muskelgruppe(n) ${unknown.join(', ')}.`);
+  }
+  if (!isStrArray(e.groupIds)) err.push(`Übung ${e.id}: groupIds ist keine Liste.`);
+  if (!Number.isInteger(e.defaultWorkSets) || e.defaultWorkSets < 0) err.push(`Übung ${e.id}: defaultWorkSets ungültig.`);
+  if (!isStr(e.note)) err.push(`Übung ${e.id}: Notiz ungültig.`);
+  if (!e.source || !['builtin', 'custom'].includes(e.source.origin) || !VERIFICATION.includes(e.source.verification)) {
+    err.push(`Übung ${e.id}: Quelle ungültig.`);
+  }
+  if (typeof e.archived !== 'boolean') err.push(`Übung ${e.id}: archived ungültig.`);
+  if (!isISO(e.createdAt) || !isISO(e.updatedAt)) err.push(`Übung ${e.id}: Zeitstempel ungültig.`);
+  return err;
+}
+
+export function validateGroup(g) {
+  const err = [];
+  if (!g || !isId(g.id)) return ['Gruppe ohne id.'];
+  if (!isStr(g.name) || !g.name.trim()) err.push(`Gruppe ${g.id}: Name fehlt.`);
+  if (!isISO(g.createdAt) || !isISO(g.updatedAt)) err.push(`Gruppe ${g.id}: Zeitstempel ungültig.`);
+  return err;
+}
+
+export function validatePlan(p) {
+  const err = [];
+  if (!p || !isId(p.id)) return ['Plan ohne id.'];
+  if (!isStr(p.name) || !p.name.trim()) err.push(`Plan ${p.id}: Name fehlt.`);
+  if (!Array.isArray(p.items)) err.push(`Plan ${p.id}: items ist keine Liste.`);
+  else {
+    for (const it of p.items) {
+      if (!it || !isId(it.id) || !isId(it.exerciseId)) { err.push(`Plan ${p.id}: Eintrag ohne id/exerciseId.`); continue; }
+      if (it.groupId !== null && !isId(it.groupId)) err.push(`Plan ${p.id}: groupId ungültig.`);
+      if (it.targetSets !== null && (!Number.isInteger(it.targetSets) || it.targetSets < 0)) err.push(`Plan ${p.id}: targetSets ungültig.`);
+    }
+  }
+  if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);
+  if (!isISO(p.createdAt) || !isISO(p.updatedAt)) err.push(`Plan ${p.id}: Zeitstempel ungültig.`);
+  return err;
+}
+
+export function validateSet(s, ctx = '') {
+  const err = [];
+  if (!s || !isId(s.id)) return [`${ctx}Satz ohne id.`];
+  if (!SET_TYPES.includes(s.type)) err.push(`${ctx}Satz ${s.id}: unbekannter Typ "${s.type}".`);
+  if (!isNullableNum(s.weightKg)) err.push(`${ctx}Satz ${s.id}: Gewicht ungültig.`);
+  if (!isNullableNum(s.reps, { int: true })) err.push(`${ctx}Satz ${s.id}: Wiederholungen ungültig.`);
+  if (!isNullableNum(s.durationSec)) err.push(`${ctx}Satz ${s.id}: Dauer ungültig.`);
+  if (!isNullableNum(s.distanceM)) err.push(`${ctx}Satz ${s.id}: Distanz ungültig.`);
+  if (!Array.isArray(s.drops)) err.push(`${ctx}Satz ${s.id}: drops ist keine Liste.`);
+  else {
+    if (s.type !== 'drop' && s.drops.length) err.push(`${ctx}Satz ${s.id}: Drop-Stufen nur bei Typ "drop".`);
+    for (const d of s.drops) {
+      if (!d || !isNullableNum(d.weightKg) || !isNullableNum(d.reps, { int: true })) err.push(`${ctx}Satz ${s.id}: Drop-Stufe ungültig.`);
+    }
+  }
+  if (!isStrArray(s.tags)) err.push(`${ctx}Satz ${s.id}: tags ungültig.`);
+  else {
+    const unknown = s.tags.filter((t) => !(t in SET_TAGS) && !/^custom:.+/.test(t));
+    if (unknown.length) err.push(`${ctx}Satz ${s.id}: unbekannte Markierung(en) ${unknown.join(', ')}.`);
+  }
+  if (s.completedAt !== null && !isISO(s.completedAt)) err.push(`${ctx}Satz ${s.id}: completedAt ungültig.`);
+  return err;
+}
+
+export function validateSession(x) {
+  const err = [];
+  if (!x || !isId(x.id)) return ['Training ohne id.'];
+  if (x.planId !== null && !isId(x.planId)) err.push(`Training ${x.id}: planId ungültig.`);
+  if (!isISO(x.startedAt)) err.push(`Training ${x.id}: startedAt ungültig.`);
+  if (x.endedAt !== null && !isISO(x.endedAt)) err.push(`Training ${x.id}: endedAt ungültig.`);
+  if (!isStr(x.note)) err.push(`Training ${x.id}: Notiz ungültig.`);
+  if (!Array.isArray(x.entries)) err.push(`Training ${x.id}: entries ist keine Liste.`);
+  else {
+    for (const en of x.entries) {
+      if (!en || !isId(en.id) || !isId(en.exerciseId)) { err.push(`Training ${x.id}: Eintrag ohne id/exerciseId.`); continue; }
+      if (en.plannedExerciseId !== null && !isId(en.plannedExerciseId)) err.push(`Training ${x.id}: plannedExerciseId ungültig.`);
+      if (en.groupId !== null && !isId(en.groupId)) err.push(`Training ${x.id}: groupId ungültig.`);
+      if (!Array.isArray(en.sets)) err.push(`Training ${x.id}: sets ist keine Liste.`);
+      else for (const s of en.sets) err.push(...validateSet(s, `Training ${x.id}: `));
+    }
+  }
+  if (!isISO(x.createdAt) || !isISO(x.updatedAt)) err.push(`Training ${x.id}: Zeitstempel ungültig.`);
+  return err;
+}
+
+// Prüft alle Daten inkl. Verweisen zwischen den Sammlungen.
+// Verweise auf gelöschte Übungen in alten Trainings sind Fehler: Übungen werden archiviert, nicht gelöscht.
+export function validateData(data) {
+  const err = [];
+  const byId = (list) => new Set((list || []).map((x) => x && x.id));
+  for (const e of data.exercises) err.push(...validateExercise(e));
+  for (const g of data.groups) err.push(...validateGroup(g));
+  for (const p of data.plans) err.push(...validatePlan(p));
+  for (const s of data.sessions) err.push(...validateSession(s));
+  if (err.length) return err;
+
+  const ex = byId(data.exercises);
+  const gr = byId(data.groups);
+  const pl = byId(data.plans);
+  for (const e of data.exercises) for (const g of e.groupIds) if (!gr.has(g)) err.push(`Übung ${e.id}: Gruppe ${g} existiert nicht.`);
+  for (const p of data.plans) {
+    for (const it of p.items) {
+      if (!ex.has(it.exerciseId)) err.push(`Plan ${p.id}: Übung ${it.exerciseId} existiert nicht.`);
+      if (it.groupId && !gr.has(it.groupId)) err.push(`Plan ${p.id}: Gruppe ${it.groupId} existiert nicht.`);
+    }
+  }
+  for (const s of data.sessions) {
+    if (s.planId && !pl.has(s.planId)) err.push(`Training ${s.id}: Plan ${s.planId} existiert nicht.`);
+    for (const en of s.entries) {
+      if (!ex.has(en.exerciseId)) err.push(`Training ${s.id}: Übung ${en.exerciseId} existiert nicht.`);
+      if (en.plannedExerciseId && !ex.has(en.plannedExerciseId)) err.push(`Training ${s.id}: geplante Übung existiert nicht.`);
+    }
+  }
+  return err;
+}
+
+// ---------- Berechnungen ----------
+// Volumen = Gewicht × Wiederholungen (kg·Wdh.), nur für Typ "strength".
+// Bei Körpergewichtsübungen ist das Körpergewicht unbekannt (wird bewusst nicht gespeichert),
+// daher kein Volumen in kg, sondern nur Wiederholungen. Aufwärmsätze zählen nie.
+
+const counts = (s) => s.completedAt !== null && s.type !== 'warmup';
+
+export function setVolume(set, kind = 'strength') {
+  if (kind !== 'strength' || set.type === 'warmup') return 0;
+  const stage = (w, r) => (w || 0) * (r || 0);
+  let v = stage(set.weightKg, set.reps);
+  if (set.type === 'drop') for (const d of set.drops) v += stage(d.weightKg, d.reps);
+  return v;
+}
+
+export function setReps(set) {
+  if (set.type === 'warmup') return 0;
+  let r = set.reps || 0;
+  if (set.type === 'drop') for (const d of set.drops) r += d.reps || 0;
+  return r;
+}
+
+// Harte Sätze: abgeschlossene Arbeits- und Drop-Sätze; ein Drop-Satz zählt als ein Satz.
+export function hardSets(entry) {
+  return entry.sets.filter(counts).length;
+}
+
+export function entryVolume(entry, kind = 'strength') {
+  return entry.sets.filter(counts).reduce((sum, s) => sum + setVolume(s, kind), 0);
+}
+
+export function sessionSummary(session, exercisesById) {
+  let volume = 0, sets = 0, reps = 0;
+  for (const en of session.entries) {
+    const kind = exercisesById[en.exerciseId]?.kind || 'strength';
+    volume += entryVolume(en, kind);
+    sets += hardSets(en);
+    reps += en.sets.filter(counts).reduce((r, s) => r + setReps(s), 0);
+  }
+  return { volume, hardSets: sets, reps };
+}
+
+function sessionTime(s) {
+  return Date.parse(s.startedAt);
+}
+
+// Letzte Ausführung einer Übung (für die Vorbelegung beim Loggen).
+// Gibt { sessionId, date, sets } mit den abgeschlossenen Sätzen zurück oder null.
+export function lastPerformance(exerciseId, sessions, { beforeSessionId = null } = {}) {
+  const sorted = [...sessions].sort((a, b) => sessionTime(b) - sessionTime(a));
+  for (const s of sorted) {
+    if (s.id === beforeSessionId) continue;
+    for (const en of s.entries) {
+      if (en.exerciseId !== exerciseId) continue;
+      const done = en.sets.filter((x) => x.completedAt !== null);
+      if (done.length) return { sessionId: s.id, date: s.startedAt, sets: done };
+    }
+  }
+  return null;
+}
+
+// Neue Sätze für ein Training vorbelegen: Werte vom letzten Mal, sonst leere Arbeitssätze.
+export function prefillSets(exercise, sessions, targetSets = null) {
+  const last = lastPerformance(exercise.id, sessions);
+  const n = targetSets ?? exercise.defaultWorkSets;
+  if (last) {
+    return last.sets.map((s) => createSet({
+      type: s.type,
+      weightKg: s.weightKg,
+      reps: s.reps,
+      durationSec: s.durationSec,
+      distanceM: s.distanceM,
+      drops: s.drops.map((d) => ({ ...d })),
+      tags: [...s.tags]
+    }));
+  }
+  return Array.from({ length: n }, () => createSet());
+}
+
+// Aufwärm-Hinweis: true, wenn eine primäre Muskelgruppe dieser Übung im laufenden Training
+// vorher noch nicht primär oder sekundär belastet wurde (Reihenfolge = Reihenfolge der Einträge).
+export function needsWarmupHint(session, entryIndex, exercisesById) {
+  const current = exercisesById[session.entries[entryIndex]?.exerciseId];
+  if (!current || current.kind === 'cardio') return false;
+  const hit = new Set();
+  for (const en of session.entries.slice(0, entryIndex)) {
+    const ex = exercisesById[en.exerciseId];
+    if (!ex) continue;
+    if (!en.sets.some((s) => s.completedAt !== null)) continue;
+    for (const m of [...ex.muscles.primary, ...ex.muscles.secondary]) hit.add(m);
+  }
+  return current.muscles.primary.some((m) => !hit.has(m));
+}
+
+// Verlauf einer Übung für Tabelle/Diagramm (v1.0): ein Eintrag pro Training, älteste zuerst.
+export function exerciseHistory(exerciseId, sessions, kind = 'strength') {
+  const rows = [];
+  for (const s of sessions) {
+    for (const en of s.entries) {
+      if (en.exerciseId !== exerciseId) continue;
+      const done = en.sets.filter(counts);
+      if (!done.length) continue;
+      let top = null;
+      for (const x of done) {
+        if (top === null || (x.weightKg || 0) > (top.weightKg || 0) || ((x.weightKg || 0) === (top.weightKg || 0) && (x.reps || 0) > (top.reps || 0))) top = x;
+      }
+      rows.push({
+        sessionId: s.id,
+        date: s.startedAt,
+        sets: done.map((x) => ({ type: x.type, weightKg: x.weightKg, reps: x.reps, drops: x.drops, tags: x.tags })),
+        topSet: { weightKg: top.weightKg, reps: top.reps },
+        hardSets: done.length,
+        volume: done.reduce((v, x) => v + setVolume(x, kind), 0)
+      });
+    }
+  }
+  return rows.sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+}
+
+// Tausch im Training: ersetzt die Übung eines Eintrags durch eine andere (nur für dieses Training).
+// Die ursprünglich geplante Übung bleibt in plannedExerciseId erhalten; Sätze werden neu vorbelegt.
+export function swapEntryExercise(entry, newExercise, sessions) {
+  return {
+    ...entry,
+    plannedExerciseId: entry.plannedExerciseId ?? entry.exerciseId,
+    exerciseId: newExercise.id,
+    sets: prefillSets(newExercise, sessions)
+  };
+}
+
+// Training aus einem Plan starten.
+export function startSessionFromPlan(plan, exercisesById, sessions) {
+  const session = createSession({ planId: plan.id });
+  session.entries = plan.items
+    .filter((it) => exercisesById[it.exerciseId])
+    .map((it) => createEntry(it.exerciseId, {
+      groupId: it.groupId,
+      sets: prefillSets(exercisesById[it.exerciseId], sessions, it.targetSets)
+    }));
+  return session;
+}
