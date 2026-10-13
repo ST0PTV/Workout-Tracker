@@ -5,10 +5,10 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 1.2.0 (Drop- und Rest-Pause-Sätze, Markierungen, deployt am 2026-10-13), Cache `wt-cache-v9`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe (alle 2026-10-13).
-- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen.
-- **Nächster Schritt:** v1.3 Übungsgruppen mit Tausch im Training (Datenmodell-Felder `groupIds`, `groupId`, `plannedExerciseId` vorher kritisch gegenlesen).
+- **Live:** 1.3.0 (Übungsgruppen und Tausch im Training, deployt am 2026-10-13), Cache `wt-cache-v10`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training (alle 2026-10-13).
+- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen, Übungsgruppen mit Tausch im laufenden Training.
+- **Nächster Schritt:** offen – Kandidaten in Drive → `Ideas & Backlog`.
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
 ## Rahmenbedingungen
@@ -51,6 +51,8 @@ js/progress-view.js     Fortschritt-Tab mit Umschalter „Übungen | Trainings�
 js/sets.js              Satztypen ohne DOM: Stufen (drop/restpause), Markierungen, Zählregeln-Kommentar, formatSet, setLabel
 js/set-info.js          Erklärtext Drop/Rest-Pause und Quellen (PubMed-geprüft 2026-10-13)
 js/set-view.js          Satz-Sheet (Typ, Markierungen, Entfernen), Stufenzeilen, Markierungs-Chips, Schnellknöpfe – für Training und Tagebuch
+js/groups.js            Gruppen ohne DOM: anlegen/umbenennen/löschen (mit Bereinigung), Mitglieder, Tausch-Kandidaten
+js/group-view.js        Gruppen-Feld im Übungs-Editor, „Verwalten“-Sheet, Tausch-Sheet im Training
 js/input.js             Zahlen-Eingaben für Sätze (Gewicht mit Komma, Wdh. ganzzahlig, Grenzen) – gemeinsam für Training und Tagebuch
 js/history.js           Tagebuch ohne DOM: Liste abgeschlossener Trainings, Entwurf bearbeiten, speichern (mit Validierung), löschen
 js/diary-view.js        Tagebuch-Liste (Karten nach Monat), Detail-Sheet, Bearbeiten-Modus mit Abbrechen/Fertig, Tippfehler-Hinweistext
@@ -58,7 +60,7 @@ js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Einstellungen; re-exportiert die übrigen Tab-Ansichten
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, sw)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, groups, sw)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -71,18 +73,18 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 **Übung (`exercises`)**
 - `id`, `name`, `kind` (`strength` | `bodyweight` | `cardio`)
 - `muscles.primary[]`, `muscles.secondary[]`: IDs aus `MUSCLES` (19 Einträge; `hip-flexors` seit v0.3, ohne Schemaänderung). Abgrenzung: `biceps` = Armbeuger inkl. Brachialis, `glutes` = Gluteus maximus, `abductors` = Gluteus medius/minimus + TFL.
-- `groupIds[]` → `groups` (UI ab v1.x)
+- `groupIds[]` → `groups` (UI seit v1.3)
 - `defaultWorkSets` (Standard 3), `restSeconds` (Pause in s, `null` = Standard aus Einstellungen; seit v0.4, optional ohne Schemaänderung – fehlt bei Altdaten), `note` (Variante, Geräteeinstellung, Ausführung)
 - `source { origin: builtin|custom, ref, verification: verified|training-knowledge|user, checkedAt }`
 - `archived` (Übungen werden archiviert, nicht gelöscht, damit alte Trainings gültig bleiben), `createdAt`, `updatedAt`
 
-**Gruppe (`groups`)** – Bewegungsmuster für den Tausch im Training: `id`, `name`, `createdAt`, `updatedAt` (UI ab v1.x)
+**Gruppe (`groups`)** – Bewegungsmuster für den Tausch im Training: `id`, `name` (getrimmt, eindeutig ohne Groß/Klein, max. 40 Zeichen), `createdAt`, `updatedAt` (UI seit v1.3)
 
-**Plan (`plans`)** – `id`, `name`, `items[] { id, exerciseId, groupId|null, targetSets|null }`, `archived`, Zeitstempel. `targetSets = null` heißt: `defaultWorkSets` der Übung.
+**Plan (`plans`)** – `id`, `name`, `items[] { id, exerciseId, groupId|null, targetSets|null }`, `archived`, Zeitstempel. `targetSets = null` heißt: `defaultWorkSets` der Übung. `groupId` ist nur eine optionale Einschränkung der Tausch-Kandidaten auf eine Gruppe (noch ohne Oberfläche).
 
 **Training (`sessions`)** – `id`, `planId|null`, `startedAt`, `endedAt|null`, `note`, Zeitstempel,
-`entries[] { id, exerciseId, plannedExerciseId|null, groupId|null, sets[] }`, `restTimer { entryId, startedAt, durationSec } | null` (seit v0.5, optional ohne Schemaänderung).
-`exerciseId` ist die tatsächlich gemachte Übung; nach einem Tausch steht die geplante in `plannedExerciseId`.
+`entries[] { id, exerciseId, plannedExerciseId|null, groupId|null, targetSets|null, sets[] }`, `restTimer { entryId, startedAt, durationSec } | null` (seit v0.5, optional ohne Schemaänderung).
+`exerciseId` ist die tatsächlich gemachte Übung; nach einem Tausch steht die geplante in `plannedExerciseId` (Tausch zurück auf die geplante → wieder `null`). `targetSets` (seit v1.3, optional ohne Schemaänderung) wird beim Start aus dem Plan übernommen und für getauschte Übungen ohne Historie genutzt.
 
 **Satz** – `id`, `type` (`warmup` | `work` | `drop` | `restpause`; `restpause` seit v1.2 ohne Schemaänderung), `weightKg|null`, `reps|null` (ganzzahlig) = erste Stufe, `durationSec|null`, `distanceM|null` (Cardio), `drops[] { weightKg, reps }` = Folge-Stufen (nur bei `drop` und `restpause`, UI seit v1.2), `tags[]` (Schlüssel aus `SET_TAGS`: `stretch-hold`, `partials`, `failure`, oder `custom:<Text>` bis 30 Zeichen; UI seit v1.2; `rest-pause` ist seit v1.2 keine Markierung mehr), `completedAt|null` (null = vorbelegt, noch nicht gemacht).
 
@@ -152,6 +154,15 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Anzeige überall über `formatSet`: „80 × 8 + 60 × 6“, Rest-Pause mit gleichem Gewicht „80 × 7 + 3“; Kurzzeichen A, 1, 2D, 3RP.
 - Achtung: `element.replaceChildren(...)` schreibt `null` als Text – vorher `.filter(Boolean)` (der Helfer `h()` überspringt null).
 
+## Übungsgruppen und Tausch (v1.3)
+
+- Variante A + Zeile aus C: Im Übungs-Editor Gruppen-Chips (an/aus), „+ Neue Gruppe“ (`prompt()`), „Verwalten“ (umbenennen, löschen) und die Zeile „In „X“ auch: …“. Gruppen sind Bewegungsmuster; eine Übung kann in mehreren sein.
+- Kandidaten (`G.swapCandidates`): aus den Gruppen der **geplanten** Übung (`plannedExerciseId ?? exerciseId`); `entry.groupId` schränkt optional auf eine Gruppe ein. Archivierte Übungen nie, die aktuelle nie; die geplante steht nach einem Tausch vorn.
+- Training: Knopf „Tauschen“ nur, wenn es Kandidaten gibt. Sheet zeigt „Zuletzt dd.mm.: …“ bzw. „Noch nicht trainiert · n Sätze aus dem Plan/(Standard)“. Unter dem Titel „statt <geplant> · zurück“.
+- `S.swapEntry(entryId, exerciseId)`: ohne erledigten Satz → Übung im Eintrag ersetzen (`swapEntryExercise`, neue Vorbelegung, Pausen-Timer des Eintrags gestoppt); mit erledigtem Satz → neuer Eintrag direkt dahinter (erledigte Sätze bleiben). Ergebnis `{ mode: 'swapped' | 'inserted', index }`.
+- Löschen einer Gruppe entfernt sie aus `exercises[].groupIds` und setzt `plans[].items[].groupId` auf `null`; abgeschlossene Trainings behalten ihr `groupId` (wird nicht gegen `groups` geprüft).
+- Fortschritt bleibt pro Übung; „statt X“ erscheint in Übersicht und Tagebuch.
+
 ## Konventionen (gemeinsam mit Calorie Tracker und Rezepte-App geplant)
 
 - IDs: UUID (String). Zeitstempel: ISO-8601 UTC (String).
@@ -175,7 +186,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Der iOS-Speicher einer Homescreen-PWA ist nach bisherigem Wissen vom Safari-Tab getrennt (nicht verifiziert). Backup-Import also immer in der App selbst ausführen.
 - `sw.js` kann keine ES-Module importieren; `CACHE_VERSION` muss daher manuell mit der App-Version abgestimmt werden.
 - Teilen-Menü (`navigator.share` mit Datei) für den Backup-Export ist auf dem iPhone ungetestet.
-- Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. Gruppenfelder vor v1.3 kritisch gegenlesen. `prompt()` für eigene Markierungen in der Homescreen-App ungetestet.
+- Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. `prompt()` für eigene Markierungen und Gruppennamen in der Homescreen-App ungetestet.
 - Muskelzuordnungen beruhen überwiegend auf EMG-Studien (Aktivität ≠ Wachstum); bei 6 Pool-Übungen ist die Belastbarkeit „niedrig“ (keine Studie zur Übung selbst).
 - Sheets nutzen `92vh`; auf dem iPhone mit eingeblendeter Tastatur ungetestet.
 - iOS kann eine Homescreen-PWA im Hintergrund beenden; JS-Timer laufen dann nicht. Deshalb zeitstempelbasiert und sofortiges Speichern (auf dem iPhone noch ungetestet).
