@@ -1,5 +1,6 @@
 // Bottom Sheets (stapelbar). Schließen per Hintergrund-Tipp, Griff-Tipp, Escape oder close().
 import { h } from './util.js';
+import { icon } from './icons.js';
 
 const stack = [];
 
@@ -9,7 +10,7 @@ function onKey(e) {
 
 export function openSheet(content, { title = '', full = false, onClose = null } = {}) {
   const overlay = h('div', { class: 'sheet-overlay' });
-  const closeBtn = h('button', { class: 'sheet-close', type: 'button', 'aria-label': 'Schließen' }, '✕');
+  const closeBtn = h('button', { class: 'sheet-close', type: 'button', 'aria-label': 'Schließen' }, icon('close', { size: 18 }));
   const panel = h(
     'div',
     { class: `sheet${full ? ' full' : ''}`, role: 'dialog', 'aria-modal': 'true', 'aria-label': title || 'Dialog' },

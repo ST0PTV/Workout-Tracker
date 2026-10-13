@@ -1,5 +1,5 @@
 // Übungen-Tab (Variante A + Pool aus B): Liste nach Körperregion, Suche, Filter,
-// „+“ mit Auswahl Startpool/Eigene Übung, Editor, ℹ-Infos zu Muskelgruppen und Quellen.
+// Plus-Button mit Auswahl Startpool/Eigene Übung, Editor, Info-Sheets zu Muskelgruppen und Quellen.
 import { h } from './util.js';
 import { MUSCLES, EXERCISE_KINDS, createExercise } from './model.js';
 import { POOL, EQUIPMENT, CONFIDENCE, POOL_CHECKED_AT, poolEntry, poolRefsInLibrary } from './pool.js';
@@ -7,6 +7,7 @@ import { MUSCLE_INFO, MUSCLE_INFO_CHECKED_AT } from './muscle-info.js';
 import * as lib from './exercises.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
+import { icon } from './icons.js';
 
 const KIND_LABEL = { strength: 'Kraft', bodyweight: 'Körpergewicht', cardio: 'Cardio' };
 const VERIF_LABEL = {
@@ -20,7 +21,7 @@ const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString('de-DE') : '');
 const state = { query: '', region: null, showArchived: false };
 
 function infoButton(label, onClick) {
-  return h('button', { class: 'info-btn', type: 'button', 'aria-label': label, onclick: (e) => { e.stopPropagation(); onClick(); } }, 'ℹ');
+  return h('button', { class: 'info-btn', type: 'button', 'aria-label': label, onclick: (e) => { e.stopPropagation(); onClick(); } }, icon('info', { size: 18 }));
 }
 
 function regionChips(active, onPick) {
@@ -33,10 +34,10 @@ function regionChips(active, onPick) {
 function searchField(value, placeholder, onInput) {
   const input = h('input', { type: 'search', class: 'search-input', placeholder, value, 'aria-label': placeholder, autocomplete: 'off', enterkeyhint: 'search' });
   input.addEventListener('input', () => onInput(input.value));
-  return h('label', { class: 'search' }, h('span', { 'aria-hidden': 'true' }, '⌕'), input);
+  return h('label', { class: 'search' }, icon('search', { size: 18 }), input);
 }
 
-// ---------- ℹ: Muskelgruppen ----------
+// ---------- Info: Muskelgruppen ----------
 
 function sourceList(sources) {
   return h('ul', { class: 'sources' }, sources.map((s) =>
@@ -64,18 +65,18 @@ export function openMuscleOverview() {
       h('div', { class: 'card list' }, r.muscles.map((m) =>
         h('button', { class: 'row', type: 'button', onclick: () => openMuscleInfo(m) },
           h('span', { class: 't' }, h('b', {}, MUSCLES[m]), h('small', {}, MUSCLE_INFO[m]?.includes || '')),
-          h('span', { class: 'chev', 'aria-hidden': 'true' }, 'ℹ'))))
+          h('span', { class: 'chev info-mark' }, icon('info', { size: 18 })))))
     )));
   openSheet(body, { title: 'Muskelgruppen', full: true });
 }
 
-// ---------- ℹ: Evidenz einer Pool-Übung ----------
+// ---------- Info: Evidenz einer Pool-Übung ----------
 
 export function openEvidence(ref) {
   const p = poolEntry(ref);
   if (!p) return;
   const muscleLinks = (keys) => (keys.length
-    ? h('span', { class: 'wrap' }, keys.map((m) => h('button', { class: 'chip small', type: 'button', onclick: () => openMuscleInfo(m) }, `${MUSCLES[m]} ℹ`)))
+    ? h('span', { class: 'wrap' }, keys.map((m) => h('button', { class: 'chip small', type: 'button', onclick: () => openMuscleInfo(m) }, MUSCLES[m], icon('info', { size: 14, cls: 'inline' }))))
     : h('span', { class: 'muted' }, '–'));
   openSheet(h('div', { class: 'info' },
     h('p', {}, h('b', {}, 'Primär: '), muscleLinks(p.muscles.primary)),
@@ -107,12 +108,12 @@ function openPool(rerender) {
             h('b', {}, p.name, h('span', { class: 'eq' }, EQUIPMENT[p.equipment])),
             h('small', {}, lib.muscleSummary(p))),
           added
-            ? h('span', { class: 'added' }, '✓ drin')
+            ? h('span', { class: 'added' }, icon('check', { size: 16 }), 'drin')
             : h('button', { class: 'add', type: 'button', 'aria-label': `${p.name} hinzufügen`, onclick: () => {
               const r = lib.addFromPool(p.ref);
               if (r.ok) { toast(`${p.name} ${r.restored ? 'wiederhergestellt' : 'hinzugefügt'}.`); draw(); rerender(); }
               else toast(r.errors[0], { error: true });
-            } }, '+'));
+            } }, icon('plus', { size: 22 })));
       }))
       : h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden.'));
   };
@@ -134,7 +135,7 @@ function musclePicker(title, selected, blocked, onDone) {
   const sel = new Set(selected);
   const body = h('div');
   const draw = () => body.replaceChildren(
-    h('p', { class: 'muted small' }, 'Antippen zum Auswählen. ℹ zeigt Infos zur Gruppe.'),
+    h('p', { class: 'muted small' }, 'Antippen zum Auswählen. ', icon('info', { size: 14, cls: 'inline' }), ' zeigt Infos zur Gruppe.'),
     ...lib.REGIONS.map((r) => h('div', {},
       h('div', { class: 'sec' }, r.label),
       h('div', { class: 'wrap' }, r.muscles.map((m) => {
@@ -183,7 +184,7 @@ export function openEditor(existing, rerender) {
     const changed = !(same(ex.muscles.primary, pool.muscles.primary) && same(ex.muscles.secondary, pool.muscles.secondary));
     sourceBox.replaceChildren('Quelle: Startpool · ',
       changed ? h('span', { class: 'warn' }, 'Muskeln geändert – eigene Angabe') : h('span', {}, `${VERIF_LABEL.verified} am ${fmtDate(POOL_CHECKED_AT)}, Belastbarkeit ${CONFIDENCE[pool.confidence]}`),
-      ' ', h('button', { class: 'link', type: 'button', onclick: () => openEvidence(pool.ref) }, 'ℹ Quellen'));
+      ' ', h('button', { class: 'link', type: 'button', onclick: () => openEvidence(pool.ref) }, icon('info', { size: 14, cls: 'inline' }), ' Quellen'));
   };
 
   const save = () => {
@@ -208,8 +209,8 @@ export function openEditor(existing, rerender) {
     musclesBox,
     h('div', { class: 'field' }, h('label', {}, 'Arbeitssätze (Standard)'),
       h('div', { class: 'step' },
-        h('button', { type: 'button', 'aria-label': 'Weniger Sätze', onclick: () => step(-1) }, '−'), setsValue,
-        h('button', { type: 'button', 'aria-label': 'Mehr Sätze', onclick: () => step(1) }, '+'))),
+        h('button', { type: 'button', 'aria-label': 'Weniger Sätze', onclick: () => step(-1) }, icon('minus')), setsValue,
+        h('button', { type: 'button', 'aria-label': 'Mehr Sätze', onclick: () => step(1) }, icon('plus')))),
     h('div', { class: 'field' }, h('label', {}, 'Notiz'), noteInput, sourceBox),
     !isNew ? h('button', { class: 'btn block subtle', type: 'button', onclick: archive }, ex.archived ? 'Wiederherstellen' : 'Archivieren') : null,
     h('button', { class: 'btn primary block sticky-bottom', type: 'submit' }, ex.archived ? 'Speichern (archiviert)' : 'Speichern'));
@@ -222,9 +223,9 @@ export function openEditor(existing, rerender) {
 function openAddChoice(rerender) {
   const sheet = openSheet(h('div', {},
     h('button', { class: 'opt', type: 'button', onclick: () => { sheet.close(); openPool(rerender); } },
-      h('span', { class: 'ic', 'aria-hidden': 'true' }, '☰'), h('span', {}, h('b', {}, 'Aus Startpool'), h('small', {}, `${POOL.length} recherchierte Grundübungen`))),
+      h('span', { class: 'ic' }, icon('list', { size: 22 })), h('span', {}, h('b', {}, 'Aus Startpool'), h('small', {}, `${POOL.length} recherchierte Grundübungen`))),
     h('button', { class: 'opt', type: 'button', onclick: () => { sheet.close(); openEditor(null, rerender); } },
-      h('span', { class: 'ic', 'aria-hidden': 'true' }, '✎'), h('span', {}, h('b', {}, 'Eigene Übung'), h('small', {}, 'Name, Muskelgruppen, Sätze, Notiz')))
+      h('span', { class: 'ic' }, icon('edit', { size: 22 })), h('span', {}, h('b', {}, 'Eigene Übung'), h('small', {}, 'Name, Muskelgruppen, Sätze, Notiz')))
   ), { title: 'Übung hinzufügen' });
 }
 
@@ -233,8 +234,8 @@ function exerciseRow(ex, rerender) {
     h('span', { class: 't' },
       h('b', {}, ex.name),
       h('small', {}, ex.kind === 'cardio' && !ex.muscles.primary.length ? 'Cardio' : lib.muscleSummary(ex)),
-      ex.note ? h('i', {}, `✎ ${ex.note}`) : null),
-    h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'));
+      ex.note ? h('i', {}, icon('edit', { size: 13, cls: 'inline' }), ` ${ex.note}`) : null),
+    h('span', { class: 'chev' }, icon('chevron', { size: 18 })));
 }
 
 export function exercisesView(rerender) {
@@ -247,7 +248,7 @@ export function exercisesView(rerender) {
     const sections = lib.groupedExercises(active, { query: state.query, region: state.region });
     if (!active.length) {
       listBox.replaceChildren(h('div', { class: 'card empty' },
-        h('div', { class: 'big' }, '🏋️'), h('h2', {}, 'Noch keine Übungen'),
+        h('div', { class: 'big' }, icon('train', { size: 44 })), h('h2', {}, 'Noch keine Übungen'),
         h('p', { class: 'muted' }, 'Übernimm Grundübungen aus dem Startpool oder lege eigene an.'),
         h('div', { class: 'row-btns' },
           h('button', { class: 'btn primary', type: 'button', onclick: () => openPool(rerender) }, 'Startpool'),
@@ -259,7 +260,7 @@ export function exercisesView(rerender) {
         : [h('p', { class: 'muted empty-line' }, 'Keine Übung passt zur Suche.')]),
       archived.length ? h('div', {},
         h('button', { class: 'link archived-toggle', type: 'button', onclick: () => { state.showArchived = !state.showArchived; drawList(); } },
-          `${state.showArchived ? '▾' : '▸'} Archiviert (${archived.length})`),
+          icon('chevron', { size: 16, cls: state.showArchived ? 'rot90' : '' }), ` Archiviert (${archived.length})`),
         state.showArchived ? h('div', { class: 'card list dim-list' }, archived.sort((a, b) => a.name.localeCompare(b.name, 'de')).map((e) => exerciseRow(e, rerender))) : null) : '');
   };
 
@@ -275,5 +276,5 @@ export function exercisesView(rerender) {
     active.length ? searchField(state.query, 'Übung suchen', (v) => { state.query = v; drawList(); }) : null,
     active.length ? chipsBox : null,
     listBox,
-    h('button', { class: 'fab', type: 'button', 'aria-label': 'Übung hinzufügen', onclick: () => openAddChoice(rerender) }, '+'));
+    h('button', { class: 'fab', type: 'button', 'aria-label': 'Übung hinzufügen', onclick: () => openAddChoice(rerender) }, icon('plus', { size: 30 })));
 }
