@@ -6,7 +6,7 @@ const boot = store.init();
 
 const router = startRouter({
   '/': () => trainingView(),
-  '/plans': () => plansView(),
+  '/plans': () => plansView(() => router()),
   '/exercises': () => exercisesView(() => router()),
   '/settings': () => settingsView(() => router())
 });

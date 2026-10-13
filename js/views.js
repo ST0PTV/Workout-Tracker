@@ -5,6 +5,8 @@ import * as store from './store.js';
 import * as backup from './backup.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
+import { stepper } from './controls.js';
+import { stepRest, formatDuration } from './rest.js';
 
 function placeholderCard(text, version) {
   return h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, `Kommt in ${version}`), h('p', { class: 'muted' }, text));
@@ -37,9 +39,7 @@ function stat(value, label) {
   return h('div', { class: 'stat' }, h('b', {}, value), h('span', {}, label));
 }
 
-export function plansView() {
-  return placeholder('Pläne', 'Trainingspläne aus deinen Übungen zusammenstellen.', 'v0.4');
-}
+export { plansView } from './plans-view.js';
 
 export { exercisesView } from './exercises-view.js';
 
@@ -104,16 +104,33 @@ export function settingsView(rerender) {
     'section',
     {},
     h('h1', {}, 'Einstellungen'),
-    h('p', { class: 'sub' }, 'Backup und App-Infos.'),
+    h('p', { class: 'sub' }, 'Backup, Training und App-Infos.'),
     h(
       'div',
       { class: 'card' },
       h('h2', {}, 'Backup'),
       h('p', { class: 'muted small' }, 'Deine Daten liegen nur lokal im Browser-Speicher dieses Geräts. Sichere sie regelmäßig als Datei und lege sie niemals in ein öffentliches Repo.'),
-      h('div', { class: 'row' },
+      h('div', { class: 'btn-row' },
         h('button', { class: 'btn primary', type: 'button', onclick: exportBackup }, 'Backup exportieren'),
         h('button', { class: 'btn', type: 'button', onclick: () => fileInput.click() }, 'Backup importieren')),
       fileInput
+    ),
+    h(
+      'div',
+      { class: 'card' },
+      h('h2', {}, 'Training'),
+      h('p', { class: 'muted small' }, 'Standard-Pause zwischen Sätzen. Gilt für alle Übungen ohne eigene Pausenzeit. Der Timer läuft ohne Ton und ohne Alarm.'),
+      stepper({
+        value: store.get('settings').restSeconds,
+        format: formatDuration,
+        label: 'Standard-Pause',
+        onStep: (v, d) => {
+          const next = stepRest(v, d);
+          const settings = store.get('settings');
+          if (!store.set('settings', { ...settings, restSeconds: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
+          return next;
+        }
+      })
     ),
     h(
       'div',

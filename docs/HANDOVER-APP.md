@@ -5,10 +5,10 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 0.3.1 (Linien-Icons, deployt am 2026-10-13), Cache `wt-cache-v4`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji (alle 2026-10-13).
-- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, ℹ-Infos).
-- **Platzhalter:** Training (v0.5), Pläne (v0.4).
+- **Live:** 0.4.0 (Trainingspläne, deployt am 2026-10-13), Cache `wt-cache-v5`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung (alle 2026-10-13).
+- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause.
+- **Platzhalter:** Training (v0.5).
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
 ## Rahmenbedingungen
@@ -37,11 +37,15 @@ js/muscle-info.js       Infotexte und Quellen zu den 19 Muskelgruppen (ℹ)
 js/exercises.js         Übungs-Bibliothek: Regionen, Suche, Gruppierung, Speichern, Archiv, Pool-Übernahme
 js/exercises-view.js    Übungen-Tab: Liste, Startpool-Sheet, Editor, Muskelauswahl, ℹ-Sheets
 js/icons.js             Eigene Linien-Icons (SVG). Keine Unicode-Zeichen/Emoji als Icons – Test `tests/icons.test.js` prüft das
+js/controls.js          Stepper (−/Wert/+) für Sätze und Pausen
+js/rest.js              Pausenzeit: Raster 15 s, 15 s–10 min, Formatierung m:ss, eigener Wert vor Standard
+js/plans.js             Pläne: anlegen, Übungen hinzufügen/entfernen/verschieben, Sätze, archivieren/löschen, Anzeige-Daten
+js/plans-view.js        Pläne-Tab: Kartenliste (A), Ablauf mit „Zuletzt“ und Bearbeiten mit Pfeilen (B), Übungs-Auswahl
 js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Ansichten (Training, Pläne, Einstellungen; Übungen aus exercises-view.js)
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -55,7 +59,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - `id`, `name`, `kind` (`strength` | `bodyweight` | `cardio`)
 - `muscles.primary[]`, `muscles.secondary[]`: IDs aus `MUSCLES` (19 Einträge; `hip-flexors` seit v0.3, ohne Schemaänderung). Abgrenzung: `biceps` = Armbeuger inkl. Brachialis, `glutes` = Gluteus maximus, `abductors` = Gluteus medius/minimus + TFL.
 - `groupIds[]` → `groups` (UI ab v1.x)
-- `defaultWorkSets` (Standard 3), `note` (Variante, Geräteeinstellung, Ausführung)
+- `defaultWorkSets` (Standard 3), `restSeconds` (Pause in s, `null` = Standard aus Einstellungen; seit v0.4, optional ohne Schemaänderung – fehlt bei Altdaten), `note` (Variante, Geräteeinstellung, Ausführung)
 - `source { origin: builtin|custom, ref, verification: verified|training-knowledge|user, checkedAt }`
 - `archived` (Übungen werden archiviert, nicht gelöscht, damit alte Trainings gültig bleiben), `createdAt`, `updatedAt`
 
@@ -89,6 +93,14 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Pool-Einträge: `confidence` (high/medium/low), `basis` (Evidenzart), `note`, `others` (Muskeln außerhalb der Taxonomie), `sources[]` (Label, Link, eigene Kurzbeschreibung). Geprüft am `POOL_CHECKED_AT`. Recherche-Details in Drive → `Research & Sources`.
 - Inhalte sind eigene Formulierungen; aus Quellen nur Fakten übernommen.
 
+## Pläne-Tab und Pausen (v0.4)
+
+- Liste: Karten mit Name, Anzahl Übungen, Arbeitssätze, Übungsfolge; archivierte Pläne gedimmt darunter.
+- Plan-Sheet: nummerierter Ablauf mit Sätzen, Pause, Notiz und „Zuletzt <Datum>: <Arbeitssätze>“ (ohne Aufwärmsätze, aus `lastPerformance`).
+- Bearbeiten: Name, Sätze pro Planeintrag (`targetSets`, 1–10), Pause (schreibt `restSeconds` an die **Übung**, gilt also in allen Plänen), Pfeile hoch/runter, Entfernen, „Übungen hinzufügen“ (Mehrfachauswahl in Antipp-Reihenfolge). Doppelte Übungen im Plan sind erlaubt und werden markiert.
+- Löschen: Plan ohne Trainings wird gelöscht, sonst archiviert; archivierte lassen sich wiederherstellen.
+- Pausen-Timer (v0.5): ohne Ton, ohne Alarm, ohne Vibration; Ende nur visuell. Berechnung über Zeitstempel (Start + Dauer), damit Sperrbildschirm/Hintergrund die Zeit nicht verfälscht.
+
 ## Konventionen (gemeinsam mit Calorie Tracker und Rezepte-App geplant)
 
 - IDs: UUID (String). Zeitstempel: ISO-8601 UTC (String).
@@ -115,6 +127,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. Gruppen-, Drop- und Markierungsfelder vor v1.x kritisch gegenlesen.
 - Muskelzuordnungen beruhen überwiegend auf EMG-Studien (Aktivität ≠ Wachstum); bei 6 Pool-Übungen ist die Belastbarkeit „niedrig“ (keine Studie zur Übung selbst).
 - Sheets nutzen `92vh`; auf dem iPhone mit eingeblendeter Tastatur ungetestet.
+- CSS-Klassen sind global: `.row` ist die Listenzeile. In v0.3 hat das die Backup-Buttons in den Einstellungen gestaucht (behoben in v0.4 mit `.btn-row`). Neue Klassen vorher auf Kollisionen prüfen.
 
 ## Offene Punkte
 
