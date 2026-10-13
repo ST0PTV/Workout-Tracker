@@ -111,8 +111,12 @@ test('Tausch im Training: neue Übung wird geloggt, geplante bleibt vermerkt', (
   assert.equal(swapped.exerciseId, bench.id);
   assert.equal(swapped.plannedExerciseId, fly.id);
   assert.equal(swapped.sets[1].weightKg, 82.5, 'Werte der neuen Übung');
-  const back = M.swapEntryExercise(swapped, fly, sessions);
-  assert.equal(back.plannedExerciseId, fly.id, 'ursprünglich geplante Übung bleibt bei Mehrfachtausch');
+  const third = M.createExercise({ name: 'Dritte', muscles: { primary: ['chest'], secondary: [] } });
+  const twice = M.swapEntryExercise(swapped, third, sessions);
+  assert.equal(twice.plannedExerciseId, fly.id, 'ursprünglich geplante Übung bleibt bei Mehrfachtausch');
+  const back = M.swapEntryExercise(twice, fly, sessions);
+  assert.equal(back.exerciseId, fly.id);
+  assert.equal(back.plannedExerciseId, null, 'zurück auf die geplante Übung: kein „statt“ mehr (v1.3)');
 });
 
 test('Training aus Plan starten: Reihenfolge, Gruppe, Vorbelegung', () => {

@@ -18,6 +18,7 @@ import { weightWarning } from './model.js';
 import { typoText } from './diary-view.js';
 import * as SETS from './sets.js';
 import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
+import { openSwapSheet, swapOptions } from './group-view.js';
 
 const ui = { current: null, sessionId: null };
 let tick = null;
@@ -135,7 +136,7 @@ function openOverview(rerender) {
       h('div', { class: 'card list' }, v.entries.map((d) => h('div', { class: `row ov${d.index === ui.current ? ' cur' : ''}` },
         h('button', { class: 't plain', type: 'button', onclick: () => { ui.current = d.index; sheet.close(); rerender(); } },
           h('b', {}, `${d.index + 1}. ${d.exercise?.name || 'Unbekannte Übung'}`),
-          h('small', {}, `${d.doneCount}/${d.entry.sets.length} Sätze${d.complete ? ' · fertig' : ''}`)),
+          h('small', {}, `${d.doneCount}/${d.entry.sets.length} Sätze${d.complete ? ' · fertig' : ''}${d.entry.plannedExerciseId ? ` · statt ${lib.getExercise(d.entry.plannedExerciseId)?.name || 'geplanter Übung'}` : ''}`)),
         h('div', { class: 'arrows horiz' },
           h('button', { type: 'button', 'aria-label': 'Nach oben', disabled: d.index === 0, onclick: () => { S.moveEntry(d.entry.id, d.index - 1); if (ui.current === d.index) ui.current -= 1; else if (ui.current === d.index - 1) ui.current += 1; draw(); rerender(); } }, icon('up')),
           h('button', { type: 'button', 'aria-label': 'Nach unten', disabled: d.index === v.entries.length - 1, onclick: () => { S.moveEntry(d.entry.id, d.index + 1); if (ui.current === d.index) ui.current += 1; else if (ui.current === d.index + 1) ui.current -= 1; draw(); rerender(); } }, icon('down')),
@@ -245,6 +246,24 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
   ];
 }
 
+// v1.3: „statt <geplant> · zurück“ (aus C) und Knopf „Tauschen“ (A, nur wenn es Kandidaten gibt).
+function swapLine(d, rerender) {
+  const planned = d.entry.plannedExerciseId ? lib.getExercise(d.entry.plannedExerciseId) : null;
+  const { candidates } = swapOptions(d.entry);
+  if (!planned && !candidates.length) return null;
+  const back = () => {
+    const r = S.swapEntry(d.entry.id, planned.id);
+    if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+    toast(r.mode === 'inserted' ? `${planned.name} dahinter eingefügt.` : `Zurück: ${planned.name}.`);
+    if (r.mode === 'inserted') ui.current = r.index;
+    rerender();
+  };
+  return h('div', { class: 'swapline' },
+    planned ? h('span', { class: 'muted small' }, `statt ${planned.name} · `, h('button', { class: 'link small', type: 'button', onclick: back }, 'zurück')) : h('span'),
+    candidates.length ? h('button', { class: 'btn small swap-btn', type: 'button', onclick: () => openSwapSheet(d.entry, { onDone: (r) => { if (r.mode === 'inserted') ui.current = r.index; rerender(); } }) },
+      icon('swap', { size: 16 }), ' Tauschen') : null);
+}
+
 function exercisePage(v, d, rerender) {
   const ex = d.exercise;
   const n = v.entries.length;
@@ -257,6 +276,7 @@ function exercisePage(v, d, rerender) {
     ex ? h('div', {},
       h('h2', { class: 'exh' }, ex.name),
       h('div', { class: 'sub2' }, lib.muscleSummary(ex)),
+      swapLine(d, rerender),
       h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
         icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
     d.warmupHint ? h('div', { class: 'hint' }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}, WARMUP_HINT),

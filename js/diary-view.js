@@ -52,6 +52,9 @@ export function diaryList(rerender) {
 
 const setLabel = SETS.setLabel;
 
+// v1.3: Hinweis auf die geplante Übung nach einem Tausch.
+const insteadOf = (en, byId) => (en.plannedExerciseId ? h('div', { class: 'badge-line' }, h('span', { class: 'badge-instead' }, `statt ${byId[en.plannedExerciseId]?.name || 'geplanter Übung'}`)) : null);
+
 function readView(s) {
   const byId = exercisesById();
   const sum = sessionSummary(s, byId);
@@ -65,6 +68,7 @@ function readView(s) {
       let workNo = 0;
       return h('div', { class: 'card diary-ex' },
         h('h2', {}, ex?.name || 'Unbekannte Übung'),
+        insteadOf(en, byId),
         h('div', { class: 'diary-sets' }, en.sets.map((x) => {
           const no = x.type === 'warmup' ? 0 : ++workNo;
           const val = x.weightKg !== null ? `${SETS.formatSet(x).replace(' × ', ' kg × ')}` : `${x.reps ?? '–'} Wdh.`;
@@ -149,6 +153,7 @@ export function openDiaryEntry(id, rerender) {
         let workNo = 0;
         return h('div', { class: 'card sets diary-ex' },
           h('h2', {}, ex?.name || 'Unbekannte Übung'),
+          insteadOf(en, byId),
           h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
           en.sets.length ? en.sets.flatMap((x) => editRow(en, x, x.type === 'warmup' ? 0 : ++workNo, en.exerciseId)) : h('p', { class: 'muted small center' }, 'Keine Sätze – die Übung fällt beim Speichern weg.'),
           h('div', { class: 'nav2' },

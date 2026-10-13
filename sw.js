@@ -40,6 +40,8 @@ const PRECACHE = [
   'js/sets.js',
   'js/set-info.js',
   'js/set-view.js',
+  'js/groups.js',
+  'js/group-view.js',
   'js/history.js',
   'js/diary-view.js',
   'js/views.js',
