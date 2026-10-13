@@ -32,7 +32,7 @@ test('Validierung findet typische Fehler', () => {
   assert.ok(M.validateSet(M.createSet({ reps: 8.5 })).length);
   assert.ok(M.validateSet(M.createSet({ type: 'work', drops: [{ weightKg: 50, reps: 5 }] })).length, 'Drops nur bei Typ drop');
   assert.ok(M.validateSet(M.createSet({ tags: ['zufall'] })).length);
-  assert.deepEqual(M.validateSet(M.createSet({ tags: ['rest-pause', 'custom:Tempo 3-1-1'] })), []);
+  assert.deepEqual(M.validateSet(M.createSet({ tags: ['stretch-hold', 'custom:Tempo 3-1-1'] })), []);
 });
 
 test('Volumen: Gewicht × Wdh.; Aufwärmen zählt nicht; Drop-Stufen zählen alle', () => {

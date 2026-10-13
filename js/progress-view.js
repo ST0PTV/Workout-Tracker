@@ -9,6 +9,7 @@ import { PROGRESS_INFO, PROGRESS_CHECKED_AT, E1RM_LABEL, E1RM_EXPLAIN } from './
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
 import { diaryList } from './diary-view.js';
+import { formatSet } from './sets.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const fmtDay = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -22,12 +23,9 @@ function svgEl(tag, attrs = {}) {
   return el;
 }
 
-// Sätze kompakt: "85 × 6, 85 × 5 + 60 × 6" (Drop-Stufen mit +)
+// Sätze kompakt: "85 × 6, 85 × 5 + 60 × 6" (Drop-/Rest-Pause-Stufen mit +, v1.2 aus sets.js)
 function fmtSets(sets) {
-  return sets.map((s) => {
-    const base = `${fmtKg(s.weightKg ?? 0)} × ${s.reps ?? 0}`;
-    return s.type === 'drop' && s.drops?.length ? `${base} + ${s.drops.map((d) => `${fmtKg(d.weightKg)} × ${d.reps}`).join(' + ')}` : base;
-  }).join(', ');
+  return sets.map((s) => formatSet(s)).join(', ');
 }
 
 export function hasHistory(exerciseId) {

@@ -13,11 +13,13 @@ import { uuid, nowISO } from './util.js';
 export const SCHEMA_VERSION = 2;
 
 export const EXERCISE_KINDS = ['strength', 'bodyweight', 'cardio'];
-export const SET_TYPES = ['warmup', 'work', 'drop'];
+// 'restpause' seit v1.2 (ohne Schemaänderung: alte Daten bleiben gültig). Stufen-Regeln: js/sets.js.
+export const SET_TYPES = ['warmup', 'work', 'drop', 'restpause'];
+const STAGED = ['drop', 'restpause'];
 
-// Satz-Markierungen (UI ab v1.x). Eigene Markierungen sind als "custom:<Text>" erlaubt.
+// Satz-Markierungen (UI seit v1.2). Eigene Markierungen sind als "custom:<Text>" erlaubt.
+// "Rest-Pause" ist seit v1.2 ein Satztyp statt einer Markierung (vorher nie in der UI, daher keine Altdaten).
 export const SET_TAGS = {
-  'rest-pause': 'Rest-Pause',
   'stretch-hold': 'Stretch halten',
   partials: 'Teilwiederholungen',
   failure: 'Bis Muskelversagen'
@@ -184,7 +186,7 @@ export function validateSet(s, ctx = '') {
   if (!isNullableNum(s.distanceM)) err.push(`${ctx}Satz ${s.id}: Distanz ungültig.`);
   if (!Array.isArray(s.drops)) err.push(`${ctx}Satz ${s.id}: drops ist keine Liste.`);
   else {
-    if (s.type !== 'drop' && s.drops.length) err.push(`${ctx}Satz ${s.id}: Drop-Stufen nur bei Typ "drop".`);
+    if (!STAGED.includes(s.type) && s.drops.length) err.push(`${ctx}Satz ${s.id}: Stufen nur bei Typ "drop" oder "restpause".`);
     for (const d of s.drops) {
       if (!d || !isNullableNum(d.weightKg) || !isNullableNum(d.reps, { int: true })) err.push(`${ctx}Satz ${s.id}: Drop-Stufe ungültig.`);
     }
@@ -265,18 +267,18 @@ export function setVolume(set, kind = 'strength') {
   if (kind !== 'strength' || set.type === 'warmup') return 0;
   const stage = (w, r) => (w || 0) * (r || 0);
   let v = stage(set.weightKg, set.reps);
-  if (set.type === 'drop') for (const d of set.drops) v += stage(d.weightKg, d.reps);
+  if (STAGED.includes(set.type)) for (const d of set.drops) v += stage(d.weightKg, d.reps);
   return v;
 }
 
 export function setReps(set) {
   if (set.type === 'warmup') return 0;
   let r = set.reps || 0;
-  if (set.type === 'drop') for (const d of set.drops) r += d.reps || 0;
+  if (STAGED.includes(set.type)) for (const d of set.drops) r += d.reps || 0;
   return r;
 }
 
-// Harte Sätze: abgeschlossene Arbeits- und Drop-Sätze; ein Drop-Satz zählt als ein Satz.
+// Harte Sätze: abgeschlossene Arbeits-, Drop- und Rest-Pause-Sätze; jeder zählt als ein Satz (Konvention).
 export function hardSets(entry) {
   return entry.sets.filter(counts).length;
 }

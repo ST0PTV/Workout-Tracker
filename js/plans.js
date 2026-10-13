@@ -2,6 +2,7 @@
 // Ein Plan ist eine geordnete Liste von Übungen; Gewichte hängen NICHT am Plan, sondern an der Übung
 // (Vorbelegung über lastPerformance aus den Trainings).
 import * as store from './store.js';
+import { formatSet } from './sets.js';
 import { nowISO } from './util.js';
 import { createPlan, createPlanItem, validatePlan, lastPerformance } from './model.js';
 
@@ -126,8 +127,8 @@ export function planDetails(plan, exercisesById, sessions) {
 }
 
 // "82,5 kg × 8, 82,5 × 6" – kurze Darstellung der letzten Arbeitssätze.
+// "85 kg × 8, 85 × 6 + 60 × 6" – Drop/Rest-Pause-Stufen mit + (v1.2), "kg" nur einmal vorne.
 export function formatLastSets(sets) {
   if (!sets || !sets.length) return '';
-  const fmt = (n) => (n === null || n === undefined ? '–' : String(n).replace('.', ','));
-  return sets.map((s, i) => `${fmt(s.weightKg)}${i === 0 ? ' kg' : ''} × ${fmt(s.reps)}`).join(', ');
+  return sets.map((s) => formatSet(s)).join(', ').replace(' × ', ' kg × ');
 }
