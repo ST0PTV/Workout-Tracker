@@ -67,6 +67,7 @@ export function createExercise(fields = {}) {
     muscles: { primary: [], secondary: [] },
     groupIds: [],
     defaultWorkSets: 3,
+    restSeconds: null, // Pause zwischen Sätzen in s; null = Standard aus den Einstellungen (seit v0.4)
     note: '',
     source: { origin: 'custom', ref: null, verification: 'user', checkedAt: null },
     archived: false,
@@ -138,6 +139,7 @@ export function validateExercise(e) {
   if (!isStrArray(e.groupIds)) err.push(`Übung ${e.id}: groupIds ist keine Liste.`);
   if (!Number.isInteger(e.defaultWorkSets) || e.defaultWorkSets < 0) err.push(`Übung ${e.id}: defaultWorkSets ungültig.`);
   if (!isStr(e.note)) err.push(`Übung ${e.id}: Notiz ungültig.`);
+  if (e.restSeconds !== undefined && e.restSeconds !== null && !(Number.isInteger(e.restSeconds) && e.restSeconds > 0 && e.restSeconds <= 3600)) err.push(`Übung ${e.id}: Pausenzeit ungültig.`);
   if (!e.source || !['builtin', 'custom'].includes(e.source.origin) || !VERIFICATION.includes(e.source.verification)) {
     err.push(`Übung ${e.id}: Quelle ungültig.`);
   }

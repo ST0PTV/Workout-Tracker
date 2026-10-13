@@ -8,6 +8,9 @@ import * as lib from './exercises.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
+import { stepper } from './controls.js';
+import { effectiveRest, stepRest, formatDuration } from './rest.js';
+import * as store from './store.js';
 
 const KIND_LABEL = { strength: 'Kraft', bodyweight: 'Körpergewicht', cardio: 'Cardio' };
 const VERIF_LABEL = {
@@ -202,6 +205,19 @@ export function openEditor(existing, rerender) {
     rerender();
   };
 
+  // Pausenzeit: eigener Wert oder Standard aus den Einstellungen (Timer ohne Ton, ab v0.5 im Training).
+  const restBox = h('div');
+  const drawRest = () => {
+    const settings = store.get('settings');
+    const own = Number.isInteger(ex.restSeconds);
+    restBox.replaceChildren(h('div', { class: 'rest-row' },
+      stepper({ value: effectiveRest(ex, settings), format: formatDuration, label: 'Pause', onStep: (v, d) => { ex.restSeconds = stepRest(v, d); if (!own) drawRest(); return ex.restSeconds; } }),
+      own
+        ? h('button', { class: 'link', type: 'button', onclick: () => { ex.restSeconds = null; drawRest(); } }, `Standard (${formatDuration(settings.restSeconds)})`)
+        : h('span', { class: 'muted small' }, 'Standard aus den Einstellungen')));
+  };
+  drawRest();
+
   drawKind(); drawMuscles(); drawSource();
   const body = h('form', { class: 'editor', onsubmit: (e) => { e.preventDefault(); save(); } },
     h('div', { class: 'field' }, h('label', {}, 'Name'), nameInput),
@@ -211,6 +227,7 @@ export function openEditor(existing, rerender) {
       h('div', { class: 'step' },
         h('button', { type: 'button', 'aria-label': 'Weniger Sätze', onclick: () => step(-1) }, icon('minus')), setsValue,
         h('button', { type: 'button', 'aria-label': 'Mehr Sätze', onclick: () => step(1) }, icon('plus')))),
+    h('div', { class: 'field' }, h('label', {}, 'Pause zwischen Sätzen'), restBox),
     h('div', { class: 'field' }, h('label', {}, 'Notiz'), noteInput, sourceBox),
     !isNew ? h('button', { class: 'btn block subtle', type: 'button', onclick: archive }, ex.archived ? 'Wiederherstellen' : 'Archivieren') : null,
     h('button', { class: 'btn primary block sticky-bottom', type: 'submit' }, ex.archived ? 'Speichern (archiviert)' : 'Speichern'));
