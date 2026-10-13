@@ -5,8 +5,8 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 1.5.0 (Übungspool Runde 1: 70 Übungen, Filter im Pool, deployt am 2026-10-13), Cache `wt-cache-v12`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training · 1.4.0 Muskelkarte mit Wochensätzen, Mini-Figur als Piktogramm, Tausch aufklappen, Pause pro Planeintrag, Körpergewicht mit Zusatzgewicht, Cardio als Einheit, Datum/Dauer im Tagebuch, Regel für leere Sätze · 1.5.0 Übungspool Runde 1 (+34 Übungen: Schultern, Waden, Adduktoren/Abduktoren, Gesäß/Beinbeuger/unterer Rücken, Quadrizeps-Varianten), Pool-Filter nach Muskel und Gerät (alle 2026-10-13).
+- **Live:** 1.6.0 (anatomische Körperfigur für Muskelkarte und Piktogramme, deployt am 2026-10-13), Cache `wt-cache-v13`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training · 1.4.0 Muskelkarte mit Wochensätzen, Mini-Figur als Piktogramm, Tausch aufklappen, Pause pro Planeintrag, Körpergewicht mit Zusatzgewicht, Cardio als Einheit, Datum/Dauer im Tagebuch, Regel für leere Sätze · 1.5.0 Übungspool Runde 1 (+34 Übungen: Schultern, Waden, Adduktoren/Abduktoren, Gesäß/Beinbeuger/unterer Rücken, Quadrizeps-Varianten), Pool-Filter nach Muskel und Gerät · 1.6.0 Körperfigur neu gezeichnet: Muskelkarte „Anatomie“, Piktogramm „Silhouette“ (alle 2026-10-13).
 - **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen, Übungsgruppen mit Tausch im laufenden Training, Fortschritt → Muskeln (harte Sätze pro Woche), Körpergewicht- und Cardio-Loggen, Figur-Einstellung.
 - **Nächster Schritt:** Übungspool Runde 2 (Rücken, Brust, Arme) und Runde 3 (Rumpf, Cardio-Geräte); danach e1RM-Formel prüfen (nur mit begutachteten Belegen ändern); v2.0 Illustrationen/Animationen.
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
@@ -54,7 +54,7 @@ js/set-view.js          Satz-Sheet (Typ, Markierungen, Entfernen), Stufenzeilen,
 js/groups.js            Gruppen ohne DOM: anlegen/umbenennen/löschen (mit Bereinigung), Mitglieder, Tausch-Kandidaten
 js/group-view.js        Gruppen-Feld im Übungs-Editor, „Verwalten“-Sheet, Tausch-Sheet im Training
 js/week.js              Harte Sätze pro Muskel und Woche (Mo–So, primär 1, sekundär 0,5), Farbstufen
-js/figure.js            Stilisierte Körperfigur (vorne/hinten, männlich/weiblich) und Mini-Piktogramm pro Übung
+js/figure.js            Körperfigur aus Punktdaten (vorne/hinten, männlich/weiblich): Karte „Anatomie“ und Mini-Piktogramm „Silhouette“
 js/muscle-view.js       Fortschritt → Muskeln: Figur, Wochen-Navigation, Liste, Info-Sheet mit Quellen
 js/input.js             Zahlen-Eingaben für Sätze (Gewicht mit Komma, Wdh. ganzzahlig, Grenzen) – gemeinsam für Training und Tagebuch
 js/history.js           Tagebuch ohne DOM: Liste abgeschlossener Trainings, Entwurf bearbeiten, speichern (mit Validierung), löschen
@@ -63,7 +63,7 @@ js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Einstellungen; re-exportiert die übrigen Tab-Ansichten
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, groups, v14, sw)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, groups, v14, figure, sw)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -169,8 +169,18 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 ## Übungspool v1.5 (Runde 1)
 
 - +34 Übungen in `js/pool.js` (Abschnitte Schultern und Beine, markiert mit „v1.5 Runde 1“); jetzt 70. Je Gruppe primär mindestens 4 Übungen für vordere/seitliche/hintere Schulter, Waden, Adduktoren, Abduktoren, unterer Rücken (Test in `tests/pool.test.js`).
-- Recherche in 4 parallelen Paketen (nur geöffnete Quellen), Stichprobe 8/8 DOIs in Crossref bestätigt. `basis` kann jetzt auch „Ultraschall“ enthalten (Muskeldicke). Details, Schwächen und verworfene Übungen: Drive → Research & Sources, Abschnitt 6.
+- Recherche in 4 parallelen Paketen (nur geöffnete Quellen), Stichprobe 8/8 DOIs in Crossref bestätigt. `basis` kann jetzt auch „Ultraschall“ enthalten (Muskeldicke). Details, Schwächen und verworfene Übungen: Drive → Research - Exercise Pool.
 - Pool-Sheet: zusätzlich Muskel-Chips innerhalb der gewählten Region (nur bei mehr als einem Muskel), Geräte-Chips, Trefferzeile „n von 70 Übungen“, Mini-Figur pro Zeile.
+
+## Körperfigur v1.6
+
+- Entscheidung aus 4 Varianten (Design-Fläche, Tafel 8): **A „Anatomie“ für die Muskelkarte, D „Silhouette“ für die Piktogramme.**
+- `figure.js` hält nur Punktlisten der linken Körperhälfte (`BODY`, `MUSCLES[view]` mit Teilformen, `DETAIL`, `LINES`); `smoothPath` (Catmull-Rom → Bézier) glättet, die rechte Hälfte wird gespiegelt. `figureData(view, sex)` berechnet die Pfade einmal (Cache) und ist ohne DOM testbar (`tests/figure.test.js`).
+- `viewBox 0 0 200 440` (vorher 140 × 290). Eine `<path>` pro Muskel (links + rechts), daher genau ein `.sel`-Element bei Auswahl; der ausgewählte Muskel wird ans Ende gehängt, damit sein Rand oben liegt.
+- `figureSvg({…, mode})`: `map` zeigt Körper, alle Muskeln (`lv0`–`lv3`), nicht gezählte Detailformen (`.fx`: Trapez-Rand vorne, Schienbein, Wade innen, Schulterblatt) und feine Linien (`.fl`); `mini` zeigt nur Körper und Muskeln mit Klasse. `miniFigure` nutzt `mini`.
+- Weiblich: `femDx(x, y)` verschiebt Punkte (Schultern/Arme schmaler, Taille schmaler, Hüfte/Oberschenkel breiter, weiche Übergänge); Brustmuskel-Unterkante tiefer und Brustkontur als Linie (nur vorne).
+- Farben (Karte): Körper `#1d2754`, inaktiv `#2c3a78`, Stufen `#3f63c4` / `#6e93f2` / `#b9d0ff`, Fugen `#0b1020`; Legende gleich. Piktogramm: Körper weiß 16 %, primär Akzent, sekundär `#4669c8`, ohne Ränder.
+- Grenze: Formen nach allgemeinem Anatomiewissen selbst gezeichnet (nicht gegen eine Anatomie-Referenz geprüft); Gesäß und Wade nur hinten, Bizeps nur vorne, Trizeps nur hinten.
 
 ## Paket v1.4
 
@@ -181,7 +191,7 @@ Optionale Felder ohne Schemaänderung (vor dem Bau gegengelesen, Lesson 10):
 
 Funktionen:
 - **Muskeln** (`week.js`, `muscle-view.js`, Variante C): Woche Mo 00:00 – So (Ortszeit); nur abgeschlossene Trainings; primär 1, sekundär 0,5 (direkt/indirekt getrennt angezeigt); Stufen 0 / unter 5 / 5–8 / 9+ nur zur Darstellung, keine Zielwerte. Quellen und Grenzen: Drive → Research & Sources, Abschnitt 5.
-- **Figur** (`figure.js`): einfache Formen in `viewBox 0 0 140 290`; weiblich = schmalere Schultern, breitere Hüfte. `pickView` wählt für das Mini-Piktogramm die Seite mit mehr primären Muskeln. Cardio ohne Muskeln → Puls-Linie.
+- **Figur** (`figure.js`, in v1.6 ersetzt – siehe oben): einfache Formen in `viewBox 0 0 140 290`; weiblich = schmalere Schultern, breitere Hüfte. `pickView` wählt für das Mini-Piktogramm die Seite mit mehr primären Muskeln. Cardio ohne Muskeln → Puls-Linie.
 - **Tausch** (Variante B): `ui.swapOpen` klappt die Kandidaten unter dem Titel auf; das Sheet aus v1.3 ist entfernt.
 - **Plan-Eintrag** (Variante B): im Bearbeiten-Modus aufklappbar (`mode.open`): Sätze, Pause nur hier (`P.setItemRest`, „zurücksetzen“ = null), Tauschen aus (`P.setItemGroup`).
 - **Körpergewicht** (A): Spalte „+ kg“ (`parseAddedWeight`, leer = nur Körpergewicht); Anzeige „KG × 8“, „+5 × 5“, „−10 × 6“. Kein Tippfehler-Hinweis.

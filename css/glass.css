@@ -431,16 +431,20 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .group-field .muted.small { margin: 4px 4px 0; }
 
 /* ---------- v1.4: Muskelkarte, Piktogramme, Tausch aufklappen, Plan-Eintrag, Cardio, Zeit im Tagebuch ---------- */
-.fig .fm { stroke: rgba(255, 255, 255, 0.22); stroke-width: 1; }
-.fig .body, .fig .lv0 { fill: rgba(255, 255, 255, 0.07); }
-.fig .lv1 { fill: #26407a; }
-.fig .lv2 { fill: #4669c8; }
-.fig .lv3 { fill: #9ab8ff; }
+/* v1.6: Karte „Anatomie“ (alle Muskeln als Flächen mit dunklen Fugen), Piktogramm „Silhouette“ (nur beanspruchte Muskeln) */
+.fig .body { fill: #1d2754; stroke: #3a4a8a; stroke-width: 1.2; }
+.fig .fx { fill: #25316a; stroke: #0b1020; stroke-width: 1; }
+.fig .fm { stroke: #0b1020; stroke-width: 1.2; }
+.fig .fl { fill: none; stroke: #0b1020; stroke-width: 1; stroke-opacity: 0.6; }
+.fig .lv0 { fill: #2c3a78; }
+.fig .lv1 { fill: #3f63c4; }
+.fig .lv2 { fill: #6e93f2; }
+.fig .lv3 { fill: #b9d0ff; }
 .fig .prim { fill: var(--accent); }
 .fig .sec { fill: #4669c8; }
-.fig .sel { stroke: var(--accent); stroke-width: 2.5; }
-.fig.mini .fm { stroke-width: 2; stroke: rgba(255, 255, 255, 0.28); }
-.fig.mini .body, .fig.mini .lv0 { fill: rgba(255, 255, 255, 0.12); }
+.fig .sel { stroke: var(--accent); stroke-width: 3; }
+.fig.mini .body { fill: rgba(255, 255, 255, 0.16); stroke: none; }
+.fig.mini .fm { stroke: none; }
 .fig.pulse { color: var(--accent-2); }
 .fig-card { display: flex; justify-content: center; padding: 10px; }
 .fig-card .fig .fm[data-m] { cursor: pointer; }
@@ -448,8 +452,8 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; font-size: 12px; color: var(--muted); margin: -4px 0 12px; }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.2); }
-.legend .sw.lv0 { background: rgba(255, 255, 255, 0.07); } .legend .sw.lv1 { background: #26407a; }
-.legend .sw.lv2 { background: #4669c8; } .legend .sw.lv3 { background: #9ab8ff; }
+.legend .sw.lv0 { background: #2c3a78; } .legend .sw.lv1 { background: #3f63c4; }
+.legend .sw.lv2 { background: #6e93f2; } .legend .sw.lv3 { background: #b9d0ff; }
 .week-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 4px 0 12px; }
 .week-nav .wk { text-align: center; display: flex; flex-direction: column; }
 .week-nav .wk small { color: var(--muted); font-size: 13px; }
