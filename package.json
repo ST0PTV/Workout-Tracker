@@ -1,0 +1,11 @@
+{
+  "name": "workout-tracker",
+  "private": true,
+  "type": "module",
+  "description": "Workout Tracker PWA – nur für Tests und Syntaxprüfung, keine Build-Abhängigkeiten.",
+  "scripts": {
+    "test": "node tests/store-backup.test.js",
+    "check": "node --check js/app.js && node --check js/store.js && node --check js/backup.js && node --check js/ui.js && node --check js/views.js && node --check js/util.js && node --check js/version.js && node --check sw.js",
+    "privacy": "sh scripts/privacy-scan.sh"
+  }
+}

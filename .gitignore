@@ -1,0 +1,9 @@
+# Persönliche Daten dürfen nie ins öffentliche Repo
+workout-tracker-backup*.json
+*backup*.json
+.privacy-terms.local
+
+# Sonstiges
+node_modules/
+.DS_Store
+*.log
