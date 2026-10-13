@@ -138,6 +138,89 @@ export const POOL = [
     ]
   }),
 
+  // v1.5 Runde 1 (Recherche 2026-10-13, Drive → Research & Sources Abschnitt 6)
+  P('cable-lateral-raise', 'Seitheben am Kabel', 'cable', ['side-delts'], ['front-delts', 'rear-delts', 'upper-back'], {
+    confidence: 'high', basis: 'Ultraschall (Wachstum) + EMG',
+    note: 'Kabel tief, Zug von vorne-unten oder hinter dem Körper; Arm bis ca. Schulterhöhe, kontrolliert absenken.',
+    others: ['Supraspinatus (Rotatorenmanschette)'],
+    sources: [
+      S('Larsen et al. 2025, Front Physiol', '10.3389/fphys.2025.1611468', '8 Wochen, ein Arm Kabel, ein Arm Kurzhantel: Seitliche Deltamuskeldicke (Ultraschall) wuchs bei beiden etwa gleich stark.'),
+      S('Campos et al. 2020, J Hum Kinet', '10.2478/hukin-2020-0033', 'EMG (Kurzhantel-Variante): Seitheben aktiviert den mittleren Delta am stärksten, den hinteren Delta deutlich mit.'),
+      S('Andersen et al. 2008, Phys Ther', '10.2522/ptj.20070304', 'EMG: Seitheben bringt neben dem Deltamuskel eine sehr hohe Aktivität im oberen Trapezius.')
+    ]
+  }),
+  P('machine-lateral-raise', 'Seitheben an der Maschine', 'machine', ['side-delts'], ['front-delts', 'rear-delts', 'upper-back'], {
+    confidence: 'medium', basis: 'Ultraschall + EMG naher Varianten',
+    note: 'Drehpunkt auf Höhe des Schultergelenks einstellen; Polster am Unterarm/Ellbogen, Schultern unten lassen.',
+    others: ['Supraspinatus (Rotatorenmanschette)'],
+    sources: [
+      S('Larsen et al. 2025, Front Physiol', '10.3389/fphys.2025.1611468', 'Kabel und Kurzhantel lassen den seitlichen Delta gleich gut wachsen; das Lastprofil scheint zweitrangig (Maschine nicht getestet).'),
+      S('Coratella et al. 2020, IJERPH', '10.3390/ijerph17176015', 'EMG bei Bodybuildern: Seitheben-Varianten aktivieren v. a. mittleren Delta; gebeugter Ellbogen senkt dessen Aktivität etwas.')
+    ]
+  }),
+  P('standing-barbell-overhead-press', 'Schulterdrücken mit der Langhantel stehend', 'barbell', ['front-delts'], ['side-delts', 'triceps', 'upper-back', 'abs', 'lower-back'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Stange vom Schlüsselbein senkrecht über den Kopf, Kopf kurz zurück; Gesäß und Bauch fest, kein Hohlkreuz.',
+    others: ['Serratus anterior'],
+    sources: [
+      S('Saeterbakken & Fimland 2013, J Strength Cond Res', '10.1519/JSC.0b013e318276b873', 'EMG: Stehend mehr Aktivität im mittleren/hinteren Delta als sitzend; Langhantel mit mehr Trizeps, Kurzhantel mehr vorderer Delta.'),
+      S('Campos et al. 2020, J Hum Kinet', '10.2478/hukin-2020-0033', 'EMG: Schulterdrücken aktiviert den vorderen Delta am stärksten und den mittleren Delta fast so stark wie Seitheben.'),
+      S('Williams et al. 2020, J Strength Cond Res', '10.1519/JSC.0000000000002660', 'EMG beim stehenden Langhanteldrücken inkl. Rumpf- und Schulterblattstabilisatoren (Rückenstrecker, Bauch, Serratus).')
+    ]
+  }),
+  P('machine-shoulder-press', 'Schulterdrücken an der Maschine', 'machine', ['front-delts'], ['side-delts', 'triceps', 'upper-back'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Sitz so einstellen, dass Griffe auf Schulterhöhe starten; Rücken an der Lehne, nicht ganz durchstrecken.',
+    others: ['Serratus anterior'],
+    sources: [
+      S('Kim et al. 2026, J Clin Med', '10.3390/jcm15103925', 'EMG am Maschinen-Schulterdrücken: Deltamuskel, Trizeps und oberer Trapezius aktiv; Fokus auf Zielmuskel erhöht dessen Aktivität.'),
+      S('Saeterbakken & Fimland 2013, J Strength Cond Res', '10.1519/JSC.0b013e318276b873', 'EMG: Sitzende, stabilere Varianten zeigen weniger Deltaaktivität als stehende, erlauben aber mehr Last.')
+    ]
+  }),
+  P('dumbbell-front-raise', 'Frontheben', 'dumbbell', ['front-delts'], ['chest', 'upper-back'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Kurzhanteln mit leicht gebeugtem Ellbogen bis Schulterhöhe heben; nicht schwingen. Auch am Kabel möglich.',
+    sources: [
+      S('Coratella et al. 2020, IJERPH', '10.3390/ijerph17176015', 'EMG: Frontheben aktiviert vorderen Delta und oberen Brustmuskel stärker als alle Seitheben-Varianten; mittlerer/hinterer Delta gering.'),
+      S('Elzanie & Varacallo 2024, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK537056/', 'Anatomie: Vorderer Delta beugt den Arm gemeinsam mit dem großen Brustmuskel.')
+    ]
+  }),
+  P('barbell-upright-row', 'Aufrechtes Rudern', 'barbell', ['side-delts', 'upper-back'], ['front-delts', 'rear-delts', 'biceps', 'forearms'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Griff mind. schulterbreit (breit = mehr Delta); Ellbogen führen, nur bis etwa Schulterhöhe ziehen. Auch am Kabel.',
+    sources: [
+      S('McAllister et al. 2013, J Strength Cond Res', '10.1519/JSC.0b013e31824f23ad', 'EMG: Breiterer Griff erhöht Aktivität von Delta und Trapezius und senkt die Bizepsaktivität.'),
+      S('Andersen et al. 2008, Phys Ther', '10.2522/ptj.20070304', 'EMG: Aufrechtes Rudern aktiviert Trapezius und Deltamuskel hoch, mit relativ geringer Last.')
+    ]
+  }),
+  P('dumbbell-reverse-fly', 'Vorgebeugtes Seitheben', 'dumbbell', ['rear-delts'], ['upper-back', 'side-delts'], {
+    confidence: 'medium', basis: 'EMG + Modell',
+    note: 'Oberkörper fast waagrecht oder Brust auf Schrägbank; Arme seitlich nach außen öffnen, Schultern nicht hochziehen.',
+    others: ['Infraspinatus', 'Teres minor'],
+    sources: [
+      S('Andersen et al. 2008, Phys Ther', '10.2522/ptj.20070304', 'EMG: Reverse Flys aktivieren Deltamuskel und Trapezius in relevanter Höhe.'),
+      S('Zhu et al. 2026, Acta Bioeng Biomech', '10.37190/abb/217836', 'Muskelmodell (OpenSim): Vorgebeugtes Seitheben erzeugt hohe Kraft im hinteren Delta, ähnlich Face Pull, mehr als Rudern.')
+    ]
+  }),
+  P('cable-reverse-fly', 'Reverse Fly am Kabel', 'cable', ['rear-delts'], ['upper-back', 'side-delts'], {
+    confidence: 'medium', basis: 'EMG naher Variante + Anatomie',
+    note: 'Kabel über Kreuz auf Schulterhöhe greifen, Arme fast gestreckt nach außen-hinten ziehen; neutraler Griff möglich.',
+    others: ['Infraspinatus', 'Teres minor'],
+    sources: [
+      S('Schoenfeld et al. 2013, J Strength Cond Res', '10.1519/JSC.0b013e318281e1e9', 'EMG an der Reverse-Fly-Maschine: neutraler Griff steigert Aktivität von hinterem Delta und Infraspinatus.'),
+      S('Rabello et al. 2022, J Bodyw Mov Ther', '10.1016/j.jbmt.2022.12.002', 'Systematische Übersicht (EMG): horizontale Abduktionen aktivieren mittleren und hinteren Delta stark.')
+    ]
+  }),
+  P('incline-prone-y-raise', 'Y-Raise auf der Schrägbank', 'dumbbell', ['upper-back'], ['side-delts', 'rear-delts', 'front-delts'], {
+    confidence: 'medium', basis: 'EMG (Trapezius) + Anatomie (Delta)',
+    note: 'Brust auf Schrägbank, leichte Hanteln in Y-Form schräg über den Kopf heben, Daumen nach oben; Schultern tief.',
+    others: ['Serratus anterior', 'unterer Trapezius (Schwerpunkt)'],
+    sources: [
+      S('Ekstrom et al. 2003, J Orthop Sports Phys Ther', '10.2519/jospt.2003.33.5.247', 'EMG: Bäuchlings-Armheben über Kopf in Faserrichtung des unteren Trapezius aktiviert diesen maximal, auch mittleren Trapezius stark.'),
+      S('Elzanie & Varacallo 2024, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK537056/', 'Anatomie: Mittlerer Delta trägt die Abduktion, vorderer/hinterer Anteil stabilisieren; Delta-Beteiligung hier nur abgeleitet.')
+    ]
+  }),
+
   // ---------- Rücken ----------
   P('pull-up', 'Klimmzug', 'bodyweight', ['lats'], ['biceps', 'upper-back'], {
     confidence: 'high', basis: 'EMG, Modell',
@@ -279,6 +362,213 @@ export const POOL = [
     note: 'Stehend wächst vor allem der Gastrocnemius; sitzend fast nur der Soleus.',
     sources: [
       S('Kinoshita, Maeo et al. 2023, Front Physiol', '10.3389/fphys.2023.1272106', 'MRT: Wadenheben stehend ließ beide Gastrocnemius-Köpfe und den Soleus wachsen.')
+    ]
+  }),
+
+  // v1.5 Runde 1 (Recherche 2026-10-13, Drive → Research & Sources Abschnitt 6)
+  P('seated-calf-raise', 'Wadenheben sitzend', 'machine', ['calves'], [], {
+    confidence: 'high', basis: 'MRT',
+    note: 'Knie 90° gebeugt: trainiert v. a. den Soleus. Volle Dehnung unten. Den Gastrocnemius mit stehendem Wadenheben ergänzen.',
+    others: ['Soleus (Schwerpunkt)'],
+    sources: [
+      S('Kinoshita et al. 2023, Front Physiol', '10.3389/fphys.2023.1272106', 'MRT nach 12 Wo.: sitzend wuchs der Soleus ähnlich wie stehend, der Gastrocnemius sitzend aber kaum (ca. 1 % vs. 9–12 %).'),
+      S('Avancini et al. 2015, PLoS One', '10.1371/journal.pone.0126888', 'Bei 90° Kniebeugung war das EMG des inneren Gastrocnemius im Mittel etwa 5-mal kleiner als bei gestrecktem Knie (isometrisch).')
+    ]
+  }),
+  P('leg-press-calf-raise', 'Wadenheben an der Beinpresse', 'machine', ['calves'], [], {
+    confidence: 'high', basis: 'Ultraschall',
+    note: 'Knie fast gestreckt, nur Fußballen auf der Platte. Volle Dehnung. Fußstellung (innen/außen) verschiebt den Schwerpunkt leicht.',
+    others: ['Gastrocnemius und Soleus'],
+    sources: [
+      S('Nunes et al. 2020, J Strength Cond Res', '10.1519/JSC.0000000000003674', '9 Wo. einbeiniges Wadenheben an der Beinpresse: Gastrocnemius dicker; Fuß außen eher innerer, Fuß innen eher äußerer Kopf (Ultraschall).')
+    ]
+  }),
+  P('single-leg-calf-raise', 'Wadenheben einbeinig', 'bodyweight', ['calves'], [], {
+    confidence: 'medium', basis: 'Ultraschall (enge Variante) + EMG',
+    note: 'Auf einer Stufe, Ferse tief absenken. Kurzhantel in der freien Hand als Steigerung, an der Wand festhalten.',
+    others: ['Gastrocnemius und Soleus', 'Fußstabilisatoren'],
+    sources: [
+      S('Larsen et al. 2025, Eur J Sport Sci', '10.1002/ejsc.70030', 'Einbeiniges Wadenheben (Multipresse) bis zum Versagen: innerer Gastrocnemius wurde dicker; Teilwdh. in der Dehnung mind. gleich gut.'),
+      S('Sara et al. 2021, PLoS One', '10.1371/journal.pone.0253276', 'Einbeiniges Fersenheben bis zur Erschöpfung ermüdet Gastrocnemius und Soleus deutlich (EMG).')
+    ]
+  }),
+  P('cable-hip-abduction-standing', 'Abduktion am Kabel stehend', 'cable', ['abductors'], ['glutes'], {
+    confidence: 'medium', basis: 'EMG (Variante: Gummiband) + Anatomie',
+    note: 'Manschette am Knöchel, Oberkörper aufrecht, Bein seitlich ohne Hüftkippen führen. Standbein stabilisiert mit.',
+    sources: [
+      S('Brandt et al. 2013, Int J Sports Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/24377067/', 'Abduktion mit elastischem Widerstand aktivierte den Gluteus medius stärker als die Abduktionsmaschine (EMG, 16 untrainierte Frauen).')
+    ]
+  }),
+  P('side-lying-hip-abduction', 'Seitliches Beinheben liegend', 'bodyweight', ['abductors'], ['glutes'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Becken stabil, Bein leicht hinter der Körperlinie, Zehen nach vorn. Bei Bedarf Gewichtsmanschette.',
+    sources: [
+      S('Distefano et al. 2009, J Orthop Sports Phys Ther', '10.2519/jospt.2009.2796', 'Von 12 Übungen zeigte seitliches Beinheben im Liegen die höchste Gluteus-medius-Aktivität (ca. 81 % MVIC), deutlich vor Clamshell.'),
+      S('McBeth et al. 2012, J Athl Train', '10.4085/1062-6050-47.1.15', 'Bei Seitlage-Abduktion: Gluteus medius (ca. 70 %) vor TFL (ca. 54 %) und Gluteus maximus (ca. 25 %).')
+    ]
+  }),
+  P('clamshell-band', 'Clamshell mit Band', 'bodyweight', ['abductors', 'glutes'], ['hip-flexors'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Mini-Band über den Knien, Fersen zusammen, Becken nicht nach hinten kippen. Eher Aktivierung als Hauptübung.',
+    others: ['Tiefe Hüftaußenrotatoren'],
+    sources: [
+      S('McBeth et al. 2012, J Athl Train', '10.4085/1062-6050-47.1.15', 'Beim Clamshell waren die vorderen Hüftbeuger am aktivsten; Gluteus medius, TFL und Gluteus maximus nur bei ca. 33–34 % MVIC.'),
+      S('Distefano et al. 2009, J Orthop Sports Phys Ther', '10.2519/jospt.2009.2796', 'Clamshell-Varianten erreichten im Gluteus medius nur ca. 40 % MVIC, etwa halb so viel wie seitliches Beinheben.')
+    ]
+  }),
+  P('sumo-squat', 'Sumo-Kniebeuge', 'barbell', ['quads', 'glutes', 'adductors'], ['lower-back', 'hamstrings'], {
+    confidence: 'medium', basis: 'MRT (normale Kniebeuge) + EMG (Standbreite)',
+    note: 'Stand ca. 1,5-fach schulterbreit, Fußspitzen nach außen, tief beugen. Als Goblet-Variante mit Kurzhantel möglich.',
+    others: ['Rumpfstabilisatoren'],
+    sources: [
+      S('Kubo et al. 2019, Eur J Appl Physiol', '10.1007/s00421-019-04181-y', 'MRT: Kniebeugen ließen die Adduktoren wachsen, tief stärker (ca. 6 %) als halb (ca. 3 %); die Beinbeuger wuchsen nicht.'),
+      S('McCaw & Melrose 1999, Med Sci Sports Exerc', '10.1097/00005768-199903000-00012', 'EMG: Die Standbreite veränderte die Aktivität von Adductor longus und Gluteus maximus, nicht aber die Verteilung im Quadrizeps.')
+    ]
+  }),
+  P('copenhagen-plank', 'Copenhagen Plank', 'bodyweight', ['adductors'], ['obliques'], {
+    confidence: 'high', basis: 'EMG + Kraft-RCT',
+    note: 'Seitstütz, oberes Bein auf Bank. Kurzer Hebel: Knie aufgelegt; langer Hebel: Fuß aufgelegt. Hüfte dynamisch heben/senken.',
+    others: ['Hüftstabilisatoren des unteren Beins'],
+    sources: [
+      S('Serner et al. 2013, Br J Sports Med', '10.1136/bjsports-2012-091746', 'Unter 8 Adduktionsübungen gehörte die Copenhagen-Adduktion zu den intensivsten für den Adductor longus.'),
+      S('Harøy et al. 2017, Am J Sports Med', '10.1177/0363546517720194', 'RCT, 8 Wo.: Copenhagen-Adduktion steigerte die exzentrische Adduktionskraft um ca. 9 %; Wachstum nicht gemessen.')
+    ]
+  }),
+  P('cable-hip-adduction', 'Adduktion am Kabel', 'cable', ['adductors'], [], {
+    confidence: 'medium', basis: 'EMG (Variante: Gummiband)',
+    note: 'Seitlich zum Kabelturm, Manschette am inneren Knöchel. Bein vor dem Standbein vorbeiziehen, Oberkörper ruhig.',
+    others: ['Standbein: Hüftstabilisatoren'],
+    sources: [
+      S('Serner et al. 2013, Br J Sports Med', '10.1136/bjsports-2012-091746', 'Hüftadduktion gegen elastisches Band gehörte zu den dynamischen Übungen mit hoher Adductor-longus-Aktivität.'),
+      S('Brandt et al. 2013, Int J Sports Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/24377067/', 'Adduktion mit elastischem Widerstand und an der Maschine aktivierte die Adduktoren im EMG etwa gleich stark.')
+    ]
+  }),
+  P('nordic-hamstring-curl', 'Nordic Hamstring Curl', 'bodyweight', ['hamstrings'], [], {
+    confidence: 'high', basis: 'MRT',
+    note: 'Füße fixieren, Hüfte gestreckt halten, langsam nach vorn absenken, mit Händen abfangen. Anfänger: Band oder Teilbewegung.',
+    sources: [
+      S('Pai et al. 2025, J Sport Health Sci', '10.1016/j.jshs.2025.101070', '9 Wochen Nordic Curls: MRT zeigt Zuwachs aller Beinbeuger, am stärksten Semitendinosus und kurzer Bizepskopf; Faszikel länger.'),
+      S('Maeo et al. 2024, Med Sci Sports Exerc', '10.1249/MSS.0000000000003490', 'MRT: Nordic Curls vergrößern v. a. die nur kniebeugenden Anteile; langer Bizepskopf wächst weniger als beim Beinbeuger mit gebeugter Hüfte.')
+    ]
+  }),
+  P('good-morning', 'Good Morning', 'barbell', ['hamstrings', 'lower-back'], ['glutes'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Stange auf dem oberen Rücken, Knie leicht gebeugt, Hüfte nach hinten schieben, Rücken neutral. Leicht beginnen.',
+    sources: [
+      S('Vigotsky et al. 2015, PeerJ', '10.7717/peerj.708', 'EMG von Beinbeugern und Rückenstrecker steigt tendenziell mit der Last; bei schwerer Last mehr Kniebeugung.'),
+      S('McAllister et al. 2014, J Strength Cond Res', '10.1519/JSC.0000000000000302', 'EMG-Vergleich: Good Morning aktiviert Beinbeuger und Rückenstrecker, die Beinbeuger aber weniger als RDL und Glute-Ham-Raise.')
+    ]
+  }),
+  P('back-extension-45', 'Rückenstrecken (45°)', 'bodyweight', ['glutes', 'hamstrings', 'lower-back'], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Polster unter den Hüftknochen. Rücken neutral = mehr Gesäß/Beinbeuger, Rücken einrollen = mehr Rückenstrecker. Gewicht vor der Brust.',
+    sources: [
+      S('Andersen et al. 2021, J Sports Sci Med', '10.52082/jssm.2021.181', '45°-Bank: höchste Bizeps-femoris-Aktivität, Gesäß ähnlich hoch wie beim RDL, Rückenstrecker gleich stark wie RDL und Maschine.'),
+      S('Park & Yoo 2014, J Electromyogr Kinesiol', '10.1016/j.jelekin.2014.08.012', 'EMG am Roman Chair: Rückenstrecker und Gesäß aktiv; gebeugte Knie steigern die Aktivität von Rückenstrecker und Gesäß.')
+    ]
+  }),
+  P('reverse-hyperextension', 'Reverse Hyperextension', 'machine', ['glutes', 'hamstrings', 'lower-back'], [], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Oberkörper liegt auf, Beine kontrolliert nach oben bis zur Körperlinie führen. Nicht schwingen, Last moderat.',
+    sources: [
+      S('Cuthbert et al. 2021, J Strength Cond Res', '10.1519/JSC.0000000000004049', 'Reverse Hyper mit höherer EMG in Rückenstrecker, Gesäß und Bizeps femoris als die normale Hyperextension.'),
+      S('Lawrence et al. 2022, J Appl Biomech', '10.1123/jab.2022-0046', 'EMG bei 50–150 % Körpergewicht: Rückenstrecker, Gesäß, Bizeps femoris aktiv; über 100 % kaum Zusatzgewinn.')
+    ]
+  }),
+  P('glute-bridge', 'Glute Bridge', 'barbell', ['glutes'], ['hamstrings', 'abductors'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Rücken am Boden, Füße hüftbreit nah am Gesäß, oben kurz halten. Ohne Hantel als Einstieg oder einbeinig steigern.',
+    sources: [
+      S('Kennedy et al. 2022, Sports Biomech', '10.1080/14763141.2022.2074875', 'Langhantel-Glute-Bridge: höhere EMG in oberem/unterem Gluteus maximus und Gluteus medius als Hip Thrust; weniger Quadrizeps.'),
+      S('Khaiyat & Norris 2018, J Phys Ther Sci', '10.1589/jpts.30.642', 'Körpergewichts-Bridge: höchste Gesäß- und Bizeps-femoris-Aktivität unter fünf Reha-Übungen, aber nur moderate Werte.')
+    ]
+  }),
+  P('cable-kickback', 'Kickback am Kabel', 'cable', ['glutes'], ['hamstrings'], {
+    confidence: 'high', basis: 'MRT + EMG',
+    note: 'Manschette am Knöchel, leicht vorgebeugt stehen, Bein nach hinten strecken ohne Hohlkreuz, langsam zurück.',
+    sources: [
+      S('Attarieh et al. 2026, J Strength Cond Res', '10.1519/JSC.0000000000005701', 'MRT, 10 Wochen einbeinige Hüftstreckung am Kabel: Gluteus maximus +9 % (v. a. unten), Gluteus medius/minimus kaum Zuwachs.'),
+      S('Stevens et al. 2022, Int J Exerc Sci', '10.70252/DWMB8342', 'EMG bei trainierten Frauen: Kickback aktiviert Gluteus maximus und alle gemessenen Bizeps-femoris-Bereiche deutlich.')
+    ]
+  }),
+  P('single-leg-romanian-deadlift', 'Einbeiniges Rumänisches Kreuzheben', 'dumbbell', ['glutes', 'hamstrings'], ['abductors', 'lower-back'], {
+    confidence: 'medium', basis: 'EMG + Modell',
+    note: 'Hantel in der Hand gegenüber dem Standbein, Hüfte gerade halten, Oberkörper und Spielbein als Linie kippen. Stütze erlaubt.',
+    sources: [
+      S('Mo et al. 2023, Front Physiol', '10.3389/fphys.2023.1264604', 'Sehr hohe EMG im oberen Gesäß und Bizeps femoris; Last in der Gegenhand erhöht Gluteus medius und Rückenstrecker.'),
+      S('Collings et al. 2023, Med Sci Sports Exerc', '10.1249/MSS.0000000000003091', 'EMG-gestütztes Muskelmodell: beladenes einbeiniges RDL in der Spitzengruppe für Gluteus maximus, medius und minimus.')
+    ]
+  }),
+  P('dumbbell-step-up', 'Step-up', 'dumbbell', ['quads', 'glutes'], ['hamstrings', 'abductors', 'calves'], {
+    confidence: 'medium', basis: 'EMG + Modell',
+    note: 'Ganzen Fuß auf die Box, über das vordere Bein hochdrücken, hinteres nicht abstoßen. Höhere Box = mehr Gesäß.',
+    sources: [
+      S('Neto et al. 2020, J Sports Sci Med', 'https://pubmed.ncbi.nlm.nih.gov/32132843/', 'Übersicht (EMG): Step-up und Varianten erreichen die höchste Gluteus-maximus-Aktivierung der erfassten Übungen.'),
+      S('Kipp et al. 2022, J Strength Cond Res', '10.1519/JSC.0000000000003688', 'Modell: Kräfte in Gesäß, Vastii, Beinbeugern und Waden steigen beim Step-up mit Last, teils stärker als bei der Kniebeuge.')
+    ]
+  }),
+  P('walking-lunge', 'Ausfallschritte gehend', 'dumbbell', ['quads', 'glutes'], ['hamstrings', 'adductors', 'abductors', 'lower-back'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Lange Schritte, hinteres Knie Richtung Boden. Leichte Rumpfvorlage betont das Gesäß. Hanteln seitlich, auch ohne Last.',
+    sources: [
+      S('Bezerra et al. 2021, Int J Exerc Sci', '10.70252/IGJM9937', 'EMG: gehende Ausfallschritte aktivieren das Gesäß stärker als statische; Rumpfvorlage erhöht den unteren Rückenstrecker.'),
+      S('Escamilla et al. 2025, J Funct Morphol Kinesiol', '10.3390/jfmk10010042', 'EMG: Ausfallschritt mit langem Schritt – hoch für Quadrizeps und Gesäß, moderat für Beinbeuger und Adduktoren.'),
+      S('Stastny et al. 2015, J Strength Cond Res', '10.1519/JSC.0000000000000976', 'EMG: Hantel in der Gegenhand beim gehenden Ausfallschritt aktiviert den Gluteus medius sehr stark (ca. 90 % MVIC).')
+    ]
+  }),
+  P('front-squat', 'Frontkniebeuge', 'barbell', ['quads'], ['glutes', 'adductors', 'lower-back', 'upper-back', 'abs'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Hantel vorn auf den Schultern, Ellbogen hoch, Oberkörper aufrecht. Weniger Kniedruck als hinten, Last meist geringer.',
+    sources: [
+      S('Yavuz et al. 2015, J Sports Sci', '10.1080/02640414.2014.984240', 'EMG bei Maximallast: Vastus medialis in der Frontkniebeuge aktiver, Semitendinosus in der Rückenkniebeuge; Oberkörper aufrechter.'),
+      S('Gullett et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e31818546bb', 'Muskelaktivität insgesamt ähnlich wie Rückenkniebeuge, aber geringere Kompressionskräfte und Kniestreckmomente.'),
+      S('Bautista et al. 2020, Int J Exerc Sci', '10.70252/BTUH3630', 'Frontkniebeuge aktiviert u. a. Rückenstrecker im Brustbereich und vorderen Delta spürbar – Rumpf und Ablage arbeiten mit.')
+    ]
+  }),
+  P('goblet-squat', 'Goblet Squat', 'dumbbell', ['quads'], ['glutes', 'adductors', 'abs', 'upper-back'], {
+    confidence: 'medium', basis: 'EMG + Anatomie',
+    note: 'Kurzhantel oder Kettlebell vor der Brust, tief zwischen die Knie sitzen. Gut für Technik und Einstieg; Last durch Griff begrenzt.',
+    others: ['Griffmuskulatur (Halten)'],
+    sources: [
+      S('Collins et al. 2021, J Strength Cond Res', '10.1519/JSC.0000000000004094', 'EMG: Goblet Squat mit höherer Vastus-medialis/-lateralis-Aktivität als die Landmine-Kniebeuge (30 % Körpermasse); Gesäß nicht gemessen.')
+    ]
+  }),
+  P('smith-machine-squat', 'Kniebeuge an der Multipresse', 'machine', ['quads'], ['glutes', 'adductors', 'lower-back'], {
+    confidence: 'high', basis: 'Ultraschall + EMG',
+    note: 'Füße etwas vor die Stange für mehr Quadrizeps. Geführte Bahn: weniger Balance nötig, Kraft überträgt sich etwas schlechter.',
+    sources: [
+      S('Saeterbakken et al. 2019, PLoS One', '10.1371/journal.pone.0214302', '7 Wochen: Multipresse steigerte die Vastus-lateralis-Dicke (Ultraschall) ähnlich wie die freie Kniebeuge; Kraft eher übungsspezifisch.'),
+      S('Schwanbeck et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181b1b181', 'EMG bei 8RM: freie Kniebeuge mit höherer Aktivität in Vastus medialis, Beinbeugern und Wade als Multipresse (n = 6).')
+    ]
+  }),
+  P('belt-squat', 'Belt Squat', 'machine', ['quads'], ['glutes', 'adductors', 'abductors', 'hamstrings'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Last hängt am Hüftgurt statt auf der Wirbelsäule. Gute Wahl, wenn der untere Rücken geschont werden soll.',
+    sources: [
+      S('Joseph et al. 2020, J Hum Kinet', '10.2478/hukin-2019-0126', 'EMG vs. Rückenkniebeuge (100 % KG): Quadrizeps, Beinbeuger, Waden ähnlich; Rückenstrecker, Gesäß und Bauch deutlich weniger.')
+    ]
+  }),
+  P('sissy-squat', 'Sissy Squat', 'bodyweight', ['quads'], ['abs'], {
+    confidence: 'low', basis: 'Anatomie',
+    note: 'Fersen hoch, Knie weit nach vorn, Hüfte gestreckt; festhalten. Hohe Kniebelastung – langsam steigern.',
+    sources: [
+      S('StatPearls: Anatomy, Rectus Femoris', 'https://www.ncbi.nlm.nih.gov/books/NBK513334/', 'Anatomie: Rectus femoris beugt die Hüfte und streckt mit den Vasti das Knie – bei gestreckter Hüfte stärker gedehnt (keine Studie zur Übung).')
+    ]
+  }),
+  P('dumbbell-forward-lunge', 'Ausfallschritte vorwärts', 'dumbbell', ['quads', 'glutes'], ['adductors', 'abductors', 'hamstrings'], {
+    confidence: 'medium', basis: 'EMG + Modell',
+    note: 'Großer Schritt nach vorn, abbremsen und zurückdrücken. Mehr Quadrizeps- und Kniescheibenlast als rückwärts; Oberkörper aufrecht.',
+    sources: [
+      S('Muyor et al. 2020, PLoS One', '10.1371/journal.pone.0230841', 'EMG beim Ausfallschritt vorwärts: Vastus lateralis und medialis am aktivsten, danach Gluteus medius und maximus.'),
+      S('Goulette et al. 2021, Phys Ther Sport', '10.1016/j.ptsp.2020.12.001', 'Modell: Vorwärts-Ausfallschritt mit höherer Quadrizepskraft und Kniescheibenlast als rückwärts (20 Frauen).')
+    ]
+  }),
+  P('dumbbell-reverse-lunge', 'Ausfallschritte rückwärts', 'dumbbell', ['quads', 'glutes'], ['adductors', 'abductors', 'hamstrings'], {
+    confidence: 'medium', basis: 'Modell + EMG (Variante)',
+    note: 'Schritt nach hinten, vorderes Bein trägt die Last. Knieschonender als vorwärts und leichter zu balancieren.',
+    sources: [
+      S('Goulette et al. 2021, Phys Ther Sport', '10.1016/j.ptsp.2020.12.001', 'Modell: Rückwärts-Ausfallschritt mit geringerer Quadrizepskraft, Kniescheibenlast und Belastungsrate als vorwärts.'),
+      S('Muyor et al. 2020, PLoS One', '10.1371/journal.pone.0230841', 'EMG (Vorwärts-Variante): Vasti am aktivsten, danach Gluteus medius und maximus – Muskelverteilung ähnlich.')
     ]
   }),
 

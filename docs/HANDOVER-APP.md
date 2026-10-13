@@ -5,10 +5,10 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 1.4.0 (Muskelkarte, Piktogramme, Körpergewicht/Cardio, Plan-Pause, Zeit im Tagebuch, deployt am 2026-10-13), Cache `wt-cache-v11`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training · 1.4.0 Muskelkarte mit Wochensätzen, Mini-Figur als Piktogramm, Tausch aufklappen, Pause pro Planeintrag, Körpergewicht mit Zusatzgewicht, Cardio als Einheit, Datum/Dauer im Tagebuch, Regel für leere Sätze (alle 2026-10-13).
+- **Live:** 1.5.0 (Übungspool Runde 1: 70 Übungen, Filter im Pool, deployt am 2026-10-13), Cache `wt-cache-v12`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training · 1.4.0 Muskelkarte mit Wochensätzen, Mini-Figur als Piktogramm, Tausch aufklappen, Pause pro Planeintrag, Körpergewicht mit Zusatzgewicht, Cardio als Einheit, Datum/Dauer im Tagebuch, Regel für leere Sätze · 1.5.0 Übungspool Runde 1 (+34 Übungen: Schultern, Waden, Adduktoren/Abduktoren, Gesäß/Beinbeuger/unterer Rücken, Quadrizeps-Varianten), Pool-Filter nach Muskel und Gerät (alle 2026-10-13).
 - **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen, Übungsgruppen mit Tausch im laufenden Training, Fortschritt → Muskeln (harte Sätze pro Woche), Körpergewicht- und Cardio-Loggen, Figur-Einstellung.
-- **Nächster Schritt:** v1.5 Übungspool pro Muskelgruppe erweitern (Recherche in Runden); danach e1RM-Formel prüfen (nur mit begutachteten Belegen ändern); v2.0 Illustrationen/Animationen.
+- **Nächster Schritt:** Übungspool Runde 2 (Rücken, Brust, Arme) und Runde 3 (Rumpf, Cardio-Geräte); danach e1RM-Formel prüfen (nur mit begutachteten Belegen ändern); v2.0 Illustrationen/Animationen.
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
 ## Rahmenbedingungen
@@ -32,7 +32,7 @@ js/model.js             Datenmodell: SCHEMA_VERSION, Konstanten, Fabriken, Valid
 js/migrate.js           Schema-Migrationen (lokale Daten und Backups)
 js/store.js             einzige Stelle mit localStorage-Zugriff
 js/backup.js            Backup bauen, validieren (inkl. Migration), einspielen
-js/pool.js              Startpool (36 Übungen) mit Muskeln, Belastbarkeit, Evidenzart, Quellen
+js/pool.js              Startpool (70 Übungen, Stand v1.5.0) mit Muskeln, Belastbarkeit, Evidenzart, Quellen
 js/muscle-info.js       Infotexte und Quellen zu den 19 Muskelgruppen (ℹ)
 js/exercises.js         Übungs-Bibliothek: Regionen, Suche, Gruppierung, Speichern, Archiv, Pool-Übernahme
 js/exercises-view.js    Übungen-Tab: Liste, Startpool-Sheet, Editor, Muskelauswahl, ℹ-Sheets
@@ -165,6 +165,12 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - `S.swapEntry(entryId, exerciseId)`: ohne erledigten Satz → Übung im Eintrag ersetzen (`swapEntryExercise`, neue Vorbelegung, Pausen-Timer des Eintrags gestoppt); mit erledigtem Satz → neuer Eintrag direkt dahinter (erledigte Sätze bleiben). Ergebnis `{ mode: 'swapped' | 'inserted', index }`.
 - Löschen einer Gruppe entfernt sie aus `exercises[].groupIds` und setzt `plans[].items[].groupId` auf `null`; abgeschlossene Trainings behalten ihr `groupId` (wird nicht gegen `groups` geprüft).
 - Fortschritt bleibt pro Übung; „statt X“ erscheint in Übersicht und Tagebuch.
+
+## Übungspool v1.5 (Runde 1)
+
+- +34 Übungen in `js/pool.js` (Abschnitte Schultern und Beine, markiert mit „v1.5 Runde 1“); jetzt 70. Je Gruppe primär mindestens 4 Übungen für vordere/seitliche/hintere Schulter, Waden, Adduktoren, Abduktoren, unterer Rücken (Test in `tests/pool.test.js`).
+- Recherche in 4 parallelen Paketen (nur geöffnete Quellen), Stichprobe 8/8 DOIs in Crossref bestätigt. `basis` kann jetzt auch „Ultraschall“ enthalten (Muskeldicke). Details, Schwächen und verworfene Übungen: Drive → Research & Sources, Abschnitt 6.
+- Pool-Sheet: zusätzlich Muskel-Chips innerhalb der gewählten Region (nur bei mehr als einem Muskel), Geräte-Chips, Trefferzeile „n von 70 Übungen“, Mini-Figur pro Zeile.
 
 ## Paket v1.4
 
