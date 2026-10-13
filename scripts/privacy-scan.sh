@@ -18,7 +18,8 @@ hits=$(echo "$FILES" | xargs grep -nEI '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-
 if [ -n "$hits" ]; then echo "$hits"; status=1; else echo "keine"; fi
 
 echo "== Telefonnummern =="
-hits=$(echo "$FILES" | xargs grep -nEI '(\+49|0049|\b0[1-9][0-9]{2,4}[ /-]?[0-9]{5,9})' 2>/dev/null)
+# Zeilen mit DOIs (10.xxxx/...) ausnehmen, sonst Fehlalarme bei Quellenangaben
+hits=$(echo "$FILES" | xargs grep -nEI '(\+49|0049|\b0[1-9][0-9]{2,4}[ /-]?[0-9]{5,9})' 2>/dev/null | grep -vE '10\.[0-9]{4,5}/')
 if [ -n "$hits" ]; then echo "$hits"; status=1; else echo "keine"; fi
 
 echo "== Eigene Begriffe (.privacy-terms.local) =="

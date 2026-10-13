@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "description": "Workout Tracker PWA – nur für Tests und Syntaxprüfung, keine Build-Abhängigkeiten.",
+  "license": "MIT",
   "scripts": {
-    "test": "node tests/store-backup.test.js && node tests/model.test.js",
-    "check": "node --check js/app.js && node --check js/store.js && node --check js/backup.js && node --check js/ui.js && node --check js/views.js && node --check js/util.js && node --check js/model.js && node --check js/migrate.js && node --check js/version.js && node --check sw.js",
+    "test": "node tests/store-backup.test.js && node tests/model.test.js && node tests/pool.test.js && node tests/exercises.test.js",
+    "check": "node --check js/app.js && node --check js/store.js && node --check js/backup.js && node --check js/ui.js && node --check js/views.js && node --check js/util.js && node --check js/model.js && node --check js/migrate.js && node --check js/pool.js && node --check js/muscle-info.js && node --check js/exercises.js && node --check js/exercises-view.js && node --check js/sheet.js && node --check js/version.js && node --check sw.js",
     "privacy": "sh scripts/privacy-scan.sh"
   }
 }

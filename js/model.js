@@ -23,7 +23,9 @@ export const SET_TAGS = {
   failure: 'Bis Muskelversagen'
 };
 
-// Muskel-Taxonomie. Bewusst grob (18 Einträge), damit Zuordnung und Muskelkarte handhabbar bleiben.
+// Muskel-Taxonomie. Bewusst grob (19 Einträge), damit Zuordnung und Muskelkarte handhabbar bleiben.
+// Abgrenzungen (Recherche 2026-10-13): biceps = Armbeuger (Biceps brachii + Brachialis);
+// glutes = Gluteus maximus; abductors = Gluteus medius/minimus + TFL; hip-flexors seit v0.3.
 export const MUSCLES = {
   chest: 'Brust',
   'front-delts': 'Vordere Schulter',
@@ -42,7 +44,8 @@ export const MUSCLES = {
   hamstrings: 'Beinbeuger',
   adductors: 'Adduktoren',
   abductors: 'Abduktoren',
-  calves: 'Waden'
+  calves: 'Waden',
+  'hip-flexors': 'Hüftbeuger'
 };
 
 export const VERIFICATION = ['verified', 'training-knowledge', 'user'];
