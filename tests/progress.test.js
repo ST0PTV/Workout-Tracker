@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { runner } from './helpers.js';
 const M = await import('../js/model.js');
 const G = await import('../js/progress.js');
+const I = await import('../js/progress-info.js');
 const { test, done } = runner();
 console.log('# progress');
 
@@ -93,6 +94,18 @@ test('Formatierung kg', () => {
   assert.equal(G.fmtKg(82.5), '82,5');
   assert.equal(G.fmtKg(110), '110');
   assert.equal(G.fmtKg(null), '–');
+});
+
+test('v1.8.1: e1RM-Info nennt Grenzen (Beinübungen, Versagen, Trend) und hat DOI-Quellen', () => {
+  assert.match(I.E1RM_EXPLAIN, /Epley/);
+  assert.match(I.E1RM_EXPLAIN, /Beinübungen/);
+  assert.match(I.E1RM_EXPLAIN, /Versagen/);
+  assert.ok(I.PROGRESS_INFO.summary.some((t) => /grober Hinweis/.test(t)));
+  assert.ok(I.PROGRESS_INFO.sources.length >= 10);
+  for (const s of I.PROGRESS_INFO.sources) {
+    assert.match(s.url, /^https:\/\//);
+    assert.ok(s.note.length <= 170, s.label);
+  }
 });
 
 done();

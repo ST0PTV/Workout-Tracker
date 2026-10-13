@@ -3,6 +3,8 @@
 // - Gemessene Werte (Top-Satz: Gewicht × Wdh.) stehen im Vordergrund.
 // - e1RM nach Epley nur aus Arbeitssätzen mit 1–10 Wdh.; typische Abweichung ±3–6 %, bei Sätzen
 //   weit vor dem Muskelversagen systematisch zu niedrig. Klar als Schätzung kennzeichnen.
+// - Nachrecherche 2026-10-14: Epley bleibt (keine klar bessere Formel); Beinübungen ungenauer;
+//   Trend nur grob; kein RIR-Feld und kein Filter über den Marker „bis zum Versagen“.
 // - Änderungen unter ca. 5 % liegen im normalen Tagesrauschen (1RM-Retest: Median-CV 4,2 %).
 // - Volumen (kg × Wdh.) nur nachrangig; als Volumenmaß gelten in der Forschung harte Sätze.
 // - Nie zwischen Übungen oder Geräte-Varianten vergleichen – Verlauf immer pro konkreter Übung.
