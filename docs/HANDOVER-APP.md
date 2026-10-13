@@ -5,8 +5,8 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 0.3.0 (Übungen, deployt am 2026-10-13), Cache `wt-cache-v3`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool (alle 2026-10-13).
+- **Live:** 0.3.1 (Linien-Icons, deployt am 2026-10-13), Cache `wt-cache-v4`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji (alle 2026-10-13).
 - **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, ℹ-Infos).
 - **Platzhalter:** Training (v0.5), Pläne (v0.4).
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
@@ -36,11 +36,12 @@ js/pool.js              Startpool (36 Übungen) mit Muskeln, Belastbarkeit, Evid
 js/muscle-info.js       Infotexte und Quellen zu den 19 Muskelgruppen (ℹ)
 js/exercises.js         Übungs-Bibliothek: Regionen, Suche, Gruppierung, Speichern, Archiv, Pool-Übernahme
 js/exercises-view.js    Übungen-Tab: Liste, Startpool-Sheet, Editor, Muskelauswahl, ℹ-Sheets
+js/icons.js             Eigene Linien-Icons (SVG). Keine Unicode-Zeichen/Emoji als Icons – Test `tests/icons.test.js` prüft das
 js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Ansichten (Training, Pläne, Einstellungen; Übungen aus exercises-view.js)
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 

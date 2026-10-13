@@ -4,9 +4,10 @@ import { APP_NAME, APP_VERSION } from './version.js';
 import * as store from './store.js';
 import * as backup from './backup.js';
 import { toast } from './ui.js';
+import { icon } from './icons.js';
 
 function placeholderCard(text, version) {
-  return h('div', { class: 'card empty' }, h('div', { class: 'big' }, '🏗️'), h('h2', {}, `Kommt in ${version}`), h('p', { class: 'muted' }, text));
+  return h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, `Kommt in ${version}`), h('p', { class: 'muted' }, text));
 }
 
 function placeholder(title, text, version) {

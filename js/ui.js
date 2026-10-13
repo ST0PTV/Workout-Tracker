@@ -1,13 +1,8 @@
 // UI-Grundbausteine: Router, Tab-Leiste, Toast.
 import { h } from './util.js';
 import { closeAllSheets } from './sheet.js';
+import { icon } from './icons.js';
 
-const ICONS = {
-  train: '<path d="M6 8v8M18 8v8M3 10v4M21 10v4M6 12h12"/>',
-  plans: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v3H9zM9 12h6M9 16h4"/>',
-  exercises: '<path d="M4 6h16M4 12h16M4 18h10"/>',
-  settings: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>'
-};
 
 export const TABS = [
   { path: '/', label: 'Training', icon: 'train' },
@@ -16,18 +11,11 @@ export const TABS = [
   { path: '/settings', label: 'Einstellungen', icon: 'settings' }
 ];
 
-function icon(name) {
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('aria-hidden', 'true');
-  svg.innerHTML = ICONS[name];
-  return svg;
-}
 
 export function renderTabbar(container, current) {
   container.replaceChildren(
     ...TABS.map((tab) =>
-      h('a', { class: 'tab', href: `#${tab.path}`, 'aria-current': tab.path === current ? 'page' : false }, icon(tab.icon), tab.label)
+      h('a', { class: 'tab', href: `#${tab.path}`, 'aria-current': tab.path === current ? 'page' : false }, icon(tab.icon, { size: 24 }), tab.label)
     )
   );
 }

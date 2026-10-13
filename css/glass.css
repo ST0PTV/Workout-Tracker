@@ -216,3 +216,19 @@ body.sheet-open { overflow: hidden; }
 .src { font-size: 13px; color: var(--muted); margin: 8px 4px 0; line-height: 1.5; }
 .btn.subtle { background: transparent; margin: 6px 0 12px; color: var(--muted); }
 .sticky-bottom { position: sticky; bottom: 0; margin-top: 8px; box-shadow: 0 -8px 24px rgba(10, 14, 32, 0.9); }
+
+/* ---------- v0.3.1: Linien-Icons statt Zeichen/Emoji ---------- */
+.icon { stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+.icon.inline { display: inline-block; vertical-align: -2px; }
+.icon.rot90 { transform: rotate(90deg); }
+.icon { transition: transform 0.15s; }
+.big { display: flex; justify-content: center; color: var(--accent); }
+.added { display: inline-flex; align-items: center; gap: 4px; }
+.chip .icon.inline { margin-left: 4px; color: var(--accent); }
+.row i .icon.inline { margin-right: 2px; }
+.search .icon { color: var(--muted); }
+.info-btn .icon, .sheet-close .icon, .add .icon, .fab .icon, .step button .icon { margin: auto; }
+.add, .fab, .sheet-close, .step button { display: inline-flex; align-items: center; justify-content: center; }
+.archived-toggle { display: inline-flex; align-items: center; gap: 4px; }
+.link .icon.inline { margin-right: 2px; }
+.info-mark { color: var(--accent); }
