@@ -2,7 +2,7 @@
 
 Kostenlose Workout-Tracker-PWA fürs iPhone, Fokus auf Krafttraining. Alle Daten bleiben lokal im Browser-Speicher, es gibt keinen Server und keine Accounts.
 
-Status: Version 0.3 (Übungen). Technischer Stand: [`docs/HANDOVER-APP.md`](docs/HANDOVER-APP.md).
+Status: Version 1.6 (Training loggen, Pläne, Fortschritt, Tagebuch, Muskelkarte). Die aktuelle Version steht in `js/version.js`.
 
 ## Lokal ausprobieren
 
@@ -18,7 +18,7 @@ Dann `http://localhost:8080` öffnen. Auf dem iPhone über Safari „Zum Home-Bi
 
 ```
 npm run check    # Syntaxprüfung
-npm test         # Speicher- und Backup-Tests
+npm test         # Node-Tests (Datenmodell, Speicher, Backup, Logik)
 npm run privacy  # Scan nach persönlichen Strings
 ```
 
