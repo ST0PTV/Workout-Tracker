@@ -55,8 +55,17 @@ export const VERIFICATION = ['verified', 'training-knowledge', 'user'];
 export const DEFAULT_SETTINGS = {
   focus: ['strength'],
   weightUnit: 'kg',
-  restSeconds: 120
+  restSeconds: 120,
+  figure: 'male' // v1.4: Figur für Muskelkarte und Piktogramme ('male' | 'female'); Logik ist gleich
 };
+
+export const FIGURES = ['male', 'female'];
+
+// Cardio-Intensität (v1.4, optional, Selbsteinschätzung): keine Kalorien, keine Zielwerte.
+export const INTENSITIES = { easy: 'Locker', moderate: 'Mittel', hard: 'Hart' };
+
+// Untergrenze für Zusatzgewicht bei Körpergewichtsübungen (negativ = Unterstützung, z. B. Band oder Maschine).
+export const MIN_ADDED_KG = -300;
 
 // ---------- Fabriken ----------
 
@@ -127,6 +136,8 @@ const isISO = (v) => isStr(v) && !Number.isNaN(Date.parse(v));
 const isNullableNum = (v, { int = false } = {}) =>
   v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0 && (!int || Number.isInteger(v)));
 const isStrArray = (v) => Array.isArray(v) && v.every(isStr);
+// Optionale Pausenzeit (v1.4 an Planeintrag und Trainingseintrag): fehlt, null oder 1–3600 s.
+const isRest = (v) => v === undefined || v === null || (Number.isInteger(v) && v > 0 && v <= 3600);
 
 export function validateExercise(e) {
   const err = [];
@@ -169,6 +180,7 @@ export function validatePlan(p) {
       if (!it || !isId(it.id) || !isId(it.exerciseId)) { err.push(`Plan ${p.id}: Eintrag ohne id/exerciseId.`); continue; }
       if (it.groupId !== null && !isId(it.groupId)) err.push(`Plan ${p.id}: groupId ungültig.`);
       if (it.targetSets !== null && (!Number.isInteger(it.targetSets) || it.targetSets < 0)) err.push(`Plan ${p.id}: targetSets ungültig.`);
+      if (!isRest(it.restSeconds)) err.push(`Plan ${p.id}: Pausenzeit ungültig.`);
     }
   }
   if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);
@@ -180,7 +192,8 @@ export function validateSet(s, ctx = '') {
   const err = [];
   if (!s || !isId(s.id)) return [`${ctx}Satz ohne id.`];
   if (!SET_TYPES.includes(s.type)) err.push(`${ctx}Satz ${s.id}: unbekannter Typ "${s.type}".`);
-  if (!isNullableNum(s.weightKg)) err.push(`${ctx}Satz ${s.id}: Gewicht ungültig.`);
+  // Negativ nur als Unterstützung bei Körpergewichtsübungen – geprüft in validateData (braucht den Übungstyp).
+  if (!(s.weightKg === null || (typeof s.weightKg === 'number' && Number.isFinite(s.weightKg) && s.weightKg >= MIN_ADDED_KG))) err.push(`${ctx}Satz ${s.id}: Gewicht ungültig.`);
   if (!isNullableNum(s.reps, { int: true })) err.push(`${ctx}Satz ${s.id}: Wiederholungen ungültig.`);
   if (!isNullableNum(s.durationSec)) err.push(`${ctx}Satz ${s.id}: Dauer ungültig.`);
   if (!isNullableNum(s.distanceM)) err.push(`${ctx}Satz ${s.id}: Distanz ungültig.`);
@@ -197,6 +210,7 @@ export function validateSet(s, ctx = '') {
     if (unknown.length) err.push(`${ctx}Satz ${s.id}: unbekannte Markierung(en) ${unknown.join(', ')}.`);
   }
   if (s.completedAt !== null && !isISO(s.completedAt)) err.push(`${ctx}Satz ${s.id}: completedAt ungültig.`);
+  if (s.intensity !== undefined && s.intensity !== null && !(s.intensity in INTENSITIES)) err.push(`${ctx}Satz ${s.id}: Intensität ungültig.`);
   return err;
 }
 
@@ -218,6 +232,7 @@ export function validateSession(x) {
       if (en.plannedExerciseId !== null && !isId(en.plannedExerciseId)) err.push(`Training ${x.id}: plannedExerciseId ungültig.`);
       if (en.groupId !== null && !isId(en.groupId)) err.push(`Training ${x.id}: groupId ungültig.`);
       if (en.targetSets !== undefined && en.targetSets !== null && !(Number.isInteger(en.targetSets) && en.targetSets > 0)) err.push(`Training ${x.id}: targetSets ungültig.`);
+      if (!isRest(en.restSeconds)) err.push(`Training ${x.id}: Pausenzeit ungültig.`);
       if (!Array.isArray(en.sets)) err.push(`Training ${x.id}: sets ist keine Liste.`);
       else for (const s of en.sets) err.push(...validateSet(s, `Training ${x.id}: `));
     }
@@ -247,10 +262,12 @@ export function validateData(data) {
       if (it.groupId && !gr.has(it.groupId)) err.push(`Plan ${p.id}: Gruppe ${it.groupId} existiert nicht.`);
     }
   }
+  const kindOf = Object.fromEntries(data.exercises.map((e) => [e.id, e.kind]));
   for (const s of data.sessions) {
     if (s.planId && !pl.has(s.planId)) err.push(`Training ${s.id}: Plan ${s.planId} existiert nicht.`);
     for (const en of s.entries) {
       if (!ex.has(en.exerciseId)) err.push(`Training ${s.id}: Übung ${en.exerciseId} existiert nicht.`);
+      if (kindOf[en.exerciseId] !== 'bodyweight' && en.sets.some((x) => x.weightKg < 0 || x.drops.some((d) => d.weightKg < 0))) err.push(`Training ${s.id}: negatives Gewicht nur bei Körpergewichtsübungen.`);
       if (en.plannedExerciseId && !ex.has(en.plannedExerciseId)) err.push(`Training ${s.id}: geplante Übung existiert nicht.`);
     }
   }
@@ -280,8 +297,9 @@ export function setReps(set) {
 }
 
 // Harte Sätze: abgeschlossene Arbeits-, Drop- und Rest-Pause-Sätze; jeder zählt als ein Satz (Konvention).
-export function hardSets(entry) {
-  return entry.sets.filter(counts).length;
+// Cardio-Einheiten sind keine harten Sätze (v1.4).
+export function hardSets(entry, kind = 'strength') {
+  return kind === 'cardio' ? 0 : entry.sets.filter(counts).length;
 }
 
 export function entryVolume(entry, kind = 'strength') {
@@ -293,7 +311,7 @@ export function sessionSummary(session, exercisesById) {
   for (const en of session.entries) {
     const kind = exercisesById[en.exerciseId]?.kind || 'strength';
     volume += entryVolume(en, kind);
-    sets += hardSets(en);
+    sets += hardSets(en, kind);
     reps += en.sets.filter(counts).reduce((r, s) => r + setReps(s), 0);
   }
   return { volume, hardSets: sets, reps };
@@ -357,6 +375,7 @@ export function prefillSets(exercise, sessions, targetSets = null) {
       reps: s.reps,
       durationSec: s.durationSec,
       distanceM: s.distanceM,
+      ...(s.intensity ? { intensity: s.intensity } : {}),
       drops: s.drops.map((d) => ({ ...d })),
       tags: [...s.tags]
     }));
@@ -427,7 +446,35 @@ export function startSessionFromPlan(plan, exercisesById, sessions) {
     .map((it) => createEntry(it.exerciseId, {
       groupId: it.groupId,
       targetSets: it.targetSets ?? null, // v1.3: für die Vorbelegung nach einem Tausch
+      restSeconds: it.restSeconds ?? null, // v1.4: Pause nur in diesem Plan (gilt für den Platz, auch nach Tausch)
       sets: prefillSets(exercisesById[it.exerciseId], sessions, it.targetSets)
     }));
   return session;
+}
+
+// ---------- Satz abhaken (v1.4, Entscheidung 6 A) ----------
+// Ein Satz braucht Werte, bevor er als erledigt gilt: Kraft = Gewicht und Wdh. (≥ 1),
+// Körpergewicht = Wdh. (Zusatzgewicht optional), Cardio = Dauer oder Strecke.
+// Gibt einen Fehlertext zurück oder null.
+export function completionError(values, kind = 'strength') {
+  if (kind === 'cardio') return values.durationSec > 0 || values.distanceM > 0 ? null : 'Erst Dauer oder Strecke eintragen.';
+  if (!(Number.isInteger(values.reps) && values.reps >= 1)) return kind === 'bodyweight' ? 'Erst Wiederholungen eintragen.' : 'Erst Gewicht und Wdh. eintragen.';
+  if (kind === 'strength' && (values.weightKg === null || values.weightKg === undefined)) return 'Erst Gewicht und Wdh. eintragen.';
+  return null;
+}
+
+// Platzhalter (graue Werte) für einen Satz ohne eigene Werte: der vorherige Satz gleichen Typs in diesem
+// Eintrag, sonst der Satz an gleicher Position bei der letzten Ausführung. Gibt { weightKg, reps } oder null.
+export function placeholderFor(entry, setIndex, last) {
+  const set = entry.sets[setIndex];
+  if (!set) return null;
+  const same = (x) => (x.type === 'warmup') === (set.type === 'warmup');
+  const prev = entry.sets.slice(0, setIndex).reverse().find((x) => same(x) && x.reps !== null);
+  if (prev) return { weightKg: prev.weightKg, reps: prev.reps };
+  if (last) {
+    const pos = entry.sets.slice(0, setIndex).filter(same).length;
+    const ref = last.sets.filter(same)[pos];
+    if (ref && ref.reps !== null) return { weightKg: ref.weightKg, reps: ref.reps };
+  }
+  return null;
 }

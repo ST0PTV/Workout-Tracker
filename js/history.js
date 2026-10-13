@@ -38,7 +38,7 @@ export function diaryRows(sessions = finishedSessions()) {
       durationMin: durationMin(s),
       hardSets: sum.hardSets,
       volume: sum.volume,
-      exercises: s.entries.map((en) => ({ name: byId[en.exerciseId]?.name || 'Unbekannte Übung', hardSets: hardSets(en) }))
+      exercises: s.entries.map((en) => ({ name: byId[en.exerciseId]?.name || 'Unbekannte Übung', hardSets: hardSets(en, byId[en.exerciseId]?.kind) }))
     };
   });
 }
@@ -63,7 +63,7 @@ const findSet = (draft, entryId, setId) => findEntry(draft, entryId)?.sets.find(
 export function setValues(draft, entryId, setId, values) {
   const set = findSet(draft, entryId, setId);
   if (!set) return false;
-  for (const k of ['weightKg', 'reps']) if (k in values) set[k] = values[k];
+  for (const k of ['weightKg', 'reps', 'durationSec', 'distanceM', 'intensity']) if (k in values) set[k] = values[k];
   return true;
 }
 
@@ -118,6 +118,29 @@ export function removeEntry(draft, entryId) {
   return draft.entries.length < n;
 }
 
+// v1.4 (Entscheidung 5 B): Beginn und Ende ändern. Die Zeitpunkte der Sätze werden um dieselbe Differenz
+// wie der Beginn verschoben und in [Beginn, Ende] gehalten, damit die Reihenfolge der Sätze erhalten bleibt.
+export const MAX_SESSION_HOURS = 12;
+export function setTimes(draft, startISO, endISO, now = Date.now()) {
+  const a = Date.parse(startISO);
+  const b = Date.parse(endISO);
+  if (Number.isNaN(a) || Number.isNaN(b)) return { ok: false, errors: ['Bitte Datum und Uhrzeit angeben.'] };
+  if (b <= a) return { ok: false, errors: ['Das Ende muss nach dem Beginn liegen.'] };
+  if (b - a > MAX_SESSION_HOURS * 3600000) return { ok: false, errors: [`Ein Training dauert höchstens ${MAX_SESSION_HOURS} Stunden.`] };
+  if (b > now + 60000) return { ok: false, errors: ['Das Ende liegt in der Zukunft.'] };
+  const delta = a - Date.parse(draft.startedAt);
+  const clamp = (t) => Math.min(b, Math.max(a, t));
+  for (const en of draft.entries) {
+    for (const x of en.sets) if (x.completedAt !== null) x.completedAt = new Date(clamp(Date.parse(x.completedAt) + delta)).toISOString();
+  }
+  draft.startedAt = new Date(a).toISOString();
+  draft.endedAt = new Date(b).toISOString();
+  return { ok: true, errors: [] };
+}
+
+// Satz ganz ohne Werte (kein Gewicht, keine Wdh., keine Dauer/Strecke) trägt keine Information.
+export const isEmptySet = (x) => x.weightKg === null && x.reps === null && !x.durationSec && !x.distanceM;
+
 // Entwurf prüfen und speichern. Übungen ohne Sätze fallen weg; bleibt keine Übung übrig,
 // wird nicht gespeichert ({ empty: true }) – die Oberfläche bietet dann „Training löschen“ an.
 export function saveEdited(draft) {
@@ -126,8 +149,9 @@ export function saveEdited(draft) {
   if (i < 0) return { ok: false, errors: ['Training nicht gefunden.'] };
   const orig = sessions[i];
   if (orig.endedAt === null) return { ok: false, errors: ['Ein laufendes Training wird im Training-Tab bearbeitet.'] };
-  if (draft.startedAt !== orig.startedAt || draft.endedAt !== orig.endedAt) return { ok: false, errors: ['Datum und Dauer sind nicht bearbeitbar.'] };
+  if (!(Date.parse(draft.endedAt) > Date.parse(draft.startedAt))) return { ok: false, errors: ['Das Ende muss nach dem Beginn liegen.'] };
   const next = structuredClone(draft);
+  for (const e of next.entries) e.sets = e.sets.filter((x) => !isEmptySet(x)); // v1.4: leere Sätze fallen weg
   next.entries = next.entries.filter((e) => e.sets.length);
   if (!next.entries.length) return { ok: false, errors: ['Das Training hat keine Sätze mehr.'], empty: true };
   for (const e of next.entries) {
@@ -157,5 +181,5 @@ export function deleteSession(id) {
 // Gibt es ungespeicherte Änderungen? (für „Abbrechen“)
 export function isDirty(draft) {
   const orig = getFinished(draft.id);
-  return !orig || JSON.stringify(orig.entries) !== JSON.stringify(draft.entries);
+  return !orig || orig.startedAt !== draft.startedAt || orig.endedAt !== draft.endedAt || JSON.stringify(orig.entries) !== JSON.stringify(draft.entries);
 }

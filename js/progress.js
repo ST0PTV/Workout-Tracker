@@ -30,6 +30,8 @@ export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {
     let best = null;
     let volume = 0;
     let reps = 0;
+    let durationSec = 0;
+    let distanceM = 0;
     for (const x of sets) {
       const w = x.weightKg ?? 0;
       const r = x.reps ?? 0;
@@ -38,13 +40,17 @@ export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {
       if (est !== null && (!best || est > best.value)) best = { value: est, weightKg: w, reps: r };
       volume += w * r;
       reps += r;
+      durationSec += x.durationSec || 0;
+      distanceM += x.distanceM || 0;
       if (x.type === 'drop' || x.type === 'restpause') for (const d of x.drops) { volume += (d.weightKg || 0) * (d.reps || 0); reps += d.reps || 0; }
     }
     rows.push({
       sessionId: s.id,
       date: s.startedAt,
-      sets: sets.map((x) => ({ type: x.type, weightKg: x.weightKg, reps: x.reps, drops: x.drops, tags: x.tags })),
-      hardSets: sets.length,
+      sets: sets.map((x) => ({ type: x.type, weightKg: x.weightKg, reps: x.reps, durationSec: x.durationSec, distanceM: x.distanceM, intensity: x.intensity ?? null, drops: x.drops, tags: x.tags })),
+      hardSets: kind === 'cardio' ? 0 : sets.length,
+      durationSec, // v1.4 Cardio
+      distanceM,
       topSet: top,
       e1rm: best,
       volume: kind === 'strength' ? volume : null,

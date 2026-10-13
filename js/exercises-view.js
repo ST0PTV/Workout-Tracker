@@ -9,6 +9,7 @@ import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { groupField } from './group-view.js';
+import { miniFigure } from './figure.js';
 import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import * as store from './store.js';
@@ -266,6 +267,7 @@ function openAddChoice(rerender) {
 
 function exerciseRow(ex, rerender) {
   return h('button', { class: 'row', type: 'button', onclick: () => openEditor(ex, rerender) },
+    h('span', { class: 'fig-ic' }, miniFigure(ex, store.get('settings').figure)), // v1.4 Piktogramm (Entscheidung 7 B)
     h('span', { class: 't' },
       h('b', {}, ex.name),
       h('small', {}, ex.kind === 'cardio' && !ex.muscles.primary.length ? 'Cardio' : lib.muscleSummary(ex)),

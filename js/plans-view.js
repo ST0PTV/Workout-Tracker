@@ -9,6 +9,7 @@ import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
+import { miniFigure } from './figure.js';
 
 const fmtDate = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
 
@@ -17,7 +18,8 @@ function context() {
   return {
     byId: Object.fromEntries(exercises.map((e) => [e.id, e])),
     sessions: store.get('sessions'),
-    settings: store.get('settings')
+    settings: store.get('settings'),
+    groups: store.get('groups')
   };
 }
 
@@ -69,6 +71,7 @@ function openExercisePicker(plan, onDone) {
           draw(); updateBtn();
         } },
         h('span', { class: `check${on ? ' on' : ''}` }, on ? h('b', {}, String(chosen.indexOf(e.id) + 1)) : null),
+        h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)),
         h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e)),
           inPlan.has(e.id) ? h('small', { class: 'accent' }, 'Schon im Plan') : null));
       })))) : [h('p', { class: 'muted empty-line' }, active.length ? 'Keine Übung passt zur Suche.' : 'Noch keine Übungen. Lege sie im Tab „Übungen“ an oder übernimm sie aus dem Startpool.')]));
@@ -86,7 +89,7 @@ function openExercisePicker(plan, onDone) {
 // ---------- Plan-Ansicht (Ablauf) und Bearbeiten ----------
 
 export function openPlan(planId, rerender, { edit = false } = {}) {
-  const mode = { edit };
+  const mode = { edit, open: null };
   const body = h('div', { class: 'plan' });
   let sheet = null;
 
@@ -111,39 +114,61 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
     const steps = details.map((d) => {
       const ex = d.exercise;
       const name = ex ? ex.name : 'Unbekannte Übung';
-      const rest = effectiveRest(ex, ctx.settings);
+      const own = Number.isInteger(d.item.restSeconds);
+      const rest = effectiveRest(ex, ctx.settings, d.item);
+      const restText = `Pause ${formatDuration(rest)}${own ? ' (Plan)' : ''}`;
+      const open = mode.edit && mode.open === d.item.id;
       const info = h('div', { class: 't' },
-        h('b', {}, name, mode.edit ? null : h('span', { class: 'tag' }, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'} · Pause ${formatDuration(rest)}`)),
-        ex ? h('small', {}, lib.muscleSummary(ex)) : null,
+        h('b', {}, name, mode.edit ? null : h('span', { class: 'tag' }, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'} · ${restText}`)),
+        mode.edit ? h('small', {}, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'} · ${restText}${d.item.groupId ? ` · Tausch: ${ctx.groups.find((g) => g.id === d.item.groupId)?.name || 'Gruppe'}` : ''}`) : (ex ? h('small', {}, lib.muscleSummary(ex)) : null),
         d.archivedExercise ? h('small', { class: 'warn' }, 'Übung ist archiviert') : null,
-        ex?.note ? h('i', {}, icon('edit', { size: 13, cls: 'inline' }), ` ${ex.note}`) : null,
-        !mode.edit ? h('span', { class: `last${d.last ? '' : ' none'}` }, d.last && d.last.sets.length ? `Zuletzt ${fmtDate(d.last.date)}: ${P.formatLastSets(d.last.sets)}` : 'Noch nicht trainiert') : null);
+        !mode.edit && ex?.note ? h('i', {}, icon('edit', { size: 13, cls: 'inline' }), ` ${ex.note}`) : null,
+        !mode.edit ? h('span', { class: `last${d.last ? '' : ' none'}` }, d.last && d.last.sets.length ? `Zuletzt ${fmtDate(d.last.date)}: ${P.formatLastSets(d.last.sets, ex?.kind)}` : 'Noch nicht trainiert') : null);
 
-      const editRow = mode.edit ? h('div', { class: 'edit-controls' },
+      // v1.4 (Entscheidung 3 B): Eintrag klappt im Bearbeiten-Modus auf – Sätze, Pause nur in diesem Plan, Tausch-Gruppe.
+      const exGroups = ex ? ctx.groups.filter((g) => ex.groupIds.includes(g.id)) : [];
+      const editRow = open ? h('div', { class: 'edit-controls item-open' },
         h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Sätze'),
           stepper({ value: d.sets, small: true, label: 'Sätze', onStep: (v, delta) => {
             const next = Math.max(1, Math.min(10, v + delta));
             const r = P.setTargetSets(planId, d.item.id, next);
             if (!r.ok) { toast(r.errors[0], { error: true }); return null; }
-            rerender();
+            draw(); rerender();
             return next;
           } })),
-        ex ? h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Pause'),
-          stepper({ value: rest, small: true, format: formatDuration, label: 'Pause', onStep: (v, delta) => {
+        ex ? h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Pause', own ? h('span', { class: 'badge-own' }, 'nur hier') : null),
+          stepper({ value: rest, small: true, format: formatDuration, label: 'Pause in diesem Plan', onStep: (v, delta) => {
             const next = stepRest(v, delta);
-            const r = lib.saveExercise({ ...lib.getExercise(ex.id), restSeconds: next });
+            const r = P.setItemRest(planId, d.item.id, next);
             if (!r.ok) { toast(r.errors[0], { error: true }); return null; }
+            draw();
             return next;
-          } })) : null) : null;
+          } })) : null,
+        ex ? h('p', { class: 'muted small' }, `Übung sonst ${formatDuration(effectiveRest(ex, ctx.settings))}`, own ? [' · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.setItemRest(planId, d.item.id, null); draw(); } }, 'zurücksetzen')] : ' · gilt nur in diesem Plan') : null,
+        ex ? h('div', { class: 'ctl col' }, h('span', { class: 'ctl-label' }, 'Tauschen aus'),
+          exGroups.length
+            ? h('div', { class: 'chips wrap' }, [{ id: null, name: 'Alle Gruppen' }, ...exGroups].map((g) => {
+              const on = (d.item.groupId || null) === g.id;
+              return h('button', { type: 'button', class: `chip small${on ? ' on' : ''}`, 'aria-pressed': String(on), onclick: () => {
+                const r = P.setItemGroup(planId, d.item.id, g.id);
+                if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+                draw();
+              } }, g.name);
+            }))
+            : h('p', { class: 'muted small' }, 'Die Übung ist in keiner Gruppe. Gruppen ordnest du im Übungs-Editor zu.')) : null) : null;
 
       const side = mode.edit ? h('div', { class: 'arrows horiz' },
         h('button', { type: 'button', 'aria-label': `${name} nach oben`, disabled: d.index === 0, onclick: () => { P.moveItem(planId, d.item.id, d.index - 1); draw(); rerender(); } }, icon('up')),
         h('button', { type: 'button', 'aria-label': `${name} nach unten`, disabled: d.index === details.length - 1, onclick: () => { P.moveItem(planId, d.item.id, d.index + 1); draw(); rerender(); } }, icon('down')),
         h('button', { type: 'button', class: 'danger', 'aria-label': `${name} entfernen`, onclick: () => { P.removeItem(planId, d.item.id); toast(`${name} entfernt.`); draw(); rerender(); } }, icon('trash'))) : null;
 
+      const main = mode.edit
+        ? h('button', { class: 'stp-main plain stp-toggle', type: 'button', 'aria-expanded': String(open), onclick: () => { mode.open = open ? null : d.item.id; draw(); } },
+          info, h('span', { class: `chev${open ? ' up' : ''}` }, icon(open ? 'up' : 'down', { size: 18 })))
+        : h('div', { class: 'stp-main' }, info);
       return h('div', { class: 'stp' },
         h('div', { class: 'num' }, String(d.index + 1)),
-        h('div', { class: 'card stp-card' }, h('div', { class: 'stp-main' }, info), editRow ? h('div', { class: 'edit-bottom' }, editRow, side) : null));
+        h('div', { class: 'card stp-card' }, main, editRow, side ? h('div', { class: 'edit-bottom' }, side) : null));
     });
 
     body.replaceChildren(...[
@@ -156,7 +181,6 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
         toast(`${ids.length} ${ids.length === 1 ? 'Übung' : 'Übungen'} hinzugefügt.`);
         draw(); rerender();
       }) }, icon('plus', { size: 18 }), 'Übungen hinzufügen') : null,
-      !mode.edit && details.length ? h('p', { class: 'muted small center' }, 'Training starten folgt in v0.5.') : null,
       mode.edit && plan.archived ? h('button', { class: 'btn block subtle', type: 'button', onclick: () => {
         const r = P.setPlanArchived(planId, false);
         if (!r.ok) { toast(r.errors[0], { error: true }); return; }

@@ -5,10 +5,10 @@ Wissen, Entscheidungen und Lessons liegen in Google Drive (`Home-Base/Projects/A
 
 ## Stand
 
-- **Live:** 1.3.0 (Übungsgruppen und Tausch im Training, deployt am 2026-10-13), Cache `wt-cache-v10`, Datenschema v2.
-- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training (alle 2026-10-13).
-- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen, Übungsgruppen mit Tausch im laufenden Training.
-- **Nächster Schritt:** offen – Kandidaten in Drive → `Ideas & Backlog`.
+- **Live:** 1.4.0 (Muskelkarte, Piktogramme, Körpergewicht/Cardio, Plan-Pause, Zeit im Tagebuch, deployt am 2026-10-13), Cache `wt-cache-v11`, Datenschema v2.
+- **Versionen:** 0.1.0 Gerüst · 0.2.0 Datenmodell Schema v2 mit Migration · 0.3.0 Übungen-Tab mit recherchiertem Startpool · 0.3.1 Linien-Icons statt Zeichen/Emoji · 0.4.0 Trainingspläne und Pausenzeit pro Übung · 0.5.0 Training loggen mit Pausen-Timer und Aufwärm-Hinweis · 1.0.0 Fortschritt pro Übung: Tab mit Trend, Detail mit e1RM-Diagramm und Tabelle · 1.1.0 Trainings-Tagebuch mit Bearbeiten und Tippfehler-Hinweis · 1.2.0 Drop- und Rest-Pause-Sätze mit Stufen, Satz-Markierungen, Schnellknöpfe · 1.3.0 Übungsgruppen und Tausch im Training · 1.4.0 Muskelkarte mit Wochensätzen, Mini-Figur als Piktogramm, Tausch aufklappen, Pause pro Planeintrag, Körpergewicht mit Zusatzgewicht, Cardio als Einheit, Datum/Dauer im Tagebuch, Regel für leere Sätze (alle 2026-10-13).
+- **Funktional:** PWA-Shell, Navigation, Glas-Design, Backup-Export und -Import, Datenmodell mit Migration, Übungen-Tab (Liste, Suche, Filter, Startpool, Editor, Archiv, Info-Sheets), Pläne-Tab (Liste, Ablauf, Bearbeiten), Pausenzeit pro Übung und Standard-Pause, Training-Tab (Start, Übungsseite, Übersicht, Pausen-Timer ohne Ton, Zusammenfassung), Fortschritt-Tab und Verlauf pro Übung (aus Tab, Übungs-Editor und Training), Trainings-Tagebuch mit Bearbeiten abgeschlossener Trainings, Satztypen Drop/Rest-Pause mit Stufen und Satz-Markierungen, Übungsgruppen mit Tausch im laufenden Training, Fortschritt → Muskeln (harte Sätze pro Woche), Körpergewicht- und Cardio-Loggen, Figur-Einstellung.
+- **Nächster Schritt:** v1.5 Übungspool pro Muskelgruppe erweitern (Recherche in Runden); danach e1RM-Formel prüfen (nur mit begutachteten Belegen ändern); v2.0 Illustrationen/Animationen.
 - **Lizenz:** MIT (`LICENSE`, Rechteinhaber `ST0PTV`).
 
 ## Rahmenbedingungen
@@ -53,6 +53,9 @@ js/set-info.js          Erklärtext Drop/Rest-Pause und Quellen (PubMed-geprüft
 js/set-view.js          Satz-Sheet (Typ, Markierungen, Entfernen), Stufenzeilen, Markierungs-Chips, Schnellknöpfe – für Training und Tagebuch
 js/groups.js            Gruppen ohne DOM: anlegen/umbenennen/löschen (mit Bereinigung), Mitglieder, Tausch-Kandidaten
 js/group-view.js        Gruppen-Feld im Übungs-Editor, „Verwalten“-Sheet, Tausch-Sheet im Training
+js/week.js              Harte Sätze pro Muskel und Woche (Mo–So, primär 1, sekundär 0,5), Farbstufen
+js/figure.js            Stilisierte Körperfigur (vorne/hinten, männlich/weiblich) und Mini-Piktogramm pro Übung
+js/muscle-view.js       Fortschritt → Muskeln: Figur, Wochen-Navigation, Liste, Info-Sheet mit Quellen
 js/input.js             Zahlen-Eingaben für Sätze (Gewicht mit Komma, Wdh. ganzzahlig, Grenzen) – gemeinsam für Training und Tagebuch
 js/history.js           Tagebuch ohne DOM: Liste abgeschlossener Trainings, Entwurf bearbeiten, speichern (mit Validierung), löschen
 js/diary-view.js        Tagebuch-Liste (Karten nach Monat), Detail-Sheet, Bearbeiten-Modus mit Abbrechen/Fertig, Tippfehler-Hinweistext
@@ -60,7 +63,7 @@ js/sheet.js             Stapelbare Bottom Sheets (Escape/Hintergrund schließt)
 js/ui.js                Hash-Router (behält Scrollposition beim Neu-Rendern), Tab-Leiste, Toast
 js/views.js             Einstellungen; re-exportiert die übrigen Tab-Ansichten
 icons/                  App-Icons (selbst erzeugt)
-tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, groups, sw)
+tests/                  Node-Tests ohne Abhängigkeiten (helpers, store-backup, model, pool, exercises, icons, plans, rest, session, progress, history, sets, groups, v14, sw)
 scripts/privacy-scan.sh Scan nach persönlichen Strings vor jedem Push
 ```
 
@@ -88,7 +91,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 
 **Satz** – `id`, `type` (`warmup` | `work` | `drop` | `restpause`; `restpause` seit v1.2 ohne Schemaänderung), `weightKg|null`, `reps|null` (ganzzahlig) = erste Stufe, `durationSec|null`, `distanceM|null` (Cardio), `drops[] { weightKg, reps }` = Folge-Stufen (nur bei `drop` und `restpause`, UI seit v1.2), `tags[]` (Schlüssel aus `SET_TAGS`: `stretch-hold`, `partials`, `failure`, oder `custom:<Text>` bis 30 Zeichen; UI seit v1.2; `rest-pause` ist seit v1.2 keine Markierung mehr), `completedAt|null` (null = vorbelegt, noch nicht gemacht).
 
-**Einstellungen (`settings`)** – `focus[]` (Standard `['strength']`), `weightUnit` (`kg`), `restSeconds` (120).
+**Einstellungen (`settings`)** – `focus[]` (Standard `['strength']`), `weightUnit` (`kg`), `restSeconds` (120), `figure` (`male` | `female`, seit v1.4, nur Darstellung).
 
 **Berechnungen (`model.js`)**
 - Volumen = Gewicht × Wdh., nur `strength`; Drop-Stufen zählen alle; Aufwärmsätze nie. `bodyweight`: Volumen 0 (Körpergewicht wird bewusst nicht gespeichert), nur Wdh.
@@ -163,6 +166,23 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Löschen einer Gruppe entfernt sie aus `exercises[].groupIds` und setzt `plans[].items[].groupId` auf `null`; abgeschlossene Trainings behalten ihr `groupId` (wird nicht gegen `groups` geprüft).
 - Fortschritt bleibt pro Übung; „statt X“ erscheint in Übersicht und Tagebuch.
 
+## Paket v1.4
+
+Optionale Felder ohne Schemaänderung (vor dem Bau gegengelesen, Lesson 10):
+- Planeintrag und Trainingseintrag `restSeconds|null` (Pause nur in diesem Plan; beim Start kopiert; gilt für den Platz, also auch nach Tausch/Einfügen). Reihenfolge in `effectiveRest(ex, settings, entry)`: Eintrag → Übung → Standard. Die Pause der Übung selbst wird nur noch im Übungs-Editor geändert.
+- Satz `intensity` (`easy` | `moderate` | `hard`, nur Cardio, optional). `weightKg` darf bei **Körpergewicht** negativ sein (Unterstützung, ≥ −300); `validateData` lehnt negative Gewichte bei anderen Typen ab.
+- `hardSets(entry, kind)`: Cardio zählt nie als harter Satz.
+
+Funktionen:
+- **Muskeln** (`week.js`, `muscle-view.js`, Variante C): Woche Mo 00:00 – So (Ortszeit); nur abgeschlossene Trainings; primär 1, sekundär 0,5 (direkt/indirekt getrennt angezeigt); Stufen 0 / unter 5 / 5–8 / 9+ nur zur Darstellung, keine Zielwerte. Quellen und Grenzen: Drive → Research & Sources, Abschnitt 5.
+- **Figur** (`figure.js`): einfache Formen in `viewBox 0 0 140 290`; weiblich = schmalere Schultern, breitere Hüfte. `pickView` wählt für das Mini-Piktogramm die Seite mit mehr primären Muskeln. Cardio ohne Muskeln → Puls-Linie.
+- **Tausch** (Variante B): `ui.swapOpen` klappt die Kandidaten unter dem Titel auf; das Sheet aus v1.3 ist entfernt.
+- **Plan-Eintrag** (Variante B): im Bearbeiten-Modus aufklappbar (`mode.open`): Sätze, Pause nur hier (`P.setItemRest`, „zurücksetzen“ = null), Tauschen aus (`P.setItemGroup`).
+- **Körpergewicht** (A): Spalte „+ kg“ (`parseAddedWeight`, leer = nur Körpergewicht); Anzeige „KG × 8“, „+5 × 5“, „−10 × 6“. Kein Tippfehler-Hinweis.
+- **Cardio** (C): eine Einheit (erster Satz) mit Dauer (`parseDuration`: Minuten, mm:ss, h:mm:ss), Strecke km, Intensität; Tempo pro km (`fmtPace`); keine Satzpause, keine Kalorien. Fortschritt: Tabelle Datum/Einheit/Tempo.
+- **Leerer Satz** (A): `completionError(values, kind)` – Kraft braucht Gewicht und Wdh. ≥ 1, Körpergewicht Wdh., Cardio Dauer oder Strecke. Graue Platzhalter aus `placeholderFor` (voriger Satz gleichen Typs, sonst gleiche Position der letzten Ausführung); der Haken übernimmt sie. Ganz leere Sätze fallen beim Beenden und beim Speichern im Tagebuch weg (`isEmptySet`).
+- **Tagebuch-Zeit** (B): Zeitzeile im Bearbeiten-Modus → Sheet mit Beginn/Ende (`datetime-local`); `H.setTimes` prüft Ende > Beginn, ≤ 12 h, nicht in der Zukunft, und verschiebt Satz-Zeitpunkte um die Differenz des Beginns (in [Beginn, Ende] gehalten).
+
 ## Konventionen (gemeinsam mit Calorie Tracker und Rezepte-App geplant)
 
 - IDs: UUID (String). Zeitstempel: ISO-8601 UTC (String).
@@ -177,7 +197,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 3. `npm run check`, `npm test`, `npm run privacy`.
 4. Browser-Test: neue Funktion plus Regression, keine Konsolenfehler.
 5. Ein einziger Commit mit anonymer noreply-Identität, dann Push. **Keine Links auf Claude-Sessions in Commit-Nachrichten.**
-6. Dieses Dokument aktualisieren, danach iPhone-Checkliste abarbeiten.
+6. Dieses Dokument aktualisieren; Drive-Doku (Changelog, Decisions, Research, Unverified, Lessons) gehört zu jedem Deploy (Regel seit 2026-10-13). Danach iPhone-Checkliste abarbeiten.
 
 ## Bekannte Grenzen und Risiken
 
@@ -186,7 +206,7 @@ Begründungen: Drive → `Decisions`. Felder, die erst später eine Oberfläche 
 - Der iOS-Speicher einer Homescreen-PWA ist nach bisherigem Wissen vom Safari-Tab getrennt (nicht verifiziert). Backup-Import also immer in der App selbst ausführen.
 - `sw.js` kann keine ES-Module importieren; `CACHE_VERSION` muss daher manuell mit der App-Version abgestimmt werden.
 - Teilen-Menü (`navigator.share` mit Datei) für den Backup-Export ist auf dem iPhone ungetestet.
-- Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. `prompt()` für eigene Markierungen und Gruppennamen in der Homescreen-App ungetestet.
+- Datenmodell v2 ist nur durch Tests geprüft, nicht im echten Gebrauch. `prompt()` für eigene Markierungen und Gruppennamen sowie `datetime-local` im Zeit-Sheet in der Homescreen-App ungetestet.
 - Muskelzuordnungen beruhen überwiegend auf EMG-Studien (Aktivität ≠ Wachstum); bei 6 Pool-Übungen ist die Belastbarkeit „niedrig“ (keine Studie zur Übung selbst).
 - Sheets nutzen `92vh`; auf dem iPhone mit eingeblendeter Tastatur ungetestet.
 - iOS kann eine Homescreen-PWA im Hintergrund beenden; JS-Timer laufen dann nicht. Deshalb zeitstempelbasiert und sofortiges Speichern (auf dem iPhone noch ungetestet).

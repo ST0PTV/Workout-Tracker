@@ -4,6 +4,7 @@
 import * as store from './store.js';
 import { formatSet } from './sets.js';
 import { nowISO } from './util.js';
+import { REST_MIN, REST_MAX } from './rest.js';
 import { createPlan, createPlanItem, validatePlan, lastPerformance } from './model.js';
 
 export function listPlans({ includeArchived = false } = {}) {
@@ -87,6 +88,26 @@ export function setTargetSets(planId, itemId, targetSets) {
   });
 }
 
+// v1.4 (Entscheidung 3 B): Pause nur in diesem Plan. null = Pause der Übung (bzw. Standard).
+export function setItemRest(planId, itemId, sec) {
+  return update(planId, (p) => {
+    const it = p.items.find((x) => x.id === itemId);
+    if (!it) return 'Eintrag nicht gefunden.';
+    if (sec !== null && !(Number.isInteger(sec) && sec >= REST_MIN && sec <= REST_MAX)) return 'Pause ungültig.';
+    it.restSeconds = sec;
+  });
+}
+
+// v1.4: Tausch-Kandidaten dieses Eintrags auf eine Gruppe begrenzen (null = alle Gruppen der Übung).
+export function setItemGroup(planId, itemId, groupId) {
+  return update(planId, (p) => {
+    const it = p.items.find((x) => x.id === itemId);
+    if (!it) return 'Eintrag nicht gefunden.';
+    if (groupId !== null && !store.get('groups').some((g) => g.id === groupId)) return 'Gruppe nicht gefunden.';
+    it.groupId = groupId;
+  });
+}
+
 export function renamePlan(planId, name) {
   return update(planId, (p) => { p.name = name; });
 }
@@ -128,7 +149,8 @@ export function planDetails(plan, exercisesById, sessions) {
 
 // "82,5 kg × 8, 82,5 × 6" – kurze Darstellung der letzten Arbeitssätze.
 // "85 kg × 8, 85 × 6 + 60 × 6" – Drop/Rest-Pause-Stufen mit + (v1.2), "kg" nur einmal vorne.
-export function formatLastSets(sets) {
+export function formatLastSets(sets, kind = 'strength') {
   if (!sets || !sets.length) return '';
-  return sets.map((s) => formatSet(s)).join(', ').replace(' × ', ' kg × ');
+  const text = sets.map((s) => formatSet(s, kind)).join(', ');
+  return kind === 'strength' ? text.replace(' × ', ' kg × ') : text;
 }

@@ -28,7 +28,7 @@ test('Validierung findet typische Fehler', () => {
   assert.ok(M.validateExercise({ ...bench, name: ' ' }).length);
   assert.ok(M.validateExercise({ ...bench, kind: 'yoga' }).length);
   assert.ok(M.validateExercise({ ...bench, muscles: { primary: ['bizeps'], secondary: [] } }).length);
-  assert.ok(M.validateSet(M.createSet({ weightKg: -5 })).length);
+  assert.ok(M.validateSet(M.createSet({ weightKg: -500 })).length, 'unter MIN_ADDED_KG'); // v1.4: -5 ist als Unterstützung erlaubt, Prüfung des Typs in validateData
   assert.ok(M.validateSet(M.createSet({ reps: 8.5 })).length);
   assert.ok(M.validateSet(M.createSet({ type: 'work', drops: [{ weightKg: 50, reps: 5 }] })).length, 'Drops nur bei Typ drop');
   assert.ok(M.validateSet(M.createSet({ tags: ['zufall'] })).length);
