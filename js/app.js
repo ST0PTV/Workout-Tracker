@@ -8,7 +8,7 @@ const router = startRouter({
   '/': () => trainingView(() => router()),
   '/plans': () => plansView(() => router()),
   '/exercises': () => exercisesView(() => router()),
-  '/progress': () => progressView(),
+  '/progress': () => progressView(() => router()),
   '/settings': () => settingsView(() => router())
 });
 

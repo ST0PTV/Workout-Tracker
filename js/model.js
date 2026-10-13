@@ -302,17 +302,45 @@ function sessionTime(s) {
 
 // Letzte Ausführung einer Übung (für die Vorbelegung beim Loggen).
 // Gibt { sessionId, date, sets } mit den abgeschlossenen Sätzen zurück oder null.
+// Kommt die Übung in einem Training mehrfach vor, zählt der letzte Eintrag mit erledigten Sätzen
+// (Entscheidung v1.1: der spätere Durchgang ist der aktuellere).
 export function lastPerformance(exerciseId, sessions, { beforeSessionId = null } = {}) {
   const sorted = [...sessions].sort((a, b) => sessionTime(b) - sessionTime(a));
   for (const s of sorted) {
     if (s.id === beforeSessionId) continue;
-    for (const en of s.entries) {
+    for (const en of [...s.entries].reverse()) {
       if (en.exerciseId !== exerciseId) continue;
       const done = en.sets.filter((x) => x.completedAt !== null);
       if (done.length) return { sessionId: s.id, date: s.startedAt, sets: done };
     }
   }
   return null;
+}
+
+// Tippfehler-Hinweis (v1.1, nicht blockierend): Gewicht ist mehr als TYPO_FACTOR × das bisher
+// schwerste erledigte Gewicht dieser Übung in abgeschlossenen Trainings (alle Satztypen).
+// Die Schwelle ist eine Design-Entscheidung ohne Beleg; ohne Historie gibt es keinen Hinweis.
+export const TYPO_FACTOR = 2;
+
+export function bestWeight(exerciseId, sessions, { excludeSessionId = null } = {}) {
+  let best = null;
+  for (const s of sessions) {
+    if (s.endedAt === null || s.id === excludeSessionId) continue;
+    for (const en of s.entries) {
+      if (en.exerciseId !== exerciseId) continue;
+      for (const x of en.sets) {
+        if (x.completedAt === null || !(x.weightKg > 0)) continue;
+        if (best === null || x.weightKg > best) best = x.weightKg;
+      }
+    }
+  }
+  return best;
+}
+
+export function weightWarning(exerciseId, weightKg, sessions, opts = {}) {
+  if (!(weightKg > 0)) return null;
+  const best = bestWeight(exerciseId, sessions, opts);
+  return best !== null && weightKg > best * TYPO_FACTOR ? { best } : null;
 }
 
 // Neue Sätze für ein Training vorbelegen: Werte vom letzten Mal, sonst leere Arbeitssätze.

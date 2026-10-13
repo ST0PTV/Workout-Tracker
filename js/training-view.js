@@ -13,27 +13,14 @@ import { restState } from './timer.js';
 import { formatDuration } from './rest.js';
 import { WARMUP_HINT, WARMUP_INFO, WARMUP_CHECKED_AT } from './warmup-info.js';
 import { openProgress, hasHistory } from './progress-view.js';
+import { parseWeight, parseReps, fmtNum } from './input.js';
+import { weightWarning } from './model.js';
+import { typoText } from './diary-view.js';
 
 const ui = { current: null, sessionId: null };
 let tick = null;
 
 const fmtDay = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
-const fmtNum = (n) => (n === null || n === undefined ? '' : String(n).replace('.', ','));
-
-// "82,5" → 82.5; leer → null; ungültig → NaN
-function parseWeight(text) {
-  const t = String(text).trim().replace(',', '.');
-  if (!t) return null;
-  const n = Number(t);
-  return Number.isFinite(n) && n >= 0 && n <= 1000 ? Math.round(n * 100) / 100 : NaN;
-}
-function parseReps(text) {
-  const t = String(text).trim();
-  if (!t) return null;
-  const n = Number(t);
-  return Number.isInteger(n) && n >= 0 && n <= 200 ? n : NaN;
-}
-
 function elapsed(startIso) {
   const s = Math.max(0, Math.floor((Date.now() - Date.parse(startIso)) / 1000));
   const hh = Math.floor(s / 3600);
@@ -213,6 +200,17 @@ function setRow(d, set, i, workNo, rerender) {
     if (Number.isNaN(weightKg) || Number.isNaN(reps)) { toast('Bitte gültige Zahlen eingeben (Gewicht z. B. 82,5).', { error: true }); return null; }
     return { weightKg, reps };
   };
+  // Tippfehler-Hinweis (v1.1): nicht blockierend, Vergleich mit abgeschlossenen Trainings.
+  const hint = h('div', { class: 'hint typo', hidden: true }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}));
+  const checkTypo = () => {
+    const kg = parseWeight(w.value);
+    const warn = Number.isNaN(kg) ? null : weightWarning(d.entry.exerciseId, kg, store.get('sessions'));
+    w.classList.toggle('warnval', !!warn);
+    hint.hidden = !warn;
+    if (warn) hint.lastChild.textContent = typoText(warn.best);
+  };
+  checkTypo();
+  w.addEventListener('input', checkTypo);
   const onChange = () => { const v = commit(); if (v) S.updateSet(d.entry.id, set.id, v); };
   w.addEventListener('change', onChange);
   r.addEventListener('change', onChange);
@@ -227,7 +225,7 @@ function setRow(d, set, i, workNo, rerender) {
       const res = S.completeSet(d.entry.id, set.id, v);
       if (!res.ok) { toast(res.errors[0], { error: true }); return; }
       rerender();
-    } }, done ? icon('check', { size: 22 }) : null));
+    } }, done ? icon('check', { size: 22 }) : null), hint);
 }
 
 function exercisePage(v, d, rerender) {
