@@ -92,4 +92,18 @@ test('v1.5 Runde 1: Schultern, Waden, Hüfte, unterer Rücken mit mindestens 4 �
   }
 });
 
+test('v1.7 Runde 2: Brust, Rücken und Arme erreichen die Zielzahlen (primär)', () => {
+  const count = {};
+  for (const p of POOL) for (const m of p.muscles.primary) count[m] = (count[m] || 0) + 1;
+  const targets = { chest: 10, lats: 8, 'upper-back': 8, biceps: 6, triceps: 6, forearms: 3 };
+  for (const [m, min] of Object.entries(targets)) assert.ok(count[m] >= min, `${m}: ${count[m]} < ${min}`);
+  assert.ok(POOL.length >= 100, `nur ${POOL.length}`);
+});
+
+test('v1.7 Runde 2: Körpergewichtsübungen haben kind = bodyweight', () => {
+  for (const ref of ['chin-up', 'inverted-row', 'bench-dips', 'feet-elevated-push-up']) {
+    assert.equal(poolEntry(ref).kind, 'bodyweight', ref);
+  }
+});
+
 done();
