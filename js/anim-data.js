@@ -816,12 +816,24 @@ function bssProps(P) {
 }
 function lungeProps(P) { const hand = P.joints.hand; return { anchors: { hand }, scene: [dumbbell(hand)] }; }
 function calfProps(P) {
-  const s = P.joints.shoulder, pad = [s[0] - 6, s[1] - 14];
-  return { anchors: {}, scene: [{ type: 'rect', x: 16, y: -STEP, w: 22, h: STEP, rx: 2, step: true }, { type: 'line', from: [pad[0], pad[1] - 120], to: [pad[0], pad[1]], w: 4 }, { type: 'rect', x: pad[0] - 16, y: pad[1] - 4, w: 32, h: 10, rx: 4 }, { type: 'line', from: [P.joints.hand[0] - 10, P.joints.hand[1]], to: [P.joints.hand[0] + 10, P.joints.hand[1]], w: 3 }] };
+  // Schulterpolster-Maschine: Säule vor der Figur, Schlitten mit Polster (folgt den Schultern) und Griffe an der Säule.
+  const s = P.joints.shoulder, pad = [s[0] - 6, s[1] - 14], col = 118, top = pad[1] - 64, hand = P.joints.hand;
+  return { anchors: {}, scene: [
+    { type: 'rect', x: 16, y: -STEP, w: 22, h: STEP, rx: 2, step: true },
+    { type: 'line', from: [col, 0], to: [col, -410], w: 7 }, foot(col - 40, col + 40), // Säule, Standfuß
+    { type: 'line', from: [col, top], to: [pad[0], top], w: 6 }, { type: 'line', from: [pad[0], top], to: [pad[0], pad[1]], w: 4 }, // Schlitten, Haltearm zum Polster
+    { type: 'rect', x: pad[0] - 16, y: pad[1] - 4, w: 32, h: 10, rx: 4 }, // Schulterpolster
+    { type: 'line', from: [col, hand[1]], to: [hand[0] + 2, hand[1]], w: 4 }, { type: 'line', from: [hand[0] - 10, hand[1]], to: [hand[0] + 10, hand[1]], w: 3 } // Griffarm, Griff
+  ] };
 }
 function dipProps(P) {
-  const w = P.joints.wrist;
-  return { anchors: { uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [{ type: 'line', from: [w[0], w[1] + 4], to: [w[0], w[1] + 230], w: 4 }, { type: 'bar', at: [w[0], w[1] + 2], r: 5 }] };
+  // Barren laufen von vorn nach hinten, in der Seitenansicht als Stangen mit Stütze vorn und hinten.
+  const w = P.joints.wrist, y = w[1] + 2;
+  return { anchors: { uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'line', from: [w[0] - 62, y], to: [w[0] + 62, y], w: 6 }, // Barren
+    { type: 'line', from: [w[0] - 62, y], to: [w[0] - 62, 0], w: 6 }, { type: 'line', from: [w[0] + 62, y], to: [w[0] + 62, 0], w: 6 }, foot(w[0] - 92, w[0] + 92), // Stützen, Standfuß
+    { type: 'bar', at: [w[0], y], r: 5 }
+  ] };
 }
 function benchProps(P) {
   const bar = P.joints.hand;
@@ -830,7 +842,12 @@ function benchProps(P) {
 function pushupProps(P) { return { anchors: {}, scene: [] }; }
 function rowProps(P) {
   const hand = P.joints.hand, pulley = [240, -70];
-  return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [{ type: 'rect', x: -34, y: -90, w: 68, h: 10, rx: 3 }, { type: 'line', from: [0, -80], to: [0, 0], w: 5 }, { type: 'line', from: [166, -78], to: [190, -8], w: 5 }, { type: 'line', from: hand, to: pulley, w: 1.5, dash: true }, { type: 'bar', at: hand, r: 4 }, { type: 'bar', at: pulley, r: 6 }] };
+  return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'rect', x: -34, y: -90, w: 68, h: 10, rx: 3 }, { type: 'line', from: [0, -80], to: [0, 0], w: 5 }, // Sitz
+    { type: 'line', from: [166, -78], to: [190, -8], w: 5 }, // Fußplatte
+    { type: 'line', from: [264, 0], to: [264, -100], w: 7 }, { type: 'line', from: [264, -70], to: [pulley[0], -70], w: 5 }, foot(110, 290), // Turm der Kabelrolle, Arm, Standfuß
+    { type: 'line', from: hand, to: pulley, w: 1.5, dash: true }, { type: 'bar', at: hand, r: 4 }, { type: 'bar', at: pulley, r: 9 }
+  ] };
 }
 // Frontansicht
 function pullupProps(P) {
@@ -839,9 +856,12 @@ function pullupProps(P) {
 function pulldownProps(P) {
   const hr = P.joints.handR, hl = P.joints.handL, y = (hr[1] + hl[1]) / 2;
   return { anchors: { bar: [0, y] }, scene: [
-    { type: 'rect', x: -36, y: -100, w: 72, h: 10, rx: 3 }, { type: 'line', from: [0, -90], to: [0, 0], w: 5 }, // Sitz
+    { type: 'rect', x: -36, y: -100, w: 72, h: 10, rx: 3 }, { type: 'line', from: [0, -90], to: [0, 0], w: 5 }, foot(-64, 64), // Sitz, Standfuß
+    { type: 'line', from: [-32, -376], to: [32, -376], w: 6 }, { type: 'bar', at: [0, -370], r: 6 }, // Träger und Umlenkrolle oben
     { type: 'line', from: [0, -370], to: [0, y - 4], w: 1.5, dash: true }, // Seilzug
-    { type: 'rect', x: -44, y: -128, w: 88, h: 12, rx: 5, front: true }, // Oberschenkelpolster
+    // Oberschenkelpolster: zwei Polster auf den Oberschenkeln, an den Sitzkanten gehalten
+    { type: 'rect', x: -34, y: -130, w: 28, h: 10, rx: 4, front: true }, { type: 'rect', x: 6, y: -130, w: 28, h: 10, rx: 4, front: true },
+    { type: 'line', from: [-34, -125], to: [-34, -100], w: 4 }, { type: 'line', from: [34, -125], to: [34, -100], w: 4 },
     { type: 'line', from: [hl[0] - 14, y], to: [hr[0] + 14, y], w: 5, front: true }, { type: 'bar', at: [hr[0] + 14, y], r: 4 }, { type: 'bar', at: [hl[0] - 14, y], r: 4 }
   ] };
 }
@@ -866,7 +886,7 @@ function legPressProps(P) {
     { type: 'line', from: along(pc, rail, -150), to: along(pc, rail, 90), w: 5 }, // Schiene
     { type: 'line', from: [pc[0] + 60, 0], to: along(pc, rail, 60), w: 5 }, // Stütze
     benchLine(P, 30, 150, 4), { type: 'line', from: along(along(P.joints.hip, segDir(P, 'trunk'), 16), segNrm(P, 'trunk'), -30), to: along(along(P.joints.hip, segDir(P, 'trunk'), 16), segNrm(P, 'trunk'), 44), w: 14 }, // Lehne, Sitz
-    { type: 'line', from: [P.joints.hip[0] + 20, P.joints.hip[1] + 20], to: [P.joints.hip[0] + 20, 0], w: 5 },
+    { type: 'line', from: [P.joints.hip[0] + 20, P.joints.hip[1] + 20], to: [P.joints.hip[0] + 20, 0], w: 5 }, foot(P.joints.hip[0] - 30, pc[0] + 80), // Standfuß
     { type: 'line', from: along(pc, fd, -34), to: along(pc, fd, 46), w: 8, front: true } // Fußplatte
   ] };
 }
@@ -882,14 +902,15 @@ function legExtensionProps(P) {
 }
 function legCurlProps(P) {
   const an = P.joints.ankle, kn = P.joints.knee, sd = segDir(P, 'shank'), sn = segNrm(P, 'shank');
-  const pad = along(along(an, sd, -8), sn, -9); // Rolle hinten an der Wade (Achillessehne), knapp über der Ferse
+  const pad = along(along(an, sd, -8), sn, -19); // Mitte der Rolle: Wadenrand (≈ 8) + Rollenradius 11, hinten an der Wade knapp über der Ferse
   const h = P.joints.hip, s = P.joints.shoulder;
   const seat = along(h, segDir(P, 'thigh'), 40);
   return { anchors: { pad }, scene: [
     { type: 'line', from: [s[0] + 40, h[1] + 20], to: [h[0] - 4, h[1] + 20], w: 14 }, // Polster Rumpf
     { type: 'line', from: along(h, segNrm(P, 'thigh'), 20), to: along(seat, segNrm(P, 'thigh'), 20), w: 14 }, // schräges Polster Oberschenkel
     { type: 'line', from: [h[0] + 20, h[1] + 27], to: [h[0] + 20, 0], w: 6 }, { type: 'line', from: [s[0] + 30, h[1] + 27], to: [s[0] + 30, 0], w: 6 },
-    { type: 'line', from: kn, to: pad, w: 4, front: true }, { type: 'bar', at: pad, r: 7 }
+    foot(Math.min(h[0] + 20, s[0] + 30) - 30, Math.max(h[0] + 20, s[0] + 30) + 30), // Standfuß
+    { type: 'line', from: kn, to: pad, w: 7, front: true }, { type: 'bar', at: pad, r: 11 }
   ] };
 }
 function ohpProps(P) { const bar = P.joints.hand; return { anchors: { bar }, scene: [plate(bar)] }; }
@@ -897,7 +918,7 @@ function shoulderPressProps(P) {
   const hand = P.joints.hand, h = P.joints.hip;
   return { anchors: { hand }, scene: [
     { type: 'rect', x: h[0] - 30, y: h[1] + 2, w: 64, h: 12, rx: 4 }, benchLine(P, 26, 130, -8),
-    { type: 'line', from: [h[0], h[1] + 14], to: [h[0], 0], w: 6 }, dumbbell(hand)
+    { type: 'line', from: [h[0], h[1] + 14], to: [h[0], 0], w: 6 }, foot(h[0] - 40, h[0] + 40), dumbbell(hand)
   ] };
 }
 function rowBarProps(P) { const bar = P.joints.hand; return { anchors: { bar, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [plate(bar)] }; }
@@ -915,9 +936,10 @@ function inclineProps(P) {
   const top = along(along(h, segNrm(P, 'trunk'), -24), segDir(P, 'trunk'), -165); // oberes Ende der Lehne
   return { anchors: { hand }, scene: [
     benchLine(P, 24, 170, -6), { type: 'line', from: [h[0] - 20, h[1] + 24], to: [h[0] + 50, h[1] + 24], w: 14 }, // Lehne, Sitz
-    { type: 'line', from: [h[0] + 10, h[1] + 30], to: [h[0] + 10, 0], w: 6 }, { type: 'line', from: top, to: [top[0], 0], w: 6 }, dumbbell(hand)
+    { type: 'line', from: [h[0] + 10, h[1] + 30], to: [h[0] + 10, 0], w: 6 }, { type: 'line', from: top, to: [top[0], 0], w: 6 }, foot(h[0] - 20, h[0] + 40), foot(top[0] - 30, top[0] + 30), dumbbell(hand)
   ] };
 }
+const foot = (x0, x1) => ({ type: 'line', from: [x0, 0], to: [x1, 0], w: 5 }); // Standfuß einer Maschine auf dem Boden
 function midpoint(a, b) { return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
 
 export function animationFor(ref) { return ANIMATIONS.find((a) => a.ref === ref) || null; }

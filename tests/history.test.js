@@ -48,6 +48,8 @@ test('Tagebuch: neueste zuerst, Name, Dauer, Arbeitssätze, Kurzfassung', () => 
   assert.equal(rows[0].durationMin, 60);
   assert.equal(rows[1].hardSets, 2); // Aufwärmsatz zählt nicht
   assert.equal(H.exerciseLine([{ name: 'A', hardSets: 3 }, { name: 'B', hardSets: 2 }, { name: 'C', hardSets: 1 }, { name: 'D', hardSets: 4 }]), 'A 3 · B 2 · C 1 · +1');
+  // v2.1.1: Cardio zeigt die Dauer statt einer Satzzahl "0"
+  assert.equal(H.exerciseLine([{ name: 'Rudergerät', hardSets: 0, kind: 'cardio', durationSec: 1200 }, { name: 'Laufband', hardSets: 0, kind: 'cardio', durationSec: 0 }]), 'Rudergerät 20:00 · Laufband –');
 });
 
 test('Tippfehler-Hinweis: > 2 × bisher bestes Gewicht, ohne das bearbeitete Training, ohne Historie keiner', () => {
