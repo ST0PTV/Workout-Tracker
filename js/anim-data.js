@@ -2,7 +2,7 @@
 // Jeder Zahlenwert trägt seine Herkunft: V(wert, quellen, lesart). Lesarten (READ): wie der Wert gelesen wurde.
 // Winkelkonvention siehe js/motion.js. Alle Werte sind Gruppenmittel kleiner Studien, keine Vorgabe für die eigene Technik.
 // Recherche: Drive „Research - Animations“ (2026-10-14), Rohdaten im claude.ai-Projekt (claude/v2-animation-research/).
-import { LEN } from './motion.js';
+import { LEN, ARM_REACH } from './motion.js';
 
 export const ANIM_CHECKED_AT = '2026-10-14';
 
@@ -29,6 +29,9 @@ const V = (v, src, read, raw) => ({ v, src: [].concat(src || []), read, raw: raw
 const C = (v, raw) => V(v, [], 'convention', raw); // Konvention
 const K = (v, src, raw) => V(v, src, 'computed', raw);
 const PLATE = 46; // Hantelscheibe Ø 45 cm → Radius 0.225 m ≈ 46 Einheiten (1 m ≈ 204.6 Einheiten)
+// Stangenpositionen beim Kreuzheben (Weltkoordinaten, Knöchel bei x = 0, Ballen bei x = 30): Start über dem Mittelfuß am Schienbein,
+// auf Kniehöhe vor der Kniescheibe, oben am Oberschenkel. Konvention; Stangenweg ≈ 8 Einheiten (≈ 4 cm) nach hinten, vgl. Hancock et al. 2012.
+const DL_BAR = { start: [16, -PLATE], knee: [14, -95], top: [8, -150] };
 
 // Hantelscheibe an einem Punkt (Seitenansicht) – als Szene-Objekt
 const plate = (at, r = PLATE) => ({ type: 'plate', at, r });
@@ -80,12 +83,12 @@ export const ANIMATIONS = [
   // ---------- Kreuzheben ----------
   {
     ref: 'deadlift', view: 'side', basis: 'measured',
-    basisNote: 'Knie- und Sprunggelenkwinkel aus Hanen et al. 2025 (3D, 30 trainierte Männer, 85 % 1RM, Volltext). Der Hüftwinkel der Studie ist ein Becken–Oberschenkel-Winkel; die Rumpfneigung ist deshalb aus der Geometrie gelöst (Stange am Boden bzw. am Knie).',
+    basisNote: 'Knie- und Sprunggelenkwinkel aus Hanen et al. 2025 (3D, 30 trainierte Männer, 85 % 1RM, Volltext). Der Hüftwinkel der Studie ist ein Becken–Oberschenkel-Winkel; die Rumpfneigung ist deshalb aus der Geometrie gelöst: Die Stange liegt am Start über dem Mittelfuß am Schienbein und auf Kniehöhe vor der Kniescheibe, die gestreckten Arme (Armlänge nach ANSUR II) reichen von der Schulter zur Stange. Oben zeigt der Arm leicht nach vorn zur Stange am Oberschenkel.',
     tempo: { basis: 'computed', note: 'Konzentrisch ≈ 1,3 s aus 0,40 m/s mittlerer Geschwindigkeit bei 80–89 % 1RM (Kasovic et al. 2019) und ≈ 0,5 m Hubweg; Absenken nicht gemessen (Konvention).' },
     frames: [
-      { label: 'Start', pose: { shank: V(11.7, 'S1', 'computed', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(58.6, 'S1', 'fulltext'), ankle: V(11.7, 'S1', 'fulltext'), solve: { param: 'trunk', joint: 'hand', y: -PLATE, range: [-10, 95] }, trunk: null, armHang: C(10, 'Arm leicht schräg, Schulter vor der Stange'), elbow: C(0), props: handPlate } },
-      { label: 'Knie', pose: { shank: V(0, 'S1', 'fulltext', 'Sprunggelenk ≈ 0°'), knee: V(25.2, 'S1', 'fulltext'), ankle: V(0, 'S1', 'fulltext'), solve: { param: 'trunk', joint: 'hand', y: -95, range: [-10, 95] }, trunk: null, armHang: C(6, 'Arm leicht schräg'), elbow: C(0), props: handPlate } },
-      { label: 'Oben', pose: { shank: V(0, 'S1', 'fulltext'), knee: V(6.5, 'S1', 'fulltext'), hip: V(3.7, 'S1', 'fulltext', 'Lockout 3,7° – ergibt sich hier auch aus der Geometrie'), ankle: V(0, 'S1', 'fulltext'), armPlumb: true, elbow: C(0), props: handPlate } }
+      { label: 'Start', pose: { shank: V(11.7, 'S1', 'computed', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(58.6, 'S1', 'fulltext'), ankle: V(11.7, 'S1', 'fulltext'), solve: { param: 'trunk', joint: 'shoulder', at: DL_BAR.start, dist: ARM_REACH, range: [-10, 95] }, trunk: null, armAt: DL_BAR.start, elbow: C(0), props: handPlate } },
+      { label: 'Knie', pose: { shank: V(0, 'S1', 'fulltext', 'Sprunggelenk ≈ 0°'), knee: V(25.2, 'S1', 'fulltext'), ankle: V(0, 'S1', 'fulltext'), solve: { param: 'trunk', joint: 'shoulder', at: DL_BAR.knee, dist: ARM_REACH, range: [-10, 95] }, trunk: null, armAt: DL_BAR.knee, elbow: C(0), props: handPlate } },
+      { label: 'Oben', pose: { shank: V(0, 'S1', 'fulltext'), knee: V(6.5, 'S1', 'fulltext'), hip: V(3.7, 'S1', 'fulltext', 'Lockout 3,7°'), ankle: V(0, 'S1', 'fulltext'), armAt: DL_BAR.top, elbow: C(0), props: handPlate } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Start', kp: [0] }, { a: 0, b: 1, dur: 0.6, label: 'Zug bis Knie', kp: [1, 3] }, { a: 1, b: 2, dur: 0.7, label: 'Hüfte streckt', kp: [2] }, { a: 2, b: 2, dur: 0.4, label: 'Oben', kp: [4] }, { a: 2, b: 1, dur: 0.7, label: 'Absenken', kp: [1] }, { a: 1, b: 0, dur: 0.6, label: 'Absenken', kp: [3] }],
     keyPoints: [

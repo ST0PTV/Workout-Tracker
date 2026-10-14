@@ -70,6 +70,51 @@ test('Zeitachse: Phasen summieren sich, Mischung ist stetig an den Keyframes', (
   }
 });
 
+test('Stetigkeit: kein Gelenk springt zwischen zwei Bildern (1/60 s) – alle Animationen und Varianten', () => {
+  // v2.1: fand den Kreuzheben-Sprung (Rumpf 60° in einem Bild), Ursache ungleiche Schlüssel der Keyframes (resolveFrames gleicht an).
+  const DT = 1 / 60, MAX_POS = 10, MAX_ANG = 10;
+  const wrap = (d) => Math.abs(((d % 360) + 540) % 360 - 180);
+  for (const a of D.ANIMATIONS) {
+    const variants = a.variants ? a.variants.map((v) => v.key) : [null];
+    for (const v of variants) {
+      const frames = M.resolveFrames(D.framesOf(a, v));
+      const T = M.cycleLength(a.phases);
+      let prev = null;
+      for (let t = 0; t <= T + 1e-9; t += DT) {
+        const { pose, phase } = M.poseAt(frames, a.phases, Math.min(t, T - 1e-6));
+        if (prev) {
+          for (const k of Object.keys(pose.joints)) {
+            if (!prev.joints[k]) continue;
+            const d = dist(pose.joints[k], prev.joints[k]);
+            assert.ok(d <= MAX_POS, `${a.ref}${v ? '/' + v : ''}: ${k} springt ${d.toFixed(1)} bei t=${t.toFixed(2)} (${phase.label})`);
+          }
+          for (const k of ['trunk', 'hip', 'knee', 'ankle', 'elbow']) {
+            const d = wrap(pose.angles[k] - prev.angles[k]);
+            assert.ok(d <= MAX_ANG, `${a.ref}${v ? '/' + v : ''}: Winkel ${k} springt ${d.toFixed(1)}° bei t=${t.toFixed(2)} (${phase.label})`);
+          }
+        }
+        prev = pose;
+      }
+    }
+  }
+});
+
+test('resolveFrames gleicht die Schlüssel an: Keyframes bleiben gleich, Zwischenbild ohne Sprung', () => {
+  const frames = [
+    { label: 'A', pose: { shank: 10, knee: 60, ankle: 10, solve: { param: 'trunk', joint: 'hand', y: -46 }, armHang: 8, elbow: 0 } },
+    { label: 'B', pose: { shank: 0, knee: 6, hip: 4, ankle: 0, armPlumb: true, elbow: 0 } }
+  ];
+  const R = M.resolveFrames(frames);
+  for (const k of ['trunk', 'shank', 'knee', 'hip', 'ankle', 'armHang']) assert.ok(R.every((f) => Number.isFinite(M.num(f.pose[k]))), `Schlüssel ${k} überall`);
+  const a0 = M.solvePose(frames[0].pose), a1 = M.solvePose(R[0].pose), b0 = M.solvePose(frames[1].pose), b1 = M.solvePose(R[1].pose);
+  near(dist(a0.joints.shoulder, a1.joints.shoulder), 0, 0.2, 'Keyframe A unverändert');
+  near(dist(b0.joints.shoulder, b1.joints.shoulder), 0, 0.2, 'Keyframe B unverändert');
+  const mid = M.solvePose(M.mixSpec(R[0].pose, R[1].pose, 0.5));
+  near(mid.angles.trunk, (a0.angles.trunk + b0.angles.trunk) / 2, 1, 'Rumpf in der Mitte halb aufgerichtet');
+  const late = M.solvePose(M.mixSpec(R[0].pose, R[1].pose, 0.99));
+  near(late.angles.trunk, b0.angles.trunk, 2, 'kurz vor dem Ende fast aufrecht (vorher: Sprung)');
+});
+
 test('Jede Animation gehört zu einer Pool-Übung und hat vollständige Daten', () => {
   assert.ok(D.ANIMATIONS.length >= 11, 'mindestens 11 Übungen');
   const refs = new Set();
