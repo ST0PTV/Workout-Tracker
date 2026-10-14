@@ -38,17 +38,17 @@ export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
     ref: 'back-squat', view: 'side', basis: 'measured',
-    basisNote: 'Winkel aus Glassbrook et al. 2019 (3D, je 6 Gewichtheber hochstabig und 6 Kraftdreikämpfer tiefstabig, 74–83 % 1RM). Rumpf- und Schienbeinneigung daraus berechnet; Werte über automatische Zusammenfassung gelesen.',
+    basisNote: 'Winkel aus Glassbrook et al. 2019 (3D, je 6 Gewichtheber hochstabig und 6 Kraftdreikämpfer tiefstabig, 74–83 % 1RM; Tabelle 4 am PDF geprüft). Rumpf- und Schienbeinneigung daraus berechnet.',
     tempo: { basis: 'protocol', note: '1,5 s ab / 1,5 s auf (Metronom in Yavuz & Erdag 2017); natürliches Tempo nicht gemessen.' },
     variants: [{ key: 'high', label: 'Hochstabig' }, { key: 'low', label: 'Tiefstabig' }],
     frames: {
       high: [
-        { label: 'Oben', pose: { shank: K(0, 'S1', 'Standwert'), knee: V(10, 'S1', 'summary', '170° eingeschlossen'), hip: V(11, 'S1', 'summary', '169° eingeschlossen'), ankle: V(0, 'S1', 'summary'), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) } },
-        { label: 'Unten', pose: { shank: K(33, 'S1', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(126, 'S1', 'summary', '54 ± 7° eingeschlossen'), hip: V(111, 'S1', 'summary', '69 ± 7° Thorax–Oberschenkel'), ankle: V(33, 'S1', 'summary', 'ROM 33 ± 4°'), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) } }
+        { label: 'Oben', pose: { shank: K(0, 'S1', 'Standwert'), knee: V(10, 'S1', 'fulltext', '170° eingeschlossen'), hip: V(11, 'S1', 'fulltext', '169° eingeschlossen'), ankle: V(0, 'S1', 'fulltext'), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) } },
+        { label: 'Unten', pose: { shank: K(33, 'S1', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(126, 'S1', 'fulltext', '54 ± 7° eingeschlossen'), hip: V(111, 'S1', 'fulltext', '69 ± 7° Thorax–Oberschenkel'), ankle: V(33, 'S1', 'fulltext', 'ROM 33 ± 4°'), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) } }
       ],
       low: [
-        { label: 'Oben', pose: { shank: K(0, 'S1', 'Standwert'), knee: V(4, 'S1', 'summary', '176° eingeschlossen'), hip: V(12, 'S1', 'summary', '168° eingeschlossen'), ankle: V(0, 'S1', 'summary'), armTargetTrunk: [-14, 3], armScale: [0.45, 0.5], elbowSide: -1, props: squatProps([-14, 3]) } },
-        { label: 'Unten', pose: { shank: K(33, 'S1', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(118, 'S1', 'summary', '62 ± 11° eingeschlossen'), hip: V(121, 'S1', 'summary', '59 ± 9° Thorax–Oberschenkel'), ankle: V(33, 'S1', 'summary', 'ROM 33 ± 6°'), armTargetTrunk: [-14, 3], armScale: [0.45, 0.5], elbowSide: -1, props: squatProps([-14, 3]) } }
+        { label: 'Oben', pose: { shank: K(0, 'S1', 'Standwert'), knee: V(4, 'S1', 'fulltext', '176° eingeschlossen'), hip: V(12, 'S1', 'fulltext', '168° eingeschlossen'), ankle: V(0, 'S1', 'fulltext'), armTargetTrunk: [-14, 3], armScale: [0.45, 0.5], elbowSide: -1, props: squatProps([-14, 3]) } },
+        { label: 'Unten', pose: { shank: K(33, 'S1', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(118, 'S1', 'fulltext', '62 ± 11° eingeschlossen'), hip: V(121, 'S1', 'fulltext', '59 ± 9° Thorax–Oberschenkel'), ankle: V(33, 'S1', 'fulltext', 'ROM 33 ± 6°'), armTargetTrunk: [-14, 3], armScale: [0.45, 0.5], elbowSide: -1, props: squatProps([-14, 3]) } }
       ]
     },
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 4] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.4, label: 'Unten', kp: [3] }, { a: 1, b: 0, dur: 1.5, label: 'Aufstehen', kp: [2] }],
@@ -56,7 +56,7 @@ export const ANIMATIONS = [
       { short: 'Stange', anchor: 'bar', side: 'l', status: 'consensus', text: 'Hochstabig: Oberkörper aufrechter. Tiefstabig: mehr Vorlage. Beides ist korrekt.', src: ['S1', 'S2', 'S3'],
         explain: 'Die hochstabige Variante (Stange auf dem Trapezmuskel) läuft mit aufrechterem Rumpf und mehr Knie- und Sprunggelenkbeugung, die tiefstabige (Stange über der hinteren Schulter) mit mehr Vorlage. In Murawa et al. 2020 unterschied sich der Hüftwinkel zwischen beiden nicht signifikant. Keine Variante ist „richtiger“; sie verteilen die Last anders.' },
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'contested', text: 'Knie dürfen über die Zehen wandern; das verteilt die Last zwischen Knie und Hüfte.', src: ['S5', 'S4', 'S6'],
-        explain: 'Umstritten. Wird das Knie am Vorwandern gehindert, sinkt das Kniedrehmoment (117 statt 150 N·m), aber das Hüftdrehmoment steigt stark (303 statt 28 N·m) und der Rumpf neigt sich weiter vor (Fry et al. 2003, n = 7). Kraftdreikämpfer halten im breiten Stand das Schienbein bewusst steiler (Swinton et al. 2012). Die Regel „Knie nicht über die Zehen“ gilt in der Übersicht von Straub & Powers 2024 als Lastverteilung, nicht als Fehler.' },
+        explain: 'Umstritten. Wird das Knie am Vorwandern gehindert, sinkt das Kniedrehmoment (117 statt 150 N·m), aber das Hüftdrehmoment steigt stark (303 statt 28 N·m) und der Rumpf neigt sich weiter vor (Fry et al. 2003, n = 7). Bei der Kraftdreikampf-Kniebeuge im breiten Stand wurde ein möglichst senkrechtes Schienbein angewiesen; der Körperschwerpunkt wanderte dadurch nach hinten (Swinton et al. 2012, n = 12 Kraftdreikämpfer). Die Regel „Knie nicht über die Zehen“ gilt in der Übersicht von Straub & Powers 2024 als Lastverteilung, nicht als Fehler.' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'consensus', text: 'Vorlage aus der Hüfte, Rücken neutral halten statt rund werden lassen.', src: ['S6'],
         explain: 'Empfehlung aus einem klinischen Kommentar (Evidenzstufe 5) zur Belastbarkeit der Wirbelsäule. Daten, dass eine bestimmte Rückenhaltung Verletzungen verhindert, gibt es dazu nicht.' },
       { short: 'Tiefe', anchor: 'hip', side: 'l', status: 'contested', text: 'Tiefe nach Beweglichkeit: so tief, wie Becken und Rücken stabil bleiben.', src: ['S10', 'S11', 'S6'],
@@ -65,10 +65,10 @@ export const ANIMATIONS = [
         explain: 'Lorenzetti et al. 2018 (n = 42, 0 und 50 % Körpergewicht) empfehlen etwa 20° Fußöffnung bei schulterbreitem Stand und raten von Extremen ab. Eine Fußöffnung von 30° änderte die Aktivität von Quadrizeps und Beinbeuger nicht (Übersicht Straub & Powers 2024). Einzelstudie, kein Beweis für ein Optimum.' }
     ],
     sources: {
-      S1: { label: 'Glassbrook et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001836', read: 'summary', note: 'Tabelle 4 über automatische Zusammenfassung; Zuordnung der Lastblöcke unsicher' },
+      S1: { label: 'Glassbrook et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001836', read: 'fulltext', note: 'Akzeptiertes Manuskript; Tabelle 4, Block 74–83 % 1RM' },
       S2: { label: 'Glassbrook et al. 2017, J Strength Cond Res (Review)', url: 'https://doi.org/10.1519/JSC.0000000000002007', read: 'abstract' },
       S3: { label: 'Murawa et al. 2020, PeerJ', url: 'https://doi.org/10.7717/peerj.9256', read: 'fulltext' },
-      S4: { label: 'Swinton et al. 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3182577067', read: 'summary' },
+      S4: { label: 'Swinton et al. 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3182577067', read: 'fulltext' },
       S5: { label: 'Fry et al. 2003, J Strength Cond Res', url: 'https://doi.org/10.1519/1533-4287(2003)017<0629:eokpoh>2.0.co;2', read: 'abstract' },
       S6: { label: 'Straub & Powers 2024, Int J Sports Phys Ther (klinischer Kommentar)', url: 'https://doi.org/10.26603/001c.94600', read: 'fulltext' },
       S7: { label: 'Lorenzetti et al. 2018, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-018-0103-7', read: 'fulltext' },
@@ -90,7 +90,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Start', kp: [0] }, { a: 0, b: 1, dur: 0.6, label: 'Zug bis Knie', kp: [1, 3] }, { a: 1, b: 2, dur: 0.7, label: 'Hüfte streckt', kp: [2] }, { a: 2, b: 2, dur: 0.4, label: 'Oben', kp: [4] }, { a: 2, b: 1, dur: 0.7, label: 'Absenken', kp: [1] }, { a: 1, b: 0, dur: 0.6, label: 'Absenken', kp: [3] }],
     keyPoints: [
       { short: 'Start', anchor: 'bar', side: 'r', status: 'consensus', text: 'Start: Stange über dem Mittelfuß, Hüfte tiefer als die Schultern, Arme gestreckt.', src: ['S1', 'S3', 'S9'],
-        explain: 'Hüfte unter Schulterhöhe und gestreckte Arme sind die Startdefinitionen der Messstudien. „Stange über dem Mittelfuß“ stützt sich auf eine kleine Studie (n = 6): Start über dem Kahnbein ergab weniger horizontale Stangenbewegung als über den Zehengrundgelenken (Hancock et al. 2012, über automatische Zusammenfassung gelesen).' },
+        explain: 'Hüfte unter Schulterhöhe und gestreckte Arme sind die Startdefinitionen der Messstudien. „Stange über dem Mittelfuß“ stützt sich auf eine kleine Studie (n = 6): Start über dem Kahnbein ergab weniger horizontale Stangenbewegung als über den Zehengrundgelenken (37,5 statt 66,7 mm bei 90 % 1RM; Hancock et al. 2012). Schwach: 1RM nur selbst angegeben, 4 von 6 Teilnehmern rundeten unter der Last den Rücken.' },
       { short: 'Nah', anchor: 'shin', side: 'r', status: 'consensus', text: 'Stange während des ganzen Zugs nah an Schienbeinen und Oberschenkeln führen.', src: ['S2', 'S3', 'S6'],
         explain: 'Der horizontale Abstand Hüfte–Stange bestimmt das Hüftdrehmoment; er sank in Shoji et al. 2025 von ≈ 30 cm am Start auf ≈ 14 cm am Ende, bei schwererer Last kürzer. Geübte Heber halten die Stange beim Knie näher am Körper (Schellenberg et al. 2013, Einleitung).' },
       { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Knie und Hüfte strecken; ab Kniehöhe schiebt vor allem die Hüfte nach vorn.', src: ['S1', 'S5'],
@@ -108,7 +108,7 @@ export const ANIMATIONS = [
       S6: { label: 'Shoji et al. 2025, Front Sports Act Living', url: 'https://doi.org/10.3389/fspor.2025.1682991', read: 'fulltext' },
       S7: { label: 'Cholewicki & McGill 1992, J Biomech', url: 'https://doi.org/10.1016/0021-9290(92)90242-s', read: 'abstract' },
       S8: { label: 'Kasovic et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003377', read: 'abstract' },
-      S9: { label: 'Hancock, Wyatt & Kilgore 2012, Int J Exerc Sci', url: 'https://digitalcommons.wku.edu/ijes/vol5/iss3/1', read: 'summary' }
+      S9: { label: 'Hancock, Wyatt & Kilgore 2012, Int J Exerc Sci', url: 'https://digitalcommons.wku.edu/ijes/vol5/iss3/1', read: 'fulltext' }
     }
   },
 
@@ -136,7 +136,7 @@ export const ANIMATIONS = [
     ],
     sources: {
       S10: { label: 'Lee et al. 2018, J Exerc Sci Fit', url: 'https://doi.org/10.1016/j.jesf.2018.08.001', read: 'fulltext' },
-      S11: { label: 'Sørensen et al. 2021, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.24150', read: 'fulltext', note: 'Abstract nennt 23 Rekrutierte, Agent 21 Ausgewertete – zu prüfen' }
+      S11: { label: 'Sørensen et al. 2021, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.24150', read: 'fulltext', note: '23 Teilnehmerinnen rekrutiert, 21 ausgewertet (2 wegen Markerverlust ausgeschlossen)' }
     }
   },
 
@@ -144,7 +144,7 @@ export const ANIMATIONS = [
   {
     ref: 'hip-thrust', view: 'side', basis: 'measured',
     basisNote: 'Hüft- und Kniewinkel unten aus Brazil et al. 2021 (3D, 19 trainierte Männer, 70 % 1RM, Volltext); Kniewinkel oben aus Sørensen et al. 2021; Hüftwinkel oben nicht berichtet (rechnerische Untergrenze). Schienbeinneigung so gelöst, dass der obere Rücken auf der Bank liegt.',
-    tempo: { basis: 'measured', note: 'Hochdrücken 0,83 ± 0,15 s bei 70 % 1RM mit maximaler Absicht (Brazil et al. 2021); Absenken dort nicht gemessen (Konvention).' },
+    tempo: { basis: 'measured', note: 'Hochdrücken 0,83 ± 0,15 s bei 70 % 1RM mit maximaler Absicht (Brazil et al. 2021); Absenken 1,48 ± 0,42 s bei 70 % 1RM (Bezodis et al. 2017, n = 7).' },
     frames: [
       { label: 'Unten', pose: { knee: V(108, 'S13', 'fulltext', '−108 ± 8° bei 51 % des Hubs'), hip: V(83, 'S13', 'fulltext', '−83 ± 16° am Spitzenmoment'), foot: C(90, 'Fuß flach'), solve: { param: 'shank', joint: 'shoulder', y: -88, range: [-30, 70] }, armTargetTrunk: [22, -98], armScale: [0.6, 0.9], elbowSide: 1, props: hipThrustProps } },
       { label: 'Oben', pose: { knee: V(76.1, 'S11', 'fulltext', 'HT 90°, gestrecktes Ende'), hip: K(10, ['S13', 'S3'], 'Untergrenze ≈ 8° aus Start minus ROM; Definition „Rumpf parallel zum Boden“'), foot: C(90, 'Fuß flach'), solve: { param: 'shank', joint: 'shoulder', y: -88, range: [-30, 70] }, armTargetTrunk: [22, -98], armScale: [0.6, 0.9], elbowSide: 1, props: hipThrustProps } }
@@ -165,18 +165,19 @@ export const ANIMATIONS = [
     sources: {
       S13: { label: 'Brazil et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0249307', read: 'fulltext' },
       S3: { label: 'Otsuka et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0251418', read: 'fulltext' },
-      S11: { label: 'Sørensen et al. 2021, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.24150', read: 'fulltext' }
+      S11: { label: 'Sørensen et al. 2021, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.24150', read: 'fulltext' },
+      S14: { label: 'Bezodis et al. 2017, ISBS Proceedings (Konferenzbeitrag)', url: 'https://commons.nmu.edu/isbs/vol35/iss1/184', read: 'fulltext' }
     }
   },
 
   // ---------- Bulgarian Split Squat ----------
   {
     ref: 'bulgarian-split-squat', view: 'side', basis: 'measured',
-    basisNote: 'Rumpf-, Schienbein- und Hüftwinkel unten aus Arakawa et al. 2025 (3D, 9 trainierte Männer, Körpergewicht; Tabelle über automatische Zusammenfassung); Kniewinkel daraus berechnet (106°; Mackey & Riemann 2021 nennen ≈ 96°). Hinteres Bein aus der Bankhöhe gelöst.',
+    basisNote: 'Rumpf-, Schienbein- und Hüftwinkel unten aus Arakawa et al. 2025 (3D, 9 trainierte Männer, Körpergewicht, breiter Stand 130 % Beinlänge, natürliche Rumpfneigung; Tabelle 1 am PDF geprüft); Kniewinkel daraus berechnet (106°; Mackey & Riemann 2021 nennen ≈ 96°). Hinteres Bein aus der Bankhöhe gelöst.',
     tempo: { basis: 'computed', note: '2,39 ± 0,32 s je Wiederholung ohne Metronom (Mackey & Riemann 2021), hier gleichmäßig auf Ab und Auf verteilt.' },
     frames: [
       { label: 'Oben', pose: { shank: C(8), knee: C(20), hip: C(20), ankle: C(8), leg2: { ankle: [-122, -104], foot: C(200) }, armPlumb: true, elbow: C(0), props: bssProps } },
-      { label: 'Unten', pose: { shank: V(28.6, 'S2', 'summary', 'Schienbein 28,6 ± 6,7°'), knee: K(106, 'S2', 'aus Rumpf 13,4°, Schienbein 28,6° und Hüfte 90,8°'), hip: V(90.8, 'S2', 'summary', '89,2 ± 8,8° (180° = Stand)'), ankle: V(28.6, 'S2', 'computed', 'gleich der Schienbeinneigung'), leg2: { ankle: [-122, -104], foot: C(200) }, armPlumb: true, elbow: C(0), props: bssProps } }
+      { label: 'Unten', pose: { shank: V(28.6, 'S2', 'fulltext', 'Schienbein 28,6 ± 6,7°'), knee: K(106, 'S2', 'aus Rumpf 13,4°, Schienbein 28,6° und Hüfte 90,8°'), hip: V(90.8, 'S2', 'fulltext', '89,2 ± 8,8° (180° = Stand)'), ankle: V(28.6, 'S2', 'computed', 'gleich der Schienbeinneigung'), leg2: { ankle: [-122, -104], foot: C(200) }, armPlumb: true, elbow: C(0), props: bssProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 1.2, label: 'Absenken', kp: [2, 3] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 4] }, { a: 1, b: 0, dur: 1.2, label: 'Aufstehen', kp: [4] }],
     keyPoints: [
@@ -192,8 +193,8 @@ export const ANIMATIONS = [
         explain: 'Der vordere Fuß trug 84 % der Vertikalkraft (Helme et al. 2022, n = 26, 5RM).' }
     ],
     sources: {
-      S1: { label: 'Mackey & Riemann 2021, Int J Exerc Sci', url: 'https://doi.org/10.70252/CIYT8956', read: 'summary' },
-      S2: { label: 'Arakawa et al. 2025, Int J Exerc Sci', url: 'https://doi.org/10.70252/NEXQ5666', read: 'summary', note: 'Volltext gelesen, Tabelle 1 über automatische Zusammenfassung' },
+      S1: { label: 'Mackey & Riemann 2021, Int J Exerc Sci', url: 'https://doi.org/10.70252/CIYT8956', read: 'fulltext' },
+      S2: { label: 'Arakawa et al. 2025, Int J Exerc Sci', url: 'https://doi.org/10.70252/NEXQ5666', read: 'fulltext', note: 'Tabelle 1, breiter Stand, natürliche Rumpfneigung' },
       S3: { label: 'Aygun-Polat et al. 2025, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-025-01306-z', read: 'fulltext' },
       S4: { label: 'Helme et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003727', read: 'abstract' },
       S6: { label: 'Song et al. 2023, Front Bioeng Biotechnol', url: 'https://doi.org/10.3389/fbioe.2023.1277493', read: 'fulltext' },
@@ -204,13 +205,13 @@ export const ANIMATIONS = [
   // ---------- Ausfallschritt vorwärts ----------
   {
     ref: 'dumbbell-forward-lunge', view: 'side', basis: 'measured',
-    basisNote: 'Spitzenwinkel des vorderen Beins aus Riemann et al. 2012 (elektromagnetische Bewegungsmessung, 16 Personen; Tabelle über automatische Zusammenfassung). Rumpf daraus berechnet (≈ 0°, passt zur Anweisung „aufrecht“). Schrittlänge 70 % Beinlänge (Protokoll); hinteres Bein und Schrittphase sind Konvention.',
+    basisNote: 'Spitzenwinkel des vorderen Beins aus Riemann et al. 2012 (elektromagnetische Bewegungsmessung, 16 Personen, barfuß; Tabelle 1 am PDF geprüft). Rumpf daraus berechnet (≈ 0°, passt zur Anweisung „aufrecht“). Schrittlänge 70 % Beinlänge (Protokoll); hinteres Bein und Schrittphase sind Konvention.',
     tempo: { basis: 'protocol', note: 'Absenken in ≈ 2 s (Metronom, Riemann et al. 2012); Schritt und Rückkehr nicht gemessen.' },
     frames: [
       { label: 'Stand', pose: { rootPos: [0, -15], shank: C(0), knee: C(0), hip: C(0), ankle: C(0), leg2: { hip: C(0), knee: C(0), ankle: C(0) }, armPlumb: true, elbow: C(0), props: lungeProps } },
       { label: 'Schritt', pose: { rootPos: [70, -30], shank: C(0), knee: C(35), hip: C(40), ankle: C(10), leg2: { ankle: [0, -15], foot: C(90) }, armPlumb: true, elbow: C(0), props: lungeProps } },
       { label: 'Aufsetzen', pose: { rootPos: [118, -15], shank: C(5), knee: C(38), hip: C(40), ankle: C(5), leg2: { ankle: [21, -33], foot: C(140) }, armPlumb: true, elbow: C(0), props: lungeProps } },
-      { label: 'Unten', pose: { rootPos: [118, -15], shank: V(11.4, 'L1', 'computed', 'gleich der Dorsalflexion'), knee: V(96.4, 'L1', 'summary', '−96,4 ± 10,7°'), hip: V(84.3, 'L1', 'summary', '−84,3 ± 14,9°'), ankle: V(11.4, 'L1', 'summary', '−11,4 ± 8,1°'), leg2: { ankle: [21, -33], foot: C(140) }, armPlumb: true, elbow: C(0), props: lungeProps } }
+      { label: 'Unten', pose: { rootPos: [118, -15], shank: V(11.4, 'L1', 'computed', 'gleich der Dorsalflexion'), knee: V(96.4, 'L1', 'fulltext', '−96,4 ± 10,7°'), hip: V(84.3, 'L1', 'fulltext', '−84,3 ± 14,9°'), ankle: V(11.4, 'L1', 'fulltext', '−11,4 ± 8,1°'), leg2: { ankle: [21, -33], foot: C(140) }, armPlumb: true, elbow: C(0), props: lungeProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [4] }, { a: 0, b: 1, dur: 0.4, label: 'Schritt', kp: [0] }, { a: 1, b: 2, dur: 0.3, label: 'Aufsetzen', kp: [0] }, { a: 2, b: 3, dur: 1.0, label: 'Absenken', kp: [1, 2] }, { a: 3, b: 3, dur: 0.3, label: 'Unten', kp: [2] }, { a: 3, b: 2, dur: 0.8, label: 'Abdrücken', kp: [3] }, { a: 2, b: 1, dur: 0.3, label: 'Zurück', kp: [3] }, { a: 1, b: 0, dur: 0.4, label: 'Stand', kp: [] }],
     keyPoints: [
@@ -223,10 +224,10 @@ export const ANIMATIONS = [
       { short: 'Abdruck', anchor: 'thigh', side: 'r', status: 'single', text: 'Über das vordere Bein kräftig abdrücken und zurück in den Stand gehen.', src: ['L1'],
         explain: 'Kinematisch dominiert das Knie, kinetisch die Hüftstrecker; Zusatzlast erhöhte die Arbeit von Hüfte und Sprunggelenk, nicht des Knies (Riemann et al. 2012).' },
       { short: 'Hanteln', anchor: 'hand', side: 'l', status: 'single', text: 'Hanteln locker seitlich am Körper hängen lassen.', src: ['L1'],
-        explain: 'Lasten in beiden Händen mit den Armen an der Seite (Riemann et al. 2012); die tatsächlichen Lasten lagen dort bei etwa der Hälfte der angegebenen Prozentwerte.' }
+        explain: 'Lasten in beiden Händen mit den Armen an der Seite; jede Hand trug die Hälfte der Zusatzlast von 12,5–50 % des Körpergewichts (Riemann et al. 2012).' }
     ],
     sources: {
-      L1: { label: 'Riemann et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.4.16', read: 'summary' },
+      L1: { label: 'Riemann et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.4.16', read: 'fulltext' },
       L3: { label: 'Stastny et al. 2015, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000976', read: 'fulltext' },
       L4: { label: 'Escamilla et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2694', read: 'abstract' },
       L5: { label: 'Farrokhi et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2634', read: 'abstract' }
@@ -267,16 +268,16 @@ export const ANIMATIONS = [
   // ---------- Dips ----------
   {
     ref: 'dips', view: 'side', basis: 'measured', noFloor: true,
-    basisNote: 'Ellbogen-, Schulter- und Rumpfwinkel aus McKenzie et al. 2022 (3D, 15 geübte Männer, V-Barren, selbst gewählte Technik; Tabelle 1 über automatische Zusammenfassung). Beinhaltung Konvention.',
+    basisNote: 'Ellbogen-, Schulter- und Rumpfwinkel aus McKenzie et al. 2022 (3D, 15 geübte Männer, V-Barren, selbst gewählte Technik; Tabelle 1 am PDF geprüft). Beinhaltung Konvention.',
     tempo: { basis: 'measured', note: '1,35 ± 0,32 s je Wiederholung, Tiefpunkt bei 53 % (McKenzie et al. 2022, nicht ermüdet).' },
     frames: [
-      { label: 'Oben', pose: { root: 'wrist', rootPos: [0, -200], trunk: V(18.5, 'S1', 'summary', '18,49 ± 12,54° Vorneigung'), shoulder: V(-3, 'S1', 'summary', '2,99 ± 8,21° Extension'), elbow: V(18.2, 'S1', 'summary'), armScale: [0.9, 0.95], hip: C(25), knee: C(90), ankle: C(-20), props: dipProps } },
-      { label: 'Unten', pose: { root: 'wrist', rootPos: [0, -200], trunk: V(30.3, 'S1', 'summary', '30,34 ± 21,06° am Tiefpunkt (Spitze 37°)'), shoulder: V(-67.7, 'S1', 'summary', '67,66 ± 11,34° Extension'), elbow: V(115.9, 'S1', 'summary'), armScale: [0.9, 0.95], hip: C(25), knee: C(90), ankle: C(-20), props: dipProps } }
+      { label: 'Oben', pose: { root: 'wrist', rootPos: [0, -200], trunk: V(18.5, 'S1', 'fulltext', '18,49 ± 12,54° Vorneigung'), shoulder: V(-3, 'S1', 'fulltext', '2,99 ± 8,21° Extension'), elbow: V(18.2, 'S1', 'fulltext'), armScale: [0.9, 0.95], hip: C(25), knee: C(90), ankle: C(-20), props: dipProps } },
+      { label: 'Unten', pose: { root: 'wrist', rootPos: [0, -200], trunk: V(30.3, 'S1', 'fulltext', '30,34 ± 21,06° am Tiefpunkt (Spitze 37°)'), shoulder: V(-67.7, 'S1', 'fulltext', '67,66 ± 11,34° Extension'), elbow: V(115.9, 'S1', 'fulltext'), armScale: [0.9, 0.95], hip: C(25), knee: C(90), ankle: C(-20), props: dipProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [2] }, { a: 0, b: 1, dur: 0.72, label: 'Absenken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [0, 4] }, { a: 1, b: 0, dur: 0.63, label: 'Hochdrücken', kp: [3, 4] }],
     keyPoints: [
       { short: 'Tiefe', anchor: 'elbow', side: 'l', status: 'contested', text: 'Absenken, bis die Ellbogen etwa 90–115° gebeugt sind – Tiefe nicht erzwingen.', src: ['S1', 'S2', 'S4'],
-        explain: 'Umstritten. Selbst gewählte Tiefe: ≈ 115° Ellbogenbeugung und 68–78° Schulterextension, also 76–88 % des maximal möglichen Bereichs (McKenzie et al. 2022). Getestet wurden 75–95° (Çinarli et al. 2021). Bedenken gegen endgradige Schulterextension stützen sich auf Fallberichte, nicht auf Verlaufsdaten.' },
+        explain: 'Umstritten. Selbst gewählte Tiefe: ≈ 115° Ellbogenbeugung und 68–78° Schulterextension, also 76 % (Ermüdungsstudie) bzw. 88 % (Vergleich Bank-, Barren-, Ringdips) des zuvor gemessenen maximalen Bereichs (McKenzie et al. 2022). Getestet wurden 75–95° (Çinarli et al. 2021). Bedenken gegen endgradige Schulterextension stützen sich auf Fallberichte, nicht auf Verlaufsdaten.' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper leicht nach vorn neigen, unten etwa 30–40° aus der Senkrechten.', src: ['S1', 'S2'],
         explain: 'Spitzenneigung 37 ± 10° (McKenzie et al. 2022); am Barren deutlich mehr als bei Bankdips (13°).' },
       { short: 'Oben', anchor: 'shoulder', side: 'l', status: 'single', text: 'Oben Arme weitgehend strecken, Körper ruhig über den Griffen.', src: ['S1'],
@@ -284,30 +285,30 @@ export const ANIMATIONS = [
       { short: 'Kontrolle', anchor: 'hip', side: 'r', status: 'single', text: 'Gegen Satzende auf Kontrolle achten – Fehlversuche gingen teils tiefer als üblich.', src: ['S1'],
         explain: 'Zwei von vier gescheiterten Wiederholungen überschritten den zuvor gemessenen maximalen Bewegungsumfang (Nebenbefund, McKenzie et al. 2022).' },
       { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen nah am Körper führen.', src: ['S1', 'S2', 'S4'],
-        explain: 'Anweisung in Çinarli et al. 2021. Gemessene Schulterabduktion ≈ 12° oben bis ≈ 31° am Tiefpunkt (McKenzie et al. 2022). Dass ein weiter Griff riskanter ist, wurde nur vermutet.' }
+        explain: 'Anweisung in Çinarli et al. 2021. Gemessene Schulterabduktion ≈ 12° oben, ≈ 28° am Tiefpunkt, Spitze 31° kurz davor (McKenzie et al. 2022). Dass ein weiter Griff riskanter ist, wurde nur vermutet.' }
     ],
     sources: {
-      S1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Ermüdung, Barrendip)', url: 'https://doi.org/10.3390/ijerph192114390', read: 'summary', note: 'Volltext ohne Tabellen; Tabelle 1 über automatische Zusammenfassung' },
+      S1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Ermüdung, Barrendip)', url: 'https://doi.org/10.3390/ijerph192114390', read: 'fulltext' },
       S2: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' },
-      S4: { label: 'Çinarli et al. 2021, Kinesiologia Slovenica', url: 'https://journals.uni-lj.si/kinsi/article/view/29659', read: 'summary' }
+      S4: { label: 'Çinarli et al. 2021, Kinesiologia Slovenica', url: 'https://journals.uni-lj.si/kinsi/article/view/29659', read: 'fulltext' }
     }
   },
 
   // ---------- Bankdrücken ----------
   {
     ref: 'bench-press-barbell', view: 'side', basis: 'measured', layout: 'rows',
-    basisNote: 'Ellbogenwinkel unten aus Mausehund et al. 2022 (3D, 35 Personen, 6–8RM, mittlerer Griff; über automatische Zusammenfassung); Stangenposition aus Larsen et al. 2021/2022. Schulterwinkel in der Seitenansicht aus der Stangenposition gelöst; Arme außerhalb der Bildebene verkürzt dargestellt.',
+    basisNote: 'Ellbogenwinkel unten aus Mausehund et al. 2022 (3D, 35 Personen, 6–8RM, mittlerer Griff; am PDF geprüft); Stangenposition aus Larsen et al. 2021/2022. Schulterwinkel in der Seitenansicht aus der Stangenposition gelöst; Arme außerhalb der Bildebene verkürzt dargestellt.',
     tempo: { basis: 'protocol', note: '2 s ab (Metronom, Bartolomei et al. 2024), Drücken ≈ 1 s (bei 1RM 1,0–1,4 s bis zur zweiten Geschwindigkeitsspitze, Larsen et al. 2021).' },
     frames: [
       { label: 'Oben', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [4, -52], wrist: [8, -104] }, facts: [V(20, 'S1', 'computed', 'Ellbogen oben: Spitze 101,4° minus ROM 78,3° ≈ 23°; 0–20° vertretbar')], props: benchProps } },
-      { label: 'Brust', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [12, 14], wrist: [34, -36] }, facts: [V(101.4, 'S1', 'summary', 'Ellbogen unten 101,4 ± 8,3° (3D, mittlerer Griff); Oberarm 59,3 ± 8,2° vom Rumpf'), V(0.17, 'S3', 'summary', 'Stange ≈ 0,17 m fußwärts vom Schultergelenk')], props: benchProps } }
+      { label: 'Brust', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [12, 14], wrist: [34, -36] }, facts: [V(101.4, 'S1', 'fulltext', 'Ellbogen unten 101,4 ± 8,3° (3D, mittlerer Griff); Oberarm 59,3 ± 8,2° vom Rumpf'), V(0.17, 'S3', 'fulltext', 'Stange ≈ 0,17 m fußwärts vom Schultergelenk')], props: benchProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [2] }, { a: 1, b: 1, dur: 0.15, label: 'Brust', kp: [2, 4] }, { a: 1, b: 0, dur: 1.0, label: 'Drücken', kp: [3] }],
     keyPoints: [
       { short: 'Aufbau', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Schulterblätter zurückziehen, Füße fest am Boden, Gesäß bleibt auf der Bank.', src: ['S5', 'S8'],
-        explain: 'Fünf Kontaktpunkte (Kopf, Schulterblätter, Rumpf, Gesäß, Füße) sind die Technikdefinition der Studien (Bartolomei et al. 2024, Noteboom et al. 2024).' },
+        explain: 'Fünf Kontaktpunkte (Kopf, Schulterblätter, Rumpf, Gesäß, Füße) sind die Technikdefinition in Bartolomei et al. 2024. Zurückgezogene Schulterblätter senkten in einer Modellrechnung die Kräfte im Schultergelenk und die Aktivität der Rotatorenmanschette (Noteboom et al. 2024, n = 10, 16 kg).' },
       { short: 'Griff', anchor: 'hand', side: 'r', status: 'contested', text: 'Griff etwa 1,4- bis 2-fach schulterbreit; enger Griff fordert den Trizeps stärker.', src: ['S2', 'S1', 'S8'],
-        explain: 'Umstritten. Untersucht wurden 1,0–2,1-fache Schulterbreite. Mittlerer und weiter Griff erlaubten ein höheres 1RM als der enge (Larsen et al. 2021). Eng erhöht Ellbogenmomente und Trizepsanteil, weit die Schultermomente (Mausehund et al. 2022). Ein Griff unter 1,5-facher Schulterbreite senkte modellierte Schultergelenklasten (Noteboom et al. 2024, n = 10, 16 kg).' },
+        explain: 'Umstritten. Untersucht wurden 1,0–2,1-fache Schulterbreite. Mittlerer und weiter Griff erlaubten ein höheres 1RM als der enge (Larsen et al. 2021). Eng erhöht Ellbogenmomente und Trizepsanteil, weit die Schultermomente (Mausehund et al. 2022). Ein Griff bis 1,5-fach statt 2-fach schulterbreit senkte modellierte Schultergelenkkräfte; 1-fach erhöhte dafür die Scherkraft nach oben (Noteboom et al. 2024, n = 10, 16 kg, Modellrechnung).' },
       { short: 'Senken', anchor: 'elbow', side: 'r', status: 'contested', text: 'Stange kontrolliert zur unteren Brust senken, Oberarme ca. 45–65° vom Rumpf.', src: ['S1', 'S3', 'S8', 'S12'],
         explain: 'Umstritten. Schulterabduktion unten 38–66° je nach Griff und Anweisung (Mausehund et al. 2022); Studien geben ≈ 45° vor oder testen 45/70/90°. Berührungspunkt ≈ 16–18 cm fußwärts vom Schultergelenk (berechnet aus Larsen et al. 2022); ein „idealer“ Punkt ist nicht untersucht.' },
       { short: 'Weg', anchor: 'bar', side: 'r', status: 'consensus', text: 'Beim Drücken wandert die Stange leicht Richtung Schultern zurück.', src: ['S2', 'S3', 'S10', 'S11'],
@@ -316,12 +317,12 @@ export const ANIMATIONS = [
         explain: 'Umstritten. Mit Bogen +4,2 kg 1RM und 28–47 mm weniger Hubweg (Bartolomei et al. 2024); kein 1RM-Unterschied bei 11 Kraftdreikämpfern (García-Ramos et al. 2018); der Bogen senkte die Schultermomente um 8 % (Cudlip et al. 2022). Mittlerer Bogenwinkel 26–32° (Mausehund et al. 2022).' }
     ],
     sources: {
-      S1: { label: 'Mausehund et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003948', read: 'summary' },
+      S1: { label: 'Mausehund et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003948', read: 'fulltext' },
       S2: { label: 'Larsen, Gomo & van den Tillaar 2021, Front Sports Act Living', url: 'https://doi.org/10.3389/fspor.2020.637066', read: 'fulltext' },
-      S3: { label: 'Larsen et al. 2022, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph192114238', read: 'summary' },
+      S3: { label: 'Larsen et al. 2022, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph192114238', read: 'fulltext' },
       S5: { label: 'Bartolomei et al. 2024, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000004778', read: 'fulltext' },
       S6: { label: 'García-Ramos et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1544662', read: 'abstract' },
-      S8: { label: 'Noteboom et al. 2024, Front Physiol', url: 'https://doi.org/10.3389/fphys.2024.1393235', read: 'summary' },
+      S8: { label: 'Noteboom et al. 2024, Front Physiol', url: 'https://doi.org/10.3389/fphys.2024.1393235', read: 'fulltext' },
       S10: { label: 'Madsen & McLaughlin 1984, Med Sci Sports Exerc', url: 'https://pubmed.ncbi.nlm.nih.gov/6493018/', read: 'abstract' },
       S11: { label: 'Duffey & Challis 2007, J Strength Cond Res', url: 'https://doi.org/10.1519/R-19885.1', read: 'abstract' },
       S12: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
@@ -332,11 +333,11 @@ export const ANIMATIONS = [
   // ---------- Liegestütz ----------
   {
     ref: 'push-up', view: 'side', basis: 'measured',
-    basisNote: 'Ellbogenbereich aus Suprak et al. 2013 (16 Personen; gemeinsamer Bereich 105° → 35°, über automatische Zusammenfassung) und San Juan et al. 2015 (Volltext). Körperlinie gerade (Anweisung); Rumpfneigung so gelöst, dass die Zehen am Boden bleiben.',
+    basisNote: 'Ellbogenbereich aus Suprak et al. 2013 (16 Personen; gemeinsamer Bereich 105° → 35°, am PDF geprüft) und San Juan et al. 2015 (Volltext). Körperlinie gerade (Anweisung); Rumpfneigung so gelöst, dass die Zehen am Boden bleiben.',
     tempo: { basis: 'protocol', note: '2 s ab, 2 s auf (Anweisung in Suprak et al. 2013 und San Juan et al. 2015).' },
     frames: [
       { label: 'Oben', pose: { root: 'wrist', rootPos: [0, -6], solve: { param: 'trunk', joint: 'toe', y: 0, range: [20, 89] }, hip: V(0, 'P2', 'protocol', 'Körperlinie ≈ 180°'), knee: C(0), foot: C(165), armPoints: { elbow: [3, 54], wrist: [6, 104] }, handFlat: 1, facts: [V(10, 'P1', 'protocol', 'Ellbogen oben gestreckt (Anweisung); Minimum 20° in San Juan et al. 2015')], props: pushupProps } },
-      { label: 'Unten', pose: { root: 'wrist', rootPos: [0, -6], solve: { param: 'trunk', joint: 'toe', y: 0, range: [20, 89] }, hip: V(0, 'P2', 'protocol', 'Körperlinie ≈ 180°'), knee: C(0), foot: C(165), armPoints: { elbow: [-14, 4], wrist: [10, 32] }, handFlat: 1, facts: [V(105, 'P1', 'summary', 'Ellbogen unten ≥ 105° (gemeinsamer Bereich 105° → 35°); Oberarm 53,6° vom Rumpf')], props: pushupProps } }
+      { label: 'Unten', pose: { root: 'wrist', rootPos: [0, -6], solve: { param: 'trunk', joint: 'toe', y: 0, range: [20, 89] }, hip: V(0, 'P2', 'protocol', 'Körperlinie ≈ 180°'), knee: C(0), foot: C(165), armPoints: { elbow: [-14, 4], wrist: [10, 32] }, handFlat: 1, facts: [V(105, 'P1', 'fulltext', 'Ellbogen unten ≥ 105° (gemeinsamer Bereich 105° → 35°); Oberarm 53,6° vom Rumpf')], props: pushupProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [2, 3] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Hochdrücken', kp: [0] }],
     keyPoints: [
@@ -350,7 +351,7 @@ export const ANIMATIONS = [
         explain: 'Umstritten und nur eine Studie: Oberarmwinkel zum Rumpf eng 35,5°, selbst gewählt 53,6°, weit 64,8° (Suprak et al. 2013). Die Autoren verbinden die weite Position mit einer ungünstigeren Schulterblattstellung; Verletzungsdaten gibt es nicht.' }
     ],
     sources: {
-      P1: { label: 'Suprak et al. 2013, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-48.5.08', read: 'summary' },
+      P1: { label: 'Suprak et al. 2013, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-48.5.08', read: 'fulltext' },
       P2: { label: 'San Juan et al. 2015, BMC Musculoskelet Disord', url: 'https://doi.org/10.1186/s12891-015-0486-5', read: 'fulltext' },
       P3: { label: 'van den Tillaar 2019, Sports Med Int Open', url: 'https://doi.org/10.1055/a-1001-2526', read: 'fulltext' }
     }
@@ -372,9 +373,9 @@ export const ANIMATIONS = [
       { short: 'Zug', anchor: 'elbow', side: 'l', status: 'consensus', text: 'Griff zum Bauch ziehen, Oberarme nach hinten führen.', src: ['S1', 'S2', 'S3', 'S4'],
         explain: 'Endposition: Griff am Bauch; Schulter ≈ 0 bis −5° (gemessen −5,0 ± 9,7°), Ellbogen ≈ 90–105° (gemessen 105,4 ± 13,1°).' },
       { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen eng: mehr Latissimus; Ellbogen weit: mehr oberer Rücken und hintere Schulter.', src: ['S4', 'S8'],
-        explain: 'Wenig Abduktion begünstigte den unteren Latissimus, 60–90° Abduktion erhöhten Trapez- und hintere Schulteraktivität (Vasconcelos et al. 2023, über automatische Zusammenfassung gelesen; Begutachtung nicht angegeben). Enger Griff mit mehr Latissimus auch in einer HD-EMG-Studie (Übersicht Di Fonza et al. 2026).' },
+        explain: 'Wenig Abduktion begünstigte den unteren Latissimus, 60–90° Abduktion erhöhten Trapez- und hintere Schulteraktivität (Vasconcelos et al. 2023, n = 21; Begutachtung nicht angegeben). Enger Griff mit mehr Latissimus auch in einer HD-EMG-Studie (Übersicht Di Fonza et al. 2026).' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper ruhig halten; Vor- oder Rücklage verschiebt die Belastung.', src: ['S2', 'S5'],
-        explain: 'Aufrecht als Anweisung (Padovan et al. 2025). 20° Rücklage erhöhte den oberen, 30° Vorlage den unteren Trapezanteil (Park & Kim 2022, über automatische Zusammenfassung gelesen, mit Unstimmigkeiten).' },
+        explain: 'Aufrecht als Anweisung (Padovan et al. 2025). 20° Rücklage: oberer Trapezmuskel 42 statt 15 % der Maximalaktivität; 30° Vorlage: unterer Trapezmuskel 61 statt 50 % (Park & Kim 2022, n = 23). Die Diskussion der Studie widerspricht teils den eigenen Tabellen.' },
       { short: 'Zurück', anchor: 'hand', side: 'r', status: 'consensus', text: 'Langsam zurück, bis die Arme wieder gestreckt sind.', src: ['S1', 'S2', 'S4'],
         explain: 'Start und Ende mit gestreckten Ellbogen in allen Protokollen.' }
     ],
@@ -382,8 +383,8 @@ export const ANIMATIONS = [
       S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
       S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
       S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' },
-      S4: { label: 'Vasconcelos et al. 2023, Int J Strength Cond', url: 'https://doi.org/10.47206/ijsc.v3i1.190', read: 'summary' },
-      S5: { label: 'Park & Kim 2022, J Musculoskelet Sci Technol', url: 'https://doi.org/10.29273/jmst.2022.6.1.22', read: 'summary' },
+      S4: { label: 'Vasconcelos et al. 2023, Int J Strength Cond', url: 'https://doi.org/10.47206/ijsc.v3i1.190', read: 'fulltext' },
+      S5: { label: 'Park & Kim 2022, J Musculoskelet Sci Technol', url: 'https://doi.org/10.29273/jmst.2022.6.1.22', read: 'fulltext' },
       S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
     }
   }
