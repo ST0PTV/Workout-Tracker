@@ -155,6 +155,15 @@ function tfF(P, seg, side, pt) {
   const u = dot(v, dRest) * (A.f || 1), w = dot(v, nRest);
   return [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
 }
+// Schulter: Deltamuskel und Armansatz folgen beim Armheben teils dem Rumpf (Schulterblatt dreht mit), wie in der Seitenansicht (motion.js).
+const SHOULDER_BLEND_F = 0.45;
+function tfFS(P, seg, side, pt) {
+  const a = tfF(P, seg, side, pt);
+  if (seg !== 'uarm' || pt[1] >= -262) return a;
+  const w = Math.min(1, (-262 - pt[1]) / 30) * SHOULDER_BLEND_F;
+  const o = tfF(P, 'trunk', side, pt);
+  return [a[0] + (o[0] - a[0]) * w, a[1] + (o[1] - a[1]) * w];
+}
 export function anchorFront(P, key) {
   if (P.props && P.props[key]) return P.props[key].map(f1);
   const side = key.endsWith('L') ? 'L' : 'R';
@@ -174,11 +183,11 @@ export function layersFront(P, roleOf = () => '') {
     for (const sh of SHAPES_F) {
       if (!segs.includes(sh.seg)) continue;
       if (sh.mid) { // symmetrische Form: rechte Hälfte plus gespiegelte linke Hälfte als ein Pfad
-        const right = sh.pts.map((q) => tfF(P, sh.seg, 'R', q)), left = sh.pts.slice().reverse().map((q) => tfF(P, sh.seg, 'L', q));
+        const right = sh.pts.map((q) => tfFS(P, sh.seg, 'R', q)), left = sh.pts.slice().reverse().map((q) => tfFS(P, sh.seg, 'L', q));
         shapes.push({ sh, d: smooth(right.concat(left)) });
       } else if (sh.both) {
-        for (const side of ['R', 'L']) shapes.push({ sh, d: smooth(sh.pts.map((q) => tfF(P, sh.seg, side, q))) });
-      } else shapes.push({ sh, d: smooth(sh.pts.map((q) => tfF(P, sh.seg, 'R', q))) });
+        for (const side of ['R', 'L']) shapes.push({ sh, d: smooth(sh.pts.map((q) => tfFS(P, sh.seg, side, q))) });
+      } else shapes.push({ sh, d: smooth(sh.pts.map((q) => tfFS(P, sh.seg, 'R', q))) });
     }
     const body = shapes.filter((x) => x.sh.id === 'body').map((x) => x.d).concat(joints.filter((j) => P.joints[j[0]]).map((j) => disc(P.joints[j[0]], j[1])));
     for (const d of body) out.push({ d, cls: 'an-body edge' });

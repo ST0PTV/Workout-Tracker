@@ -221,4 +221,17 @@ test('Frontansicht: Figur symmetrisch im Stand, Hände am Ziel, Verkürzung ange
   for (const l of M.layers(H, () => 'p')) assert.ok(!/NaN/.test(l.d));
 });
 
+test('Beinstrecker: Rolle ist als Rolle sichtbar (Radius ≥ 10) und sitzt vor dem Schienbein', () => {
+  const a = D.animationFor('leg-extension'), frames = M.resolveFrames(D.framesOf(a));
+  const T = M.cycleLength(a.phases);
+  for (let i = 0; i < 8; i++) {
+    const P = M.poseAt(frames, a.phases, (T * i) / 8).pose, bar = P.scene.find((s) => s.type === 'bar');
+    assert.ok(bar && bar.r >= 10, 'Rolle hat Radius ≥ 10');
+    const sd = [P.joints.ankle[0] - P.joints.knee[0], P.joints.ankle[1] - P.joints.knee[1]], L = Math.hypot(sd[0], sd[1]);
+    const rel = [bar.at[0] - P.joints.ankle[0], bar.at[1] - P.joints.ankle[1]];
+    const off = Math.abs((rel[0] * sd[1] - rel[1] * sd[0]) / L); // Abstand der Rollenmitte von der Schienbeinachse
+    assert.ok(off >= bar.r, 'Rolle überdeckt die Schienbeinachse nicht');
+  }
+});
+
 done();

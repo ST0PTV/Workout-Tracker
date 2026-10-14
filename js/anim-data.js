@@ -739,8 +739,8 @@ export const ANIMATIONS = [
     basisNote: 'Keine Studie hat die Bewegung gemessen. Oberarme senkrecht und nah am Körper, Rumpf leicht vorgeneigt, Ellbogen 90° → 0° sind Protokollvorgaben (Hussain et al. 2020; Rendos et al. 2016). Die Rumpfneigung (≈ 8°) ist Konvention.',
     tempo: { basis: 'protocol', note: '1,5 s je Phase (Rendos et al. 2016); Hussain et al. 2020: 3 Schläge drücken / 2 Schläge zurück ohne Pause.' },
     frames: [
-      { label: 'Oben', pose: { shank: C(3), knee: C(8), ankle: C(3), trunk: C(8, 'leicht vorgeneigt (Protokoll, kein Winkel)'), shoulder: K(8, 'T1', 'Oberarm senkrecht bei 8° Rumpfneigung'), elbow: V(90, 'T2', 'protocol'), armScale: [1, 0.95], props: pushdownProps } },
-      { label: 'Gestreckt', pose: { shank: C(3), knee: C(8), ankle: C(3), trunk: C(8, 'leicht vorgeneigt (Protokoll, kein Winkel)'), shoulder: K(8, 'T1', 'Oberarm senkrecht bei 8° Rumpfneigung'), elbow: V(0, 'T1', 'protocol', 'volle Streckung'), armScale: [1, 0.95], props: pushdownProps } }
+      { label: 'Oben', pose: { rootPos: [-44, -15], shank: C(3), knee: C(8), ankle: C(3), trunk: C(8, 'leicht vorgeneigt (Protokoll, kein Winkel)'), shoulder: K(8, 'T1', 'Oberarm senkrecht bei 8° Rumpfneigung'), elbow: V(90, 'T2', 'protocol'), armScale: [1, 0.95], props: pushdownProps } },
+      { label: 'Gestreckt', pose: { rootPos: [-44, -15], shank: C(3), knee: C(8), ankle: C(3), trunk: C(8, 'leicht vorgeneigt (Protokoll, kein Winkel)'), shoulder: K(8, 'T1', 'Oberarm senkrecht bei 8° Rumpfneigung'), elbow: V(0, 'T1', 'protocol', 'volle Streckung'), armScale: [1, 0.95], props: pushdownProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [0, 4] }, { a: 0, b: 1, dur: 1.5, label: 'Drücken', kp: [2] }, { a: 1, b: 1, dur: 0.2, label: 'Gestreckt', kp: [2] }, { a: 1, b: 0, dur: 1.5, label: 'Zurück', kp: [3, 1] }],
     keyPoints: [
@@ -872,12 +872,12 @@ function legPressProps(P) {
 }
 function legExtensionProps(P) {
   const an = P.joints.ankle, kn = P.joints.knee, sd = segDir(P, 'shank'), sn = segNrm(P, 'shank');
-  const pad = along(along(an, sd, -8), sn, 9); // Polster vorn am Schienbein, knapp über dem Knöchel
+  const pad = along(along(an, sd, -8), sn, 19); // Mitte der Rolle: Schienbeinrand (≈ 8) + Rollenradius 11, knapp über dem Knöchel
   const h = P.joints.hip;
   return { anchors: { pad }, scene: [
     { type: 'rect', x: h[0] - 40, y: h[1] + 2, w: 90, h: 12, rx: 4 }, benchLine(P, 26, 120, -8), // Sitz, Lehne
     { type: 'line', from: [h[0] - 10, h[1] + 14], to: [h[0] - 10, 0], w: 6 }, { type: 'line', from: [h[0] - 50, 0], to: [h[0] + 40, 0], w: 4 },
-    { type: 'line', from: kn, to: pad, w: 4, front: true }, { type: 'bar', at: pad, r: 7 } // Hebel ab Knieachse, Rolle
+    { type: 'line', from: kn, to: pad, w: 7, front: true }, { type: 'bar', at: pad, r: 11 } // gepolsterter Hebel ab Knieachse, Rolle
   ] };
 }
 function legCurlProps(P) {
@@ -903,7 +903,7 @@ function shoulderPressProps(P) {
 function rowBarProps(P) { const bar = P.joints.hand; return { anchors: { bar, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [plate(bar)] }; }
 function curlProps(P) { const hand = P.joints.hand; return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [dumbbell(hand)] }; }
 function pushdownProps(P) {
-  const hand = P.joints.hand, top = [66, -410];
+  const hand = P.joints.hand, top = [100, -410];
   return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
     { type: 'line', from: [top[0] + 40, 0], to: [top[0] + 40, -420], w: 6 }, { type: 'line', from: [top[0] - 12, -420], to: [top[0] + 40, -420], w: 6 }, // Säule, Ausleger
     { type: 'line', from: top, to: hand, w: 1.5, dash: true }, { type: 'bar', at: top, r: 7 }, // Seil, Umlenkrolle
