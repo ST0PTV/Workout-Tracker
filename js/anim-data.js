@@ -31,6 +31,7 @@ const K = (v, src, raw) => V(v, src, 'computed', raw);
 const PLATE = 46; // Hantelscheibe Ø 45 cm → Radius 0.225 m ≈ 46 Einheiten (1 m ≈ 204.6 Einheiten)
 // Stangenpositionen beim Kreuzheben (Weltkoordinaten, Knöchel bei x = 0, Ballen bei x = 30): Start über dem Mittelfuß am Schienbein,
 // auf Kniehöhe vor der Kniescheibe, oben am Oberschenkel. Konvention; Stangenweg ≈ 8 Einheiten (≈ 4 cm) nach hinten, vgl. Hancock et al. 2012.
+const STEP = 28; // Stufe beim Wadenheben (≈ 14 cm): Oberkante bei y = −28, nur unter dem Vorfuß (x 16–38), Ballen bei x = 30
 const DL_BAR = { start: [16, -PLATE], knee: [14, -95], top: [8, -150] };
 
 // Hantelscheibe an einem Punkt (Seitenansicht) – als Szene-Objekt
@@ -240,11 +241,11 @@ export const ANIMATIONS = [
   // ---------- Wadenheben stehend ----------
   {
     ref: 'standing-calf-raise', view: 'side', basis: 'measured',
-    basisNote: 'Sprunggelenkwinkel aus Larsen et al. 2025 (23 Trainierte, Volltext): individuell per Goniometer eingestellter Bewegungsumfang, keine Bewegungsmessung unter Last. Körper über dem Fußballen senkrecht (Konvention).',
+    basisNote: 'Sprunggelenkwinkel aus Larsen et al. 2025 (23 Trainierte, Volltext): individuell per Goniometer eingestellter Bewegungsumfang, keine Bewegungsmessung unter Last. Körper über dem Fußballen senkrecht; Stufe ≈ 14 cm hoch, nur unter dem Vorfuß, die Ferse hängt frei (Konvention).',
     tempo: { basis: 'protocol', note: '1 s hoch, 2 s runter, kurz halten unten (Trainingsprotokolle Goli et al. 2026, Larsen et al. 2025).' },
     frames: [
-      { label: 'Unten', pose: { root: 'toe', rootPos: [30, -14], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(31, 'S1', 'fulltext', '−31 ± 6,8° (Dorsalflexion)'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: calfProps } },
-      { label: 'Oben', pose: { root: 'toe', rootPos: [30, -14], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(-33.6, 'S1', 'fulltext', '+33,6 ± 7,8° Plantarflexion'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: calfProps } }
+      { label: 'Unten', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(31, 'S1', 'fulltext', '−31 ± 6,8° (Dorsalflexion)'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: calfProps } },
+      { label: 'Oben', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(-33.6, 'S1', 'fulltext', '+33,6 ± 7,8° Plantarflexion'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: calfProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [0, 4] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [0, 3] }],
     keyPoints: [
@@ -414,7 +415,7 @@ function bssProps(P) {
 function lungeProps(P) { const hand = P.joints.hand; return { anchors: { hand }, scene: [dumbbell(hand)] }; }
 function calfProps(P) {
   const s = P.joints.shoulder, pad = [s[0] - 6, s[1] - 14];
-  return { anchors: {}, scene: [{ type: 'rect', x: -14, y: -14, w: 56, h: 14, rx: 2 }, { type: 'line', from: [pad[0], pad[1] - 120], to: [pad[0], pad[1]], w: 4 }, { type: 'rect', x: pad[0] - 16, y: pad[1] - 4, w: 32, h: 10, rx: 4 }, { type: 'line', from: [P.joints.hand[0] - 10, P.joints.hand[1]], to: [P.joints.hand[0] + 10, P.joints.hand[1]], w: 3 }] };
+  return { anchors: {}, scene: [{ type: 'rect', x: 16, y: -STEP, w: 22, h: STEP, rx: 2, step: true }, { type: 'line', from: [pad[0], pad[1] - 120], to: [pad[0], pad[1]], w: 4 }, { type: 'rect', x: pad[0] - 16, y: pad[1] - 4, w: 32, h: 10, rx: 4 }, { type: 'line', from: [P.joints.hand[0] - 10, P.joints.hand[1]], to: [P.joints.hand[0] + 10, P.joints.hand[1]], w: 3 }] };
 }
 function dipProps(P) {
   const w = P.joints.wrist;

@@ -179,7 +179,16 @@ test('Alle Keyframes lösbar: endliche Koordinaten, Anker vorhanden, Fuß nie un
         const { pose } = M.poseAt(frames, a.phases, (T * i) / 12);
         for (const [k, j] of Object.entries(pose.joints)) assert.ok(Number.isFinite(j[0]) && Number.isFinite(j[1]), `${a.ref} ${k}`);
         for (const l of M.layers(pose)) assert.ok(!/NaN|undefined/.test(l.d), `${a.ref} Pfad`);
-        if (!a.noFloor) { assert.ok(pose.joints.toe[1] <= 1.5, `${a.ref}: Zehen über dem Boden (${pose.joints.toe[1]})`); if (pose.joints.toe2) assert.ok(pose.joints.toe2[1] <= 1.5, `${a.ref}: Zehen 2`); }
+        if (!a.noFloor) {
+          assert.ok(pose.joints.toe[1] <= 1.5, `${a.ref}: Zehen über dem Boden (${pose.joints.toe[1]})`); if (pose.joints.toe2) assert.ok(pose.joints.toe2[1] <= 1.5, `${a.ref}: Zehen 2`);
+          assert.ok(M.anchor(pose, 'heel')[1] <= 1.5, `${a.ref}: Ferse über dem Boden (${M.anchor(pose, 'heel')[1]})`);
+        }
+        // Stufe: der Fuß steht auf einem Block und darf ihn nicht durchdringen (v2.1, Wadenheben)
+        for (const r of pose.scene.filter((x) => x.type === 'rect' && x.step)) {
+          const toe = pose.joints.toe, heel = M.anchor(pose, 'heel');
+          near(toe[1], r.y - 2, 0.6, `${a.ref}: Ballen auf der Stufe`);
+          assert.ok(heel[0] < r.x || heel[1] <= r.y + 0.5, `${a.ref}: Ferse im Block (${heel})`);
+        }
         for (const kp of a.keyPoints) assert.ok(M.anchor(pose, kp.anchor), `${a.ref} Anker ${kp.anchor}`);
       }
     }
