@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { runner } from './helpers.js';
 
 const M = await import('../js/motion.js');
+const MF = await import('../js/motion-front.js');
 const D = await import('../js/anim-data.js');
 const { POOL } = await import('../js/pool.js');
 const { test, done } = runner();
@@ -12,7 +13,7 @@ const near = (a, b, tol, msg) => assert.ok(Math.abs(a - b) <= tol, `${msg}: ${a}
 const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 const nums = (d) => (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
 const READS = Object.keys(D.READ);
-const allFrames = (a) => (Array.isArray(a.frames) ? [a.frames] : Object.values(a.frames));
+const allFrames = (a) => (a.variants ? a.variants.map((v) => D.framesOf(a, v.key)) : [D.framesOf(a)]); // wie die App: framesOf ergänzt die Ansicht
 
 test('Standpose: alle Gelenke an den Ruhepositionen, Längen stimmen', () => {
   const P = M.solvePose({ shank: 0, knee: 0, hip: 0, ankle: 0, shoulder: 0, elbow: 0 });
@@ -68,6 +69,51 @@ test('Zeitachse: Phasen summieren sich, Mischung ist stetig an den Keyframes', (
     near(dist(end.joints.hip, next.joints.hip), 0, 0.5, `Phase ${p.label} stetig`);
     acc += p.dur;
   }
+});
+
+test('Stetigkeit: kein Gelenk springt zwischen zwei Bildern (1/60 s) – alle Animationen und Varianten', () => {
+  // v2.1: fand den Kreuzheben-Sprung (Rumpf 60° in einem Bild), Ursache ungleiche Schlüssel der Keyframes (resolveFrames gleicht an).
+  const DT = 1 / 60, MAX_POS = 10, MAX_ANG = 10;
+  const wrap = (d) => Math.abs(((d % 360) + 540) % 360 - 180);
+  for (const a of D.ANIMATIONS) {
+    const variants = a.variants ? a.variants.map((v) => v.key) : [null];
+    for (const v of variants) {
+      const frames = M.resolveFrames(D.framesOf(a, v));
+      const T = M.cycleLength(a.phases);
+      let prev = null;
+      for (let t = 0; t <= T + 1e-9; t += DT) {
+        const { pose, phase } = M.poseAt(frames, a.phases, Math.min(t, T - 1e-6));
+        if (prev) {
+          for (const k of Object.keys(pose.joints)) {
+            if (!prev.joints[k]) continue;
+            const d = dist(pose.joints[k], prev.joints[k]);
+            assert.ok(d <= MAX_POS, `${a.ref}${v ? '/' + v : ''}: ${k} springt ${d.toFixed(1)} bei t=${t.toFixed(2)} (${phase.label})`);
+          }
+          for (const k of Object.keys(pose.angles).filter((x) => Number.isFinite(prev.angles[x]))) {
+            const d = wrap(pose.angles[k] - prev.angles[k]);
+            assert.ok(d <= MAX_ANG, `${a.ref}${v ? '/' + v : ''}: Winkel ${k} springt ${d.toFixed(1)}° bei t=${t.toFixed(2)} (${phase.label})`);
+          }
+        }
+        prev = pose;
+      }
+    }
+  }
+});
+
+test('resolveFrames gleicht die Schlüssel an: Keyframes bleiben gleich, Zwischenbild ohne Sprung', () => {
+  const frames = [
+    { label: 'A', pose: { shank: 10, knee: 60, ankle: 10, solve: { param: 'trunk', joint: 'hand', y: -46 }, armHang: 8, elbow: 0 } },
+    { label: 'B', pose: { shank: 0, knee: 6, hip: 4, ankle: 0, armPlumb: true, elbow: 0 } }
+  ];
+  const R = M.resolveFrames(frames);
+  for (const k of ['trunk', 'shank', 'knee', 'hip', 'ankle', 'armHang']) assert.ok(R.every((f) => Number.isFinite(M.num(f.pose[k]))), `Schlüssel ${k} überall`);
+  const a0 = M.solvePose(frames[0].pose), a1 = M.solvePose(R[0].pose), b0 = M.solvePose(frames[1].pose), b1 = M.solvePose(R[1].pose);
+  near(dist(a0.joints.shoulder, a1.joints.shoulder), 0, 0.2, 'Keyframe A unverändert');
+  near(dist(b0.joints.shoulder, b1.joints.shoulder), 0, 0.2, 'Keyframe B unverändert');
+  const mid = M.solvePose(M.mixSpec(R[0].pose, R[1].pose, 0.5));
+  near(mid.angles.trunk, (a0.angles.trunk + b0.angles.trunk) / 2, 1, 'Rumpf in der Mitte halb aufgerichtet');
+  const late = M.solvePose(M.mixSpec(R[0].pose, R[1].pose, 0.99));
+  near(late.angles.trunk, b0.angles.trunk, 2, 'kurz vor dem Ende fast aufrecht (vorher: Sprung)');
 });
 
 test('Jede Animation gehört zu einer Pool-Übung und hat vollständige Daten', () => {
@@ -134,20 +180,45 @@ test('Alle Keyframes lösbar: endliche Koordinaten, Anker vorhanden, Fuß nie un
         const { pose } = M.poseAt(frames, a.phases, (T * i) / 12);
         for (const [k, j] of Object.entries(pose.joints)) assert.ok(Number.isFinite(j[0]) && Number.isFinite(j[1]), `${a.ref} ${k}`);
         for (const l of M.layers(pose)) assert.ok(!/NaN|undefined/.test(l.d), `${a.ref} Pfad`);
-        if (!a.noFloor) { assert.ok(pose.joints.toe[1] <= 1.5, `${a.ref}: Zehen über dem Boden (${pose.joints.toe[1]})`); if (pose.joints.toe2) assert.ok(pose.joints.toe2[1] <= 1.5, `${a.ref}: Zehen 2`); }
+        if (!a.noFloor) {
+          assert.ok(pose.joints.toe[1] <= 1.5, `${a.ref}: Zehen über dem Boden (${pose.joints.toe[1]})`); if (pose.joints.toe2) assert.ok(pose.joints.toe2[1] <= 1.5, `${a.ref}: Zehen 2`);
+          assert.ok(M.anchor(pose, 'heel')[1] <= 1.5, `${a.ref}: Ferse über dem Boden (${M.anchor(pose, 'heel')[1]})`);
+        }
+        // Stufe: der Fuß steht auf einem Block und darf ihn nicht durchdringen (v2.1, Wadenheben)
+        for (const r of pose.scene.filter((x) => x.type === 'rect' && x.step)) {
+          const toe = pose.joints.toe, heel = M.anchor(pose, 'heel');
+          near(toe[1], r.y - 2, 0.6, `${a.ref}: Ballen auf der Stufe`);
+          assert.ok(heel[0] < r.x || heel[1] <= r.y + 0.5, `${a.ref}: Ferse im Block (${heel})`);
+        }
         for (const kp of a.keyPoints) assert.ok(M.anchor(pose, kp.anchor), `${a.ref} Anker ${kp.anchor}`);
       }
     }
   }
 });
 
-test('Gezeichnete Muskeln: jede Pool-Muskelgruppe ist zugeordnet oder als nicht sichtbar gelistet', () => {
-  const ids = new Set(M.SHAPES.map((s) => s.id));
+test('Gezeichnete Muskeln: jede Pool-Muskelgruppe ist zugeordnet oder als nicht sichtbar gelistet (Seite und Front)', () => {
+  const ids = new Set(M.SHAPES.map((s) => s.id)), idsF = new Set(MF.SHAPES_F.map((s) => s.id));
   for (const [m, shape] of Object.entries(M.MUSCLE_SHAPE)) assert.ok(ids.has(shape), `${m} → ${shape}`);
+  for (const [m, shape] of Object.entries(MF.MUSCLE_SHAPE_F)) assert.ok(idsF.has(shape), `front ${m} → ${shape}`);
   for (const a of D.ANIMATIONS) {
     const p = POOL.find((x) => x.ref === a.ref);
-    for (const m of [...p.muscles.primary, ...p.muscles.secondary]) assert.ok(M.MUSCLE_SHAPE[m] || M.HIDDEN_MUSCLES.includes(m), `${a.ref}: ${m}`);
+    const map = a.view === 'front' ? MF.MUSCLE_SHAPE_F : M.MUSCLE_SHAPE, hidden = a.view === 'front' ? MF.HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
+    for (const m of [...p.muscles.primary, ...p.muscles.secondary]) assert.ok(map[m] || hidden.includes(m), `${a.ref}: ${m}`);
+    const prim = p.muscles.primary.filter((m) => map[m]);
+    assert.ok(prim.length, `${a.ref}: mindestens ein primärer Muskel ist sichtbar`);
   }
+});
+
+test('Frontansicht: Figur symmetrisch im Stand, Hände am Ziel, Verkürzung angewinkelter Beine', () => {
+  const P = M.solvePose({ view: 'front', arm: { abd: 0, elbow: 0 }, legs: { hip: 0, knee: 0 } });
+  near(P.joints.shoulderR[0], -P.joints.shoulderL[0], 0.01, 'Schultern symmetrisch');
+  near(P.joints.ankleR[1], MF.J0F.ankle[1], 0.5, 'Knöchelhöhe im Stand');
+  near(dist(P.joints.shoulderR, P.joints.elbowR), M.LEN.uarm, 0.01, 'Oberarmlänge');
+  const H = M.solvePose({ view: 'front', root: 'wristR', rootPos: [62, -322], armPoints: { elbow: [13.4, -66.9], wrist: [24, -120] }, legs: { hip: 0, knee: 70 } });
+  near(dist(H.joints.wristR, [62, -322]), 0, 0.01, 'rechtes Handgelenk an der Stange');
+  near(H.joints.wristL[0], -62, 0.01, 'linkes Handgelenk gespiegelt');
+  assert.ok(dist(H.joints.kneeR, H.joints.ankleR) < M.LEN.shank * 0.5, 'angewinkelter Unterschenkel erscheint verkürzt');
+  for (const l of M.layers(H, () => 'p')) assert.ok(!/NaN/.test(l.d));
 });
 
 done();

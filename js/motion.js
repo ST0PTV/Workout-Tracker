@@ -7,6 +7,8 @@
 // Rumpf- und Schienbeinneigung aus der Senkrechten, nach vorn positiv; Schulterflexion 0° = Arm hängt, 180° = über Kopf.
 // Intern wird jede Segmentrichtung als Winkel von „senkrecht nach oben“ gemessen, nach vorn positiv: dir(θ) = (sin θ, −cos θ).
 
+import { solveFront, layersFront, anchorFront } from './motion-front.js';
+
 export const H = 358;
 export const J0 = { ankle: [0, -15], knee: [0, -95], hip: [0, -183], shoulder: [2, -287], elbow: [2, -219], wrist: [2, -165] };
 export const LEN = { shank: 80, thigh: 88, trunk: 104, uarm: 68, farm: 54, hand: 14 };
@@ -104,14 +106,23 @@ export function smooth(pts) {
 //   armScale [oberarm, unterarm] Projektionsfaktoren für Arme außerhalb der Bildebene; elbowSide ±1;
 //   leg2: { hip, knee, ankle } oder { ankle: [x,y], foot: Winkel } (zweites Bein per Zwei-Glieder-IK);
 //   arm2: { shoulder, elbow } (zweiter Arm, sonst wie der erste);
-//   solve: { param: 'trunk'|'shank', joint, y, range } – unbekannten Winkel so lösen, dass ein Gelenk eine Höhe erreicht.
+//   armAt: [x, y] – gestreckter Arm zeigt von der Schulter auf einen festen Punkt (Weltkoordinaten, z. B. die Stange);
+//   solve: { param: 'trunk'|'shank', joint, y, range } – unbekannten Winkel so lösen, dass ein Gelenk eine Höhe erreicht,
+//     oder { param, joint, at: [x,y], dist } – so, dass ein Gelenk einen festen Abstand zu einem Punkt hat (z. B. Schulter–Stange = Armlänge).
+export const ARM_REACH = LEN.uarm + LEN.farm + LEN.hand;
 export function solvePose(specIn) {
+  if (specIn.view === 'front') return solveFront(specIn);
   const spec = {};
   for (const [k, v] of Object.entries(specIn)) spec[k] = v;
   if (spec.solve) {
     const s = spec.solve, [a, b] = s.range || (s.param === 'shank' ? [-20, 60] : [-100, 100]);
     const target = num(s.y);
-    const evalAt = (x) => { const P = buildPose({ ...spec, [s.param]: x, solve: null }); return (P.joints[s.joint] || P.props[s.joint])[1] - target; };
+    const evalAt = (x) => {
+      const P = buildPose({ ...spec, [s.param]: x, solve: null });
+      const j = P.joints[s.joint] || P.props[s.joint];
+      if (s.at) return Math.hypot(j[0] - num(s.at[0]), j[1] - num(s.at[1])) - num(s.dist);
+      return j[1] - target;
+    };
     let lo = a, hi = b, flo = evalAt(lo), fhi = evalAt(hi);
     if (flo * fhi > 0) { // kein Vorzeichenwechsel: nimm den näheren Rand
       spec[s.param] = Math.abs(flo) < Math.abs(fhi) ? lo : hi;
@@ -157,6 +168,18 @@ function buildPose(spec) {
     const up = dir(t), fw = dir(t + 90), dx = num(spec.armTargetTrunk[0]), dy = num(spec.armTargetTrunk[1]);
     target = [fw[0] * dx + up[0] * dy, fw[1] * dx + up[1] * dy];
   }
+  // Positionen relativ zur Hüfte (Beine zuerst, damit die Wurzelverschiebung für Weltziele des Arms bekannt ist)
+  const hipP = [0, 0];
+  const shP = add(hipP, mul(dir(aTrunkUp), LEN.trunk));
+  const knP = add(hipP, mul(dir(aThigh), LEN.thigh));
+  const anP = add(knP, mul(dir(aShank), LEN.shank));
+  const fd = dir(aFoot), fn = nrm(fd);
+  const toeP = add(add(anP, mul(fd, TOE.u)), mul(fn, TOE.w));
+  const root = spec.root || 'ankle';
+  const rootRel = { hip: hipP, shoulder: shP, knee: knP, ankle: anP, toe: toeP };
+  const rp = spec.rootPos ? [num(spec.rootPos[0]), num(spec.rootPos[1])] : (root === 'toe' ? [TOE.u, -2] : [0, root === 'ankle' ? -15 : 0]);
+  const off = rootRel[root] ? sub(rp, rootRel[root]) : null; // null: Wurzel ist ein Armgelenk, Verschiebung folgt unten
+
   let armPts = null, ikForearm = null;
   if (spec.armPoints) { // Projizierte Armgeometrie: Ellbogen und Handgelenk relativ zur Schulter (Arme außerhalb der Bildebene)
     const E = [num(spec.armPoints.elbow[0]), num(spec.armPoints.elbow[1])], W = [num(spec.armPoints.wrist[0]), num(spec.armPoints.wrist[1])];
@@ -164,6 +187,9 @@ function buildPose(spec) {
     aU = angOf(unit(E));
     elbow = aU - angOf(unit(sub(W, E)));
     if (elbow > 180) elbow -= 360; if (elbow < -180) elbow += 360;
+  } else if (spec.armAt && off) { // gestreckter Arm zeigt auf einen festen Weltpunkt (Stange); Länge bleibt, der Punkt wird bei passendem Abstand genau erreicht
+    const B = sub([num(spec.armAt[0]), num(spec.armAt[1])], off);
+    aU = angOf(unit(sub(B, shP))); elbow = 0;
   } else if (spec.armPlumb) { aU = 180; } // Arm hängt senkrecht
   else if (Number.isFinite(num(spec.armHang))) { aU = 180 + num(spec.armHang); } // Arm hängt schräg (positiv = Hand hinter der Schulter)
   else if (target) {
@@ -180,26 +206,17 @@ function buildPose(spec) {
     aU = t + 180 - g('shoulder');
   }
   const aF = ikForearm !== null ? ikForearm : aU - elbow;
-  const shoulderFlex = t + 180 - aU;
+  const shoulderFlex = ((t + 180 - aU) % 360 + 540) % 360 - 180;
   const aLen = armPts ? armPts.a : a, bLen = armPts ? armPts.b : b;
   const scU = armPts ? armPts.a / LEN.uarm : sc[0], scF = armPts ? armPts.b / LEN.farm : sc[1];
 
-  // Positionen relativ zur Hüfte
-  const hipP = [0, 0];
-  const shP = add(hipP, mul(dir(aTrunkUp), LEN.trunk));
-  const knP = add(hipP, mul(dir(aThigh), LEN.thigh));
-  const anP = add(knP, mul(dir(aShank), LEN.shank));
-  const fd = dir(aFoot), fn = nrm(fd);
-  const toeP = add(add(anP, mul(fd, TOE.u)), mul(fn, TOE.w));
   const elP = add(shP, mul(dir(aU), aLen));
   const wrP = add(elP, mul(dir(aF), bLen));
   const handP = add(wrP, mul(dir(aF), LEN.hand));
   const J = { hip: hipP, shoulder: shP, knee: knP, ankle: anP, toe: toeP, elbow: elP, wrist: wrP, hand: handP };
   // Wurzel verschieben
-  const root = spec.root || 'ankle';
-  const rp = spec.rootPos ? [num(spec.rootPos[0]), num(spec.rootPos[1])] : (root === 'toe' ? [TOE.u, -2] : [0, root === 'ankle' ? -15 : 0]);
-  const off = sub(rp, J[root]);
-  for (const k of Object.keys(J)) J[k] = add(J[k], off);
+  const offAll = off || sub(rp, J[root]);
+  for (const k of Object.keys(J)) J[k] = add(J[k], offAll);
 
   const fr = (Jp, d, f) => ({ J: Jp, d, n: nrm(d), f: f || 1 });
   const F = {
@@ -207,6 +224,8 @@ function buildPose(spec) {
     foot: fr(J.ankle, fd), uarm: fr(J.shoulder, dir(aU), scU), farm: fr(J.elbow, dir(aF), scF)
   };
   const angles = { trunk: f1(t), hip: f1(hip), knee: f1(knee), ankle: f1(ankle), shoulder: f1(shoulderFlex), elbow: f1(Math.abs(elbow)) };
+  // Segmentwinkel in Spezifikationskonvention (für das Angleichen der Keyframes vor dem Mischen)
+  const segAngles = { trunk: t, shank: aShank - 180, knee, hip, ankle, foot: aFoot, armHang: aU - 180, elbow: Math.abs(elbow) };
 
   // Zweites Bein
   if (spec.leg2) {
@@ -242,7 +261,7 @@ function buildPose(spec) {
     J.elbow2 = el2; J.wrist2 = wr2; J.hand2 = add(wr2, mul(dir(aF2), LEN.hand));
     F.uarm2 = fr(J.shoulder, dir(aU2), sc[0]); F.farm2 = fr(el2, dir(aF2), sc[1]);
   }
-  const P = { joints: J, F, angles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0 };
+  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0 };
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -277,6 +296,7 @@ export function tf(P, seg, pt) {
   return [a[0] + (o[0] - a[0]) * bl.w, a[1] + (o[1] - a[1]) * bl.w];
 }
 export function anchor(P, key) {
+  if (P.view === 'front') return anchorFront(P, key);
   if (P.props && P.props[key]) return P.props[key].map(f1);
   if (P.joints[key]) return P.joints[key].map(f1);
   const a = ANCHORS[key.replace(/2$/, '')];
@@ -290,6 +310,7 @@ export function anchor(P, key) {
 // 1. fernes Bein / ferner Arm, 2. Rumpf mit nahem Bein, 3. naher Arm (liegt vor dem Rumpf).
 // roleOf(shapeId) → 'p' | 's' | '' (primär / sekundär / nicht beansprucht).
 export function layers(P, roleOf = () => '') {
+  if (P.view === 'front') return layersFront(P, roleOf);
   const out = [];
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
   const group = (segs, joints, far) => {
@@ -349,16 +370,39 @@ export function mixSpec(A, B, u) {
   }
   return B;
 }
-// Keyframes einmal lösen: der gelöste Parameter wird zur Zahl (Lesart 'ik'), damit die Überblendung nur noch mischt.
+// Keyframes einmal lösen und angleichen, damit die Überblendung nur noch mischt:
+// 1. Der gelöste Parameter wird zur Zahl (Lesart 'ik').
+// 2. Alle Keyframes eines Satzes bekommen dieselben Winkelschlüssel. mixSpec behält einen Schlüssel, den nur ein Keyframe hat,
+//    bis zum Ende der Phase unverändert – beim Kreuzheben blieb so der gelöste Rumpf stehen und sprang am Phasenende (v2.0.0–2.0.2).
+//    Fehlende Werte kommen als Zahlen (ohne Herkunft) aus der gelösten Pose; die Beinkette ist in den Winkeln linear, deshalb
+//    ändert das Angleichen die Keyframes nicht und die Zwischenbilder nur dort, wo vorher ein Sprung war.
+const LEG_KEYS = ['trunk', 'shank', 'knee', 'hip', 'ankle'];
+const isSet = (x) => x !== undefined && x !== null && Number.isFinite(num(x));
 export function resolveFrames(frames) {
-  return frames.map((f) => {
-    if (!f.pose.solve) return f;
+  if (frames.some((f) => f.pose.view === 'front')) return frames.map((f) => ({ ...f, pose: { ...f.pose, solve: null } })); // Frontansicht: gleiche Schlüssel je Satz, kein Löser
+  const out = frames.map((f) => {
     const P = solvePose(f.pose);
     const pose = { ...f.pose, solve: null };
-    pose[P.solved.param] = { v: P.solved.value, src: [], read: 'ik', raw: `so gelöst, dass ${f.pose.solve.joint} auf Höhe ${f.pose.solve.y}` };
-    if (P.solved.param === 'trunk') pose.hip = { v: P.angles.hip, src: [], read: 'ik', raw: 'Rumpf–Oberschenkel, folgt aus der Rumpfneigung' };
-    return { ...f, pose };
+    if (P.solved) {
+      pose[P.solved.param] = { v: P.solved.value, src: [], read: 'ik', raw: `so gelöst, dass ${f.pose.solve.joint}${f.pose.solve.at ? ' den Abstand zur Stange hält' : ' auf Höhe ' + num(f.pose.solve.y)}` };
+      if (P.solved.param === 'trunk') pose.hip = { v: P.angles.hip, src: [], read: 'ik', raw: 'Rumpf–Oberschenkel, folgt aus der Rumpfneigung' };
+    }
+    return { ...f, pose, P };
   });
+  const any = (k) => out.some((f) => isSet(f.pose[k]) || (k === 'armHang' && f.pose.armPlumb));
+  const fillFoot = any('foot');
+  const hangArm = any('armHang') && !out.some((f) => f.pose.armPoints || f.pose.armTarget || f.pose.armTargetTrunk || f.pose.armAt);
+  for (const f of out) {
+    const S = f.P.segAngles;
+    for (const k of LEG_KEYS) if (!isSet(f.pose[k])) f.pose[k] = f1(S[k]);
+    if (fillFoot && !isSet(f.pose.foot)) f.pose.foot = f1(S.foot);
+    if (hangArm) { // armPlumb ≙ armHang 0; beide Formen mischen sich dann als Zahl
+      if (f.pose.armPlumb) { delete f.pose.armPlumb; if (!isSet(f.pose.armHang)) f.pose.armHang = 0; }
+      if (!isSet(f.pose.elbow)) f.pose.elbow = f1(S.elbow);
+    }
+    delete f.P;
+  }
+  return out;
 }
 export function poseAt(frames, phases, t) {
   const ph = phaseAt(phases, t);
