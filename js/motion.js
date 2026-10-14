@@ -7,6 +7,8 @@
 // Rumpf- und Schienbeinneigung aus der Senkrechten, nach vorn positiv; Schulterflexion 0° = Arm hängt, 180° = über Kopf.
 // Intern wird jede Segmentrichtung als Winkel von „senkrecht nach oben“ gemessen, nach vorn positiv: dir(θ) = (sin θ, −cos θ).
 
+import { solveFront, layersFront, anchorFront } from './motion-front.js';
+
 export const H = 358;
 export const J0 = { ankle: [0, -15], knee: [0, -95], hip: [0, -183], shoulder: [2, -287], elbow: [2, -219], wrist: [2, -165] };
 export const LEN = { shank: 80, thigh: 88, trunk: 104, uarm: 68, farm: 54, hand: 14 };
@@ -109,6 +111,7 @@ export function smooth(pts) {
 //     oder { param, joint, at: [x,y], dist } – so, dass ein Gelenk einen festen Abstand zu einem Punkt hat (z. B. Schulter–Stange = Armlänge).
 export const ARM_REACH = LEN.uarm + LEN.farm + LEN.hand;
 export function solvePose(specIn) {
+  if (specIn.view === 'front') return solveFront(specIn);
   const spec = {};
   for (const [k, v] of Object.entries(specIn)) spec[k] = v;
   if (spec.solve) {
@@ -293,6 +296,7 @@ export function tf(P, seg, pt) {
   return [a[0] + (o[0] - a[0]) * bl.w, a[1] + (o[1] - a[1]) * bl.w];
 }
 export function anchor(P, key) {
+  if (P.view === 'front') return anchorFront(P, key);
   if (P.props && P.props[key]) return P.props[key].map(f1);
   if (P.joints[key]) return P.joints[key].map(f1);
   const a = ANCHORS[key.replace(/2$/, '')];
@@ -306,6 +310,7 @@ export function anchor(P, key) {
 // 1. fernes Bein / ferner Arm, 2. Rumpf mit nahem Bein, 3. naher Arm (liegt vor dem Rumpf).
 // roleOf(shapeId) → 'p' | 's' | '' (primär / sekundär / nicht beansprucht).
 export function layers(P, roleOf = () => '') {
+  if (P.view === 'front') return layersFront(P, roleOf);
   const out = [];
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
   const group = (segs, joints, far) => {
@@ -374,6 +379,7 @@ export function mixSpec(A, B, u) {
 const LEG_KEYS = ['trunk', 'shank', 'knee', 'hip', 'ankle'];
 const isSet = (x) => x !== undefined && x !== null && Number.isFinite(num(x));
 export function resolveFrames(frames) {
+  if (frames.some((f) => f.pose.view === 'front')) return frames.map((f) => ({ ...f, pose: { ...f.pose, solve: null } })); // Frontansicht: gleiche Schlüssel je Satz, kein Löser
   const out = frames.map((f) => {
     const P = solvePose(f.pose);
     const pose = { ...f.pose, solve: null };

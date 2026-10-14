@@ -32,6 +32,7 @@ const PLATE = 46; // Hantelscheibe Ø 45 cm → Radius 0.225 m ≈ 46 Einheiten 
 // Stangenpositionen beim Kreuzheben (Weltkoordinaten, Knöchel bei x = 0, Ballen bei x = 30): Start über dem Mittelfuß am Schienbein,
 // auf Kniehöhe vor der Kniescheibe, oben am Oberschenkel. Konvention; Stangenweg ≈ 8 Einheiten (≈ 4 cm) nach hinten, vgl. Hancock et al. 2012.
 const STEP = 28; // Stufe beim Wadenheben (≈ 14 cm): Oberkante bei y = −28, nur unter dem Vorfuß (x 16–38), Ballen bei x = 30
+const PU = { grip: 62, bar: -330 }; // Klimmzugstange: Hände bei ±62 (1,5-fache Biakromialbreite ≈ 82 Einheiten), Stange auf 1,6 m
 const DL_BAR = { start: [16, -PLATE], knee: [14, -95], top: [8, -150] };
 
 // Hantelscheibe an einem Punkt (Seitenansicht) – als Szene-Objekt
@@ -391,6 +392,106 @@ export const ANIMATIONS = [
       S5: { label: 'Park & Kim 2022, J Musculoskelet Sci Technol', url: 'https://doi.org/10.29273/jmst.2022.6.1.22', read: 'fulltext' },
       S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
     }
+  },
+
+  // ---------- Klimmzug (Frontansicht) ----------
+  {
+    ref: 'pull-up', view: 'front', basis: 'measured', noFloor: true,
+    basisNote: 'Frontansicht. Schulterwinkel aus Prinold & Bull 2014 (3D, 11 geübte Männer, drei Griffe; humerothorakale Elevation 23–126° als gepoolter Bereich, kein Mittelwert je Position) und Ellbogen-Bewegungsumfang aus Youdas et al. 2010 (3D, n = 25, Abstract). Die Figur hängt mit den Händen an der Stange (1,5-fache Schulterbreite); Ellbogen und Handgelenke sind in die Bildebene projiziert, deshalb erscheint der Ellbogen oben stärker gebeugt als gemessen. Beine angewinkelt (Protokoll), Körperhöhe folgt aus der Armgeometrie.',
+    tempo: { basis: 'measured', note: 'Hochziehen im Mittel 1,2 s (0,8–2,2 s, maximale Absicht; Prinold & Bull 2014); Absenken dort nicht gemessen, hier 1,5 s (EMG-Protokolle: 2 s / 2 s).' },
+    frames: [
+      { label: 'Hang', pose: { root: 'wristR', rootPos: [PU.grip, PU.bar + 8], armPoints: { elbow: [13.4, -66.9], wrist: [24, -120] }, legs: { hip: C(0), knee: C(70, 'Beine angewinkelt, Fersen hinten (Protokoll)') }, props: pullupProps },
+        facts: [V(0, 'S2', 'protocol', 'Ellbogen gestreckt im Hang (Protokoll)'), V(126, 'S2', 'fulltext', 'humerothorakale Elevation: oberes Ende des Bereichs 23–126° (gepoolt); in der Frontprojektion ≈ 169°')] },
+      { label: 'Oben', pose: { root: 'wristR', rootPos: [PU.grip, PU.bar + 8], armPoints: { elbow: [30, 34], wrist: [24, -22] }, legs: { hip: C(0), knee: C(70, 'Beine angewinkelt, Fersen hinten (Protokoll)') }, props: pullupProps },
+        facts: [V(93.4, 'S3', 'abstract', 'Ellbogen-Bewegungsumfang 93,4 ± 14,6° (Klimmzug, n = 25); Frontprojektion zeigt ≈ 145°'), V(23, 'S2', 'fulltext', 'humerothorakale Elevation: unteres Ende des Bereichs 23–126°'), V(1, 'S2', 'protocol', 'Kinn über der Stange (Endkriterium)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Hang', kp: [0, 3] }, { a: 0, b: 1, dur: 1.2, label: 'Hochziehen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 1.5, label: 'Absenken', kp: [4] }],
+    keyPoints: [
+      { short: 'Hang', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Aus dem gestreckten Hang starten: Arme lang, Ellbogen gestreckt.', src: ['S2', 'S3', 'S4'],
+        explain: 'Startdefinition aller gelesenen Studien: Hang mit gestreckten Armen. Der gemessene Ellbogen-Bewegungsumfang (93 ± 15°, Youdas et al. 2010) bezieht sich auf diesen Start.' },
+      { short: 'Kinn', anchor: 'chin', side: 'r', status: 'consensus', text: 'Hochziehen, bis das Kinn über der Stange ist.', src: ['S2', 'S4'],
+        explain: 'Endkriterium in Prinold & Bull 2014 und Snarr et al. 2017 (Kinn über der Stange bzw. auf Höhe der Hände). Wiederholungen mit Schwung wurden dort verworfen.' },
+      { short: 'Schwung', anchor: 'kneeR', side: 'r', status: 'single', text: 'Ohne Schwung aus Beinen oder Hüfte ziehen – Beine ruhig halten.', src: ['S4', 'S6'],
+        explain: 'Strikte Ausführung als Protokoll (Snarr et al. 2017). Beim Kipping bewegen sich Hüfte (≈ 49°) und Knie (≈ 57°) deutlich mehr als beim strikten Klimmzug (Dinunzio et al. 2018, Abstract, n = 11). Ob das besser oder schlechter ist, hängt vom Ziel ab; untersucht wurde nur der Unterschied.' },
+      { short: 'Griff', anchor: 'handL', side: 'l', status: 'single', text: 'Griff etwa schulterbreit bis 1,5-fache Schulterbreite.', src: ['S1', 'S4'],
+        explain: 'Schulterbreit („front“) bis weit (Hände am abgeschrägten Teil der Stange) in Prinold & Bull 2016; 1,5-fache Schulterbreite in EMG-Protokollen. Der weite Griff hielt den Oberarm näher an der Frontalebene (≈ 90° Abduktion mit 45° Außenrotation). Ein Optimum ist nicht belegt.' },
+      { short: 'Ab', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Kontrolliert absenken, bis die Arme wieder gestreckt sind.', src: ['S4'],
+        explain: 'Protokoll 2 s auf / 2 s ab (Snarr et al. 2017). Die Absenkphase wurde kinematisch nicht gemessen.' }
+    ],
+    sources: {
+      S1: { label: 'Prinold & Bull 2016, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2015.08.002', read: 'fulltext', note: 'Schulterblatt-Kinematik; Angaben zum Schulterblatt-Kippbereich widersprechen der eigenen Diskussion' },
+      S2: { label: 'Prinold & Bull 2014, J Biomech', url: 'https://doi.org/10.1016/j.jbiomech.2014.05.015', read: 'fulltext' },
+      S3: { label: 'Youdas et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'abstract' },
+      S4: { label: 'Snarr et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0068', read: 'fulltext' },
+      S6: { label: 'Dinunzio et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1452971', read: 'abstract' }
+    }
+  },
+
+  // ---------- Latzug (Frontansicht) ----------
+  {
+    ref: 'lat-pulldown', view: 'front', basis: 'transfer',
+    basisNote: 'Frontansicht. Keine gelesene Studie berichtet Gelenkwinkel für den Latzug an Gesunden; Schulter- und Ellbogenbereich sind vom Klimmzug übertragen (Prinold & Bull 2014, Youdas et al. 2010). Griffbreite, Start mit gestreckten Armen und Endpunkt an der oberen Brust sind Studienprotokolle (Padovan et al. 2024). Sitzend, Oberschenkel unter dem Polster; Arme in die Bildebene projiziert.',
+    tempo: { basis: 'protocol', note: '2 s ziehen, 0,5 s halten, 2 s zurück (Metronom, Padovan et al. 2024).' },
+    frames: [
+      { label: 'Start', pose: { rootPos: [0, -108], armPoints: { elbow: [13.4, -66.9], wrist: [24, -120] }, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: pulldownProps },
+        facts: [V(0, 'L1', 'protocol', 'Ellbogen gestreckt am Start'), V(1.5, 'L1', 'protocol', 'Griff 1,5-fache Biakromialbreite, Obergriff'), V(126, 'S2', 'fulltext', 'Schulter: übertragen vom Klimmzug-Hang (obere Grenze 23–126°)')] },
+      { label: 'Brust', pose: { rootPos: [0, -108], armPoints: { elbow: [12, 44], wrist: [24, 20] }, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: pulldownProps },
+        facts: [V(93.4, 'S3', 'abstract', 'Ellbogen: übertragen vom Klimmzug (ROM 93,4 ± 14,6°)'), V(1, 'L1', 'protocol', 'Stange zur Mitte der Brust (Endkriterium)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Start', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [2, 3] }, { a: 1, b: 1, dur: 0.5, label: 'Halten', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
+    keyPoints: [
+      { short: 'Griff', anchor: 'handL', side: 'l', status: 'consensus', text: 'Griff etwa 1,5-fache Schulterbreite, Handflächen nach vorn.', src: ['L1', 'L3', 'L7'],
+        explain: 'Protokoll der gelesenen Studien (1,5-fache Biakromialbreite). Enger, mittlerer und weiter Griff (1–2-fach) ergaben ähnliche Latissimus-Aktivität; mit dem weiten Griff war das 6RM etwas niedriger (Andersen et al. 2014, n = 15). Griffbreite und Unterarmdrehung änderten die Aktivität kaum (Lusk et al. 2010).' },
+      { short: 'Polster', anchor: 'thighR', side: 'r', status: 'single', text: 'Oberschenkel unter dem Polster fixieren, Becken bleibt auf dem Sitz.', src: ['L1'],
+        explain: 'Aufbau in Padovan et al. 2024 (Becken durch das Oberschenkelpolster fixiert). Ob das die Ausführung verbessert, wurde nicht untersucht.' },
+      { short: 'Ziehen', anchor: 'chest', side: 'r', status: 'consensus', text: 'Aus gestreckten Armen die Stange vor dem Kopf zur oberen Brust ziehen.', src: ['L1', 'L8'],
+        explain: 'Zur Brustmitte (Padovan et al. 2024). Vor dem Kopf erlaubte mehr Last als hinter dem Nacken (8RM 70,0 vs. 59,3 kg) bei gleicher Latissimus-Aktivität; Sperandei et al. 2009 fanden vor dem Kopf die höchste Brust- und ähnliche Latissimus-Aktivität.' },
+      { short: 'Rumpf', anchor: 'belly', side: 'l', status: 'contested', text: 'Oberkörper ruhig und fast aufrecht halten, nur leichte Rücklage.', src: ['L1', 'L4'],
+        explain: 'Umstritten. Padovan et al. 2024 ließen eine leichte Rücklage zu, andere Protokolle verlangen einen senkrechten Rumpf; Buonsenso et al. 2025 testeten eine Variante mit 30° Rücklage als eigene Übungsform. Ein gemessener Rumpfwinkel liegt nicht vor.' },
+      { short: 'Zurück', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Kontrolliert nach oben zurückführen, bis die Arme gestreckt sind.', src: ['L1', 'L7'],
+        explain: 'Start und Ende mit gestreckten Ellbogen in allen Protokollen; Tempo 2 s / 2 s.' }
+    ],
+    sources: {
+      L1: { label: 'Padovan et al. 2024, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/185211', read: 'fulltext' },
+      L3: { label: 'Andersen et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1097/JSC.0000000000000232', read: 'abstract' },
+      L4: { label: 'Buonsenso et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk10030345', read: 'abstract' },
+      L7: { label: 'Lusk et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddb0ab', read: 'abstract' },
+      L8: { label: 'Sperandei et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b8d30a', read: 'abstract' },
+      S2: { label: 'Prinold & Bull 2014, J Biomech (Klimmzug, übertragen)', url: 'https://doi.org/10.1016/j.jbiomech.2014.05.015', read: 'fulltext' },
+      S3: { label: 'Youdas et al. 2010, J Strength Cond Res (Klimmzug, übertragen)', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'abstract' }
+    }
+  },
+
+  // ---------- Seitheben (Frontansicht) ----------
+  {
+    ref: 'lateral-raise-dumbbell', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht. Keine Studie hat das Seitheben selbst vermessen. Endposition 90° Abduktion und fast gestreckter Ellbogen sind das Protokoll von Coratella et al. 2020 (EMG, 10 Bodybuilder, sitzend). Dass sich das Schulterblatt beim Anheben mitdreht (≈ 1° je 2,3° Oberarm), stammt aus Messungen ohne Last (Braman et al. 2009) und wird nicht gezeichnet. Stehend, Ebene der Bewegung in der Zeichnung frontal.',
+    tempo: { basis: 'protocol', note: '2 s anheben, 0,5 s halten, 2 s absenken, 0,5 s halten (Metronom, Coratella et al. 2020).' },
+    frames: [
+      { label: 'Unten', pose: { arm: { abd: V(8, 'L1', 'protocol', 'Arm hängt neben dem Körper (Protokoll 0°, hier 8° wegen der Hanteln)'), elbow: C(12, 'fast gestreckt') }, legs: { hip: C(0), knee: C(0) }, props: raiseProps } },
+      { label: 'Oben', pose: { arm: { abd: V(90, 'L1', 'protocol', 'bis 90° Abduktion (Protokollziel, nicht gemessen)'), elbow: C(12, 'fast gestreckt, bleibt gleich') }, legs: { hip: C(0), knee: C(0) }, props: raiseProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten', kp: [1, 3] }, { a: 0, b: 1, dur: 2.0, label: 'Anheben', kp: [0, 2] }, { a: 1, b: 1, dur: 0.5, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [4] }],
+    keyPoints: [
+      { short: 'Höhe', anchor: 'handR', side: 'r', status: 'consensus', text: 'Arme seitlich anheben, bis die Oberarme etwa waagerecht sind.', src: ['L1', 'L5'],
+        explain: 'Zielwinkel 90° im Studienprotokoll (Coratella et al. 2020). Seitheben über 90° war in einer Querschnittsstudie mit Impingement-Zeichen assoziiert (Kolber et al. 2014, n = 77) – ein Zusammenhang, kein Beleg für eine Ursache.' },
+      { short: 'Ellbogen', anchor: 'elbowL', side: 'l', status: 'single', text: 'Ellbogen fast gestreckt und während der Bewegung gleich lassen.', src: ['L1'],
+        explain: 'Protokoll „fast gestreckt“; eine Variante mit 90° gebeugtem Ellbogen wurde in derselben Studie getestet. Ein Vergleich der Wirkung auf das Muskelwachstum liegt nicht vor.' },
+      { short: 'Daumen', anchor: 'handL', side: 'l', status: 'contested', text: 'Daumen nach vorn oder leicht nach oben, nicht nach unten gedreht.', src: ['L1', 'L4', 'L6'],
+        explain: 'Umstritten. Daumen nach unten erhöhte die EMG-Aktivität des mittleren Deltamuskels (Coratella et al. 2020; Übersicht Rabello et al. 2022). Dagegen: In der Empty-Can-Position drehte das Schulterblatt stärker nach innen und kippte nach vorn (Thigpen et al. 2005, Abstract) – eine Haltung, die als ungünstig gilt; Verletzungsdaten gibt es nicht.' },
+      { short: 'Rumpf', anchor: 'belly', side: 'r', status: 'single', text: 'Rumpf ruhig halten, nicht mit Schwung aus dem Oberkörper arbeiten.', src: ['L1'],
+        explain: 'Die Studie ließ sitzend trainieren, um Rumpfbeteiligung zu vermeiden. Rumpfbewegung beim Seitheben wurde nie gemessen.' },
+      { short: 'Ab', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Kontrolliert absenken, etwa so langsam wie beim Anheben.', src: ['L1'],
+        explain: 'Protokoll 2 s / 2 s (Coratella et al. 2020). Beim Absenken drehte das Schulterblatt in Messungen ohne Last etwas später zurück als es beim Anheben mitging (Braman et al. 2009).' }
+    ],
+    sources: {
+      L1: { label: 'Coratella et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17176015', read: 'fulltext' },
+      L2: { label: 'Kai et al. 2016, J Phys Ther Sci', url: 'https://doi.org/10.1589/jpts.28.1876', read: 'fulltext' },
+      L3: { label: 'Braman et al. 2009, J Shoulder Elbow Surg', url: 'https://doi.org/10.1016/j.jse.2009.02.001', read: 'fulltext' },
+      L4: { label: 'Thigpen et al. 2005, Am J Sports Med', url: 'https://doi.org/10.1177/0363546505281797', read: 'abstract' },
+      L5: { label: 'Kolber et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000250', read: 'abstract' },
+      L6: { label: 'Rabello et al. 2022, J Bodyw Mov Ther (Review)', url: 'https://doi.org/10.1016/j.jbmt.2022.12.002', read: 'abstract' }
+    }
   }
 ];
 
@@ -430,8 +531,27 @@ function rowProps(P) {
   const hand = P.joints.hand, pulley = [240, -70];
   return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [{ type: 'rect', x: -34, y: -90, w: 68, h: 10, rx: 3 }, { type: 'line', from: [0, -80], to: [0, 0], w: 5 }, { type: 'line', from: [166, -78], to: [190, -8], w: 5 }, { type: 'line', from: hand, to: pulley, w: 1.5, dash: true }, { type: 'bar', at: hand, r: 4 }, { type: 'bar', at: pulley, r: 6 }] };
 }
+// Frontansicht
+function pullupProps(P) {
+  return { anchors: { bar: [0, PU.bar] }, scene: [{ type: 'line', from: [-130, PU.bar], to: [130, PU.bar], w: 5 }, { type: 'bar', at: [-130, PU.bar], r: 5 }, { type: 'bar', at: [130, PU.bar], r: 5 }] };
+}
+function pulldownProps(P) {
+  const hr = P.joints.handR, hl = P.joints.handL, y = (hr[1] + hl[1]) / 2;
+  return { anchors: { bar: [0, y] }, scene: [
+    { type: 'rect', x: -36, y: -100, w: 72, h: 10, rx: 3 }, { type: 'line', from: [0, -90], to: [0, 0], w: 5 }, // Sitz
+    { type: 'line', from: [0, -370], to: [0, y - 4], w: 1.5, dash: true }, // Seilzug
+    { type: 'rect', x: -44, y: -128, w: 88, h: 12, rx: 5, front: true }, // Oberschenkelpolster
+    { type: 'line', from: [hl[0] - 14, y], to: [hr[0] + 14, y], w: 5, front: true }, { type: 'bar', at: [hr[0] + 14, y], r: 4 }, { type: 'bar', at: [hl[0] - 14, y], r: 4 }
+  ] };
+}
+function raiseProps(P) {
+  return { anchors: {}, scene: [{ type: 'dumbbell', at: P.joints.handR }, { type: 'dumbbell', at: P.joints.handL }] };
+}
 function midpoint(a, b) { return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
 
 export function animationFor(ref) { return ANIMATIONS.find((a) => a.ref === ref) || null; }
-export function framesOf(anim, variant) { return Array.isArray(anim.frames) ? anim.frames : anim.frames[variant || anim.variants[0].key]; }
+export function framesOf(anim, variant) {
+  const fr = Array.isArray(anim.frames) ? anim.frames : anim.frames[variant || anim.variants[0].key];
+  return anim.view === 'front' ? fr.map((f) => ({ ...f, pose: { view: 'front', ...f.pose } })) : fr;
+}
 export { LEN };

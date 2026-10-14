@@ -5,12 +5,13 @@ import { h } from './util.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import * as M from './motion.js';
+import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F } from './motion-front.js';
 import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT } from './anim-data.js';
 import { poolEntry } from './pool.js';
 import { MUSCLES } from './model.js';
 
 const NS = 'http://www.w3.org/2000/svg';
-const JOINT_DE = { shank: 'Schienbein', knee: 'Knie', hip: 'Hüfte', ankle: 'Sprunggelenk', trunk: 'Rumpf', shoulder: 'Schulter', elbow: 'Ellbogen', foot: 'Fuß', armHang: 'Armneigung' };
+const JOINT_DE = { shank: 'Schienbein', knee: 'Knie', hip: 'Hüfte', ankle: 'Sprunggelenk', trunk: 'Rumpf', shoulder: 'Schulter', abd: 'Schulter (seitlich)', elbow: 'Ellbogen', foot: 'Fuß', armHang: 'Armneigung' };
 const LABEL_W = 88, LABEL_H = 24, GAP = 30, COL = 108, ROWPAD = 62;
 
 export function hasAnimation(ref) { return !!animationFor(ref); }
@@ -25,9 +26,10 @@ function el(tag, attrs = {}, ...children) {
 const nums = (d) => (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
 
 // Rolle je Form aus den Pool-Muskeln (primär/sekundär).
-function roleFn(pool) {
-  const prim = new Set((pool?.muscles.primary || []).map((m) => M.MUSCLE_SHAPE[m]).filter(Boolean));
-  const sec = new Set((pool?.muscles.secondary || []).map((m) => M.MUSCLE_SHAPE[m]).filter(Boolean));
+function roleFn(pool, view) {
+  const map = view === 'front' ? MUSCLE_SHAPE_F : M.MUSCLE_SHAPE;
+  const prim = new Set((pool?.muscles.primary || []).map((m) => map[m]).filter(Boolean));
+  const sec = new Set((pool?.muscles.secondary || []).map((m) => map[m]).filter(Boolean));
   return (id) => (prim.has(id) ? 'p' : sec.has(id) ? 's' : '');
 }
 
@@ -85,7 +87,7 @@ function labelSlots(anim, frames, b, upp) {
 function sceneNodes(scene, behind) {
   const out = [];
   for (const s of scene) {
-    const front = s.type === 'plate' || s.type === 'dumbbell' || s.type === 'bar';
+    const front = s.front || s.type === 'plate' || s.type === 'dumbbell' || s.type === 'bar';
     if (front === behind) continue;
     if (s.type === 'plate') { out.push(el('circle', { cx: s.at[0], cy: s.at[1], r: s.r, class: 'an-plate' }), el('circle', { cx: s.at[0], cy: s.at[1], r: 4, class: 'an-barend' })); }
     else if (s.type === 'dumbbell') out.push(el('rect', { x: s.at[0] - 10, y: s.at[1] - 5, width: 20, height: 10, rx: 3, class: 'an-barend' }));
@@ -101,7 +103,7 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
   const anim = animationFor(ref);
   const pool = poolEntry(ref);
   if (!anim || !pool) return null;
-  const roleOf = roleFn(pool);
+  const roleOf = roleFn(pool, anim.view);
   const st = { variant: anim.variants ? anim.variants[0].key : null, playing: !reducedMotion(), t: 0, last: null, raf: 0, kpActive: [] };
   let frames = M.resolveFrames(framesOf(anim, st.variant));
   let b = bounds(anim, frames);
@@ -235,24 +237,26 @@ export function openDataSheet(anim, frames, pool) {
   const basis = BASIS[anim.basis];
   const frameBlocks = frames.map((f) => {
     const items = [];
+    const vals = { ...f.pose, ...(f.pose.arm || {}), ...(f.pose.legs && !Array.isArray(f.pose.legs.ankle) ? { hip: f.pose.legs.hip, knee: f.pose.legs.knee } : {}) }; // Frontansicht: Arm- und Beinwerte liegen verschachtelt
     for (const [k, de] of Object.entries(JOINT_DE)) {
-      const v = f.pose[k];
+      const v = vals[k];
       if (v === null || v === undefined || typeof v !== 'object' || !('v' in v)) continue;
       items.push(h('li', {}, h('b', {}, `${de} ${fmtDeg(v.v)}`), ` – ${READ[v.read] || v.read}`, v.src?.length ? ` (${srcLabel(anim, v.src)})` : '', v.raw ? h('small', { class: 'muted' }, ` · ${v.raw}`) : null));
     }
     for (const v of f.facts || []) items.push(h('li', {}, h('b', {}, v.raw || fmtDeg(v.v)), ` – ${READ[v.read] || v.read}`, v.src?.length ? ` (${srcLabel(anim, v.src)})` : ''));
     return h('div', {}, h('h4', {}, f.label), h('ul', { class: 'small' }, items));
   });
-  const hidden = [...(pool.muscles.primary || []), ...(pool.muscles.secondary || [])].filter((m) => M.HIDDEN_MUSCLES.includes(m));
+  const hiddenList = anim.view === 'front' ? HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
+  const hidden = [...(pool.muscles.primary || []), ...(pool.muscles.secondary || [])].filter((m) => hiddenList.includes(m));
   openSheet(h('div', { class: 'info' },
     h('p', {}, h('span', { class: `anim-badge ${anim.basis}` }, basis.label), ' ', basis.text),
     h('p', {}, anim.basisNote),
     h('h3', {}, 'Werte je Position'),
     ...frameBlocks,
-    h('p', { class: 'muted small' }, 'Winkel: Knie, Hüfte und Ellbogen als Beugung ab gestreckt (0°); Rumpf- und Schienbeinneigung aus der Senkrechten; Schulter 0° = Arm hängt. Arme außerhalb der Bildebene sind in der Seitenansicht verkürzt dargestellt.'),
+    h('p', { class: 'muted small' }, anim.view === 'front' ? 'Frontansicht: Schulter seitlich 0° = Arm hängt, 90° = waagerecht; Ellbogen als Beugung ab gestreckt. Arme und Beine, die aus der Bildebene zeigen, sind verkürzt dargestellt; Beugungen in der Sagittalebene (z. B. angewinkelte Beine) erscheinen nur als Verkürzung.' : 'Winkel: Knie, Hüfte und Ellbogen als Beugung ab gestreckt (0°); Rumpf- und Schienbeinneigung aus der Senkrechten; Schulter 0° = Arm hängt. Arme außerhalb der Bildebene sind in der Seitenansicht verkürzt dargestellt.'),
     h('h3', {}, 'Tempo'),
     h('p', {}, h('b', {}, TEMPO_BASIS[anim.tempo.basis]), ` – ${anim.tempo.note}`),
-    hidden.length ? h('p', { class: 'muted small' }, `Nicht als Fläche sichtbar (Seitenansicht): ${hidden.map((m) => MUSCLES[m]).join(', ')}.`) : null,
+    hidden.length ? h('p', { class: 'muted small' }, `Nicht als Fläche sichtbar (${anim.view === 'front' ? 'Frontansicht' : 'Seitenansicht'}): ${hidden.map((m) => MUSCLES[m]).join(', ')}.`) : null,
     h('h3', {}, 'Quellen'),
     h('ul', { class: 'small' }, Object.entries(anim.sources).map(([id, s]) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), ` – ${READ[s.read] || s.read}`, s.note ? h('small', { class: 'muted' }, ` · ${s.note}`) : null))),
     h('p', { class: 'muted small' }, `Recherche vom ${fmtDate(ANIM_CHECKED_AT)}. Werte mit „automatische Seitenzusammenfassung“ sind noch nicht am PDF geprüft.`)

@@ -45,6 +45,7 @@ const PRECACHE = [
   'js/week.js',
   'js/figure.js',
   'js/motion.js',
+  'js/motion-front.js',
   'js/anim-data.js',
   'js/anim-view.js',
   'js/muscle-view.js',
