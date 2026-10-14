@@ -259,22 +259,30 @@ export function openEditor(existing, rerender) {
     h('div', { class: 'field' }, h('label', {}, 'Notiz'), noteInput, sourceBox),
     !isNew ? h('button', { class: 'btn block subtle', type: 'button', onclick: archive }, ex.archived ? 'Wiederherstellen' : 'Archivieren') : null,
     h('button', { class: 'btn primary block sticky-bottom', type: 'submit' }, ex.archived ? 'Speichern (archiviert)' : 'Speichern'));
-  // Variante B: Verlauf direkt in der Übung (nur wenn es abgeschlossene Trainings gibt).
+  // Reiter: Details, Verlauf (wenn es Trainings gibt), Technik (wenn die Übung eine Animation hat, v2.0.1).
   let content = body;
-  if (!isNew && hasHistory(ex.id)) {
+  let anim = null;
+  const tabs = [['details', 'Details']];
+  if (!isNew && hasHistory(ex.id)) tabs.push(['history', 'Verlauf']);
+  const techRef = !isNew && ex.source && ex.source.ref && hasAnimation(ex.source.ref) ? ex.source.ref : null;
+  if (techRef) tabs.push(['tech', 'Technik']);
+  if (tabs.length > 1) {
     const panel = h('div', { hidden: true });
     const segBox = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' });
     const show = (which) => {
+      if (anim) { anim.stop(); anim = null; }
       body.hidden = which !== 'details';
-      panel.hidden = which !== 'history';
+      panel.hidden = which === 'details';
+      panel.replaceChildren();
       if (which === 'history') panel.replaceChildren(progressPanel(lib.getExercise(ex.id) || ex));
-      segBox.replaceChildren(...[['details', 'Details'], ['history', 'Verlauf']].map(([k, label]) =>
+      if (which === 'tech') { anim = animationCard(techRef); panel.replaceChildren(anim.el); }
+      segBox.replaceChildren(...tabs.map(([k, label]) =>
         h('button', { type: 'button', role: 'tab', 'aria-selected': String(k === which), class: k === which ? 'on' : '', onclick: () => show(k) }, label)));
     };
     show('details');
     content = h('div', {}, segBox, body, panel);
   }
-  const sheet = openSheet(content, { title: isNew ? 'Neue Übung' : ex.name || 'Übung', full: true });
+  const sheet = openSheet(content, { title: isNew ? 'Neue Übung' : ex.name || 'Übung', full: true, onClose: () => { if (anim) anim.stop(); } });
   if (isNew) setTimeout(() => nameInput.focus(), 250);
 }
 
@@ -289,11 +297,15 @@ function openAddChoice(rerender) {
   ), { title: 'Übung hinzufügen' });
 }
 
+// DEV-Markierung (v2.0.1, vorübergehend): Übungen mit Animation dezent kennzeichnen. Zum Entfernen auf false setzen und später Block + CSS .dev-anim löschen.
+const DEV_MARK_ANIM = true;
+
 function exerciseRow(ex, rerender) {
   return h('button', { class: 'row', type: 'button', onclick: () => openEditor(ex, rerender) },
     h('span', { class: 'fig-ic' }, miniFigure(ex, store.get('settings').figure)), // v1.4 Piktogramm (Entscheidung 7 B)
     h('span', { class: 't' },
-      h('b', {}, ex.name),
+      h('b', {}, ex.name, DEV_MARK_ANIM && ex.source && ex.source.ref && hasAnimation(ex.source.ref)
+        ? h('span', { class: 'dev-anim', title: 'Hat Technik-Animation', 'aria-label': 'Hat Technik-Animation' }, icon('motion', { size: 13, cls: 'inline' })) : null),
       h('small', {}, ex.kind === 'cardio' && !ex.muscles.primary.length ? 'Cardio' : lib.muscleSummary(ex)),
       ex.note ? h('i', {}, icon('edit', { size: 13, cls: 'inline' }), ` ${ex.note}`) : null),
     h('span', { class: 'chev' }, icon('chevron', { size: 18 })));
