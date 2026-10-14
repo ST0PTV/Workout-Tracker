@@ -6,6 +6,7 @@ import { nowISO } from './util.js';
 import { createSet, sessionSummary, hardSets, validateSession, SET_TYPES } from './model.js';
 import { getPlan } from './plans.js';
 import * as SETS from './sets.js';
+import { fmtDuration } from './input.js';
 
 const exercisesById = () => Object.fromEntries(store.get('exercises').map((e) => [e.id, e]));
 
@@ -38,14 +39,14 @@ export function diaryRows(sessions = finishedSessions()) {
       durationMin: durationMin(s),
       hardSets: sum.hardSets,
       volume: sum.volume,
-      exercises: s.entries.map((en) => ({ name: byId[en.exerciseId]?.name || 'Unbekannte Übung', hardSets: hardSets(en, byId[en.exerciseId]?.kind) }))
+      exercises: s.entries.map((en) => { const kind = byId[en.exerciseId]?.kind; return { name: byId[en.exerciseId]?.name || 'Unbekannte Übung', hardSets: hardSets(en, kind), kind, durationSec: kind === 'cardio' ? en.sets.filter((x) => x.completedAt).reduce((a, x) => a + (x.durationSec || 0), 0) : 0 }; })
     };
   });
 }
 
 // Kurzfassung der Übungen: "Kniebeuge 3 · Bankdrücken 3 · +2"
 export function exerciseLine(exercises, max = 3) {
-  const head = exercises.slice(0, max).map((e) => `${e.name} ${e.hardSets}`);
+  const head = exercises.slice(0, max).map((e) => `${e.name} ${e.kind === 'cardio' ? (e.durationSec ? fmtDuration(e.durationSec) : '–') : e.hardSets}`); // Cardio: Dauer statt Satzzahl
   const rest = exercises.length - max;
   return rest > 0 ? `${head.join(' · ')} · +${rest}` : head.join(' · ');
 }

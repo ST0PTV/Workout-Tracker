@@ -43,7 +43,7 @@ export function diaryList(rerender) {
     const line = H.exerciseLine(r.exercises);
     out.push(h('button', { class: 'pcard diary-card', type: 'button', onclick: () => openDiaryEntry(r.session.id, rerender) },
       h('span', { class: 'pc-top' }, h('b', {}, r.name), h('span', { class: 'muted small' }, fmtLong(r.session.startedAt))),
-      h('small', {}, `${durText(r.durationMin)} · ${r.hardSets} ${r.hardSets === 1 ? 'Arbeitssatz' : 'Arbeitssätze'}`),
+      h('small', {}, r.hardSets ? `${durText(r.durationMin)} · ${r.hardSets} ${r.hardSets === 1 ? 'Arbeitssatz' : 'Arbeitssätze'}` : durText(r.durationMin)), // ohne Arbeitssätze (nur Cardio) nur die Dauer
       line ? h('span', { class: 'ex' }, line) : null));
   }
   return out;

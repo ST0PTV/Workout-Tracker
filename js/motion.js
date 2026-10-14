@@ -281,12 +281,15 @@ function tf1(P, seg, pt) {
   }
   return [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
 }
+const SHOULDER_BLEND = 0.45;
 // Weiche Übergänge an der Hüfte: Gesäß und oberer Oberschenkel folgen teils dem Nachbarsegment.
 function blend(seg, pt) {
   const c = (x) => clamp(x, 0, 1);
   const b = baseSeg(seg), two = seg.endsWith('2') ? '2' : '';
   if (b === 'trunk' && pt[1] > -215) return { other: 'thigh' + two, w: c((pt[1] + 215) / 45) * (pt[0] < -4 ? 0.6 : 0.35) };
   if (b === 'thigh' && pt[1] < -150) return { other: 'trunk', w: c((-150 - pt[1]) / 25) * 0.35 };
+  // Schulter: Deltamuskel und Schultergelenk folgen beim Armheben teils dem Rumpf (Schulterblatt dreht mit), sonst sitzt der Muskel wie ein Ball am Armansatz.
+  if (b === 'uarm' && pt[1] < -262) return { other: 'trunk', w: c((-262 - pt[1]) / 30) * SHOULDER_BLEND };
   return null;
 }
 export function tf(P, seg, pt) {
