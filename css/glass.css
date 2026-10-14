@@ -552,3 +552,6 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .anim-status.single { background: rgba(166, 176, 212, 0.14); color: var(--muted); }
 .info h4 { margin: 12px 0 4px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .an-mark, .anim-kp .plain { transition: none; } }
+
+/* DEV-Markierung (v2.0.1, vorübergehend): Übungen mit Animation */
+.dev-anim { display: inline-block; margin-left: 6px; color: var(--accent); opacity: 0.7; vertical-align: -1px; }
