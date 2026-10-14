@@ -2,7 +2,7 @@
 
 Kostenlose Workout-Tracker-PWA fürs iPhone, Fokus auf Krafttraining. Alle Daten bleiben lokal im Browser-Speicher, es gibt keinen Server und keine Accounts.
 
-Status: Version 1.8 (Training loggen, Pläne, Fortschritt, Tagebuch, Muskelkarte, recherchierter Übungspool). Die aktuelle Version steht in `js/version.js`.
+Status: Version 2.0 (Training loggen, Pläne, Fortschritt, Tagebuch, Muskelkarte, recherchierter Übungspool, Technik-Animationen mit Kernpunkten). Die aktuelle Version steht in `js/version.js`.
 
 ## Lokal ausprobieren
 

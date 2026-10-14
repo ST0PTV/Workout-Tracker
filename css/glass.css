@@ -500,3 +500,55 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .time-line .t { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .time-line .t small { color: var(--muted); }
 .time-line svg { color: var(--accent); }
+
+/* v2.0: Übungsanimationen – Figur, Hinweislinien (Stil H), Steuerung */
+.lastl-links { display: flex; gap: 10px; flex: none; }
+.anim-card { margin: 0 0 14px; }
+.anim-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.anim-badge { display: inline-flex; align-items: center; gap: 2px; border: 1px solid rgba(110, 231, 216, 0.5); background: rgba(110, 231, 216, 0.14); color: var(--accent);
+  border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; min-height: 30px; }
+.anim-badge.protocol { border-color: rgba(255, 207, 122, 0.5); background: rgba(255, 207, 122, 0.14); color: var(--warn); }
+.anim-badge.transfer { border-color: rgba(166, 176, 212, 0.5); background: rgba(166, 176, 212, 0.14); color: var(--muted); }
+.anim-seg { flex: 1; min-width: 180px; max-width: 240px; }
+.anim-seg button { min-height: 34px; font-size: 13px; }
+.anim-stage { border-radius: 20px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glass-border); padding: 6px; display: flex; justify-content: center; }
+.anim-svg { width: 100%; height: auto; max-height: 380px; display: block; }
+.an-floor { stroke: rgba(255, 255, 255, 0.25); stroke-width: 2; }
+.an-body.edge { fill: #232b55; stroke: rgba(242, 245, 255, 0.7); stroke-width: 2.6; stroke-linejoin: round; }
+.an-body.fill { fill: #232b55; }
+.an-body.far.edge { fill: #1a2042; stroke: rgba(242, 245, 255, 0.4); }
+.an-body.far.fill { fill: #1a2042; }
+.an-ear { fill: #2e3870; stroke: rgba(8, 12, 28, 0.75); stroke-width: 1; }
+.an-m { stroke: rgba(8, 12, 28, 0.75); stroke-width: 1.1; stroke-linejoin: round; }
+.an-m.rest { fill: #3b4682; }
+.an-m.prim { fill: var(--accent); }
+.an-m.sec { fill: #4669c8; }
+.an-m.far.rest { fill: #2c355f; } .an-m.far.prim { fill: #3f8f86; } .an-m.far.sec { fill: #3a52a0; }
+.an-plate { fill: rgba(122, 162, 255, 0.10); stroke: var(--accent-2); stroke-width: 2.5; }
+.an-barend { fill: var(--accent-2); }
+.an-gear { fill: rgba(255, 255, 255, 0.10); stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.2; }
+.an-gear-line { stroke: rgba(255, 255, 255, 0.35); stroke-linecap: round; }
+.an-gear-line.dash { stroke-dasharray: 5 5; }
+.an-mark { opacity: 0.3; transition: opacity 0.35s; cursor: pointer; }
+.an-mark.on { opacity: 1; }
+.an-lead { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+.an-dot { fill: var(--accent); }
+.an-pill { fill: rgba(11, 16, 32, 0.88); stroke: var(--accent); stroke-width: 1.2; }
+.an-label { fill: var(--text); font-weight: 600; font-family: inherit; }
+.anim-ctl { display: flex; align-items: center; gap: 14px; margin: 12px 0 8px; font-size: 15px; }
+.anim-play { min-width: 136px; min-height: 48px; }
+.anim-phase { color: var(--text); font-weight: 600; }
+.anim-frames { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 10px; }
+.anim-kps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.anim-kp .plain { display: flex; align-items: flex-start; gap: 10px; width: 100%; text-align: left; background: none; border: 0; color: var(--muted); font: inherit; font-size: 15px; line-height: 1.35;
+  padding: 7px 10px; border-radius: 12px; transition: background 0.35s, color 0.35s; cursor: pointer; }
+.anim-kp.on .plain { color: var(--text); background: rgba(110, 231, 216, 0.12); }
+.anim-kp .n { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(110, 231, 216, 0.5); color: var(--accent); font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+.anim-kp .t { flex: 1; }
+.anim-kp .tag { font-style: normal; font-size: 11px; color: var(--warn); margin-left: 6px; text-transform: uppercase; letter-spacing: 0.06em; }
+.anim-kp .info-mark { color: var(--muted); margin-top: 3px; }
+.anim-status { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; background: rgba(110, 231, 216, 0.14); color: var(--accent); }
+.anim-status.contested { background: rgba(255, 207, 122, 0.14); color: var(--warn); }
+.anim-status.single { background: rgba(166, 176, 212, 0.14); color: var(--muted); }
+.info h4 { margin: 12px 0 4px; font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .an-mark, .anim-kp .plain { transition: none; } }

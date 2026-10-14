@@ -14,6 +14,7 @@ import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import * as store from './store.js';
 import { progressPanel, hasHistory } from './progress-view.js';
+import { animationCard, hasAnimation } from './anim-view.js';
 
 const KIND_LABEL = { strength: 'Kraft', bodyweight: 'Körpergewicht', cardio: 'Cardio' };
 const VERIF_LABEL = {
@@ -86,7 +87,11 @@ export function openEvidence(ref) {
     : h('span', { class: 'muted' }, '–'));
   // Cardio (v1.8): Muskeln nur zur Info, sie zählen nicht für die Muskelkarte.
   const m = p.involved || p.muscles;
+  // v2.0: Animation mit Kernpunkten, wenn für die Übung vorhanden
+  const anim = hasAnimation(ref) ? animationCard(ref) : null;
   openSheet(h('div', { class: 'info' },
+    anim ? anim.el : null,
+    anim ? h('h3', {}, 'Muskeln') : null,
     p.involved ? h('p', { class: 'muted small' }, 'Cardio zählt nicht für die Muskelkarte. Die Muskeln unten sind nur zur Information.') : null,
     h('p', {}, h('b', {}, p.involved ? 'Hauptsächlich beteiligt: ' : 'Primär: '), muscleLinks(m.primary)),
     h('p', {}, h('b', {}, p.involved ? 'Mitbeteiligt: ' : 'Sekundär: '), muscleLinks(m.secondary)),
@@ -96,7 +101,7 @@ export function openEvidence(ref) {
     h('h3', {}, 'Quellen'),
     sourceList(p.sources),
     h('p', { class: 'muted small' }, `Geprüft am ${fmtDate(POOL_CHECKED_AT)}. Muskelaktivität im EMG sagt nicht direkt etwas über Muskelwachstum aus; Technik und Variante verändern die Verteilung.`)
-  ), { title: p.name });
+  ), { title: p.name, full: !!anim, onClose: anim ? anim.stop : null });
 }
 
 // ---------- Startpool ----------
