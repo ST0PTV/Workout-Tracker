@@ -8,8 +8,11 @@ import { weeklyMuscleSets, weekStart, addWeeks, level, fmtSets, LEVEL_LABELS, IN
 import { figureSvg, FRONT, BACK } from './figure.js';
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
+import { candidatesFor, isLowLevel, addToTraining } from './muscle-pick.js';
+import { activeSession } from './session.js';
+import { toast } from './ui.js';
 
-const st = { offset: 0, view: 'front', selected: null, all: false };
+const st = { offset: 0, view: 'front', selected: null, all: false, more: false };
 const fmtD = (d) => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 
 export const WEEK_INFO = {
@@ -54,6 +57,7 @@ export function musclesPanel(rerender) {
   const max = Math.max(0, ...rows.map((r) => r.total));
   const pick = (id) => {
     st.selected = st.selected === id ? null : id;
+    st.more = false;
     if (st.selected && !(FRONT.includes(id) && BACK.includes(id))) st.view = FRONT.includes(id) ? 'front' : 'back';
     rerender();
   };
@@ -75,11 +79,34 @@ export function musclesPanel(rerender) {
   const legend = h('div', { class: 'legend' }, LEVEL_LABELS.map((t, i) => h('span', {}, h('i', { class: `sw lv${i}` }), t)), h('span', {}, 'Sätze'));
 
   const sel = st.selected ? rows.find((r) => r.id === st.selected) : null;
+  const choose = (arg) => {
+    const r = addToTraining(arg);
+    if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+    toast(r.started ? 'Freies Training gestartet' : 'Zum Training hinzugefügt');
+    location.hash = '#/';
+  };
+  const pickRow = (name, sub, arg) => h('button', { type: 'button', class: 'pickrow', onclick: () => choose(arg) },
+    h('span', { class: 'pname' }, name, sub ? h('small', { class: 'muted' }, sub) : null), icon('plus', { size: 20 }));
+  let pickBox = null;
+  if (sel) {
+    const c = candidatesFor(sel.id, exercises);
+    const LIMIT = 4;
+    const all = [...c.own.map((e) => ({ k: 'own', e })), ...c.pool.map((p) => ({ k: 'pool', p }))];
+    const visible = st.more ? all : all.slice(0, LIMIT);
+    pickBox = h('div', { class: 'pickbox' },
+      h('small', { class: 'muted' }, activeSession() ? 'Antippen fügt die Übung dem laufenden Training hinzu.' : 'Antippen startet ein freies Training mit dieser Übung.'),
+      visible.length ? visible.map((x) => (x.k === 'own'
+        ? pickRow(x.e.name, null, { exerciseId: x.e.id })
+        : pickRow(x.p.name, 'aus dem Pool', { poolRef: x.p.ref }))) : h('small', { class: 'muted' }, 'Keine passende Übung gefunden.'),
+      all.length > LIMIT ? h('button', { class: 'link small center-btn', type: 'button', onclick: () => { st.more = !st.more; rerender(); } }, st.more ? 'Weniger' : `Alle ${all.length} anzeigen`) : null);
+  }
   const selCard = sel ? h('div', { class: 'card msel' },
     h('div', { class: 'msel-top' }, h('b', {}, sel.name), h('span', {}, `${fmtSets(sel.direct)} direkt`, sel.indirect ? h('span', { class: 'muted' }, ` · +${fmtSets(sel.indirect)} indirekt`) : null)),
     h('small', { class: 'muted' }, sel.exercises.length
       ? sel.exercises.map((e) => `${byId[e.exerciseId]?.name || 'Übung'} ${fmtSets(e.direct + e.indirect)}`).join(' · ')
-      : 'In dieser Woche nicht trainiert.')) : null;
+      : 'In dieser Woche nicht trainiert.'),
+    st.offset === 0 && isLowLevel(sel.total) ? h('small', { class: 'muted' }, `Stufe der Karte: ${LEVEL_LABELS[level(sel.total)]} Sätze diese Woche (nur Darstellung, kein Ziel).`) : null,
+    pickBox) : null;
 
   const sorted = [...rows].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'de'));
   const shown = st.all ? rows : sorted.filter((r) => r.total > 0).slice(0, 3);
