@@ -10,6 +10,10 @@ import { icon } from './icons.js';
 import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import { miniFigure } from './figure.js';
+import { routinesPanel, planSlots, openNewRoutine } from './routine-view.js';
+
+// v2.3.0: Umschalter „Pläne | Routinen“ (Variante C); bleibt beim Neu-Rendern erhalten.
+const tab = { mode: 'plans' };
 
 const fmtDate = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
 
@@ -171,8 +175,10 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
         h('div', { class: 'card stp-card' }, main, editRow, side ? h('div', { class: 'edit-bottom' }, side) : null));
     });
 
+    const slots = planSlots(plan, () => { draw(); rerender(); });
     body.replaceChildren(...[
       head,
+      slots.before,
       ...steps,
       mode.edit || !details.length ? h('button', { class: 'addline', type: 'button', onclick: () => openExercisePicker(P.getPlan(planId), (ids) => {
         if (!ids.length) return;
@@ -181,6 +187,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
         toast(`${ids.length} ${ids.length === 1 ? 'Übung' : 'Übungen'} hinzugefügt.`);
         draw(); rerender();
       }) }, icon('plus', { size: 18 }), 'Übungen hinzufügen') : null,
+      slots.after,
       mode.edit && plan.archived ? h('button', { class: 'btn block subtle', type: 'button', onclick: () => {
         const r = P.setPlanArchived(planId, false);
         if (!r.ok) { toast(r.errors[0], { error: true }); return; }
@@ -212,8 +219,17 @@ export function plansView(rerender) {
       h('small', {}, `${s.count} ${s.count === 1 ? 'Übung' : 'Übungen'} · ${s.sets} Arbeitssätze`),
       s.count ? h('span', { class: 'ex' }, s.names.join(' · ')) : h('span', { class: 'ex muted' }, 'Noch leer – tippen zum Befüllen'));
   };
+  const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },
+    [['plans', 'Pläne'], ['routines', 'Routinen']].map(([k, label]) =>
+      h('button', { type: 'button', role: 'tab', class: tab.mode === k ? 'on' : '', 'aria-selected': String(tab.mode === k),
+        onclick: () => { if (tab.mode !== k) { tab.mode = k; rerender(); } } }, label)));
+  if (tab.mode === 'routines') {
+    return h('section', { class: 'plans' }, h('h1', {}, 'Pläne'), seg, routinesPanel(rerender),
+      h('button', { class: 'fab', type: 'button', 'aria-label': 'Routine anlegen', onclick: () => openNewRoutine(rerender) }, icon('plus', { size: 30 })));
+  }
   return h('section', { class: 'plans' },
     h('h1', {}, 'Pläne'),
+    seg,
     plans.length
       ? plans.map((p) => card(p))
       : h('div', { class: 'card empty' },

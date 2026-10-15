@@ -565,3 +565,40 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 
 /* v2.3.0: Piktogramm mit Vorder- und Rückseite */
 .fig-dual { display: inline-flex; gap: 2px; align-items: center; }
+
+/* v2.3.0: Routinen (Aufwärmen / Cool-down) – Liste, Editor, Plan-Slots, Ablauf */
+.routines .tag, .row .tag { flex: none; font-size: 11.5px; padding: 3px 8px; border-radius: 999px; background: rgba(122, 162, 255, 0.2); color: #c9d6ff; }
+.sec-row { display: flex; align-items: center; justify-content: space-between; }
+.info-btn.small { width: 30px; height: 30px; }
+.row.on { background: rgba(110, 231, 216, 0.1); }
+.slot { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 58px; margin: 0 0 12px; padding: 10px 14px; text-align: left; color: var(--text);
+  border-radius: 16px; border: 1px dashed rgba(255, 255, 255, 0.28); background: none; cursor: pointer; font: inherit; }
+.slot.set { border-color: rgba(110, 231, 216, 0.55); background: rgba(110, 231, 216, 0.08); }
+.slot .t { flex: 1; min-width: 0; }
+.slot small { display: block; font-size: 12.5px; color: var(--muted); }
+.slot b { display: block; font-size: 15px; font-weight: 600; margin-top: 2px; }
+.rt-item { padding: 10px 12px; margin-bottom: 10px; }
+.rt-head { display: flex; align-items: center; gap: 10px; }
+.rt-head .t { flex: 1; min-width: 0; }
+.rt-head b { display: block; font-size: 15px; }
+.rt-head small { display: block; font-size: 12.5px; color: var(--muted); }
+.rt-dose { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 8px; }
+.hint-box { border-radius: 14px; background: rgba(122, 162, 255, 0.14); border: 1px solid rgba(122, 162, 255, 0.3); padding: 10px 12px; font-size: 13.5px; line-height: 1.4; color: #d6e0ff; margin: 4px 0 12px; }
+.cooldown-offer { margin-top: 8px; display: grid; gap: 8px; }
+.runner { display: flex; flex-direction: column; gap: 10px; }
+.run-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.runner .bar { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.runner .bar-in { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+.run-meta { display: flex; justify-content: space-between; }
+.run-card { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 20px 16px; }
+.run-card h2 { font-size: 24px; margin: 4px 0 0; }
+.run-card p { margin: 0; line-height: 1.4; }
+.run-fig svg { display: block; }
+.run-label { font-weight: 700; color: var(--accent); }
+.ring { --p: 0%; width: 150px; height: 150px; border-radius: 50%; margin: 8px auto 4px; display: flex; align-items: center; justify-content: center;
+  background: conic-gradient(var(--accent) 0 var(--p), rgba(255, 255, 255, 0.12) var(--p) 100%); }
+.ring-in { width: 128px; height: 128px; border-radius: 50%; background: var(--bg-1); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ring-time { font-size: 34px; font-variant-numeric: tabular-nums; }
+.ring.done .ring-time { color: var(--accent); font-size: 26px; }
+.run-nav .btn { min-height: 56px; font-size: 17px; }
+.run-nav .btn.primary { flex: 2 1 160px; }

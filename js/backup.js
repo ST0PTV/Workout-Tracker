@@ -1,6 +1,7 @@
 // Backup-Export/-Import mit versioniertem Schema.
 // Format: { app: "workout-tracker", schemaVersion, exportedAt: ISO,
-//           data: { exercises[], groups[], plans[], sessions[], settings{} } }
+//           data: { exercises[], groups[], plans[], sessions[], routines[], settings{} } }
+// routines[] seit v2.3.0 (fehlt in älteren Backups → leere Liste).
 // Ältere Schema-Versionen werden beim Import migriert (js/migrate.js).
 import * as store from './store.js';
 import { nowISO } from './util.js';
@@ -38,6 +39,7 @@ export function validateBackup(obj) {
   for (const key of store.COLLECTIONS) {
     const list = obj.data[key];
     if (list === undefined && key === 'groups' && obj.schemaVersion === 1) continue; // in v1 noch nicht vorhanden
+    if (list === undefined && key === 'routines') continue; // vor v2.3.0 nicht vorhanden
     if (!Array.isArray(list)) { errors.push(`"${key}" fehlt oder ist keine Liste.`); continue; }
     const ids = new Set();
     for (const item of list) {
@@ -54,6 +56,7 @@ export function validateBackup(obj) {
 
   const migrated = migrateData(obj.data, obj.schemaVersion);
   if (!migrated.ok) return { ok: false, errors: migrated.errors };
+  migrated.data.routines = Array.isArray(obj.data.routines) ? migrated.data.routines || obj.data.routines : [];
 
   const contentErrors = validateData(migrated.data);
   if (contentErrors.length) return { ok: false, errors: contentErrors };
@@ -69,7 +72,8 @@ export function validateBackup(obj) {
       exercises: data.exercises.length,
       groups: data.groups.length,
       plans: data.plans.length,
-      sessions: data.sessions.length
+      sessions: data.sessions.length,
+      routines: data.routines.length
     }
   };
 }

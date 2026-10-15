@@ -96,6 +96,8 @@ function readView(s) {
       h('div', { class: 'stat' }, h('b', {}, durText(H.durationMin(s))), h('span', {}, 'Dauer')),
       h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Arbeitssätze')),
       h('div', { class: 'stat' }, h('b', {}, Math.round(sum.volume).toLocaleString('de-DE')), h('span', {}, 'Volumen kg'))),
+    // v2.3.0: erledigte Routinen nur als Protokoll (zählen nicht mit).
+    (s.routines || []).length ? h('p', { class: 'muted small' }, s.routines.map((r) => `${r.phase === 'cooldown' ? 'Cool-down' : 'Aufwärmen'}: ${r.name}${r.done < r.total ? ' (teilweise)' : ''}`).join(' · ')) : null,
     s.entries.map((en) => {
       const ex = byId[en.exerciseId];
       let workNo = 0;

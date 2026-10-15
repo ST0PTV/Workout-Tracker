@@ -9,6 +9,7 @@
 // - Satztypen: warmup (geloggt, zählt nicht für Volumen/Fortschritt), work, drop
 //   (ein harter Satz; alle Stufen zählen ins Volumen).
 import { uuid, nowISO } from './util.js';
+import { ITEM_BY_REF, TEMPLATES, PHASES } from './routine-data.js';
 
 export const SCHEMA_VERSION = 2;
 
@@ -184,6 +185,8 @@ export function validatePlan(p) {
     }
   }
   if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);
+  // v2.3.0 (optional, ohne Schemaänderung): Aufwärm-/Cool-down-Routine des Plans (eigene id oder Vorlage "tpl:…").
+  for (const k of ['warmupRoutineId', 'cooldownRoutineId']) if (p[k] !== undefined && p[k] !== null && !isId(p[k])) err.push(`Plan ${p.id}: ${k} ungültig.`);
   if (!isISO(p.createdAt) || !isISO(p.updatedAt)) err.push(`Plan ${p.id}: Zeitstempel ungültig.`);
   return err;
 }
@@ -237,7 +240,34 @@ export function validateSession(x) {
       else for (const s of en.sets) err.push(...validateSet(s, `Training ${x.id}: `));
     }
   }
+  // v2.3.0 (optional): erledigte Routinen dieses Trainings – nur Protokoll, zählt nirgends mit.
+  if (x.routines !== undefined) {
+    if (!Array.isArray(x.routines)) err.push(`Training ${x.id}: routines ist keine Liste.`);
+    else for (const r of x.routines) {
+      if (!r || !isId(r.routineId) || !isStr(r.name) || !(r.phase in PHASES) || !isISO(r.startedAt) || !isISO(r.endedAt)
+        || !Number.isInteger(r.done) || !Number.isInteger(r.total) || r.done < 0 || r.done > r.total) err.push(`Training ${x.id}: Routine-Eintrag ungültig.`);
+    }
+  }
   if (!isISO(x.createdAt) || !isISO(x.updatedAt)) err.push(`Training ${x.id}: Zeitstempel ungültig.`);
+  return err;
+}
+
+// v2.3.0: eigene Routine (Aufwärmen/Cool-down). Übungen kommen aus dem Katalog (js/routine-data.js).
+export const ROUTINE_LIMITS = { seconds: [5, 3600], reps: [1, 100], rounds: [1, 10] };
+const inRange = (v, [lo, hi]) => Number.isInteger(v) && v >= lo && v <= hi;
+export function validateRoutine(r) {
+  const err = [];
+  if (!r || !isId(r.id) || r.id.startsWith('tpl:')) return ['Routine ohne gültige id.'];
+  if (!isStr(r.name) || !r.name.trim() || r.name.trim().length > 60) err.push(`Routine ${r.id}: Name fehlt oder zu lang.`);
+  if (!(r.phase in PHASES)) err.push(`Routine ${r.id}: Phase ungültig.`);
+  if (!Array.isArray(r.items)) err.push(`Routine ${r.id}: items ist keine Liste.`);
+  else for (const it of r.items) {
+    if (!it || !isId(it.id) || !ITEM_BY_REF[it.ref]) { err.push(`Routine ${r.id}: unbekannte Übung.`); continue; }
+    if (it.seconds !== null && !inRange(it.seconds, ROUTINE_LIMITS.seconds)) err.push(`Routine ${r.id}: Dauer ungültig.`);
+    if (it.reps !== null && !inRange(it.reps, ROUTINE_LIMITS.reps)) err.push(`Routine ${r.id}: Wiederholungen ungültig.`);
+    if (!inRange(it.rounds, ROUTINE_LIMITS.rounds)) err.push(`Routine ${r.id}: Runden ungültig.`);
+  }
+  if (!isISO(r.createdAt) || !isISO(r.updatedAt)) err.push(`Routine ${r.id}: Zeitstempel ungültig.`);
   return err;
 }
 
@@ -250,12 +280,18 @@ export function validateData(data) {
   for (const g of data.groups) err.push(...validateGroup(g));
   for (const p of data.plans) err.push(...validatePlan(p));
   for (const s of data.sessions) err.push(...validateSession(s));
+  for (const r of data.routines || []) err.push(...validateRoutine(r));
   if (err.length) return err;
 
   const ex = byId(data.exercises);
   const gr = byId(data.groups);
   const pl = byId(data.plans);
   for (const e of data.exercises) for (const g of e.groupIds) if (!gr.has(g)) err.push(`Übung ${e.id}: Gruppe ${g} existiert nicht.`);
+  const ro = byId(data.routines);
+  const tpl = new Set(TEMPLATES.map((t) => t.id));
+  for (const p of data.plans) {
+    for (const k of ['warmupRoutineId', 'cooldownRoutineId']) if (p[k] && !(ro.has(p[k]) || tpl.has(p[k]))) err.push(`Plan ${p.id}: Routine ${p[k]} existiert nicht.`);
+  }
   for (const p of data.plans) {
     for (const it of p.items) {
       if (!ex.has(it.exerciseId)) err.push(`Plan ${p.id}: Übung ${it.exerciseId} existiert nicht.`);
