@@ -65,15 +65,15 @@ export const TEMPLATES = [
     it('cardio-bike', { seconds: 150 }), it('arm-circles'), it('leg-swing-front'), it('bw-squat')
   ], 'Kurz und locker. Danach 1–3 leichte Sätze der ersten Übung.'),
   tpl('wu-full-10', 'Ganzkörper 10 min', 'warmup', 10, 'full', [
-    it('cardio-bike', { seconds: 300 }), it('arm-circles'), it('arm-swings'), it('leg-swing-front'), it('leg-swing-side'),
+    it('cardio-bike', { seconds: 240 }), it('arm-circles'), it('arm-swings'), it('leg-swing-front'), it('leg-swing-side'),
     it('hip-circles'), it('worlds-greatest', { reps: 3 }), it('glute-bridge')
   ], 'Locker. Danach 1–3 leichte Sätze der ersten Übung.'),
   tpl('wu-full-15', 'Ganzkörper 15 min', 'warmup', 15, 'full', [
-    it('cardio-bike', { seconds: 480 }), it('arm-circles'), it('arm-swings'), it('wall-slide'), it('cat-cow'),
+    it('cardio-bike', { seconds: 420 }), it('arm-circles'), it('arm-swings'), it('wall-slide'), it('cat-cow'),
     it('leg-swing-front'), it('leg-swing-side'), it('hip-circles'), it('worlds-greatest'), it('bw-squat'), it('glute-bridge')
   ], 'Nicht besser als 5–10 min, nur mehr Zeit – z. B. für kalte Tage. Locker bleiben.'),
   tpl('wu-lower-10', 'Unterkörper 10 min', 'warmup', 10, 'lower', [
-    it('cardio-bike', { seconds: 300 }), it('leg-swing-front'), it('leg-swing-side'), it('hip-circles'),
+    it('cardio-bike', { seconds: 240 }), it('leg-swing-front'), it('leg-swing-side'), it('hip-circles'),
     it('bw-squat'), it('hip-hinge'), it('glute-bridge'), it('calf-raise-bw')
   ], 'Für Beintage. Danach 1–3 leichte Sätze der ersten Übung.'),
   tpl('wu-upper-10', 'Oberkörper 10 min', 'warmup', 10, 'upper', [
@@ -81,15 +81,15 @@ export const TEMPLATES = [
     it('wall-slide'), it('thoracic-rotation'), it('cat-cow'), it('inchworm')
   ], 'Für Oberkörpertage. Danach 1–3 leichte Sätze der ersten Übung.'),
   tpl('cd-relax-5', 'Entspannen 5 min', 'cooldown', 5, 'full', [
-    it('cardio-walk', { seconds: 120 }), it('stretch-hip-flexor', { rounds: 1 }), it('stretch-chest-door', { rounds: 1 }), it('stretch-child')
+    it('cardio-walk', { seconds: 90 }), it('stretch-hip-flexor', { rounds: 1 }), it('stretch-chest-door', { rounds: 1 }), it('stretch-child')
   ], 'Optional. Zum Runterkommen – nicht gegen Muskelkater.'),
   tpl('cd-relax-10', 'Entspannen 10 min', 'cooldown', 10, 'full', [
-    it('cardio-walk', { seconds: 120 }), it('stretch-quad'), it('stretch-hamstring'), it('stretch-hip-flexor'),
+    it('cardio-walk', { seconds: 60 }), it('stretch-quad'), it('stretch-hamstring'), it('stretch-hip-flexor'),
     it('stretch-chest-door', { rounds: 1 }), it('stretch-child')
   ], 'Optional. Zum Runterkommen – nicht gegen Muskelkater.'),
   tpl('cd-mobility-15', 'Beweglichkeit 15 min', 'cooldown', 15, 'full', [
     it('cardio-walk', { seconds: 120 }), it('stretch-hamstring', { rounds: 3 }), it('stretch-hip-flexor', { rounds: 3 }),
-    it('stretch-figure4', { rounds: 3 }), it('stretch-chest-door')
+    it('stretch-figure4', { rounds: 3 }), it('stretch-chest-door', { rounds: 3 })
   ], 'Wenige Muskeln, dafür länger. Für Beweglichkeit zählt eher die Dehnzeit pro Woche als eine einzelne Einheit.')
 ];
 

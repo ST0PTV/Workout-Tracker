@@ -21,9 +21,12 @@ export function renderTabbar(container, current) {
   );
 }
 
+// Seiten ohne eigenen Tab (v2.3.0: Ablauf einer Routine).
+export const EXTRA_PATHS = ['/routine'];
+
 export function currentPath() {
   const raw = location.hash.replace(/^#/, '') || '/';
-  return TABS.some((t) => t.path === raw) ? raw : '/';
+  return TABS.some((t) => t.path === raw) || EXTRA_PATHS.includes(raw) ? raw : '/';
 }
 
 let toastTimer = null;
