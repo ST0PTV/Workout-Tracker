@@ -12,9 +12,10 @@ const DEFAULTS = {
   groups: [],
   plans: [],
   sessions: [],
+  routines: [], // v2.3.0: eigene Aufwärm-/Cool-down-Routinen (Vorlagen stehen im Code)
   settings: DEFAULT_SETTINGS
 };
-export const COLLECTIONS = ['exercises', 'groups', 'plans', 'sessions'];
+export const COLLECTIONS = ['exercises', 'groups', 'plans', 'sessions', 'routines'];
 export const KEYS = Object.keys(DEFAULTS);
 
 function storage() {
@@ -97,7 +98,7 @@ export function replaceAll(data) {
 
 export function counts() {
   const snap = snapshot();
-  return { exercises: snap.exercises.length, groups: snap.groups.length, plans: snap.plans.length, sessions: snap.sessions.length };
+  return { exercises: snap.exercises.length, groups: snap.groups.length, plans: snap.plans.length, sessions: snap.sessions.length, routines: snap.routines.length };
 }
 
 // Grobe Größe der eigenen Daten in KB (UTF-16 ≈ 2 Byte pro Zeichen).

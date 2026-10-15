@@ -52,7 +52,7 @@ function sampleData() {
       sets: [M.createSet({ weightKg: 100, reps: 10, completedAt: '2026-01-01T10:05:00.000Z' })]
     })]
   });
-  return { exercises: [a, b], groups: [g], plans: [p], sessions: [s], settings: { ...M.DEFAULT_SETTINGS, restSeconds: 90 } };
+  return { exercises: [a, b], groups: [g], plans: [p], sessions: [s], routines: [], settings: { ...M.DEFAULT_SETTINGS, restSeconds: 90 } };
 }
 
 test('Backup-Roundtrip: Export → leeren → Import ergibt identische Daten', () => {

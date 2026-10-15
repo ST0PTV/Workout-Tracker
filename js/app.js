@@ -1,6 +1,7 @@
 import * as store from './store.js';
 import { startRouter, toast } from './ui.js';
 import { trainingView, plansView, exercisesView, progressView, settingsView } from './views.js';
+import { runnerView } from './routine-view.js';
 
 const boot = store.init();
 
@@ -9,7 +10,8 @@ const router = startRouter({
   '/plans': () => plansView(() => router()),
   '/exercises': () => exercisesView(() => router()),
   '/progress': () => progressView(() => router()),
-  '/settings': () => settingsView(() => router())
+  '/settings': () => settingsView(() => router()),
+  '/routine': () => runnerView(() => router()) // v2.3.0: Ablauf einer Aufwärm-/Cool-down-Routine
 });
 
 if (!boot.ok) {

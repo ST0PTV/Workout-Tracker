@@ -13,12 +13,20 @@ const H = 440;
 export const FRONT = ['chest', 'front-delts', 'side-delts', 'biceps', 'forearms', 'abs', 'obliques', 'hip-flexors', 'quads', 'adductors'];
 export const BACK = ['upper-back', 'rear-delts', 'lats', 'lower-back', 'triceps', 'forearms', 'glutes', 'abductors', 'hamstrings', 'calves'];
 
-// Ansicht für das Mini-Piktogramm: die Seite mit mehr primären Muskeln, bei Gleichstand vorne.
-export function pickView(exercise) {
+// Ansichten für das Mini-Piktogramm (v2.3.0): jede Seite, auf der ein primärer Muskel liegt
+// (Unterarme zählen nicht, sie liegen auf beiden Seiten). Liegen primäre Muskeln vorn und hinten
+// (z. B. Dips: Brust + Trizeps), zeigt das Piktogramm beide Seiten; ohne Treffer vorne.
+export function pickViews(exercise) {
   const p = exercise?.muscles?.primary || [];
-  const f = p.filter((m) => FRONT.includes(m) && m !== 'forearms').length;
-  const b = p.filter((m) => BACK.includes(m) && m !== 'forearms').length;
-  return b > f ? 'back' : 'front';
+  const f = p.some((m) => FRONT.includes(m) && m !== 'forearms');
+  const b = p.some((m) => BACK.includes(m) && m !== 'forearms');
+  if (f && b) return ['front', 'back'];
+  return [b ? 'back' : 'front'];
+}
+
+// Einzelne Ansicht (erste von pickViews); bleibt für Aufrufer, die nur eine Seite brauchen.
+export function pickView(exercise) {
+  return pickViews(exercise)[0];
 }
 
 // ---------- Formdaten: linke Körperhälfte (x < 100), rechte wird gespiegelt ----------
@@ -169,5 +177,12 @@ export function miniFigure(exercise, sex = 'male', width = 24) {
   }
   const prim = new Set(exercise.muscles?.primary || []);
   const sec = new Set(exercise.muscles?.secondary || []);
-  return figureSvg({ view: pickView(exercise), sex, width, mode: 'mini', classOf: (m) => (prim.has(m) ? 'prim' : sec.has(m) ? 'sec' : '') });
+  const classOf = (m) => (prim.has(m) ? 'prim' : sec.has(m) ? 'sec' : '');
+  const views = pickViews(exercise);
+  if (views.length === 1) return figureSvg({ view: views[0], sex, width, mode: 'mini', classOf });
+  // Beide Seiten nebeneinander, etwas schmaler, damit die Zeile gleich hoch bleibt.
+  const wrap = document.createElement('span');
+  wrap.className = 'fig-dual';
+  for (const v of views) wrap.append(figureSvg({ view: v, sex, width: Math.round(width * 0.85), mode: 'mini', classOf }));
+  return wrap;
 }

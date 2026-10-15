@@ -21,6 +21,8 @@ import * as SETS from './sets.js';
 import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
 import { swapOptions, candidateLine } from './group-view.js';
 import { miniFigure } from './figure.js';
+import { askWarmup, startRun, cooldownOffer } from './routine-view.js';
+import * as RT from './routines.js';
 
 const ui = { current: null, sessionId: null, swapOpen: null };
 let tick = null;
@@ -173,12 +175,14 @@ function finishFlow(rerender) {
   const sum = S.sessionView(r.session).summary;
   const dur = elapsed(before.startedAt);
   rerender();
-  openSheet(h('div', { class: 'info' },
+  let summarySheet = null;
+  summarySheet = openSheet(h('div', { class: 'info' },
     h('div', { class: 'stats' },
       h('div', { class: 'stat' }, h('b', {}, dur), h('span', {}, 'Dauer')),
       h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Arbeitssätze')),
       h('div', { class: 'stat' }, h('b', {}, `${Math.round(sum.volume).toLocaleString('de-DE')}`), h('span', {}, 'Volumen kg'))),
-    h('p', { class: 'muted small' }, 'Volumen = Gewicht × Wiederholungen der Arbeitssätze (ohne Aufwärmsätze, ohne Körpergewichtsübungen). Die Werte sind die Vorbelegung fürs nächste Training.')
+    h('p', { class: 'muted small' }, 'Volumen = Gewicht × Wiederholungen der Arbeitssätze (ohne Aufwärmsätze, ohne Körpergewichtsübungen). Die Werte sind die Vorbelegung fürs nächste Training.'),
+    cooldownOffer(r.session, () => summarySheet?.close())
   ), { title: 'Training gespeichert' });
 }
 
@@ -416,11 +420,25 @@ function startView(rerender) {
     plans.length
       ? plans.map((p) => {
         const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
+        const warm = RT.planRoutine(p, 'warmup');
+        // v2.3.0: Plan mit Aufwärm-Routine fragt vor dem Start; „Nein“ startet ohne weiteren Hinweis.
+        const go = () => {
+          if (!warm) { start(() => S.startFromPlan(p.id))(); return; }
+          askWarmup(warm, {
+            onNo: () => start(() => S.startFromPlan(p.id))(),
+            onYes: () => {
+              const r = S.startFromPlan(p.id);
+              if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+              ui.current = null;
+              startRun(warm, { sessionId: r.session.id, returnTo: '#/' });
+            }
+          });
+        };
         return h('div', { class: 'pcard start-card' },
           h('span', { class: 'pc-top' }, h('b', {}, p.name)),
-          h('small', {}, `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}`),
+          h('small', {}, `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}${warm ? ` · Aufwärmen: ${warm.name}` : ''}`),
           names.length ? h('span', { class: 'ex' }, names.join(' · ')) : null,
-          h('button', { class: 'btn primary block', type: 'button', disabled: !names.length, onclick: start(() => S.startFromPlan(p.id)) }, 'Starten'));
+          h('button', { class: 'btn primary block', type: 'button', disabled: !names.length, onclick: go }, 'Starten'));
       })
       : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
         h('p', { class: 'muted' }, 'Lege im Tab „Pläne“ einen Plan an – oder starte ein freies Training.')),
