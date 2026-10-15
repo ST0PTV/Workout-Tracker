@@ -78,6 +78,10 @@ test('Figur: Ansicht nach primären Muskeln; Einstellung figure mit Standard', (
   assert.equal(F.pickView(pull), 'back');
   assert.equal(F.pickView({ muscles: { primary: ['hamstrings', 'glutes'] } }), 'back');
   assert.equal(F.pickView({ muscles: { primary: [] } }), 'front');
+  // v2.3.0: primäre Muskeln vorn und hinten → beide Seiten
+  assert.deepEqual(F.pickViews({ muscles: { primary: ['chest', 'triceps'] } }), ['front', 'back']);
+  assert.deepEqual(F.pickViews({ muscles: { primary: ['forearms'] } }), ['front']);
+  assert.deepEqual(F.pickViews(pull), ['back']);
   assert.equal(store.get('settings').figure, 'male');
   for (const m of Object.keys(M.MUSCLES)) assert.ok(F.FRONT.includes(m) || F.BACK.includes(m), `${m} ist in einer Ansicht`);
 });

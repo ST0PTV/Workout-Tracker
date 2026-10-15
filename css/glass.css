@@ -448,7 +448,7 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .fig.pulse { color: var(--accent-2); }
 .fig-card { display: flex; justify-content: center; padding: 10px; }
 .fig-card .fig .fm[data-m] { cursor: pointer; }
-.fig-ic { flex: none; width: 30px; display: flex; justify-content: center; align-items: center; }
+.fig-ic { flex: none; width: 46px; display: flex; justify-content: center; align-items: center; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; justify-content: center; font-size: 12px; color: var(--muted); margin: -4px 0 12px; }
 .legend span { display: inline-flex; align-items: center; gap: 5px; }
 .legend .sw { width: 12px; height: 12px; border-radius: 3px; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.2); }
@@ -562,3 +562,6 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .pickrow .pname { display: flex; flex-direction: column; min-width: 0; }
 .pickrow .pname small { font-size: 12px; }
 .pickrow svg { flex: none; color: var(--accent); }
+
+/* v2.3.0: Piktogramm mit Vorder- und Rückseite */
+.fig-dual { display: inline-flex; gap: 2px; align-items: center; }
