@@ -236,9 +236,17 @@ export function validateSession(x) {
       if (en.groupId !== null && !isId(en.groupId)) err.push(`Training ${x.id}: groupId ungültig.`);
       if (en.targetSets !== undefined && en.targetSets !== null && !(Number.isInteger(en.targetSets) && en.targetSets > 0)) err.push(`Training ${x.id}: targetSets ungültig.`);
       if (!isRest(en.restSeconds)) err.push(`Training ${x.id}: Pausenzeit ungültig.`);
+      // v2.4.0 (optional): Bewertung der Übung und Entscheidung über den Vorschlag.
+      if (en.rating !== undefined && !['easy', 'right', 'hard', 'none'].includes(en.rating)) err.push(`Training ${x.id}: Bewertung ungültig.`);
+      if (en.suggestion !== undefined && !['accepted', 'declined'].includes(en.suggestion)) err.push(`Training ${x.id}: Vorschlag-Status ungültig.`);
       if (!Array.isArray(en.sets)) err.push(`Training ${x.id}: sets ist keine Liste.`);
       else for (const s of en.sets) err.push(...validateSet(s, `Training ${x.id}: `));
     }
+  }
+  // v2.4.0 (optional): Wiedereinstieg nach einer Pause – Tage seit dem letzten Training und Reduktion in %.
+  if (x.returnAdjust !== undefined && x.returnAdjust !== null) {
+    const r = x.returnAdjust;
+    if (typeof r !== 'object' || !Number.isInteger(r.days) || r.days < 0 || !(typeof r.pct === 'number' && r.pct > 0 && r.pct < 100)) err.push(`Training ${x.id}: Wiedereinstieg ungültig.`);
   }
   // v2.3.0 (optional): erledigte Routinen dieses Trainings – nur Protokoll, zählt nirgends mit.
   if (x.routines !== undefined) {
@@ -466,8 +474,9 @@ export function exerciseHistory(exerciseId, sessions, kind = 'strength') {
 // Nur für Einträge ohne erledigte Sätze gedacht; die Prüfung macht session.swapEntry.
 export function swapEntryExercise(entry, newExercise, sessions) {
   const planned = entry.plannedExerciseId ?? entry.exerciseId;
+  const { rating, suggestion, ...rest } = entry; // v2.4.0: Bewertung und Vorschlag gehören zur alten Übung
   return {
-    ...entry,
+    ...rest,
     plannedExerciseId: newExercise.id === planned ? null : planned,
     exerciseId: newExercise.id,
     sets: prefillSets(newExercise, sessions, entry.targetSets ?? null)

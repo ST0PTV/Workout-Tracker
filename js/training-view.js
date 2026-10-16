@@ -23,6 +23,8 @@ import { swapOptions, candidateLine } from './group-view.js';
 import { miniFigure } from './figure.js';
 import { askWarmup, startRun, cooldownOffer } from './routine-view.js';
 import * as RT from './routines.js';
+import * as PR from './progression.js';
+import { askRating, needsRating, ratingLine, suggestionCard, askBreak } from './progression-view.js';
 
 const ui = { current: null, sessionId: null, swapOpen: null };
 let tick = null;
@@ -363,18 +365,25 @@ function exercisePage(v, d, rerender) {
       h('span', { class: 'lastl-links' },
         ex?.source?.ref && hasAnimation(ex.source.ref) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openAnimation(ex.source.ref) }, icon('motion', { size: 16, cls: 'inline' }), ' Technik') : null,
         ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null)),
+    suggestionCard(d, rerender),
     cardio ? cardioCard(d, rerender) : h('div', { class: 'card sets' },
       h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
       rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.')),
     cardio ? null : h('div', { class: 'nav2' },
       h('button', { class: 'btn', type: 'button', onclick: () => { S.addSet(d.entry.id, 'warmup'); rerender(); } }, icon('plus', { size: 18 }), 'Aufwärmsatz'),
       h('button', { class: 'btn', type: 'button', onclick: () => { S.addSet(d.entry.id, 'work'); rerender(); } }, icon('plus', { size: 18 }), 'Satz')),
+    ratingLine(d, rerender),
     h('div', { class: 'nav2' },
       h('button', { class: 'btn', type: 'button', disabled: d.index === 0, 'aria-label': 'Vorherige Übung', onclick: () => { ui.current = d.index - 1; rerender(); } }, icon('chevron', { size: 18, cls: 'flip' })),
       h('button', { class: 'btn', type: 'button', onclick: () => openOverview(rerender) }, icon('list', { size: 18 }), 'Übersicht'),
       isLast
-        ? h('button', { class: 'btn primary', type: 'button', onclick: () => finishFlow(rerender) }, 'Beenden')
-        : h('button', { class: 'btn primary', type: 'button', 'aria-label': 'Nächste Übung', onclick: () => { ui.current = d.index + 1; rerender(); } }, 'Weiter', icon('chevron', { size: 18 }))));
+        ? h('button', { class: 'btn primary', type: 'button', onclick: () => rateThen(d, () => finishFlow(rerender)) }, 'Beenden')
+        : h('button', { class: 'btn primary', type: 'button', 'aria-label': 'Nächste Übung', onclick: () => rateThen(d, () => { ui.current = d.index + 1; rerender(); }) }, 'Weiter', icon('chevron', { size: 18 }))));
+}
+
+// v2.4.0 (1B): beim Verlassen einer Übung einmal nach der Bewertung fragen.
+function rateThen(d, next) {
+  if (needsRating(d)) askRating(d, next); else next();
 }
 
 function activeView(v, rerender) {
@@ -412,7 +421,9 @@ function activeView(v, rerender) {
 function startView(rerender) {
   const plans = P.listPlans().sort((a, b) => a.name.localeCompare(b.name, 'de'));
   const byId = Object.fromEntries(lib.listExercises({ includeArchived: true }).map((e) => [e.id, e]));
-  const recent = S.finishedSessions().slice(0, 3);
+  const past = S.finishedSessions();
+  const recent = past.slice(0, 3);
+  const pause = PR.breakInfo(past);
   const start = (fn) => () => { const r = fn(); if (!r.ok) { toast(r.errors[0], { error: true }); return; } ui.current = null; rerender(); };
   return h('section', {},
     h('h1', {}, 'Training'),
@@ -422,17 +433,27 @@ function startView(rerender) {
         const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
         const warm = RT.planRoutine(p, 'warmup');
         // v2.3.0: Plan mit Aufwärm-Routine fragt vor dem Start; „Nein“ startet ohne weiteren Hinweis.
-        const go = () => {
-          if (!warm) { start(() => S.startFromPlan(p.id))(); return; }
+        // v2.4.0 (3A): nach ≥ 21 Tagen Pause erst „Willkommen zurück“, dann wie gewohnt (Aufwärm-Frage, Start).
+        const launch = (reduce) => {
+          const begin = () => {
+            const r = S.startFromPlan(p.id);
+            if (r.ok && reduce) S.applyBreakReduction(pause.pct, pause.days);
+            return r;
+          };
+          if (!warm) { start(begin)(); return; }
           askWarmup(warm, {
-            onNo: () => start(() => S.startFromPlan(p.id))(),
+            onNo: () => start(begin)(),
             onYes: () => {
-              const r = S.startFromPlan(p.id);
+              const r = begin();
               if (!r.ok) { toast(r.errors[0], { error: true }); return; }
               ui.current = null;
               startRun(warm, { sessionId: r.session.id, returnTo: '#/' });
             }
           });
+        };
+        const go = () => {
+          if (!pause) { launch(false); return; }
+          askBreak(p, byId, past, pause, { onReduce: () => launch(true), onKeep: () => launch(false) });
         };
         return h('div', { class: 'pcard start-card' },
           h('span', { class: 'pc-top' }, h('b', {}, p.name)),

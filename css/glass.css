@@ -602,3 +602,27 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .ring.done .ring-time { color: var(--accent); font-size: 26px; }
 .run-nav .btn { min-height: 56px; font-size: 17px; }
 .run-nav .btn.primary { flex: 2 1 160px; }
+
+/* v2.3.1: Routine-Detail – Starten und Kopieren/Bearbeiten nicht Kante an Kante */
+.routine > .btn.primary.block { margin-top: 18px; }
+.routine > .btn-row { margin-top: 16px; }
+
+/* v2.4.0: Bewertung (Sheet), Vorschlagskarte, Willkommen zurück */
+.rate-list { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 6px; }
+.rate-btn { min-height: 64px; justify-content: space-between; padding: 0 18px; font-size: 18px; }
+.rate-btn small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.rate-btn.on { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.center-link { display: block; margin: 4px auto 0; min-height: 44px; }
+.rated-line { display: block; margin: 2px 4px 8px; min-height: 36px; color: var(--muted); font-size: 13.5px; }
+.sug-card { padding: 14px; margin: 8px 0 10px; }
+.sug-top { display: flex; justify-content: space-between; align-items: center; }
+.sec-lbl { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.sug-main { font-size: 24px; font-weight: 700; margin: 4px 0 2px; }
+.sug-main .muted { font-size: 16px; font-weight: 500; }
+.sug-card p { margin: 0 0 12px; }
+.break-sheet p { margin: 0 0 10px; }
+.break-list { margin: 6px 0 14px; }
+.break-list .row { display: grid; grid-template-columns: 1fr auto auto auto; gap: 8px; align-items: center; }
+.break-list .old { color: var(--muted); text-decoration: line-through; }
+.break-list .new { color: var(--accent); }
+.break-sheet .btn.block + .btn.block { margin-top: 10px; }
