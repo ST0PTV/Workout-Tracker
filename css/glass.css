@@ -470,8 +470,14 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .mname { width: 118px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mbar { flex: 1; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.08); overflow: hidden; display: flex; }
 .mbar i { display: block; height: 100%; background: var(--accent-2); }
-.mbar b { display: block; height: 100%; background: rgba(122, 162, 255, 0.4); }
-.mnum { width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
+.mbar b { display: block; height: 100%; background: repeating-linear-gradient(135deg, var(--accent-2) 0 3px, rgba(122, 162, 255, 0.25) 3px 6px); }
+.mlegend { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); padding: 0 2px 6px; }
+.mlegend .lg-items { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.mlegend span { display: inline-flex; align-items: center; gap: 6px; }
+.mlegend .lg-d, .mlegend .lg-i { display: inline-block; width: 18px; height: 8px; border-radius: 4px; background: var(--accent-2); }
+.mlegend .lg-i { background: repeating-linear-gradient(135deg, var(--accent-2) 0 3px, rgba(122, 162, 255, 0.25) 3px 6px); }
+.mlegend .info-btn { flex: none; }
+.mnum { width: 44px; text-align: right; font-variant-numeric: tabular-nums; }
 .center-btn { align-self: center; margin-top: 6px; min-height: 40px; }
 .msel { display: flex; flex-direction: column; gap: 6px; }
 .msel-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
