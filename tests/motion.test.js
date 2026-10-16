@@ -234,4 +234,37 @@ test('Beinstrecker: Rolle ist als Rolle sichtbar (Radius ≥ 10) und sitzt vor d
   }
 });
 
+// v2.5.0: weibliche Figur – gleiche Gelenke, nur andere Umrisse
+test('Weibliche Figur: alle Animationen zeichnen ohne NaN, Anker lösbar und am Körper', () => {
+  for (const a of D.ANIMATIONS) {
+    for (const fr of allFrames(a)) {
+      const frames = M.resolveFrames(fr), T = M.cycleLength(a.phases);
+      for (let i = 0; i <= 8; i++) {
+        const { pose } = M.poseAt(frames, a.phases, (T * i) / 8);
+        const L = M.layers(pose, () => '', 'female');
+        assert.ok(L.length > 0, `${a.ref} Ebenen`);
+        for (const l of L) assert.ok(!/NaN|undefined/.test(l.d), `${a.ref} Pfad (weiblich)`);
+        for (const kp of a.keyPoints) {
+          const p = M.anchor(pose, kp.anchor, 'female'), q = M.anchor(pose, kp.anchor, 'male');
+          assert.ok(p && Number.isFinite(p[0]) && Number.isFinite(p[1]), `${a.ref} Anker ${kp.anchor} (weiblich)`);
+          assert.ok(dist(p, q) < 25, `${a.ref} Anker ${kp.anchor} weicht zu weit ab (${dist(p, q).toFixed(1)})`);
+        }
+      }
+    }
+  }
+});
+
+test('Weibliche Figur: gleiche Muskelflächen wie die männliche, nur Haarknoten/Brust zusätzlich', () => {
+  const ids = (S) => new Set(S.map((s) => s.id));
+  const m = ids(M.SHAPES), f = ids(M.SHAPES_FEMALE);
+  for (const id of m) assert.ok(f.has(id), `Seite fehlt ${id}`);
+  assert.deepEqual([...f].filter((id) => !m.has(id)), [], 'keine neuen Muskeln seitlich');
+  assert.equal(M.SHAPES_FEMALE.length, M.SHAPES.length + 1, 'Haarknoten als zusätzliche Körperform');
+  const mF = ids(MF.SHAPES_F), fF = ids(MF.shapesForF('female'));
+  for (const id of mF) assert.ok(fF.has(id), `Front fehlt ${id}`);
+  assert.deepEqual([...fF].filter((id) => !mF.has(id)), ['bust']);
+  assert.equal(M.shapesFor('male'), M.SHAPES, 'Standard bleibt männlich');
+  assert.equal(MF.shapesForF(undefined), MF.SHAPES_F);
+});
+
 done();

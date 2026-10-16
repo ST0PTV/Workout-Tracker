@@ -519,6 +519,7 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .an-body.far.edge { fill: #1a2042; stroke: rgba(242, 245, 255, 0.4); }
 .an-body.far.fill { fill: #1a2042; }
 .an-ear { fill: #2e3870; stroke: rgba(8, 12, 28, 0.75); stroke-width: 1; }
+.an-soft { fill: #2b3466; stroke: rgba(242, 245, 255, 0.28); stroke-width: 1.1; stroke-linejoin: round; } /* v2.5.0: Weichteil (Brust), kein Muskel */
 .an-m { stroke: rgba(8, 12, 28, 0.75); stroke-width: 1.1; stroke-linejoin: round; }
 .an-m.rest { fill: #3b4682; }
 .an-m.prim { fill: var(--accent); }

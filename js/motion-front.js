@@ -11,6 +11,7 @@
 //   legs: { hip, knee } – Beugung in der Sagittalebene; in der Frontansicht nur als Verkürzung sichtbar;
 //   props(P, spec) → { anchors, scene } wie in der Seitenansicht.
 import { LEN, smooth, num, f1 } from './motion.js';
+import { femaleFront, ANCHORS_F_FEMALE } from './motion-female.js';
 
 const DEG = Math.PI / 180;
 const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
@@ -54,6 +55,9 @@ export const SHAPES_F = [
   { seg: 'farm', id: 'body', both: true, pts: [[36, -222], [50, -222], [53, -205], [52, -185], [50, -168], [51, -158], [50, -146], [45, -141], [40, -144], [39, -156], [40, -168], [40, -180], [37, -200]] },
   { seg: 'farm', id: 'forearms', both: true, pts: [[37, -220], [49, -220], [52, -204], [48, -190], [40, -192], [37, -206]] }
 ];
+// v2.5.0: weibliche Formen (js/motion-female.js); Gelenke wie oben.
+let SHAPES_F_FEMALE = null;
+export const shapesForF = (sex) => (sex === 'female' ? (SHAPES_F_FEMALE ??= femaleFront(SHAPES_F)) : SHAPES_F);
 export const MUSCLE_SHAPE_F = { chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', biceps: 'biceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques', quads: 'quads' };
 export const HIDDEN_MUSCLES_F = ['triceps', 'lower-back', 'glutes', 'hamstrings', 'calves', 'adductors', 'abductors', 'hip-flexors'];
 export const ANCHORS_F = {
@@ -164,23 +168,23 @@ function tfFS(P, seg, side, pt) {
   const o = tfF(P, 'trunk', side, pt);
   return [a[0] + (o[0] - a[0]) * w, a[1] + (o[1] - a[1]) * w];
 }
-export function anchorFront(P, key) {
+export function anchorFront(P, key, sex = 'male') {
   if (P.props && P.props[key]) return P.props[key].map(f1);
   const side = key.endsWith('L') ? 'L' : 'R';
   const base = key.replace(/[LR]$/, '');
   if (P.joints[key]) return P.joints[key].map(f1);
-  const a = ANCHORS_F[base];
+  const a = (sex === 'female' && ANCHORS_F_FEMALE[base]) || ANCHORS_F[base];
   if (!a) return null;
   return tfF(P, a.seg, side, a.p).map(f1);
 }
 
 // Zeichenebenen wie in der Seitenansicht: Beine, Rumpf mit Kopf, Arme. Klassen bleiben gleich (an-body, an-m prim/sec/rest).
-export function layersFront(P, roleOf = () => '') {
+export function layersFront(P, roleOf = () => '', sex = 'male') {
   const out = [];
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
   const group = (segs, joints) => {
     const shapes = [];
-    for (const sh of SHAPES_F) {
+    for (const sh of shapesForF(sex)) {
       if (!segs.includes(sh.seg)) continue;
       if (sh.mid) { // symmetrische Form: rechte Hälfte plus gespiegelte linke Hälfte als ein Pfad
         const right = sh.pts.map((q) => tfFS(P, sh.seg, 'R', q)), left = sh.pts.slice().reverse().map((q) => tfFS(P, sh.seg, 'L', q));
@@ -194,6 +198,7 @@ export function layersFront(P, roleOf = () => '') {
     for (const d of body) out.push({ d, cls: 'an-body fill' });
     for (const { sh, d } of shapes) {
       if (sh.id === 'body') continue;
+      if (sh.id === 'bust') { out.push({ d, cls: 'an-soft' }); continue; }
       const role = roleOf(sh.id);
       out.push({ d, cls: 'an-m ' + (role === 'p' ? 'prim' : role === 's' ? 'sec' : 'rest') });
     }
