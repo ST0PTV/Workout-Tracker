@@ -9,6 +9,7 @@ import { isEmptySet } from './history.js';
 import { effectiveRest } from './rest.js';
 import * as SETS from './sets.js';
 import { startRest, adjustRest } from './timer.js';
+import * as PR from './progression.js';
 
 function exercisesById() {
   return Object.fromEntries(store.get('exercises').map((e) => [e.id, e]));
@@ -228,6 +229,50 @@ export function moveEntry(entryId, toIndex) {
   });
 }
 
+// ---------- v2.4.0: Bewertung, Vorschlag, Wiedereinstieg ----------
+
+// Bewertung der Übung (letzter Arbeitssatz): 'easy' | 'right' | 'hard' | 'none' (übersprungen) | null (zurücksetzen).
+export function rateEntry(entryId, rating) {
+  return update((s) => {
+    const en = s.entries.find((e) => e.id === entryId);
+    if (!en) return 'Übung nicht gefunden.';
+    if (rating !== null && !PR.RATING_VALUES.includes(rating)) return 'Unbekannte Bewertung.';
+    if (rating === null) delete en.rating; else en.rating = rating;
+  });
+}
+
+// Vorschlag übernehmen (offene Arbeitssätze ändern) oder ablehnen (Karte verschwindet, Werte bleiben).
+export function decideSuggestion(entryId, accept) {
+  const s = activeSession();
+  const en = s?.entries.find((e) => e.id === entryId);
+  const ex = en ? exercisesById()[en.exerciseId] : null;
+  const sug = ex ? PR.suggestFor(ex, finishedSessions(), { beforeSessionId: s.id }) : null;
+  return update((x) => {
+    const e = x.entries.find((y) => y.id === entryId);
+    if (!e) return 'Übung nicht gefunden.';
+    if (accept) {
+      if (!sug) return 'Kein Vorschlag vorhanden.';
+      e.sets = PR.applySuggestion(e.sets, sug);
+    }
+    e.suggestion = accept ? 'accepted' : 'declined';
+  });
+}
+
+// Nach einer Pause: alle offenen Sätze um pct % leichter (in ganzen Gewichtsschritten je Übung).
+export function applyBreakReduction(pct, days) {
+  const past = finishedSessions();
+  const byId = exercisesById();
+  return update((s) => {
+    if (!(pct > 0)) return 'Keine Reduktion.';
+    for (const e of s.entries) {
+      const ex = byId[e.exerciseId];
+      if (!ex || ex.kind === 'cardio') continue;
+      e.sets = PR.applyReduction(e.sets, pct, PR.loadStep(ex, past));
+    }
+    s.returnAdjust = { days, pct };
+  });
+}
+
 // ---------- Pausen-Timer ----------
 
 export function adjustRunningRest(delta) {
@@ -255,7 +300,10 @@ export function sessionView(session = activeSession()) {
       const ex = byId[entry.exerciseId] || null;
       const last = ex ? lastPerformance(ex.id, past) : null;
       const doneCount = entry.sets.filter((x) => x.completedAt !== null).length;
+      const open = !entry.suggestion && !entry.sets.some((x) => x.type !== 'warmup' && x.completedAt !== null) && !session.returnAdjust && session.endedAt === null;
       return {
+        suggestion: open && ex ? PR.suggestFor(ex, past, { beforeSessionId: session.id }) : null,
+        workDone: entry.sets.some((x) => x.type !== 'warmup' && x.completedAt !== null),
         entry,
         index,
         exercise: ex,

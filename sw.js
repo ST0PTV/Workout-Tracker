@@ -53,6 +53,8 @@ const PRECACHE = [
   'js/routine-data.js',
   'js/routines.js',
   'js/routine-view.js',
+  'js/progression.js',
+  'js/progression-view.js',
   'js/history.js',
   'js/diary-view.js',
   'js/views.js',
