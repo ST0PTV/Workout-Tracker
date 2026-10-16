@@ -11,6 +11,8 @@ const H = 440;
 
 // Muskeln je Ansicht. abductors (Gluteus medius/minimus + TFL) liegen seitlich und werden hinten gezeigt.
 export const FRONT = ['chest', 'front-delts', 'side-delts', 'biceps', 'forearms', 'abs', 'obliques', 'hip-flexors', 'quads', 'adductors'];
+// Alle Muskeln, die die Karte in der jeweiligen Ansicht zeichnet (und antippbar macht) – FRONT/BACK oben steuern nur die Piktogramme.
+export const shownIn = (m) => Object.keys(MUSCLES).filter((v) => MUSCLES[v].some(([id]) => id === m));
 export const BACK = ['upper-back', 'rear-delts', 'lats', 'lower-back', 'triceps', 'forearms', 'glutes', 'abductors', 'hamstrings', 'calves'];
 
 // Ansichten für das Mini-Piktogramm (v2.3.0): jede Seite, auf der ein primärer Muskel liegt
@@ -42,6 +44,8 @@ const MUSCLES = {
     ['side-delts', [[[54, 89], [46, 94], [41, 104], [39, 116], [41, 128], [47, 132], [52, 124], [55, 108], [57, 94]]]],
     ['biceps', [[[57, 132], [58, 146], [56, 164], [52, 176], [46, 174], [42, 160], [41, 146], [45, 136], [51, 133]]]],
     ['forearms', [FOREARM]],
+    ['upper-back', [[[91, 62], [90, 74], [82, 80], [70, 86], [80, 86], [90, 82]]]], // oberer Trapezrand, von vorn sichtbar
+    ['calves', [[[72, 340], [68, 360], [70, 388], [74, 402], [78, 380], [79, 350]], [[90, 340], [94, 358], [93, 384], [88, 376], [86, 354]]]], // Wade von vorn (Schienbein-/Wadenkontur)
     ['abs', [[[98.8, 147], [98.8, 164], [89, 165], [88, 149]], [[98.8, 167], [98.8, 184], [89, 185], [88.5, 168]], [[98.8, 187], [98.8, 204], [89, 205], [89, 188]], [[98.8, 207], [98.8, 246], [94, 242], [90, 226], [89, 208]]]],
     ['obliques', [[[86, 149], [87, 176], [87, 204], [87, 228], [80, 222], [72, 210], [68, 192], [67, 172], [66, 156], [72, 147], [80, 146]]]],
     ['hip-flexors', [[[80, 228], [88, 238], [90, 248], [84, 250], [77, 238]]]],
@@ -53,7 +57,7 @@ const MUSCLES = {
     ['adductors', [[[91, 252], [98.8, 260], [98.8, 282], [94, 290], [92, 270]]]]
   ],
   back: [
-    ['upper-back', [[[100, 60], [92, 62], [88, 76], [72, 84], [58, 90], [70, 96], [84, 108], [92, 126], [100, 150]]]],
+    ['upper-back', [[[100, 60], [92, 62], [88, 76], [72, 84], [58, 90], [70, 96], [84, 108], [92, 126], [100, 150]], [[64, 104], [72, 100], [82, 110], [80, 120], [68, 124], [62, 116]]]], // inkl. Rotatorenmanschette/Teres (Schulterblattregion)
     ['rear-delts', [[[58, 92], [48, 94], [41, 104], [39, 118], [41, 128], [48, 132], [56, 122], [62, 104]]]],
     ['triceps', [[[57, 132], [58, 150], [56, 168], [52, 178], [45, 176], [41, 160], [40, 144], [43, 134], [50, 130]]]],
     ['forearms', [FOREARM]],
@@ -65,11 +69,8 @@ const MUSCLES = {
     ['calves', [[[82, 336], [72, 346], [66, 364], [70, 384], [80, 390], [84, 364]], [[88, 336], [87, 364], [88, 394], [94, 388], [96, 366], [94, 346]]]]
   ]
 };
-// Sichtbare, nicht gezählte Formen (nur Karte): vorne Trapez-Rand, Schienbeinmuskel, Wade innen; hinten Schulterblattmuskeln.
-const DETAIL = {
-  front: [[[91, 62], [90, 74], [82, 80], [70, 86], [80, 86], [90, 82]], [[72, 340], [68, 360], [70, 388], [74, 402], [78, 380], [79, 350]], [[90, 340], [94, 358], [93, 384], [88, 376], [86, 354]]],
-  back: [[[64, 104], [72, 100], [82, 110], [80, 120], [68, 124], [62, 116]]]
-};
+// Sichtbare, nicht gezählte Formen (nur Karte): derzeit keine – alles, was wie ein Muskel aussieht, ist in MUSCLES und antippbar.
+const DETAIL = { front: [], back: [] };
 // Feine Linien (nur Karte): vorne Sägemuskel-Zacken, hinten Gesäßfalte.
 const LINES = {
   front: [[[77, 186], [69, 176]], [[79, 198], [70, 190]], [[81, 210], [72, 204]]],

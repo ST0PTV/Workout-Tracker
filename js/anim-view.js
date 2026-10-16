@@ -8,6 +8,7 @@ import * as M from './motion.js';
 import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F } from './motion-front.js';
 import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT } from './anim-data.js';
 import { poolEntry } from './pool.js';
+import { segmentsOf, segmentIndexAt, jumpTime, labelPlan } from './anim-bar.js';
 import { MUSCLES } from './model.js';
 import * as store from './store.js';
 
@@ -108,7 +109,7 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
   const pool = poolEntry(ref);
   if (!anim || !pool) return null;
   const roleOf = roleFn(pool, anim.view);
-  const st = { variant: anim.variants ? anim.variants[0].key : null, playing: !reducedMotion(), t: 0, last: null, raf: 0, kpActive: [] };
+  const st = { variant: anim.variants ? anim.variants[0].key : null, playing: !reducedMotion(), t: 0, last: null, raf: 0, kpActive: [], speed: 1 };
   let frames = M.resolveFrames(framesOf(anim, st.variant));
   const sex = figureSex();
   let b = bounds(anim, frames, sex);
@@ -126,7 +127,6 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
   const svg = el('svg', { class: 'anim-svg', role: 'img', 'aria-label': `Animation: ${pool.name}` });
   const gBack = el('g'), gBody = el('g'), gFront = el('g'), gMarks = el('g'), floor = el('line', { class: 'an-floor' });
   svg.append(floor, gBack, gBody, gFront, gMarks);
-  const phaseEl = h('span', { class: 'anim-phase' });
   const kpRows = [];
 
   function setViewBox() {
@@ -164,40 +164,56 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
       return g;
     }).filter(Boolean);
     gMarks.replaceChildren(...marks);
-    phaseEl.textContent = phase.label;
+    updateBar(t);
     kpRows.forEach((row, i) => row.classList.toggle('on', phase.kp.includes(i)));
   }
 
   function loop(ts) {
     if (!st.playing) return;
-    if (st.last !== null) st.t += Math.min(0.1, (ts - st.last) / 1000);
+    if (st.last !== null) st.t += Math.min(0.1, (ts - st.last) / 1000) * st.speed;
     st.last = ts;
     draw(st.t);
     st.raf = requestAnimationFrame(loop);
   }
-  function play() { if (st.playing) return; st.playing = true; st.last = null; btn.replaceChildren(icon('pause', { size: 20 }), ' Pause'); st.raf = requestAnimationFrame(loop); }
-  function pause() { st.playing = false; cancelAnimationFrame(st.raf); btn.replaceChildren(icon('play', { size: 20 }), ' Abspielen'); }
+  function play() { if (st.playing) return; st.playing = true; st.last = null; setPlayIcon(); st.raf = requestAnimationFrame(loop); }
+  function pause() { st.playing = false; cancelAnimationFrame(st.raf); setPlayIcon(); }
+  function setPlayIcon() { btn.replaceChildren(icon(st.playing ? 'pause' : 'play', { size: 22 })); btn.setAttribute('aria-label', st.playing ? 'Anhalten' : 'Abspielen'); }
   function stop() { pause(); document.removeEventListener('visibilitychange', onVis); }
   function onVis() { if (document.hidden) pause(); }
   document.addEventListener('visibilitychange', onVis);
 
-  const btn = h('button', { class: 'btn primary anim-play', type: 'button', onclick: () => (st.playing ? pause() : play()) });
-  // Keyframe-Sprung (auch Bedienung ohne Animation)
-  const frameChips = h('div', { class: 'anim-frames' });
-  function buildChips() {
-    frameChips.replaceChildren(...frames.map((f, i) => h('button', { class: 'chip small', type: 'button', onclick: () => {
-      pause();
-      let acc = 0;
-      for (const p of anim.phases) { if (p.a === p.b && p.a === i) break; if (p.b === i) { acc += p.dur; break; } acc += p.dur; }
-      st.t = acc; draw(st.t);
-    } }, f.label)));
+  const btn = h('button', { class: 'ab-play', type: 'button', onclick: () => (st.playing ? pause() : play()) });
+  // Phasenleiste (v2.7.0): Segmente nach Phasendauer, Beschriftung nach Platz (js/anim-bar.js). Ziehen oder Tippen friert das Bild an dieser Stelle ein.
+  const { T: CYC, segs } = segmentsOf(anim.phases);
+  const segEls = segs.map((sg) => h('div', { class: 'ab-seg', style: `flex: ${sg.dur.toFixed(3)} 0 0` }, h('i')));
+  const thumb = h('span', { class: 'ab-thumb', 'aria-hidden': 'true' });
+  const range = h('input', { class: 'ab-range', type: 'range', min: '0', max: '1000', value: '0', 'aria-label': 'Stelle in der Bewegung',
+    oninput: (e) => { pause(); st.t = (Number(e.target.value) / 1000) * CYC * 0.999; draw(st.t); } });
+  const labels = h('div', { class: 'ab-labels' });
+  let barIdx = -1;
+  function updateBar(t) {
+    const x = ((t % CYC) + CYC) % CYC, idx = segmentIndexAt(segs, x, CYC);
+    segs.forEach((sg, i) => { segEls[i].firstChild.style.width = `${Math.max(0, Math.min(1, (x - sg.start) / sg.dur)) * 100}%`; segEls[i].classList.toggle('on', i === idx); });
+    thumb.style.left = `${(x / CYC) * 100}%`;
+    range.value = String(Math.round((x / CYC) * 1000));
+    range.setAttribute('aria-valuetext', `${segs[idx].label}, ${String(Math.round(x * 10) / 10).replace('.', ',')} s`);
+    if (idx !== barIdx) {
+      barIdx = idx;
+      labels.replaceChildren(...labelPlan(segs, idx).map((l) => h('button', { type: 'button', class: 'ab-label' + (l.i === idx ? ' on' : ''), style: `left: ${l.left.toFixed(2)}%`,
+        onclick: () => { pause(); st.t = jumpTime(segs[l.i]); draw(st.t); } }, l.label)));
+    }
   }
-  buildChips();
+  const speedBtn = h('button', { class: 'ab-speed', type: 'button', 'aria-label': 'Tempo umschalten', onclick: () => {
+    st.speed = st.speed === 1 ? 0.5 : 1; speedBtn.textContent = st.speed === 1 ? '1×' : '½×'; speedBtn.classList.toggle('on', st.speed !== 1);
+  } }, '1×');
+  const capsule = h('div', { class: 'ab-capsule' }, btn,
+    h('div', { class: 'ab-bar' }, h('div', { class: 'ab-trackrow' }, h('div', { class: 'ab-track' }, ...segEls), thumb, range), labels), speedBtn);
+  setPlayIcon();
   // Variante
   let seg = null;
   if (anim.variants) {
     const chips = anim.variants.map((v) => h('button', { type: 'button', class: v.key === st.variant ? 'on' : '', onclick: () => {
-      st.variant = v.key; frames = M.resolveFrames(framesOf(anim, v.key)); b = bounds(anim, frames, sex); relayout(); setViewBox(); buildChips();
+      st.variant = v.key; frames = M.resolveFrames(framesOf(anim, v.key)); b = bounds(anim, frames, sex); relayout(); setViewBox();
       for (const c of chips) c.classList.toggle('on', c === chipFor(v.key)); draw(st.t);
     } }, v.label));
     const chipFor = (k) => chips[anim.variants.findIndex((v) => v.key === k)];
@@ -211,11 +227,11 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
     kpRows.push(row);
     return row;
   }));
+  // Tippen auf die Figur friert ein bzw. lässt weiterlaufen (Hinweislinien und Kapsel behalten ihre eigene Funktion; composedPath, weil die Labels beim Klick neu aufgebaut werden).
+  const stage = h('div', { class: 'anim-stage', onclick: (e) => { if (!e.composedPath().some((n) => n === capsule || n.classList?.contains('an-mark'))) (st.playing ? pause() : play()); } }, svg, capsule);
   const card = h('div', { class: 'anim-card' },
     h('div', { class: 'anim-top' }, badge, seg),
-    h('div', { class: 'anim-stage' }, svg),
-    h('div', { class: 'anim-ctl' }, btn, h('span', { class: 'muted' }, 'Phase: ', phaseEl)),
-    frameChips,
+    stage,
     list,
     h('p', { class: 'muted small' }, 'Gruppenmittel aus kleinen Studien, Seitenansicht vereinfacht – eine Orientierung, keine Vorgabe für die eigene Technik.'));
   setViewBox();

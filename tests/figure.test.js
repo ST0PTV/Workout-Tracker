@@ -12,7 +12,10 @@ test('Jeder Muskel der Ansicht hat genau eine Form; keine fremden Muskeln', () =
   for (const sex of ['male', 'female']) {
     for (const [view, list] of [['front', F.FRONT], ['back', F.BACK]]) {
       const ids = F.figureData(view, sex).muscles.map((m) => m.m);
-      assert.deepEqual([...ids].sort(), [...list].sort(), `${view}/${sex}`);
+      // v2.6.1: die Karte zeichnet auch Muskeln, die das Piktogramm nicht nutzt (Wade/oberer Rücken von vorn) – alle sind antippbar.
+      for (const m of list) assert.ok(ids.includes(m), `${view}/${sex}: ${m} fehlt`);
+      assert.equal(new Set(ids).size, ids.length, `${view}/${sex}: doppelte Form`);
+      for (const m of ids) assert.ok(F.shownIn(m).includes(view), `${view}/${sex}: ${m}`);
     }
   }
 });

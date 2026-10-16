@@ -5,7 +5,7 @@ import { h } from './util.js';
 import * as store from './store.js';
 import { MUSCLES } from './model.js';
 import { weeklyMuscleSets, weekStart, addWeeks, level, fmtSets, LEVEL_LABELS, INDIRECT_FACTOR } from './week.js';
-import { figureSvg, FRONT, BACK } from './figure.js';
+import { figureSvg, shownIn } from './figure.js';
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
 import { candidatesFor, isLowLevel, addToTraining } from './muscle-pick.js';
@@ -60,7 +60,7 @@ export function musclesPanel(rerender) {
   const pick = (id) => {
     st.selected = st.selected === id ? null : id;
     st.more = false;
-    if (st.selected && !(FRONT.includes(id) && BACK.includes(id))) st.view = FRONT.includes(id) ? 'front' : 'back';
+    if (st.selected) { const v = shownIn(id); if (!v.includes(st.view)) st.view = v[0]; }
     rerender();
   };
 
@@ -115,8 +115,7 @@ export function musclesPanel(rerender) {
   const mlegend = h('div', { class: 'mlegend' },
     h('div', { class: 'lg-items' },
       h('span', {}, h('i', { class: 'lg-d' }), 'direkt'),
-      h('span', {}, h('i', { class: 'lg-i' }), 'indirekt (zählt halb)'),
-      h('span', {}, 'Zahl = Summe')),
+      h('span', {}, h('i', { class: 'lg-i' }), 'indirekt')),
     h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So werden direkte und indirekte Sätze gezählt', onclick: openWeekInfo }, icon('info', { size: 18 })));
   const list = h('div', { class: 'card mlist' },
     mlegend,
