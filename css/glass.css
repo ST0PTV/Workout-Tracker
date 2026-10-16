@@ -602,3 +602,7 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .ring.done .ring-time { color: var(--accent); font-size: 26px; }
 .run-nav .btn { min-height: 56px; font-size: 17px; }
 .run-nav .btn.primary { flex: 2 1 160px; }
+
+/* v2.3.1: Routine-Detail – Starten und Kopieren/Bearbeiten nicht Kante an Kante */
+.routine > .btn.primary.block { margin-top: 18px; }
+.routine > .btn-row { margin-top: 16px; }
