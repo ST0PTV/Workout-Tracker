@@ -22,13 +22,30 @@ function storage() {
   return globalThis.localStorage;
 }
 
-function read(key, fallback) {
+// v2.7.1: Ein Wert mit falscher Form (z. B. null statt Liste) oder kaputtes JSON gilt als beschädigt: Es gilt der
+// Standardwert, und der Rohtext wird einmalig unter wt_broken_<key> aufgehoben, damit nichts still verloren geht.
+const shapeOk = (value, fallback) => {
+  if (Array.isArray(fallback)) return Array.isArray(value);
+  if (fallback && typeof fallback === 'object') return !!value && typeof value === 'object' && !Array.isArray(value);
+  return true;
+};
+
+function keepBroken(key, raw) {
   try {
-    const raw = storage().getItem(PREFIX + key);
-    return raw === null ? clone(fallback) : JSON.parse(raw);
-  } catch {
-    return clone(fallback);
-  }
+    if (storage().getItem(PREFIX + 'broken_' + key) === null) storage().setItem(PREFIX + 'broken_' + key, raw);
+  } catch { /* Speicher voll: egal */ }
+}
+
+function read(key, fallback) {
+  let raw = null;
+  try {
+    raw = storage().getItem(PREFIX + key);
+    if (raw === null) return clone(fallback);
+    const value = JSON.parse(raw);
+    if (shapeOk(value, fallback)) return value;
+  } catch { /* kaputtes JSON: unten behandelt */ }
+  if (raw !== null) keepBroken(key, raw);
+  return clone(fallback);
 }
 
 function write(key, value) {

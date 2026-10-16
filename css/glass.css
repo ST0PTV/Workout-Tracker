@@ -647,3 +647,16 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .break-list .old { color: var(--muted); text-decoration: line-through; }
 .break-list .new { color: var(--accent); }
 .break-sheet .btn.block + .btn.block { margin-top: 10px; }
+
+/* v2.7.1: größere Tap-Flächen (Durchlauf-Test: Info-Symbole 30 px, Textlinks 17–20 px hoch) */
+.chip-pair .info-btn, .label-row .info-btn { position: relative; }
+.chip-pair .info-btn::after, .label-row .info-btn::after { content: ''; position: absolute; inset: -7px; }
+.chip.small { min-height: 36px; }
+button.link { min-height: 36px; padding-top: 8px; padding-bottom: 8px; }
+.sources li { padding: 4px 0; }
+.sources a { display: inline-block; padding: 4px 0; }
+
+/* v2.7.1: sehr lange Wörter (z. B. Übungs- oder Plannamen ohne Leerzeichen) dürfen die Seite nicht breiter machen */
+body { overflow-wrap: anywhere; }
+.info-btn.small { position: relative; }
+.info-btn.small::after { content: ''; position: absolute; inset: -7px; }
