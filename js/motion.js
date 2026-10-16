@@ -8,6 +8,7 @@
 // Intern wird jede Segmentrichtung als Winkel von „senkrecht nach oben“ gemessen, nach vorn positiv: dir(θ) = (sin θ, −cos θ).
 
 import { solveFront, layersFront, anchorFront } from './motion-front.js';
+import { femaleSide, ANCHORS_FEMALE } from './motion-female.js';
 
 export const H = 358;
 export const J0 = { ankle: [0, -15], knee: [0, -95], hip: [0, -183], shoulder: [2, -287], elbow: [2, -219], wrist: [2, -165] };
@@ -63,6 +64,11 @@ export const ANCHORS = {
   chest: { seg: 'trunk', p: [28, -268] }, belly: { seg: 'trunk', p: [26, -214] }, shoulder: { seg: 'uarm', p: [8, -296] },
   elbow: { seg: 'farm', p: [-6, -218] }, wrist: { seg: 'farm', p: [2, -165] }, hand: { seg: 'farm', p: [1, -152] }
 };
+
+// v2.5.0: Figur je Einstellung 'male' | 'female' (Gelenke und Längen gleich, nur Formen und einige Anker anders).
+export const SHAPES_FEMALE = femaleSide(SHAPES, { bun: true });
+export const shapesFor = (sex) => (sex === 'female' ? SHAPES_FEMALE : SHAPES);
+const anchorDef = (sex, k) => (sex === 'female' && ANCHORS_FEMALE[k]) || ANCHORS[k];
 
 const DEG = Math.PI / 180;
 export const f1 = (v) => Math.round(v * 10) / 10;
@@ -298,11 +304,11 @@ export function tf(P, seg, pt) {
   const o = tf1(P, bl.other, pt);
   return [a[0] + (o[0] - a[0]) * bl.w, a[1] + (o[1] - a[1]) * bl.w];
 }
-export function anchor(P, key) {
-  if (P.view === 'front') return anchorFront(P, key);
+export function anchor(P, key, sex = 'male') {
+  if (P.view === 'front') return anchorFront(P, key, sex);
   if (P.props && P.props[key]) return P.props[key].map(f1);
   if (P.joints[key]) return P.joints[key].map(f1);
-  const a = ANCHORS[key.replace(/2$/, '')];
+  const a = anchorDef(sex, key.replace(/2$/, ''));
   if (!a) return null;
   const seg = key.endsWith('2') ? a.seg + '2' : a.seg;
   if (!P.F[seg]) return null;
@@ -312,15 +318,15 @@ export function anchor(P, key) {
 // Zeichenebenen: [{ d, cls }] – drei Gruppen, jede als Vereinigung (Rand, dann Füllung) plus Muskeln:
 // 1. fernes Bein / ferner Arm, 2. Rumpf mit nahem Bein, 3. naher Arm (liegt vor dem Rumpf).
 // roleOf(shapeId) → 'p' | 's' | '' (primär / sekundär / nicht beansprucht).
-export function layers(P, roleOf = () => '') {
-  if (P.view === 'front') return layersFront(P, roleOf);
+export function layers(P, roleOf = () => '', sex = 'male') {
+  if (P.view === 'front') return layersFront(P, roleOf, sex);
   const out = [];
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
   const group = (segs, joints, far) => {
     const present = segs.filter((sg) => P.F[sg]);
     if (!present.length) return;
     const shapes = [];
-    for (const sh of SHAPES) {
+    for (const sh of shapesFor(sex)) {
       const seg = far ? sh.seg + '2' : sh.seg;
       if (!present.includes(seg)) continue;
       shapes.push({ sh, d: smooth(sh.pts.map((q) => tf(P, seg, q))) });

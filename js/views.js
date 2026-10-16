@@ -110,7 +110,7 @@ export function settingsView(rerender) {
       'div',
       { class: 'card' },
       h('h2', {}, 'Figur'),
-      h('p', { class: 'muted small' }, 'Für Muskelkarte und Übungs-Piktogramme. Nur die Darstellung ändert sich, die Muskeln und die Zählung sind gleich.'),
+      h('p', { class: 'muted small' }, 'Für Muskelkarte, Übungs-Piktogramme und Technik-Animationen. Nur die Darstellung ändert sich, die Muskeln, Bewegungen und die Zählung sind gleich.'),
       h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Figur' },
         [['male', 'Männlich'], ['female', 'Weiblich']].map(([k, label]) => {
           const on = (store.get('settings').figure || 'male') === k;

@@ -9,6 +9,10 @@ import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F } from './motion-front.js';
 import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT } from './anim-data.js';
 import { poolEntry } from './pool.js';
 import { MUSCLES } from './model.js';
+import * as store from './store.js';
+
+// v2.5.0: Figur nach der Einstellung „Figur“ (männlich/weiblich); gilt für Karte, Grenzen und Ankerpunkte.
+const figureSex = () => (store.get('settings')?.figure === 'female' ? 'female' : 'male');
 
 const NS = 'http://www.w3.org/2000/svg';
 const JOINT_DE = { shank: 'Schienbein', knee: 'Knie', hip: 'Hüfte', ankle: 'Sprunggelenk', trunk: 'Rumpf', shoulder: 'Schulter', abd: 'Schulter (seitlich)', elbow: 'Ellbogen', foot: 'Fuß', armHang: 'Armneigung' };
@@ -34,13 +38,13 @@ function roleFn(pool, view) {
 }
 
 // Begrenzung über alle Keyframes und Zwischenbilder (Figur und Geräte), damit die viewBox fest bleibt.
-function bounds(anim, frames) {
+function bounds(anim, frames, sex = 'male') {
   let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
   const add = (x, y) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); };
   const T = M.cycleLength(anim.phases);
   for (let i = 0; i <= 16; i++) {
     const { pose } = M.poseAt(frames, anim.phases, (T * i) / 16);
-    for (const l of M.layers(pose)) { const n = nums(l.d); for (let k = 0; k < n.length; k += 2) add(n[k], n[k + 1]); }
+    for (const l of M.layers(pose, undefined, sex)) { const n = nums(l.d); for (let k = 0; k < n.length; k += 2) add(n[k], n[k + 1]); }
     for (const s of pose.scene) {
       if (s.type === 'rect') { add(s.x, s.y); add(s.x + s.w, s.y + s.h); }
       else if (s.type === 'plate' || s.type === 'bar') { add(s.at[0] - s.r, s.at[1] - s.r); add(s.at[0] + s.r, s.at[1] + s.r); }
@@ -54,12 +58,12 @@ function bounds(anim, frames) {
 
 // Feste Beschriftungsplätze. Hohe Szenen: Spalten links/rechts (Stil H). Breite Szenen: Reihen oben/unten,
 // damit die Hinweislinien die Figur nicht kreuzen. Mindestabstand GAP (Spalten) bzw. Pillenbreite (Reihen).
-function labelSlots(anim, frames, b, upp) {
+function labelSlots(anim, frames, b, upp, sex = 'male') {
   const ref = M.solvePose(frames[Math.min(1, frames.length - 1)].pose);
   const cx = (b.x0 + b.x1) / 2, cy = (b.y0 + b.y1) / 2;
   const rows = anim.layout ? anim.layout === 'rows' : (b.x1 - b.x0) > 1.1 * (b.y1 - b.y0);
   const items = anim.keyPoints.map((kp, i) => {
-    const a = M.anchor(ref, kp.anchor) || [cx, cy];
+    const a = M.anchor(ref, kp.anchor, sex) || [cx, cy];
     return rows ? { i, side: a[1] < cy ? 't' : 'b', x: a[0], y: a[1] } : { i, side: kp.side || (a[0] < cx ? 'l' : 'r'), x: a[0], y: a[1] };
   });
   const slots = new Array(items.length);
@@ -106,7 +110,8 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
   const roleOf = roleFn(pool, anim.view);
   const st = { variant: anim.variants ? anim.variants[0].key : null, playing: !reducedMotion(), t: 0, last: null, raf: 0, kpActive: [] };
   let frames = M.resolveFrames(framesOf(anim, st.variant));
-  let b = bounds(anim, frames);
+  const sex = figureSex();
+  let b = bounds(anim, frames, sex);
   let upp = 1, padX = COL, padY = 18, lay = { slots: [], rows: false };
   const relayout = () => {
     lay.rows = anim.layout ? anim.layout === 'rows' : (b.x1 - b.x0) > 1.1 * (b.y1 - b.y0);
@@ -114,7 +119,7 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
     upp = lay.rows ? Math.max(1, (b.x1 - b.x0 + 2 * ROWPAD) / 360) : Math.max(1, (b.x1 - b.x0 + 2 * COL) / 360);
     padX = (lay.rows ? ROWPAD : COL) * upp;
     padY = (lay.rows ? LABEL_H + 26 : 18) * upp;
-    lay = labelSlots(anim, frames, b, upp);
+    lay = labelSlots(anim, frames, b, upp, sex);
   };
   relayout();
 
@@ -133,12 +138,12 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
 
   function draw(t) {
     const { pose, phase } = M.poseAt(frames, anim.phases, t);
-    gBody.replaceChildren(...M.layers(pose, roleOf).map((l) => el('path', { d: l.d, class: l.cls })));
+    gBody.replaceChildren(...M.layers(pose, roleOf, sex).map((l) => el('path', { d: l.d, class: l.cls })));
     gBack.replaceChildren(...sceneNodes(pose.scene, true));
     gFront.replaceChildren(...sceneNodes(pose.scene, false));
     const lw = LABEL_W * upp, lh = LABEL_H * upp;
     const marks = anim.keyPoints.map((kp, i) => {
-      const a = M.anchor(pose, kp.anchor);
+      const a = M.anchor(pose, kp.anchor, sex);
       if (!a) return null;
       const s = lay.slots[i], on = phase.kp.includes(i);
       let lx, ly, ex, ey, ebx, eby;
@@ -192,7 +197,7 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
   let seg = null;
   if (anim.variants) {
     const chips = anim.variants.map((v) => h('button', { type: 'button', class: v.key === st.variant ? 'on' : '', onclick: () => {
-      st.variant = v.key; frames = M.resolveFrames(framesOf(anim, v.key)); b = bounds(anim, frames); relayout(); setViewBox(); buildChips();
+      st.variant = v.key; frames = M.resolveFrames(framesOf(anim, v.key)); b = bounds(anim, frames, sex); relayout(); setViewBox(); buildChips();
       for (const c of chips) c.classList.toggle('on', c === chipFor(v.key)); draw(st.t);
     } }, v.label));
     const chipFor = (k) => chips[anim.variants.findIndex((v) => v.key === k)];
