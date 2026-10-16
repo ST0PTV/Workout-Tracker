@@ -57,7 +57,7 @@ const MUSCLES = {
     ['adductors', [[[91, 252], [98.8, 260], [98.8, 282], [94, 290], [92, 270]]]]
   ],
   back: [
-    ['upper-back', [[[100, 60], [92, 62], [88, 76], [72, 84], [58, 90], [70, 96], [84, 108], [92, 126], [100, 150]]]],
+    ['upper-back', [[[100, 60], [92, 62], [88, 76], [72, 84], [58, 90], [70, 96], [84, 108], [92, 126], [100, 150]], [[64, 104], [72, 100], [82, 110], [80, 120], [68, 124], [62, 116]]]], // inkl. Rotatorenmanschette/Teres (Schulterblattregion)
     ['rear-delts', [[[58, 92], [48, 94], [41, 104], [39, 118], [41, 128], [48, 132], [56, 122], [62, 104]]]],
     ['triceps', [[[57, 132], [58, 150], [56, 168], [52, 178], [45, 176], [41, 160], [40, 144], [43, 134], [50, 130]]]],
     ['forearms', [FOREARM]],
@@ -69,11 +69,8 @@ const MUSCLES = {
     ['calves', [[[82, 336], [72, 346], [66, 364], [70, 384], [80, 390], [84, 364]], [[88, 336], [87, 364], [88, 394], [94, 388], [96, 366], [94, 346]]]]
   ]
 };
-// Sichtbare, nicht gezählte Formen (nur Karte): hinten Schulterblattmuskeln. Alles, was vorne und hinten wie ein Muskel aussieht, ist in MUSCLES und antippbar.
-const DETAIL = {
-  front: [],
-  back: [[[64, 104], [72, 100], [82, 110], [80, 120], [68, 124], [62, 116]]]
-};
+// Sichtbare, nicht gezählte Formen (nur Karte): derzeit keine – alles, was wie ein Muskel aussieht, ist in MUSCLES und antippbar.
+const DETAIL = { front: [], back: [] };
 // Feine Linien (nur Karte): vorne Sägemuskel-Zacken, hinten Gesäßfalte.
 const LINES = {
   front: [[[77, 186], [69, 176]], [[79, 198], [70, 190]], [[81, 210], [72, 204]]],
