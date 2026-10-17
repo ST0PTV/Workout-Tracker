@@ -175,4 +175,22 @@ test('lokale Daten aus neuerer Version werden nicht angefasst', () => {
   assert.equal(localStorage.getItem('wt_exercises'), '[{"id":"x"}]');
 });
 
+test('beschädigte Daten (falsche Form, kaputtes JSON) ergeben Standardwerte und werden aufgehoben', () => {
+  localStorage.clear();
+  localStorage.setItem('wt_schema', '2');
+  localStorage.setItem('wt_exercises', 'null');
+  localStorage.setItem('wt_sessions', '{kaputt');
+  localStorage.setItem('wt_settings', '[1,2');
+  localStorage.setItem('wt_plans', '{"a":1}');
+  assert.deepEqual(store.get('exercises'), []);
+  assert.deepEqual(store.get('sessions'), []);
+  assert.deepEqual(store.get('plans'), []);
+  assert.equal(store.get('settings').restSeconds, 120);
+  assert.equal(localStorage.getItem('wt_broken_sessions'), '{kaputt');
+  assert.equal(localStorage.getItem('wt_broken_exercises'), 'null');
+  localStorage.setItem('wt_sessions', '{zweiter Defekt');
+  store.get('sessions');
+  assert.equal(localStorage.getItem('wt_broken_sessions'), '{kaputt', 'erste Sicherung wird nicht überschrieben');
+});
+
 done();

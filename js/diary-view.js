@@ -251,7 +251,7 @@ export function openDiaryEntry(id, rerender) {
     const s = H.getFinished(id);
     if (!s) { sheet?.close(); return; }
     if (state.mode === 'edit') { state.invalid.clear(); body.replaceChildren(...editView().flat(2).filter(Boolean)); return; }
-    body.replaceChildren(...readView(s).flat(),
+    body.replaceChildren(...readView(s).flat().filter(Boolean),
       h('button', { class: 'btn primary block', type: 'button', onclick: () => { state.draft = H.startEdit(id); state.mode = 'edit'; draw(); } }, icon('edit', { size: 18 }), 'Bearbeiten'));
   }
 

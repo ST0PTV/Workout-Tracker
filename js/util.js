@@ -35,3 +35,16 @@ export function h(tag, attrs = {}, ...children) {
   }
   return el;
 }
+
+// Schutz (v2.7.1): replaceChildren/append schreiben null/undefined/false sonst als Text "null" ins DOM
+// (so geschehen im Tagebuch seit v2.3.0). Der Wrapper lässt solche Werte weg.
+if (typeof Element !== 'undefined') {
+  for (const name of ['replaceChildren', 'append', 'prepend']) {
+    const orig = Element.prototype[name];
+    if (orig && !orig.__wtSafe) {
+      const safe = function (...nodes) { return orig.apply(this, nodes.filter((n) => n !== null && n !== undefined && n !== false)); };
+      safe.__wtSafe = true;
+      Element.prototype[name] = safe;
+    }
+  }
+}

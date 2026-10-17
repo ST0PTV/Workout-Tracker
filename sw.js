@@ -3,7 +3,7 @@
  * Strategie: Precache der App-Shell, danach cache-first für gleiche Origin (offlinefähig),
  * Netzwerk-Fallback und Update im Hintergrund (stale-while-revalidate).
  */
-const CACHE_VERSION = 27;
+const CACHE_VERSION = 28;
 const CACHE_NAME = `wt-cache-v${CACHE_VERSION}`;
 
 const PRECACHE = [
@@ -68,7 +68,8 @@ const PRECACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)).then(() => self.skipWaiting())
+    // cache: 'reload' umgeht den HTTP-Cache des Servers (GitHub Pages: ~10 min), sonst landen nach einem Deploy alte Dateien im neuen Cache.
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE.map((u) => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())
   );
 });
 
@@ -88,7 +89,8 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((cached) => {
-      const network = fetch(req)
+      // Skripte und Styles im Hintergrund per Revalidierung holen (nicht aus dem HTTP-Cache), Navigationen unverändert.
+      const network = (req.mode === 'navigate' ? fetch(req) : fetch(req.url, { cache: 'no-cache' }))
         .then((res) => {
           if (res && res.ok) {
             const copy = res.clone();
@@ -97,6 +99,7 @@ self.addEventListener('fetch', (event) => {
           return res;
         })
         .catch(() => cached);
+      event.waitUntil(network.catch(() => {})); // Aktualisierung im Hintergrund nicht vorzeitig abbrechen lassen
       return cached || network;
     })
   );
