@@ -106,9 +106,36 @@ export function openEvidence(ref) {
 
 // ---------- Startpool ----------
 
+function checkBox(state) {
+  return h('span', { class: `box${state ? ' on' : ''}`, 'aria-hidden': 'true' }, state === 'some' ? icon('minus', { size: 16 }) : state ? icon('check', { size: 16 }) : null);
+}
+
+// v2.8.0: Alle Pool-Übungen auf einmal – mit Bestätigung (Leerzustand der Übungen-Liste).
+function confirmAddAll(rerender) {
+  const inLib = poolRefsInLibrary(lib.listExercises({ includeArchived: true }));
+  const todo = POOL.filter((p) => !inLib.has(p.ref));
+  const cardio = todo.filter((p) => p.kind === 'cardio').length;
+  const sheet = openSheet(h('div', { class: 'confirm-all' },
+    h('p', { class: 'muted' }, 'Die Liste wird lang. Übungen, die du nicht brauchst, kannst du später archivieren. Muskeln und Quellen bleiben je Übung abrufbar.'),
+    h('div', { class: 'card sum' },
+      h('span', {}, 'Kraft und Körpergewicht', h('b', {}, String(todo.length - cardio))),
+      h('span', {}, 'Cardio-Geräte', h('b', {}, String(cardio)))),
+    h('div', { class: 'stack-btns' },
+      h('button', { class: 'btn primary', type: 'button', onclick: () => {
+        const r = lib.addManyFromPool(todo.map((p) => p.ref));
+        sheet.close();
+        toast(r.failed.length ? `${r.added + r.restored} Übungen hinzugefügt, ${r.failed.length} nicht (Name schon vergeben).` : `${r.added + r.restored} Übungen hinzugefügt.`, { error: r.failed.length > 0 });
+        rerender();
+      } }, `${todo.length} übernehmen`),
+      h('button', { class: 'btn', type: 'button', onclick: () => sheet.close() }, 'Abbrechen'))),
+  { title: `Alle ${todo.length} Übungen übernehmen?` });
+}
+
 function openPool(rerender) {
-  const local = { query: '', region: null, muscle: null, equip: null };
+  const local = { query: '', region: null, muscle: null, equip: null, select: false, picked: new Set() };
   const listBox = h('div');
+  const selBox = h('div');
+  const barBox = h('div', { class: 'pool-bar-wrap' });
   const draw = () => {
     const inLib = poolRefsInLibrary(lib.listExercises());
     const items = POOL
@@ -116,14 +143,41 @@ function openPool(rerender) {
         && (!local.muscle || p.muscles.primary.includes(local.muscle)) && (!local.equip || p.equipment === local.equip))
       .sort((a, b) => a.name.localeCompare(b.name, 'de'));
     countLine.textContent = items.length === POOL.length ? `${POOL.length} Übungen` : `${items.length} von ${POOL.length} Übungen`;
+    // Auswählen-Modus (v2.8.0): Haken statt „+“, „Alle auswählen“ gilt für die angezeigten, noch nicht übernommenen Übungen.
+    const selectable = items.filter((p) => !inLib.has(p.ref));
+    for (const ref of [...local.picked]) if (inLib.has(ref)) local.picked.delete(ref);
+    const shownPicked = selectable.filter((p) => local.picked.has(p.ref)).length;
+    const allState = !selectable.length || !shownPicked ? false : shownPicked === selectable.length ? true : 'some';
+    selBox.replaceChildren(local.select ? h('button', { class: 'selrow', type: 'button', disabled: !selectable.length,
+      onclick: () => {
+        if (allState === true) selectable.forEach((p) => local.picked.delete(p.ref)); else selectable.forEach((p) => local.picked.add(p.ref));
+        draw();
+      } },
+      checkBox(allState), h('b', {}, !selectable.length ? 'Alles Angezeigte ist schon drin' : allState === true ? 'Auswahl aufheben' : `Alle ${selectable.length} auswählen`),
+      h('small', {}, `${local.picked.size} gewählt`)) : '');
+    barBox.replaceChildren(local.select ? h('div', { class: 'pool-bar' },
+      h('button', { class: 'btn primary', type: 'button', disabled: !local.picked.size, onclick: () => {
+        const r = lib.addManyFromPool([...local.picked]);
+        local.picked.clear(); local.select = false;
+        toast(r.failed.length ? `${r.added + r.restored} Übungen hinzugefügt, ${r.failed.length} nicht (Name schon vergeben).` : `${r.added + r.restored} Übungen hinzugefügt.`, { error: r.failed.length > 0 });
+        drawMode(); draw(); rerender();
+      } }, local.picked.size ? `${local.picked.size} übernehmen` : 'Übungen auswählen')) : '');
     listBox.replaceChildren(items.length
       ? h('div', { class: 'card list' }, items.map((p) => {
         const added = inLib.has(p.ref);
+        const fig = h('span', { class: 'fig-ic' }, miniFigure(p, store.get('settings').figure));
+        const text = [h('b', {}, p.name, h('span', { class: 'eq' }, EQUIPMENT[p.equipment])), h('small', {}, lib.muscleSummary(p))];
+        if (local.select) {
+          const on = local.picked.has(p.ref);
+          return added
+            ? h('div', { class: 'row dimrow', 'data-ref': p.ref }, h('span', { class: 'box dashed', 'aria-hidden': 'true' }), fig, h('span', { class: 't' }, ...text), h('span', { class: 'added' }, 'drin'))
+            : h('button', { class: `row pickrow${on ? ' picked' : ''}`, type: 'button', 'data-ref': p.ref, 'aria-pressed': String(on),
+              onclick: () => { if (on) local.picked.delete(p.ref); else local.picked.add(p.ref); draw(); } },
+              checkBox(on), fig, h('span', { class: 't' }, ...text));
+        }
         return h('div', { class: 'row', 'data-ref': p.ref },
-          h('span', { class: 'fig-ic' }, miniFigure(p, store.get('settings').figure)),
-          h('button', { class: 't plain', type: 'button', onclick: () => openEvidence(p.ref), 'aria-label': `${p.name}: Muskeln und Quellen` },
-            h('b', {}, p.name, h('span', { class: 'eq' }, EQUIPMENT[p.equipment])),
-            h('small', {}, lib.muscleSummary(p))),
+          fig,
+          h('button', { class: 't plain', type: 'button', onclick: () => openEvidence(p.ref), 'aria-label': `${p.name}: Muskeln und Quellen` }, ...text),
           added
             ? h('span', { class: 'added' }, icon('check', { size: 16 }), 'drin')
             : h('button', { class: 'add', type: 'button', 'aria-label': `${p.name} hinzufügen`, onclick: () => {
@@ -136,12 +190,23 @@ function openPool(rerender) {
   };
   // v1.5: bei vielen Übungen zusätzlich Muskel (innerhalb der Region) und Gerät filtern.
   const countLine = h('p', { class: 'muted small pool-count' });
+  const hint = h('p', { class: 'muted small' });
+  const modeBtn = h('button', { class: 'chip small', type: 'button' });
+  const drawMode = () => {
+    hint.textContent = local.select ? 'Tippe Übungen an, die du übernehmen möchtest.' : 'Tippe auf eine Übung für Muskeln und Quellen, auf „+“ zum Übernehmen.';
+    modeBtn.textContent = local.select ? 'Fertig' : 'Auswählen';
+    modeBtn.classList.toggle('on', local.select);
+    modeBtn.setAttribute('aria-pressed', String(local.select));
+  };
+  modeBtn.addEventListener('click', () => { local.select = !local.select; local.picked.clear(); drawMode(); draw(); });
   const body = h('div', {},
-    h('p', { class: 'muted small' }, 'Tippe auf eine Übung für Muskeln und Quellen, auf „+“ zum Übernehmen.'),
+    h('div', { class: 'pool-top' }, hint, modeBtn),
     searchField('', 'Im Pool suchen', (v) => { local.query = v; draw(); }),
     h('div', { class: 'chips-wrap' }),
     countLine,
-    listBox);
+    selBox,
+    listBox,
+    barBox);
   const chipsWrap = body.querySelector('.chips-wrap');
   const chip = (on, label, onclick) => h('button', { class: `chip small${on ? ' on' : ''}`, type: 'button', 'aria-pressed': String(on), onclick }, label);
   const drawChips = () => {
@@ -154,6 +219,7 @@ function openPool(rerender) {
         Object.entries(EQUIPMENT).map(([k, label]) => chip(local.equip === k, label, () => { local.equip = local.equip === k ? null : k; drawChips(); draw(); })))
     ].filter(Boolean));
   };
+  drawMode();
   drawChips();
   draw();
   openSheet(body, { title: 'Startpool', full: true });
@@ -324,7 +390,8 @@ export function exercisesView(rerender) {
         h('div', { class: 'big' }, icon('train', { size: 44 })), h('h2', {}, 'Noch keine Übungen'),
         h('p', { class: 'muted' }, 'Übernimm Grundübungen aus dem Startpool oder lege eigene an.'),
         h('div', { class: 'row-btns' },
-          h('button', { class: 'btn primary', type: 'button', onclick: () => openPool(rerender) }, 'Startpool'),
+          h('button', { class: 'btn primary', type: 'button', onclick: () => confirmAddAll(rerender) }, `Alle ${POOL.length} Startpool-Übungen übernehmen`),
+          h('button', { class: 'btn', type: 'button', onclick: () => openPool(rerender) }, 'Startpool durchsehen'),
           h('button', { class: 'btn', type: 'button', onclick: () => openEditor(null, rerender) }, 'Eigene Übung'))));
       return;
     }

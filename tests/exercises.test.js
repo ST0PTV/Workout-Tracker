@@ -90,4 +90,20 @@ test('Muskelzusammenfassung', () => {
   assert.equal(lib.muscleSummary({ muscles: { primary: ['quads'], secondary: [] } }), 'Quadrizeps');
 });
 
+test('mehrere Pool-Übungen auf einmal übernehmen (v2.8.0)', () => {
+  const before = lib.listExercises({ includeArchived: true }).length;
+  const refs = POOL.map((p) => p.ref);
+  const r = lib.addManyFromPool(refs);
+  const after = lib.listExercises({ includeArchived: true }).length;
+  assert.equal(r.added + r.restored + r.skipped + r.failed.length, refs.length);
+  assert.equal(after - before, r.added, 'nur neue Übungen kommen hinzu');
+  // Namensgleiche eigene Übungen (hier „Rudergerät“ aus einem früheren Test) werden gemeldet, nicht überschrieben.
+  assert.ok(r.failed.every((f) => f.error.includes('schon eine Übung')), JSON.stringify(r.failed));
+  const again = lib.addManyFromPool(refs);
+  assert.equal(again.added, 0);
+  assert.equal(again.skipped, refs.length - r.failed.length, 'zweiter Durchlauf überspringt alles Übernommene');
+  assert.equal(again.failed.length, r.failed.length);
+  assert.equal(lib.listExercises({ includeArchived: true }).length, after);
+});
+
 done();

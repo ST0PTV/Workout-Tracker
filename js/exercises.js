@@ -127,3 +127,16 @@ export function addFromPool(ref) {
   }
   return saveExercise(exerciseFromPool(entry));
 }
+
+// v2.8.0: viele Pool-Übungen auf einmal übernehmen. Bereits aktive Übungen werden übersprungen,
+// archivierte wiederhergestellt; Fehlschläge (z. B. gleicher Name wie eine eigene Übung) werden gesammelt.
+export function addManyFromPool(refs) {
+  const res = { added: 0, restored: 0, skipped: 0, failed: [] };
+  for (const ref of refs) {
+    const r = addFromPool(ref);
+    if (r.ok) { if (r.restored) res.restored += 1; else res.added += 1; }
+    else if (r.errors[0]?.includes('schon in deiner Bibliothek')) res.skipped += 1;
+    else res.failed.push({ ref, error: r.errors[0] });
+  }
+  return res;
+}

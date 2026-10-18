@@ -660,3 +660,27 @@ button.link { min-height: 36px; padding-top: 8px; padding-bottom: 8px; }
 body { overflow-wrap: anywhere; }
 .info-btn.small { position: relative; }
 .info-btn.small::after { content: ''; position: absolute; inset: -7px; }
+
+/* v2.8.0: Pool – Auswählen-Modus und „Alle übernehmen“ */
+.pool-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pool-top p { flex: 1; margin: 0; }
+.pool-top .chip { min-height: 36px; padding: 0 14px; }
+.box { flex: none; width: 28px; height: 28px; border-radius: 9px; border: 2px solid rgba(255, 255, 255, 0.35); display: inline-flex; align-items: center; justify-content: center; color: #06101f; }
+.box.on { background: linear-gradient(135deg, var(--accent-2), var(--accent)); border-color: transparent; }
+.box.dashed { border-style: dashed; }
+.selrow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; margin: 4px 0 8px; padding: 0 4px; background: none; border: 0; color: var(--text); cursor: pointer; text-align: left; }
+.selrow b { flex: 1; font-size: 16px; }
+.selrow small { color: var(--muted); font-size: 13px; }
+.selrow:disabled { opacity: 0.4; cursor: default; }
+.row.pickrow { background: none; border: 0; color: var(--text); cursor: pointer; }
+.row.pickrow.picked { background: rgba(122, 162, 255, 0.14); }
+.row.dimrow { opacity: 0.55; }
+.pool-bar-wrap { position: sticky; bottom: -20px; margin: 0 -16px -20px; z-index: 2; }
+.pool-bar { padding: 28px 16px calc(16px + var(--safe-bottom)); background: linear-gradient(180deg, rgba(11, 16, 32, 0), rgba(11, 16, 32, 0.96) 45%); }
+.pool-bar .btn { width: 100%; min-height: 52px; font-size: 16px; }
+.confirm-all .sum { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; margin: 12px 0; }
+.confirm-all .sum span { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; }
+.confirm-all .sum b { color: var(--text); }
+.confirm-all .stack-btns { display: flex; flex-direction: column; gap: 10px; }
+.confirm-all .stack-btns .btn { width: 100%; min-height: 52px; }
+.box.on svg { stroke: #06101f; }
