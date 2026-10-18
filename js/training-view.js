@@ -154,7 +154,7 @@ function openOverview(rerender) {
           } }, icon('trash')))))),
       h('button', { class: 'addline', type: 'button', onclick: () => openAddExercise(rerender, () => { const s = S.activeSession(); ui.current = s.entries.length - 1; draw(); }) }, icon('plus', { size: 18 }), 'Übung hinzufügen'),
       h('p', { class: 'muted small center' }, `${v.summary.hardSets} Arbeitssätze erledigt`),
-      h('button', { class: 'btn primary block', type: 'button', onclick: () => { sheet.close(); finishFlow(rerender); } }, 'Training beenden'),
+      h('button', { class: 'btn primary block', type: 'button', onclick: () => { sheet.close(); rateThen(v.entries[ui.current] || null, () => finishFlow(rerender)); } }, 'Training beenden'),
       h('button', { class: 'btn block subtle danger-text', type: 'button', onclick: () => {
         if (!confirm('Training verwerfen? Alle Einträge dieses Trainings gehen verloren.')) return;
         S.discard(); sheet.close(); toast('Training verworfen.'); rerender();
@@ -383,7 +383,8 @@ function exercisePage(v, d, rerender) {
 
 // v2.4.0 (1B): beim Verlassen einer Übung einmal nach der Bewertung fragen.
 function rateThen(d, next) {
-  if (needsRating(d)) askRating(d, next); else next();
+  // v2.8.1: auch beim Beenden aus der Übersicht (dort ist d die gerade offene Übung, evtl. null).
+  if (d && needsRating(d)) askRating(d, next); else next();
 }
 
 function activeView(v, rerender) {
