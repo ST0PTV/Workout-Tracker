@@ -91,6 +91,9 @@ const BRIDGE = (() => {
 // Rückenstrecken 45°: Fußplatte 30 hoch (≈ 15 cm), Beine 45° geneigt (Konvention). Kickback: Turm vor der Figur, Rolle unten (Konvention).
 const BACKEXT = { plat: 30 };
 const KICK = { tower: 150, pulley: -20, hand: [78, 46] }; // Hand relativ zur Schulter, hält den Griff am Turm
+// v2.10: Das arbeitende Bein ist das nahe (vorn gezeichnete) Bein; das Standbein ist das zweite Bein und steht per IK fest am Boden.
+// Hüfte und Standfuß entsprechen der bisherigen Pose (Standbein: Schienbein 4°, Knie 8°, Rumpf 25°).
+KICK.pose = { root: 'hip', rootPos: [-0.6, -182.6], trunk: C(25), leg2: { ankle: [0, -15], foot: C(90, 'Fuß flach'), kneeSide: 1 }, armTarget: KICK.hand, elbow: C(20) };
 // Runde 3.3 (v2.9): gemeinsame Liegeposition auf der Flachbank (wie Bankdrücken) und auf der Negativbank (−15°, Beine eingehakt).
 const BENCH_POSE = () => ({ root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach') });
 const DECLINE_POSE = () => ({ root: 'shoulder', rootPos: [0, -96], trunk: V(-105, 'C1', 'protocol', 'Bank −15° (Kopf tiefer als die Hüfte)'), hip: C(35, 'Beine unter den Rollen eingehakt'), knee: C(95), foot: C(120) });
@@ -117,6 +120,78 @@ export function dumbbellPath(s) {
   return box(-e, -e + DB.hw, DB.hr) + box(e - DB.hw, e, DB.hr) + box(-e + DB.hw, e - DB.hw, 2.2);
 }
 export function dumbbellBox(s) { const e = s.endOn ? DB.hr : DB.len / 2 + DB.hr; return [s.at[0] - e, s.at[1] - e, s.at[0] + e, s.at[1] + e]; }
+
+// ---------- Runde 4 (v2.10): Ruderfamilie – Geometrie aus der Pose berechnet ----------
+const unit2 = (v) => { const l = Math.hypot(v[0], v[1]) || 1; return [v[0] / l, v[1] / l]; };
+// Einarmiges Rudern: Standbein vorn (Wurzel), Knie und Hand der fernen Seite auf der Bank (Oberkante y = −92 ≈ 45 cm).
+const ONE_ROW = (() => {
+  const t = 70, base = { shank: 5, knee: 15, trunk: t }, P = solvePose(base), h = P.joints.hip, s = P.joints.shoulder;
+  const k2y = -103, dx = Math.sqrt(LEN.thigh ** 2 - (k2y - h[1]) ** 2); // Kniemitte ≈ 11 über der Bank, Schienbein liegt auf
+  const a = Math.acos(Math.min(1, (-100 - s[1]) / (LEN.uarm + LEN.farm))) * 180 / Math.PI; // Stützarm gestreckt, Handfläche auf der Bank
+  return {
+    bench: [h[0] - 70, s[0] + 75],
+    pose: {
+      shank: C(5), ankle: C(5, 'Fuß flach'), knee: C(15, 'Standbein leicht gebeugt'), trunk: C(t, 'Rumpf ≈ 20° über der Waagerechten (Stützarm gestreckt auf der Bank)'),
+      leg2: { ankle: [h[0] + dx - LEN.shank, k2y + 1], foot: C(205, 'Fuß hängt hinter der Bank'), kneeSide: 1 },
+      arm2: { shoulder: C(t + a, 'Stützarm gestreckt, Hand auf der Bank'), elbow: C(0) }, handFlat2: 1
+    }
+  };
+})();
+// T-Bar: Stange im Drehpunkt am Boden hinter der Figur; Hände folgen dem Kreisbogen (Radius ≈ 1,85 m).
+const TBAR = (() => {
+  const pose = { shank: C(8), ankle: C(8, 'Fuß flach'), knee: V(20, 'R1', 'protocol', '„Beine leicht gebeugt“ (Langhantelrudern, übertragen)'), trunk: C(55, 'Oberkörper deutlich vorgeneigt; Winkel nicht gemessen (Konvention)') };
+  const P0 = solvePose({ shank: 8, ankle: 8, knee: 20, trunk: 55, armPlumb: true, elbow: 0 });
+  const bottom = P0.joints.wrist, R = 380, py = -10;
+  const pivot = [bottom[0] - Math.sqrt(R * R - (bottom[1] - py) ** 2), py];
+  const c = trunkPoint(P0, 36, -68), u = unit2([c[0] - pivot[0], c[1] - pivot[1]]); // Griff am unteren Brustkorb
+  return { pose, pivot, R, bottom: bottom.map((x) => Math.round(x * 10) / 10), top: [pivot[0] + R * u[0], pivot[1] + R * u[1]].map((x) => Math.round(x * 10) / 10), side: 1 };
+})();
+// Brustgestütztes Rudern: Polster 45°, Füße auf einer Fußplatte; Hebel mit Drehpunkt vor und über den Händen.
+const CSR = (() => {
+  const pose = { rootPos: [0, -23], shank: C(15), knee: C(25), trunk: C(45, 'Polster 45°; 30–45° Bank ergäben 60–45° Rumpf (Konvention)') };
+  const a = solvePose({ ...{ rootPos: [0, -23], shank: 15, knee: 25, trunk: 45 }, shoulder: 45, elbow: 0 }).joints.hand;
+  const b = solvePose({ ...{ rootPos: [0, -23], shank: 15, knee: 25, trunk: 45 }, shoulder: -5, elbow: 105.4 }).joints.hand;
+  const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d = [b[0] - a[0], b[1] - a[1]];
+  const px = m[0] + 200, py = m[1] - (px - m[0]) * d[0] / d[1]; // auf der Mittelsenkrechten: beide Endlagen gleich weit vom Drehpunkt
+  return { pose, pivot: [px, py] };
+})();
+// Rudermaschine sitzend: Drehpunkt der Hebel über dem Kopf, auf der Mittelsenkrechten der beiden Griffpositionen.
+const MROW = (() => {
+  const base = { root: 'hip', rootPos: [0, -95], trunk: 0, hip: 90, knee: 90 };
+  const a = solvePose({ ...base, shoulder: 61.1, elbow: 5.9 }).joints.hand, b = solvePose({ ...base, shoulder: -5, elbow: 105.4 }).joints.hand;
+  const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d = [b[0] - a[0], b[1] - a[1]];
+  const py = -330, px = m[0] - (py - m[1]) * d[1] / d[0];
+  return { pose: { root: 'hip', rootPos: [0, -95], trunk: V(0, 'S2', 'protocol', 'aufrecht'), hip: C(90), knee: C(90), foot: C(90, 'Füße flach') }, pivot: [px, py] };
+})();
+// Rudern im Hang: Stange auf Hüfthöhe (y = −185 ≈ 90 cm), Fersen am Boden; Wurzel ist der Knöchel, das Handgelenk bleibt per IK an der Stange.
+// Oben ist die Brust ≈ 10 cm (20 Einheiten) unter der Stange (Brustvorderseite 31 vor der Rumpfachse, 45 unter der Schulter; McGill et al. 2014) → Rumpfwinkel oben und Fersenposition;
+// unten sind die Arme gestreckt (Schulter–Handgelenk = Armlänge) → Rumpfwinkel unten. Der Körper dreht dabei um die Fersen.
+const INV = (() => {
+  const bar = [0, -185], grip = [0, -178], ay = -15.5; // Handgelenk ≈ 7 unter der Stangenmitte
+  const pose0 = (t, ax = 0) => solvePose({ root: 'ankle', rootPos: [ax, ay], trunk: t, hip: 0, knee: 0, armWorld: grip });
+  const chest = (t) => trunkPoint(pose0(t), 51, -45);
+  const top = bisect((t) => chest(t)[1] - bar[1], -89, -20), ax = bar[0] - chest(top)[0];
+  const low = bisect((t) => { const s = pose0(t, ax).joints.shoulder; return Math.hypot(s[0] - grip[0], s[1] - grip[1]) - 121.5; }, -89, top);
+  const r1 = (x) => Math.round(x * 10) / 10;
+  return { bar, grip, low: r1(low), top: r1(top), pose: { root: 'ankle', rootPos: [r1(ax), ay], hip: V(0, 'V1', 'protocol', 'Körperlinie gerade'), knee: C(0), armWorld: grip, elbowSide: 1 } };
+})();
+
+// ---------- Runde 5 (v2.11): Zugfamilie und hintere Schulter ----------
+// Klimmzug im Untergriff (Seitenansicht): Wurzel ist das Handgelenk an der Stange; der Rumpf ist je Bild so gewählt,
+// dass der Mittelpunkt von Schulter, Hüfte und Knie unter den Händen hängt (grobes Zeichenmodell für den Körperschwerpunkt).
+const CHIN = (() => {
+  const grip = [0, PU.bar + 7], base = { root: 'wrist', rootPos: grip, hip: 0, knee: 90, elbowSide: -1 };
+  const solveT = (tgt) => { const ps = (t) => solvePose({ ...base, trunk: t, armTarget: tgt }); const t = bisect((x) => { const J = ps(x).joints; return (J.shoulder[0] + J.hip[0] + J.knee[0]) / 3 - grip[0]; }, -60, 60); return { t, P: ps(t) }; };
+  const hang = [6, -121], top = [34, -16]; // unten fast gestreckt über der Schulter; oben Stange vor dem Hals, Schulter ≈ 34 dahinter und ≈ 23 unter der Stange → Kinn über der Stange
+  const r1 = (x) => Math.round(x * 10) / 10;
+  return { grip, hang, top, tHang: r1(solveT(hang).t), tTop: r1(solveT(top).t), elbowTop: r1(solveT(top).P.angles.elbow) };
+})();
+// Latzug eng/neutral (Seitenansicht): sitzend, Oberschenkel unter dem Polster; Umlenkrolle über dem Griff in Startstellung.
+const CGP = { hip: [0, -100], start: [18, -121], end: [38, 12] };
+// Überzüge am Kabel (Seitenansicht): Turm vor der Figur, obere Rolle auf ≈ 2,05 m.
+const SAP = { tower: 240, pulley: [228, -420] };
+// Reverse Butterfly (Frontansicht): sitzend; Arme vorn auf Schulterhöhe (in der Projektion fast ein Punkt) bis seitlich in Linie mit dem Rumpf.
+const RPD = { seat: -105, start: { elbow: [6, 6], wrist: [8, 12] }, end: { elbow: [67, 6], wrist: [119, 10] } };
 
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
@@ -759,28 +834,28 @@ export const ANIMATIONS = [
   {
     ref: 'barbell-row', view: 'side', basis: 'protocol',
     basisNote: 'Keine Studie hat Rumpf-, Hüft-, Knie- oder Armwinkel beim vorgebeugten Rudern gemessen. Vorgaben aus einem Kraft-Geschwindigkeits-Protokoll (Sports 2023): schulterbreiter Obergriff, Knie leicht gebeugt, Oberkörper weit vorgeneigt, Zug aus gestreckten Armen bis zum Bauch. Die Rumpfneigung (≈ 65°) ist Konvention.',
-    tempo: { basis: 'convention', note: 'Kein Tempo gemessen oder vorgegeben; hier 1 s ziehen / 1,5 s absenken.' },
+    tempo: { basis: 'protocol', note: '1 s ziehen, 1 s absenken (Metronom 60/min; Fenwick et al. 2009).' },
     frames: [
       { label: 'Unten', pose: { shank: C(5), knee: V(20, 'R1', 'protocol', '„Beine leicht gebeugt“'), ankle: C(5), trunk: C(65, 'Oberkörper weit vorgeneigt (Protokoll: „fast waagerecht“); nicht gemessen'), shoulder: C(65, 'Arme hängen senkrecht'), elbow: V(0, 'R1', 'protocol', 'Start mit gestreckten Ellbogen'), props: rowBarProps } },
       { label: 'Oben', pose: { shank: C(5), knee: V(20, 'R1', 'protocol', '„Beine leicht gebeugt“'), ankle: C(5), trunk: C(65, 'Oberkörper weit vorgeneigt; nicht gemessen'), shoulder: C(-25, 'Oberarm hinter die Rumpflinie gezogen; nicht gemessen'), elbow: C(95, 'nicht gemessen; Stange am Bauch'), armScale: [0.95, 0.95], props: rowBarProps },
         facts: [V(1, 'R1', 'protocol', 'Endpunkt: Stange berührt den Bauch bzw. unteren Brustkorb')] }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2, 3] }, { a: 1, b: 0, dur: 1.5, label: 'Absenken', kp: [4] }],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [4] }],
     keyPoints: [
       { short: 'Griff', anchor: 'bar', side: 'r', status: 'single', text: 'Griff etwa schulterbreit, Handrücken nach oben (Obergriff).', src: ['R1'],
         explain: 'Protokoll (Sports 2023, n = 28): Obergriff auf Schulterbreite (Akromion zu Akromion). Griffbreiten wurden beim Langhantelrudern nicht verglichen.' },
       { short: 'Haltung', anchor: 'back', side: 'l', status: 'consensus', text: 'Knie leicht beugen, aus der Hüfte vorkippen, Rücken neutral halten.', src: ['R1', 'R3'],
-        explain: 'Aufbau in beiden Protokollen: Knie leicht gebeugt, Oberkörper weit vorgeneigt, Wirbelsäule neutral. Winkel wurden nicht gemessen; die gezeigte Neigung ist Konvention.' },
+        explain: 'Aufbau in beiden Protokollen: Knie leicht gebeugt, Oberkörper weit vorgeneigt, Wirbelsäule neutral. Trotz dieser Anweisung beugte sich die Lendenwirbelsäule im Mittel um 22,9° (42,9 % des eigenen Maximums; Fenwick et al. 2009, n = 7). Die gezeigte Rumpfneigung ist Konvention.' },
       { short: 'Zug', anchor: 'belly', side: 'r', status: 'single', text: 'Aus gestreckten Armen die Stange zum unteren Brustkorb oder Bauch ziehen.', src: ['R1'],
         explain: 'Start mit gestreckten Ellbogen, Ende bei Berührung des Bauchs (Sports 2023). Ellbogenwinkel und Zugweg wurden nicht gemessen.' },
       { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Vorgebeugt belastete die Lendenwirbelsäule stärker als Kabel- oder hängendes Rudern.', src: ['R3'],
-        explain: 'Fenwick, Brown & McGill 2009 (n = 7, Abstract): Das vorgebeugte Rudern aktivierte den Rücken symmetrisch am stärksten, erzeugte aber die größte Lendenwirbelsäulenlast – und die höchste Steifigkeit. Ob das schädlich oder nützlich ist, hängt vom Ziel ab; Verletzungsdaten gibt es nicht.' },
+        explain: 'Fenwick, Brown & McGill 2009 (7 Männer, Modell aus EMG und Bewegung): Druck auf L4/L5 3576 N beim vorgebeugten Rudern, 2457 N beim einarmigen Kabelrudern, 2339 N beim Rudern im Hang; dafür die höchste Steifigkeit der Lendenwirbelsäule. Ob das schädlich oder nützlich ist, hängt vom Ziel ab; Verletzungsdaten gibt es nicht.' },
       { short: 'Ab', anchor: 'elbow', side: 'r', status: 'single', text: 'Kontrolliert absenken, bis die Arme wieder gestreckt sind.', src: ['R1'],
         explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Sports 2023). Das Absenktempo ist nicht untersucht.' }
     ],
     sources: {
       R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
-      R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181942019', read: 'abstract' }
+      R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' }
     }
   },
 
@@ -1151,19 +1226,19 @@ export const ANIMATIONS = [
   // ---------- Kickback am Kabel (v2.9) ----------
   {
     ref: 'cable-kickback', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
-    basisNote: 'Keine gelesene Studie beschreibt Aufbau oder Winkel (Stevens et al. 2022 im Volltext: nur Tempo und Last; Attarieh et al. 2026 im Abstract). Gezeigt ist ein üblicher Aufbau: Manschette am Knöchel, Seil von der unteren Rolle, leicht vorgeneigt mit den Händen am Turm, das arbeitende Bein (hinten gezeichnet) streckt die Hüfte nach hinten. Alles Zeichenkonvention.',
+    basisNote: 'Keine gelesene Studie beschreibt Aufbau oder Winkel (Stevens et al. 2022 im Volltext: nur Tempo und Last; Attarieh et al. 2026 im Abstract). Gezeigt ist ein üblicher Aufbau: Manschette am Knöchel, Seil von der unteren Rolle, leicht vorgeneigt mit den Händen am Turm, das arbeitende Bein (vorn gezeichnet) streckt die Hüfte nach hinten. Alles Zeichenkonvention.',
     tempo: { basis: 'protocol', note: 'Metronom: 1 s zurück, 2 s vor, 2 s Pause zwischen den Wiederholungen (Stevens et al. 2022); hier 1 s Pause.' },
     frames: [
-      { label: 'Vorn', pose: { shank: C(4), knee: C(8), trunk: C(25), ankle: C(4), leg2: { hip: C(15), knee: C(15), ankle: C(10) }, armTarget: KICK.hand, elbow: C(20), props: kickbackProps } },
-      { label: 'Hinten', pose: { shank: C(4), knee: C(8), trunk: C(25), ankle: C(4), leg2: { hip: C(-25), knee: C(10), ankle: C(10) }, armTarget: KICK.hand, elbow: C(20), props: kickbackProps } }
+      { label: 'Vorn', pose: { ...KICK.pose, hip: C(15), knee: C(15), ankle: C(10), props: kickbackProps } },
+      { label: 'Hinten', pose: { ...KICK.pose, hip: C(-25), knee: C(10), ankle: C(10), props: kickbackProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 1.0, label: 'Vorn', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Zurück', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Hinten', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Vor', kp: [2] }],
     keyPoints: [
       { short: 'Kabel', anchor: 'cuff', side: 'r', status: 'single', text: 'Manschette am Knöchel, Kabel von der unteren Rolle.', src: ['K2'],
         explain: 'Attarieh et al. 2026 trainierten eine einbeinige Hüftstreckung am Kabel (Abstract); den Aufbau beschreibt das Abstract nicht. Manschette und Rollenhöhe sind gezeichnete Konvention.' },
-      { short: 'Zurück', anchor: 'foot2', side: 'l', status: 'single', text: 'Das Bein aus der Hüfte nach hinten führen, ohne ins Hohlkreuz auszuweichen.', src: ['K1', 'K2'],
+      { short: 'Zurück', anchor: 'foot', side: 'l', status: 'single', text: 'Das Bein aus der Hüfte nach hinten führen, ohne ins Hohlkreuz auszuweichen.', src: ['K1', 'K2'],
         explain: 'Beim Kickback war der lange Bizepskopf proximal und distal stärker aktiv als beim rumänischen Kreuzheben und Step-up (Stevens et al. 2022, 15 trainierte Frauen, 75 % 1RM). 10 Wochen Hüftstreckung am Kabel vergrößerten den großen Gesäßmuskel um 9 %, vor allem unten (Attarieh et al. 2026, MRT, Abstract).' },
-      { short: 'Vor', anchor: 'thigh2', side: 'l', status: 'single', text: 'Langsam in 2 s nach vorn zurückführen, das Kabel bleibt gespannt.', src: ['K1'],
+      { short: 'Vor', anchor: 'thigh', side: 'l', status: 'single', text: 'Langsam in 2 s nach vorn zurückführen, das Kabel bleibt gespannt.', src: ['K1'],
         explain: 'Protokoll in Stevens et al. 2022: 2 s exzentrisch (vor), 1 s konzentrisch (zurück), Metronom 60 Schläge je Minute.' }
     ],
     sources: {
@@ -1307,6 +1382,308 @@ export const ANIMATIONS = [
       M1: { label: 'Muyor et al. 2023, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/161468', read: 'abstract' },
       C1: { label: 'Coratella et al. 2019, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2019.1655101', read: 'fulltext' }
     }
+  },
+  // ---------- Kurzhantelrudern einarmig (v2.10) ----------
+  {
+    ref: 'one-arm-dumbbell-row', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
+    basisNote: 'Keine gelesene Studie hat das einarmige Rudern mit Knie auf der Bank gemessen. Schulter- und Ellbogenwinkel der Endposition sind vom Rudern am Kabel übertragen (IMU-Messung, NPJ Microgravity 2026, Volltext), der Start mit gestrecktem Arm aus einem Protokoll für Langhantelrudern (Sports 2023, Volltext). Bank (≈ 45 cm), Rumpfneigung (≈ 20° über der Waagerechten), Stützarm, Knie und Neutralgriff sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '1 s ziehen, 1 s absenken (Metronom 60/min beim einarmigen Kabelrudern, Fenwick et al. 2009; übertragen).' },
+    frames: [
+      { label: 'Unten', pose: { ...ONE_ROW.pose, shoulder: C(70, 'Arm hängt senkrecht (Rumpf 70°)'), elbow: V(0, 'R1', 'protocol', 'Start mit gestrecktem Ellbogen (Langhantelrudern, übertragen)'), props: oneRowProps } },
+      { label: 'Oben', pose: { ...ONE_ROW.pose, shoulder: V(-5, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: −5,0 ± 9,7°'), elbow: V(105.4, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: 105,4 ± 13,1°'), props: oneRowProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Ziehen', kp: [1, 3] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1, 2] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [4] }],
+    keyPoints: [
+      { short: 'Start', anchor: 'hand', side: 'r', status: 'single', text: 'Der Arm hängt zu Beginn gestreckt unter der Schulter.', src: ['R1'],
+        explain: 'Start mit gestreckten Ellbogen ist Gültigkeitskriterium im Protokoll für Langhantelrudern (Sports 2023, n = 28) – hier auf die Kurzhantel übertragen. Für das einarmige Rudern selbst gibt es keine Vorgabe.' },
+      { short: 'Zug', anchor: 'elbow', side: 'r', status: 'single', text: 'Hantel Richtung Hüfte ziehen, bis der Oberarm etwa neben dem Rumpf ist.', src: ['S1'],
+        explain: 'Endwinkel vom Rudern am Kabel übertragen: Schulter −5,0 ± 9,7°, Ellbogen 105,4 ± 13,1° (IMU, 14 Personen). Für das einarmige Rudern auf der Bank gibt es keine Messung.' },
+      { short: 'Rumpf', anchor: 'back', side: 'l', status: 'consensus', text: 'Rumpf nicht mitdrehen – einarmig fordert die seitlichen Rumpfmuskeln mehr.', src: ['R3', 'R4'],
+        explain: 'Einarmiges Kabelrudern im Stand: Lendenwirbelsäule beim Ziehen 7,6° verdreht – 67,7 % des eigenen Drehumfangs, obwohl die Teilnehmer neutral bleiben sollten; beidarmig vorgebeugt 3,2° (Fenwick et al. 2009, n = 7). Einarmig aktivierte den äußeren schrägen Bauchmuskel stärker als beidarmig (Saeterbakken et al. 2015, n = 15, Abstract). Beide ohne Bankstütze.' },
+      { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen nah am Körper führen: im EMG eher mehr Latissimus.', src: ['S8'],
+        explain: 'Beim Rudern im Sitzen gingen ein engerer Griff und weniger Abspreizen der Schulter jeweils mit mehr Latissimus-EMG einher (Übersicht Di Fonza et al. 2026, Einzelstudien, nicht kombiniert geprüft). Übertragen; EMG ist kein Maß für Muskelwachstum.' },
+      { short: 'Ab', anchor: 'wrist', side: 'r', status: 'single', text: 'Kontrolliert absenken, bis der Arm wieder gestreckt ist.', src: ['R1'],
+        explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Langhantelrudern, Sports 2023). Das Absenktempo ist nicht untersucht.' }
+    ],
+    sources: {
+      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' },
+      R4: { label: 'Saeterbakken et al. 2015, Int J Sports Med', url: 'https://doi.org/10.1055/s-0034-1398646', read: 'abstract' },
+      S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
+    }
+  },
+
+  // ---------- T-Bar-Rudern (v2.10) ----------
+  {
+    ref: 't-bar-row', checkedAt: '2026-10-19', view: 'side', basis: 'transfer', layout: 'rows',
+    basisNote: 'Keine gelesene Studie hat das T-Bar-Rudern kinematisch untersucht. Aufbau vom vorgebeugten Langhantelrudern übertragen (Sports 2023, Volltext): Knie leicht gebeugt, Rücken neutral, Zug aus gestreckten Armen zum unteren Brustkorb. Rumpfneigung (55°), Stangenlänge (≈ 1,85 m vom Drehpunkt bis zum Griff), Neutralgriff und Endwinkel sind Zeichenkonvention; die Hände folgen dem Kreisbogen um den Drehpunkt.',
+    tempo: { basis: 'protocol', note: '1 s ziehen, 1 s absenken (Metronom 60/min beim vorgebeugten Langhantelrudern, Fenwick et al. 2009; übertragen).' },
+    frames: [
+      { label: 'Unten', pose: { ...TBAR.pose, armWorld: TBAR.bottom, elbowSide: TBAR.side, props: tbarProps },
+        facts: [V(0, 'R1', 'protocol', 'Start mit gestreckten Ellbogen (Langhantelrudern, übertragen)')] },
+      { label: 'Oben', pose: { ...TBAR.pose, armWorld: TBAR.top, elbowSide: TBAR.side, props: tbarProps },
+        facts: [V(1, 'R1', 'protocol', 'Ende: Griff am unteren Brustkorb bzw. Bauch (übertragen)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Ziehen', kp: [1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1, 2] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [3] }],
+    keyPoints: [
+      { short: 'Haltung', anchor: 'back', side: 'l', status: 'consensus', text: 'Knie leicht beugen, aus der Hüfte vorneigen, Rücken neutral halten.', src: ['R1', 'R3'],
+        explain: 'Aufbau in beiden Protokollen für das vorgebeugte Langhantelrudern: Beine leicht gebeugt, Oberkörper weit vorgeneigt, Wirbelsäule neutral (Sports 2023; Fenwick et al. 2009). Trotz der Anweisung beugte sich die Lendenwirbelsäule im Mittel um 22,9°. Ein Rumpfwinkel wurde nicht angegeben; die gezeigten 55° sind Konvention.' },
+      { short: 'Zug', anchor: 'hand', side: 'r', status: 'single', text: 'Aus gestreckten Armen den Griff zum unteren Brustkorb oder Bauch ziehen.', src: ['R1'],
+        explain: 'Start mit gestreckten Ellbogen, Zug Richtung unterer Brustkorb, Ende bei Kontakt mit dem Bauch (Sports 2023, Langhantel; übertragen). Ellbogenwinkel und Zugweg wurden nicht gemessen.' },
+      { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Vorgebeugtes Rudern belastete die Lendenwirbelsäule am stärksten.', src: ['R3'],
+        explain: 'Fenwick, Brown & McGill 2009 (7 Männer, Langhantel): Druck auf L4/L5 3576 N vorgebeugt gegenüber 2457 N einarmig am Kabel und 2339 N im Hang, dazu 22,9° Beugung der Lendenwirbelsäule; zugleich die höchste Steifigkeit. T-Bar-Rudern selbst wurde nicht gemessen.' },
+      { short: 'Ab', anchor: 'elbow', side: 'r', status: 'single', text: 'Kontrolliert absenken, bis die Arme wieder gestreckt sind.', src: ['R1'],
+        explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Sports 2023, übertragen). Das Absenktempo ist nicht untersucht.' }
+    ],
+    sources: {
+      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' }
+    }
+  },
+
+  // ---------- Brustgestütztes Rudern (v2.10) ----------
+  {
+    ref: 'chest-supported-row', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
+    basisNote: 'Keine gelesene Studie hat das Rudern mit Brustauflage kinematisch gemessen. Endwinkel von Schulter und Ellbogen sind vom Rudern am Kabel übertragen (IMU, NPJ Microgravity 2026, Volltext); ruhiger Rumpf auf dem Polster und Start mit gestreckten Armen stammen aus dem Protokoll für Rudern in Bauchlage auf der Bank (Sports 2023, Volltext). Polsterneigung (45°), Hebel und Fußplatte sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s ziehen, 2 s ablassen (Protokoll beim Rudern in Bauchlage, Fischer et al. 2025, Abstract).' },
+    frames: [
+      { label: 'Unten', pose: { ...CSR.pose, shoulder: C(45, 'Arm hängt senkrecht (Rumpf 45°)'), elbow: V(0, 'R1', 'protocol', 'Start mit gestreckten Ellbogen'), props: csrProps } },
+      { label: 'Oben', pose: { ...CSR.pose, shoulder: V(-5, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: −5,0 ± 9,7°'), elbow: V(105.4, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: 105,4 ± 13,1°'), props: csrProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Ablassen', kp: [4] }],
+    keyPoints: [
+      { short: 'Polster', anchor: 'chest', side: 'r', status: 'single', text: 'Brust bleibt am Polster, der Rumpf bewegt sich nicht.', src: ['R1'],
+        explain: 'Protokoll beim Rudern in Bauchlage (Sports 2023): Rumpf starr und unbewegt auf der Bank, Kopf in Verlängerung des Rumpfs. Hier auf ein schräges Polster übertragen.' },
+      { short: 'Start', anchor: 'hand', side: 'r', status: 'single', text: 'Aus gestreckten Armen starten, Griff etwa schulterbreit.', src: ['R1'],
+        explain: 'Start mit gestreckten Ellbogen, Griff im Abstand der Schulterhöhen (Akromion zu Akromion), Obergriff (Sports 2023, Rudern in Bauchlage). Neutralgriff am Gerät ist ebenso üblich, aber nicht verglichen.' },
+      { short: 'Zug', anchor: 'elbow', side: 'l', status: 'single', text: 'Ziehen, bis die Oberarme etwa neben dem Rumpf sind.', src: ['S1'],
+        explain: 'Endwinkel vom Rudern am Kabel übertragen: Schulter −5,0 ± 9,7°, Ellbogen 105,4 ± 13,1° (IMU, 14 Personen, Volltext).' },
+      { short: 'Weg', anchor: 'uarm', side: 'l', status: 'single', text: 'Halber oder voller Weg: im EMG nur kleine, uneinheitliche Unterschiede.', src: ['F1'],
+        explain: 'Fischer et al. 2025 (16 Trainierte, Rudern in Bauchlage, 10RM, 2 s / 2 s, Abstract): Die obere Hälfte des Wegs zeigte mehr mittlere Latissimus-Aktivität, der Trapezmuskel aber weniger Spitzenaktivität; insgesamt nur mittlere, uneinheitliche Effekte.' },
+      { short: 'Schulter', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Schulterblätter fixiert oder frei: im EMG insgesamt ähnlich.', src: ['S2', 'S3'],
+        explain: 'Beim Rudern im Sitzen: fixierte und freie Schulterblätter gaben ähnliche Gesamtmuster mit kleinen Unterschieden einzelner Muskeln (Padovan et al. 2025, HD-EMG, n = 14); isometrisch kein Unterschied bei Trapez und Rhomboideus (Lehman et al. 2004, n = 12). Übertragen.' }
+    ],
+    sources: {
+      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      F1: { label: 'Fischer et al. 2025, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2025.103025', read: 'abstract' },
+      S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
+      S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Rudern an der Maschine (v2.10) ----------
+  {
+    ref: 'machine-row', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
+    basisNote: 'Keine gelesene Studie hat das Rudern an einer Maschine mit Brustpolster gemessen. Schulter- und Ellbogenwinkel sind vom Rudern am Kabel übertragen (IMU-Messung, 14 Personen, NPJ Microgravity 2026, Volltext). Aufrechter Rumpf als Anweisung (Padovan et al. 2025, Gerät ohne Brustpolster). Brustpolster, Sitz und Hebel mit Drehpunkt über dem Kopf sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s ziehen, 2 s zurück, ≈ 0,5 s halten (Protokolle der IMU-Studie und Padovan et al. 2025).' },
+    frames: [
+      { label: 'Vorn', pose: { ...MROW.pose, shoulder: V(61.1, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: 61,1 ± 5,3°'), elbow: K(5.9, 'S1', 'Maximum 105,4° minus ROM 99,5° (Rudern am Kabel)'), props: mrowProps } },
+      { label: 'Zug', pose: { ...MROW.pose, shoulder: V(-5, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: −5,0 ± 9,7°'), elbow: V(105.4, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: 105,4 ± 13,1°'), props: mrowProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Vorn', kp: [0] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.5, label: 'Halten', kp: [1, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
+    keyPoints: [
+      { short: 'Sitz', anchor: 'chest', side: 'r', status: 'single', text: 'Aufrecht sitzen, Brust am Polster, der Rumpf schwingt nicht mit.', src: ['S2'],
+        explain: 'Aufrechter Rumpf als Anweisung beim Rudern im Sitzen (Padovan et al. 2025, Technogym-Gerät ohne Brustpolster). Das Polster selbst wurde nicht untersucht.' },
+      { short: 'Zug', anchor: 'elbow', side: 'l', status: 'single', text: 'Griffe zum Rumpf ziehen, bis die Oberarme etwa neben dem Körper sind.', src: ['S1'],
+        explain: 'Gemessen beim Rudern am Kabel: Schulter von 61,1 ± 5,3° auf −5,0 ± 9,7°, Ellbogen bis 105,4 ± 13,1° (IMU, 14 Personen). Auf die Maschine übertragen.' },
+      { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen nah am Körper führen: im EMG eher mehr Latissimus.', src: ['S8'],
+        explain: 'Beim Rudern im Sitzen gingen ein engerer Griff und weniger Abspreizen der Schulter jeweils mit mehr Latissimus-EMG einher (Übersicht Di Fonza et al. 2026; Einzelstudien, nicht kombiniert geprüft). EMG ist kein Maß für Muskelwachstum.' },
+      { short: 'Schulter', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Schulterblätter fixiert oder frei: im EMG insgesamt ähnlich.', src: ['S2', 'S3'],
+        explain: 'Fixierte und freie Schulterblätter gaben ähnliche Gesamtmuster mit kleinen Unterschieden einzelner Muskeln (Padovan et al. 2025, HD-EMG, n = 14); isometrisch kein Unterschied bei Trapez und Rhomboideus (Lehman et al. 2004, n = 12).' },
+      { short: 'Zurück', anchor: 'hand', side: 'r', status: 'consensus', text: 'Langsam zurück, bis die Arme wieder fast gestreckt sind.', src: ['S1', 'S2'],
+        explain: 'Start und Ende mit gestreckten Ellbogen in beiden Protokollen; gemessen blieb vorn eine Restbeugung von ≈ 6° (Rudern am Kabel).' }
+    ],
+    sources: {
+      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
+      S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' },
+      S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Rudern im Hang (v2.10) ----------
+  {
+    ref: 'inverted-row', checkedAt: '2026-10-19', view: 'side', basis: 'protocol', layout: 'rows',
+    basisNote: 'Keine gelesene Studie nennt Schulter- oder Ellbogenwinkel. Gestreckte Körperlinie, schulterbreiter Obergriff und Tempo stammen aus dem Protokoll von Vural et al. 2023 (Schlingentrainer, Volltext), der Endpunkt „Brust ≈ 10 cm unter der Stange“ aus McGill et al. 2014 (Volltext). Gezeigt ist eine feste Stange auf Hüfthöhe (≈ 90 cm) mit Fersen am Boden; Stangenhöhe und Armwinkel sind Zeichenkonvention, die Körperneigung (unten ≈ 20°, oben ≈ 40°) folgt aus der Geometrie. Fenwick et al. 2009 nutzten eine Variante mit 90° gebeugten Knien.',
+    tempo: { basis: 'protocol', note: '1 s hoch, 1 s ab ohne Pause (Metronom 60/min, Vural et al. 2023).' },
+    frames: [
+      { label: 'Unten', pose: { ...INV.pose, trunk: K(INV.low, [], 'so gewählt, dass die Arme bei festen Fersen gestreckt sind'), props: invProps },
+        facts: [V(0, 'V1', 'protocol', 'Kopf, Rumpf und Hüfte in einer Linie')] },
+      { label: 'Oben', pose: { ...INV.pose, trunk: K(INV.top, [], 'so gewählt, dass die Brust ≈ 10 cm unter der Stange ist (McGill et al. 2014)'), props: invProps },
+        facts: [V(10, 'M1', 'protocol', 'Brust bis ≈ 10 cm an die Stange; Armwinkel nicht gemessen')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Hoch', kp: [0, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [3] }, { a: 1, b: 0, dur: 1.0, label: 'Ab', kp: [4] }],
+    keyPoints: [
+      { short: 'Linie', anchor: 'hip', side: 'r', status: 'consensus', text: 'Körper in einer Linie halten, nicht ins Hohlkreuz ausweichen.', src: ['V1', 'R3'],
+        explain: 'Kopf, Rumpf und Hüfte in einer Linie war Vorgabe bei Vural et al. 2023. Bei Fenwick et al. 2009 sollten die Teilnehmer den Körper „fest“ halten, drückten die Lendenwirbelsäule aber meist weit ins Hohlkreuz (34,8 % des eigenen Streckumfangs; n = 7).' },
+      { short: 'Weg', anchor: 'hand', side: 'l', status: 'consensus', text: 'Aus gestreckten Armen die Brust bis etwa 10 cm an die Stange ziehen.', src: ['M1', 'V1', 'Y1'],
+        explain: 'Brust bis 10 cm an die Stange (McGill et al. 2014, 14 Männer); schulterbreiter Obergriff (Vural et al. 2023). Ein Griffbreitenvergleich fehlt; der Untergriff veränderte die Latissimus-Aktivität (Youdas et al. 2016, Abstract).' },
+      { short: 'Neigung', anchor: 'chest', side: 'l', status: 'single', text: 'Je flacher der Körper, desto mehr Gewicht tragen die Arme.', src: ['G1'],
+        explain: 'Statisches Rudern im Schlingentrainer mit gestreckten Armen (Giancotti et al. 2021, n = 30): bei 36° Körperneigung trugen die Füße 47 %, bei 6° nur 32 % des Körpergewichts – die Arme also etwa 53 bzw. 68 % (berechnet). Mit fester Stange nicht gemessen.' },
+      { short: 'Last', anchor: 'elbow', side: 'r', status: 'single', text: 'Fast waagerecht trugen die Arme etwa 73 % des Körpergewichts.', src: ['V1'],
+        explain: 'Vural et al. 2023 (Kraftaufnehmer an den Gurten, Körper etwa parallel zum Boden, Wiederholungen): 73,4 ± 1,9 % des Körpergewichts mit Füßen am Boden, 75,7 ± 3,0 % mit Füßen in Schlingen. Mit fester Stange nicht gemessen.' },
+      { short: 'Rücken', anchor: 'lowBack', side: 'r', status: 'consensus', text: 'Rudern im Hang belastete die Lendenwirbelsäule eher wenig.', src: ['R3', 'M1'],
+        explain: 'Druck auf L4/L5: 2339 N im Hang gegenüber 3576 N beim vorgebeugten Langhantelrudern (Fenwick et al. 2009) bzw. 2294 N gegenüber 2852 N beim Klimmzug (McGill et al. 2014). Beides Modellrechnungen aus EMG und Bewegung an jungen Männern.' }
+    ],
+    sources: {
+      V1: { label: 'Vural et al. 2023, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0291608', read: 'fulltext' },
+      M1: { label: 'McGill, Cannon & Andersen 2014, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2014.06.002', read: 'fulltext', note: 'akzeptiertes Manuskript' },
+      G1: { label: 'Giancotti et al. 2021, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003100', read: 'fulltext', note: 'akzeptiertes Manuskript (2019)' },
+      R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' },
+      Y1: { label: 'Youdas et al. 2016, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001210', read: 'abstract' }
+    }
+  },
+  // ---------- Klimmzug im Untergriff (v2.11) ----------
+  {
+    ref: 'chin-up', checkedAt: '2026-10-19', view: 'side', basis: 'transfer', noFloor: true,
+    basisNote: 'Seitenansicht, weil der Oberarm im Untergriff stärker vor dem Körper läuft als im Obergriff (bis 42° außerhalb der Schulterblattebene, Prinold & Bull 2016, Volltext). Griff, voller Bewegungsweg und Beinhaltung (Beine nach hinten, 90° zum Rumpf) stammen aus diesem Protokoll. Der Ellbogen oben folgt aus der Geometrie „Kinn über der Stange, Stange vor dem Hals“; gemessen wurde nur der Bewegungsumfang 100,6 ± 14,5° (Youdas et al. 2010, Abstract) – Start und Ende waren dort also vermutlich nicht ganz gestreckt bzw. tiefer. Rumpfneigung aus einem groben Schwerpunktmodell (Mittel aus Schulter, Hüfte und Knie unter den Händen).',
+    tempo: { basis: 'measured', note: 'Hochziehen im Mittel ≈ 1,2 s (alle Griffe zusammen, Prinold & Bull 2014); Absenken nicht gemessen, hier 1,5 s.' },
+    frames: [
+      { label: 'Hang', pose: { root: 'wrist', rootPos: CHIN.grip, trunk: K(CHIN.tHang, [], 'Schwerpunktmodell: Schulter, Hüfte und Knie im Mittel unter den Händen'), hip: C(0), knee: V(90, 'S1', 'fulltext', 'Beine nach hinten, 90° zum Rumpf (als Kniebeugung gelesen)'), armTarget: CHIN.hang, elbowSide: 1, props: chinProps },
+        facts: [V(0, 'S1', 'protocol', 'voller Bewegungsweg aus dem Hang')] },
+      { label: 'Oben', pose: { root: 'wrist', rootPos: CHIN.grip, trunk: K(CHIN.tTop, [], 'Schwerpunktmodell: Schulter, Hüfte und Knie im Mittel unter den Händen'), hip: C(0), knee: V(90, 'S1', 'fulltext', 'Beine nach hinten, 90° zum Rumpf'), armTarget: CHIN.top, elbowSide: 1, props: chinProps },
+        facts: [V(100.6, 'S3', 'abstract', 'Ellbogen-Bewegungsumfang 100,6 ± 14,5° (Untergriff); gezeichnet oben ≈ ' + CHIN.elbowTop + '° aus der Geometrie')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Hang', kp: [0, 1] }, { a: 0, b: 1, dur: 1.2, label: 'Hochziehen', kp: [2, 4] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2, 3] }, { a: 1, b: 0, dur: 1.5, label: 'Absenken', kp: [0] }],
+    keyPoints: [
+      { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Untergriff etwa schulterbreit, aus dem Hang mit langen Armen starten.', src: ['S1'],
+        explain: 'Protokoll von Prinold & Bull 2016 (11 geübte Männer): Handflächen zum Körper, Hände etwa schulterbreit, maximaler Bewegungsweg nach oben.' },
+      { short: 'Beine', anchor: 'knee', side: 'l', status: 'single', text: 'Beine angewinkelt nach hinten halten, nicht mit Schwung arbeiten.', src: ['S1', 'S5'],
+        explain: 'Beine nach hinten, 90° zum Rumpf (Prinold & Bull 2016). Beim Kipping bewegen sich Hüfte und Knie deutlich mehr als beim strikten Klimmzug (Dinunzio et al. 2018, Abstract); ob das besser oder schlechter ist, hängt vom Ziel ab.' },
+      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Im Untergriff beugt der Ellbogen etwas weiter als im Obergriff.', src: ['S3'],
+        explain: 'Bewegungsumfang des Ellbogens 100,6 ± 14,5° im Untergriff gegenüber 93,4 ± 14,6° im Obergriff (Youdas et al. 2010, 25 Personen, Abstract).' },
+      { short: 'Muskeln', anchor: 'uarm', side: 'l', status: 'single', text: 'Untergriff: im EMG mehr Bizeps und Brust, Obergriff: mehr unterer Trapez.', src: ['S3', 'S8'],
+        explain: 'Youdas et al. 2010 (Abstract): Bizeps und großer Brustmuskel waren im Untergriff stärker aktiv, der untere Trapezmuskel im Obergriff. Der Latissimus war über die Griffe ähnlich aktiv (Übersicht Di Fonza et al. 2026).' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'r', status: 'single', text: 'Der Oberarm läuft im Untergriff weiter vor dem Körper als im Obergriff.', src: ['S1'],
+        explain: 'Abweichung des Oberarms von der Schulterblattebene bis 42° im Untergriff, bis 28° im Obergriff (Prinold & Bull 2016). Die Autoren vermuten daraus mehr Stabilisierungsarbeit der Rotatorenmanschette; Verletzungsdaten gibt es nicht.' }
+    ],
+    sources: {
+      S1: { label: 'Prinold & Bull 2016, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2015.08.002', read: 'fulltext' },
+      S2: { label: 'Prinold & Bull 2014, J Biomech', url: 'https://doi.org/10.1016/j.jbiomech.2014.05.015', read: 'fulltext' },
+      S3: { label: 'Youdas et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'abstract' },
+      S5: { label: 'Dinunzio et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1452971', read: 'abstract' },
+      S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Latzug eng/neutral (v2.11) ----------
+  {
+    ref: 'close-grip-lat-pulldown', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Seitenansicht. Keine Studie hat Gelenkwinkel für den engen Neutralgriff gemessen. Griffbreite (Abstand der Schulterhöhen), aufrechter Rumpf und Tempo stammen aus dem Protokoll von Buonsenso et al. 2025 (Volltext), Oberschenkelpolster und Zug bis zur Brust aus Padovan et al. 2024 (Volltext). Schulter- und Ellbogenwinkel, Sitz und Rolle sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s ziehen, 2 s zurück (Buonsenso et al. 2025; Lusk et al. 2010).' },
+    frames: [
+      { label: 'Oben', pose: { root: 'hip', rootPos: CGP.hip, trunk: V(0, 'L2', 'protocol', 'aufrecht (enger Neutralgriff ohne Rumpfneigung)'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.start, elbowSide: 1, props: cgpProps },
+        facts: [V(0, 'L4', 'protocol', 'Start mit gestreckten Armen')] },
+      { label: 'Brust', pose: { root: 'hip', rootPos: CGP.hip, trunk: V(0, 'L2', 'protocol', 'aufrecht'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.end, elbowSide: 1, props: cgpProps },
+        facts: [V(1, 'L1', 'protocol', 'Griff bis zur Brust')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 1, dur: 0.5, label: 'Brust', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
+    keyPoints: [
+      { short: 'Sitz', anchor: 'thigh', side: 'r', status: 'consensus', text: 'Oberschenkel unter dem Polster fixieren, Rumpf aufrecht halten.', src: ['L1', 'L2'],
+        explain: 'Oberschenkelpolster fixiert das Becken (Padovan et al. 2024); aufrechter Rumpf beim engen Neutralgriff (Buonsenso et al. 2025, 40 trainierte Männer). Eine Variante mit 30° Neigung wurde dort nur mit weitem Griff getestet.' },
+      { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Enger Neutralgriff, etwa so breit wie der Abstand der Schulterhöhen.', src: ['L2'],
+        explain: 'Griffbreite gleich der Biakromialbreite, mit dem Messzirkel bestimmt (Buonsenso et al. 2025). V-Griffe sind oft schmaler; verglichen wurde das nicht.' },
+      { short: 'Zug', anchor: 'elbow', side: 'l', status: 'single', text: 'Griff bis zur Brust ziehen, die Ellbogen gehen dabei nach unten.', src: ['L1'],
+        explain: 'Endpunkt Brust im Protokoll von Padovan et al. 2024 (weiter Griff, übertragen). Ellbogen- und Schulterwinkel sind gezeichnete Konvention.' },
+      { short: 'Latissimus', anchor: 'back', side: 'l', status: 'consensus', text: 'Griffbreite und -art änderten die Latissimus-Aktivität im EMG kaum.', src: ['L2', 'L3', 'L4'],
+        explain: 'Sieben Griffvarianten ohne Unterschied beim Latissimus (Buonsenso et al. 2025); enger, mittlerer und weiter Obergriff ähnlich (Andersen et al. 2014, Abstract). Obergriff mehr Latissimus als Untergriff (Lusk et al. 2010, Abstract).' },
+      { short: 'Zurück', anchor: 'shoulder', side: 'r', status: 'consensus', text: 'In etwa 2 s zurück, bis die Arme wieder gestreckt sind.', src: ['L2', 'L4'],
+        explain: 'Tempo 2 s / 2 s mit Metronom in beiden Protokollen. Ob ein anderes Tempo mehr bringt, wurde dort nicht untersucht.' }
+    ],
+    sources: {
+      L1: { label: 'Padovan et al. 2024, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/185211', read: 'fulltext' },
+      L2: { label: 'Buonsenso et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk10030345', read: 'fulltext' },
+      L3: { label: 'Andersen et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1097/JSC.0000000000000232', read: 'abstract' },
+      L4: { label: 'Lusk et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddb0ab', read: 'abstract' }
+    }
+  },
+
+  // ---------- Überzüge am Kabel (v2.11) ----------
+  {
+    ref: 'straight-arm-pulldown', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Studie hat Gelenkwinkel gemessen. Aufbau nach dem Protokoll von Muyor et al. 2022 (Volltext, 20 Trainierte): stehend, Rumpf senkrecht, Ellbogen gestreckt, Stange von Ohrläppchen- bis Nabelhöhe, Griff 100 % oder 150 % der Schulterbreite, 30 % des Körpergewichts. Die Schulterwinkel (≈ 108° → 58°) sind daraus für die Figur berechnet; Turm, Rollenhöhe und Abstand sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s ziehen, 2 s zurück (Metronom, Muyor et al. 2022).' },
+    frames: [
+      { label: 'Oben', pose: { shank: C(3), knee: C(8), ankle: C(3), trunk: V(0, 'M1', 'protocol', 'Rumpf senkrecht'), shoulder: K(108, 'M1', 'Stange auf Ohrläppchenhöhe, für die Figur berechnet'), elbow: V(0, 'M1', 'protocol', 'Ellbogen gestreckt'), props: sapProps } },
+      { label: 'Unten', pose: { shank: C(3), knee: C(8), ankle: C(3), trunk: V(0, 'M1', 'protocol', 'Rumpf senkrecht'), shoulder: K(58, 'M1', 'Stange auf Nabelhöhe, für die Figur berechnet'), elbow: V(0, 'M1', 'protocol', 'Ellbogen gestreckt'), props: sapProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 3] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 4] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [1] }],
+    keyPoints: [
+      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Aufrecht stehen, der Rumpf bleibt senkrecht.', src: ['M1'],
+        explain: 'Protokoll von Muyor et al. 2022: stehend mit senkrechtem Rumpf. Ob eine leichte Vorneigung etwas ändert, wurde nicht untersucht.' },
+      { short: 'Arme', anchor: 'elbow', side: 'l', status: 'single', text: 'Ellbogen gestreckt halten – der Trizeps arbeitet dabei mit.', src: ['M1'],
+        explain: 'Der Trizeps war mit ≈ 19 % der Maximalaktivität einer der aktivsten Muskeln; die Autoren erklären das mit dem Halten der Ellbogenstreckung (Muyor et al. 2022).' },
+      { short: 'Weg', anchor: 'hand', side: 'r', status: 'single', text: 'Stange im Bogen von Ohrhöhe bis etwa auf Nabelhöhe führen.', src: ['M1', 'P1'],
+        explain: 'Endpunkte im Protokoll (Muyor et al. 2022). Bei isometrischem Zug sank die Latissimus-Aktivität mit steigender Armhebung von 60° auf 120° (Park & Yoo 2013, Abstract) – unten arbeitet der Latissimus also eher stärker.' },
+      { short: 'Griff', anchor: 'shoulder', side: 'l', status: 'single', text: 'Griff schulterbreit oder 1,5-fach: im EMG kein deutlicher Unterschied.', src: ['M1'],
+        explain: 'Griffbreite 100 % (≈ 44 cm) und 150 % (≈ 66 cm) der Schulterbreite beeinflussten die EMG-Aktivität der gemessenen Muskeln nicht signifikant (Muyor et al. 2022).' },
+      { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Zielt mehr auf den Latissimus als Überzüge mit der Langhantel.', src: ['M1', 'S1'],
+        explain: 'Latissimus-Aktivität am Kabel höher, Brust, vordere Schulter und gerader Bauchmuskel beim Langhantel-Überzug höher (Muyor et al. 2022; Übersicht Di Fonza et al. 2026). EMG ist kein Maß für Muskelwachstum.' }
+    ],
+    sources: {
+      M1: { label: 'Muyor, López-Miñarro & Alacid 2022, Appl Sci', url: 'https://doi.org/10.3390/app122111138', read: 'fulltext' },
+      S1: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' },
+      P1: { label: 'Park & Yoo 2013, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2013.08.006', read: 'abstract' }
+    }
+  },
+
+  // ---------- Reverse Butterfly (v2.11) ----------
+  {
+    ref: 'reverse-pec-deck', checkedAt: '2026-10-19', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht, weil die Arme in der Waagerechten nach außen gehen. Aufbau nach Schoenfeld et al. 2013 (Volltext, 19 Trainierte, Reverse-Fly-Maschine): Brust am Polster, Sitzhöhe so, dass die Griffe auf Höhe der Schulterachsen liegen; Start bei 90° Armhebung nach vorn, Ende mit dem Oberarm „parallel zum Rumpf“ (als Linie mit dem Rumpf gelesen, wie bei Bergquist et al. 2018). Leicht gebeugte Ellbogen nach Bergquist et al. 2018. Die Arme sind in die Bildebene projiziert und erscheinen vorn stark verkürzt; Hebel und Sitz sind Zeichenkonvention, das Brustpolster ist nicht gezeichnet.',
+    tempo: { basis: 'protocol', note: 'Nach außen zügig ≈ 1 s, zurück ≈ 2 s (Schoenfeld et al. 2013).' },
+    frames: [
+      { label: 'Vorn', pose: { rootPos: [0, RPD.seat], armPoints: RPD.start, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: rpdProps },
+        facts: [V(90, 'R1', 'protocol', 'Start: 90° Armhebung nach vorn (Sagittalebene)')] },
+      { label: 'Außen', pose: { rootPos: [0, RPD.seat], armPoints: RPD.end, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: rpdProps },
+        facts: [V(1, 'R1', 'protocol', 'Ende: Oberarm „parallel zum Rumpf“')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Vorn', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Öffnen', kp: [2, 4] }, { a: 1, b: 1, dur: 0.3, label: 'Außen', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
+    keyPoints: [
+      { short: 'Sitz', anchor: 'chest', side: 'r', status: 'single', text: 'Brust ans Polster, Sitz so einstellen, dass die Griffe auf Schulterhöhe sind.', src: ['R1'],
+        explain: 'Protokoll von Schoenfeld et al. 2013: Brust bündig am Polster, Sitzhöhe so, dass die Griffe mit den Drehachsen der Schultern fluchten.' },
+      { short: 'Start', anchor: 'handR', side: 'r', status: 'consensus', text: 'Arme vorn etwa waagerecht, Ellbogen leicht gebeugt.', src: ['R1', 'B1'],
+        explain: 'Start bei 90° Armhebung nach vorn (Schoenfeld et al. 2013); leicht gebeugte Ellbogen in der Reverse-Fly-Variante von Bergquist et al. 2018.' },
+      { short: 'Weg', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Arme nach außen führen, bis sie etwa in einer Linie mit dem Rumpf sind.', src: ['R1', 'B1'],
+        explain: 'Ende mit dem Oberarm „parallel zum Rumpf“ (Schoenfeld et al. 2013) bzw. „in einer geraden Linie durch den Rumpf“ (Bergquist et al. 2018). Weiter nach hinten wurde nicht untersucht.' },
+      { short: 'Griff', anchor: 'handL', side: 'l', status: 'single', text: 'Neutral- oder Obergriff: Unterschied im EMG klein, nach Gefühl wählbar.', src: ['R1'],
+        explain: 'Hintere Schulter mit Neutralgriff 90,3 statt 86,5 % der Maximalaktivität (Effekt d ≈ 0,2), Infraspinatus 70,4 statt 61,7 % (d ≈ 0,5). Die Autoren halten den Unterschied für Freizeitsportler kaum für bedeutsam; die Streuung zwischen Personen war groß.' },
+      { short: 'Tempo', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Zügig nach außen, in etwa 2 s kontrolliert zurück.', src: ['R1'],
+        explain: 'Konzentrisch so kräftig wie möglich (≈ 1 s), exzentrisch ≈ 2 s, Last ≈ 75 % des Körpergewichts bis zur Ermüdung (Schoenfeld et al. 2013).' }
+    ],
+    sources: {
+      R1: { label: 'Schoenfeld et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318281e1e9', read: 'fulltext' },
+      B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Vorgebeugtes Seitheben (v2.11) ----------
+  {
+    ref: 'dumbbell-reverse-fly', checkedAt: '2026-10-19', view: 'front', basis: 'protocol', layout: 'cols',
+    basisNote: 'Frontansicht, weil die Arme seitlich nach außen gehen. Start mit hängenden Armen, leicht gebeugte Ellbogen, Ende mit waagerechten Oberarmen und Tempo stammen aus dem Protokoll von Bergquist et al. 2018 (bäuchlings auf der Flachbank, Volltext). Gezeigt ist die stehende, vorgebeugte Variante; Rumpfneigung (≈ 75°), Knie und Stand sind Zeichenkonvention. Der vorgeneigte Rumpf erscheint von vorn verkürzt.',
+    tempo: { basis: 'protocol', note: '2 s anheben, 2 s absenken (Metronom 60/min, Bergquist et al. 2018).' },
+    frames: [
+      { label: 'Unten', pose: { legs: { planted: true, stance: C(18, 'etwa hüftbreit'), toeOut: C(8), knee: C(20, 'leicht gebeugt'), shank: C(10) }, trunkFlex: C(75, 'Oberkörper weit vorgeneigt (Konvention)'), arm: { abd: V(4, 'B1', 'protocol', 'Arme hängen senkrecht nach unten'), elbow: C(15, 'leicht gebeugt') }, props: raiseProps } },
+      { label: 'Oben', pose: { legs: { planted: true, stance: C(18), toeOut: C(8), knee: C(20), shank: C(10) }, trunkFlex: C(75), arm: { abd: V(88, 'B1', 'protocol', 'bis die Oberarme waagerecht sind'), elbow: C(15, 'leicht gebeugt, bleibt gleich') }, props: raiseProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0, 4] }, { a: 0, b: 1, dur: 2.0, label: 'Anheben', kp: [1, 3] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [3] }],
+    keyPoints: [
+      { short: 'Start', anchor: 'handR', side: 'r', status: 'single', text: 'Arme hängen zu Beginn senkrecht, Ellbogen leicht gebeugt.', src: ['B1'],
+        explain: 'Protokoll von Bergquist et al. 2018 (29 Personen, 10RM): Arme senkrecht zum Boden, Ellbogen während der ganzen Bewegung leicht gebeugt.' },
+      { short: 'Höhe', anchor: 'elbowL', side: 'l', status: 'single', text: 'Seitlich anheben, bis die Oberarme etwa waagerecht sind.', src: ['B1'],
+        explain: 'Endpunkt: Oberarme parallel zum Boden. Ein höherer Endpunkt wurde nicht untersucht.' },
+      { short: 'Hantel', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Mit Kurzhanteln war die hintere Schulter im EMG etwas aktiver als mit Band.', src: ['B1'],
+        explain: 'Bei gleicher 10RM-Last: Kurzhanteln etwas mehr hintere Schulter und Latissimus, das Band deutlich mehr mittlere Schulter und oberen Trapezmuskel (Bergquist et al. 2018). Kurzhanteln liegend, Band im Stand – auch die Haltung unterschied sich.' },
+      { short: 'Tempo', anchor: 'handL', side: 'l', status: 'single', text: 'Gleichmäßig je etwa 2 s anheben und absenken.', src: ['B1'],
+        explain: 'Metronom 60/min, je 2 s konzentrisch und exzentrisch (Bergquist et al. 2018).' },
+      { short: 'Bank', anchor: 'head', side: 'r', status: 'single', text: 'Alternative: bäuchlings auf einer Flachbank, dann bleibt der Rumpf ruhig.', src: ['B1'],
+        explain: 'Die Studie ließ die Kurzhantelvariante bäuchlings auf einer Flachbank ausführen. Die stehende Variante wurde nicht gemessen; wie stark der Rumpf dort mitarbeitet, ist offen.' }
+    ],
+    sources: {
+      B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
+    }
   }
 
 ];
@@ -1418,7 +1795,7 @@ function backExtProps(P) {
   ] };
 }
 function kickbackProps(P) {
-  const a2 = P.joints.ankle2, t = KICK.tower, cuff = a2;
+  const t = KICK.tower, cuff = P.joints.ankle; // Manschette am arbeitenden (nahen) Bein
   return { anchors: { cuff }, scene: [
     { type: 'line', from: [t, 0], to: [t, -420], w: 8 }, foot(t - 40, t + 50), // Turm mit Standfuß
     { type: 'bar', at: [t - 8, KICK.pulley], r: 7 }, // untere Rolle
@@ -1567,6 +1944,94 @@ function inclineProps(P) {
 }
 const foot = (x0, x1) => ({ type: 'line', from: [x0, 0], to: [x1, 0], w: 5 }); // Standfuß einer Maschine auf dem Boden
 function midpoint(a, b) { return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; }
+
+// ---------- Szenen Runde 4 (v2.10) ----------
+function oneRowProps(P) {
+  const hand = P.joints.hand, [x0, x1] = ONE_ROW.bench;
+  return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'rect', x: x0, y: -92, w: x1 - x0, h: 12, rx: 3 }, { type: 'line', from: [x0 + 30, -80], to: [x0 + 30, 0], w: 5 }, { type: 'line', from: [x1 - 30, -80], to: [x1 - 30, 0], w: 5 }, // Flachbank
+    db(hand, [1, 0]) // Neutralgriff: Griff läuft von vorn nach hinten
+  ] };
+}
+function tbarProps(P) {
+  const g = P.joints.hand, p = TBAR.pivot, u = unit2([g[0] - p[0], g[1] - p[1]]), L = Math.hypot(g[0] - p[0], g[1] - p[1]);
+  const pl = along(p, u, L + 30), end = along(p, u, L + 52);
+  return { anchors: { hand: g, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'rect', x: p[0] - 16, y: -12, w: 32, h: 12, rx: 3 }, { type: 'bar', at: p, r: 6 }, // Bodenplatte mit Drehpunkt (Landmine)
+    { type: 'line', from: p, to: end, w: 5 }, // Stange
+    { type: 'line', from: along(g, [u[1], -u[0]], -4), to: along(g, [u[1], -u[0]], 8), w: 4, front: true }, // Griff unter der Stange
+    { ...plate(pl), back: true } // Scheiben in der Körpermitte: hinter dem nahen Arm
+  ] };
+}
+function csrProps(P) {
+  const g = P.joints.hand, p = CSR.pivot, h = P.joints.hip, d = segDir(P, 'trunk'), n = segNrm(P, 'trunk');
+  const padTop = along(along(h, n, 36), d, -92), padLow = along(along(h, n, 36), d, -4); // Polster vor Brust und Bauch, oben frei für die Arme
+  const sole = along(P.joints.ankle, segNrm(P, 'foot'), -15), fd = segDir(P, 'foot');
+  const u = unit2([g[0] - p[0], g[1] - p[1]]), peg = along(p, u, 70);
+  return { anchors: { hand: g, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'line', from: along(sole, fd, -14), to: along(sole, fd, 40), w: 7 }, { type: 'line', from: along(sole, fd, 12), to: [along(sole, fd, 12)[0], 0], w: 5 }, // Fußplatte
+    { type: 'line', from: padTop, to: padLow, w: 14 }, { type: 'line', from: along(padLow, n, 8), to: [along(padLow, n, 8)[0], 0], w: 6 }, // Brustpolster mit Stütze
+    { type: 'line', from: [p[0], 0], to: p, w: 7 }, foot(Math.min(along(sole, fd, 12)[0], along(padLow, n, 8)[0]) - 30, p[0] + 40), // Säule mit Drehpunkt, Standfuß
+    { type: 'line', from: p, to: g, w: 5 }, { type: 'bar', at: p, r: 7 }, plate(peg), // Hebel, Scheibe auf dem Hebel
+    { type: 'line', from: [g[0] - 10, g[1]], to: [g[0] + 10, g[1]], w: 4, front: true } // Griff
+  ] };
+}
+function mrowProps(P) {
+  const g = P.joints.hand, p = MROW.pivot, h = P.joints.hip, s = P.joints.shoulder;
+  const col = p[0] + 60, pad = [s[0] + 34, s[1] + 18];
+  return { anchors: { hand: g, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'rect', x: h[0] - 34, y: h[1] + 5, w: 70, h: 10, rx: 3 }, { type: 'line', from: [h[0], h[1] + 15], to: [h[0], 0], w: 5 }, // Sitz
+    { type: 'rect', x: pad[0], y: pad[1] - 30, w: 12, h: 66, rx: 4 }, { type: 'line', from: [pad[0] + 12, pad[1] + 4], to: [col, pad[1] + 4], w: 5 }, // Brustpolster mit Halter
+    { type: 'line', from: [col, 0], to: [col, p[1]], w: 8 }, { type: 'line', from: [col, p[1]], to: p, w: 6 }, foot(h[0] - 40, col + 40), // Säule, Ausleger
+    { type: 'line', from: p, to: g, w: 5 }, { type: 'bar', at: p, r: 7 }, // Hebel ab Drehpunkt
+    { type: 'line', from: [g[0], g[1] - 10], to: [g[0], g[1] + 10], w: 4, front: true } // senkrechter Griff (Neutralgriff)
+  ] };
+}
+function invProps(P) {
+  const b = INV.bar, post = b[0] - 46;
+  return { anchors: { bar: b, hand: P.joints.hand }, scene: [
+    { type: 'line', from: [post, 0], to: [post, -340], w: 7 }, foot(post - 40, post + 40), { type: 'line', from: [post, b[1] + 6], to: [b[0], b[1] + 6], w: 4 }, // Rackpfosten mit Ablage
+    { type: 'bar', at: b, r: 5 }
+  ] };
+}
+
+// ---------- Szenen Runde 5 (v2.11) ----------
+function chinProps(P) {
+  const b = [0, PU.bar];
+  return { anchors: { bar: b, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'line', from: [b[0], b[1]], to: [b[0] + 110, b[1]], w: 5 }, { type: 'line', from: [b[0] + 110, b[1] - 40], to: [b[0] + 110, b[1] + 40], w: 7 }, // Ausleger zur Wand
+    { type: 'bar', at: b, r: 5 }
+  ] };
+}
+function cgpProps(P) {
+  const h = P.joints.hip, k = P.joints.knee, hand = P.joints.hand, s = P.joints.shoulder;
+  const pulley = [s[0] + CGP.start[0] + 8, -410], col = pulley[0] + 80;
+  return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'rect', x: h[0] - 34, y: h[1] + 6, w: 72, h: 10, rx: 3 }, { type: 'line', from: [h[0], h[1] + 16], to: [h[0], 0], w: 5 }, foot(h[0] - 40, col + 40), // Sitz
+    { type: 'bar', at: [k[0] - 18, k[1] - 24], r: 9 }, { type: 'line', from: [k[0] - 18, k[1] - 24], to: [col, k[1] - 24], w: 4 }, // Oberschenkelpolster mit Halter
+    { type: 'line', from: [col, 0], to: [col, pulley[1] - 10], w: 8 }, { type: 'line', from: [col, pulley[1] - 10], to: [pulley[0], pulley[1] - 10], w: 6 }, { type: 'bar', at: pulley, r: 8 }, // Turm, Ausleger, Rolle
+    { type: 'line', from: pulley, to: hand, w: 1.5, dash: true }, // Seil
+    { type: 'line', from: [hand[0] - 4, hand[1] - 12], to: [hand[0] + 4, hand[1] + 8], w: 4, front: true } // Neutralgriff
+  ] };
+}
+function sapProps(P) {
+  const hand = P.joints.hand, t = SAP.tower, p = SAP.pulley;
+  return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
+    { type: 'line', from: [t, 0], to: [t, p[1] - 14], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 8 }, // Turm mit oberer Rolle
+    { type: 'line', from: p, to: hand, w: 1.5, dash: true }, // Seil
+    { type: 'line', from: [hand[0] - 3, hand[1] - 9], to: [hand[0] + 3, hand[1] + 9], w: 5, front: true } // kurze Stange (Ende)
+  ] };
+}
+function rpdProps(P) {
+  const hr = P.joints.handR, hl = P.joints.handL, top = RPD.seat - 250, pel = P.joints.pelvis;
+  return { anchors: {}, scene: [
+    { type: 'rect', x: -38, y: pel[1] + 6, w: 76, h: 10, rx: 3 }, { type: 'line', from: [0, pel[1] + 16], to: [0, 0], w: 6 }, foot(-70, 70), // Sitz, Stütze
+    { type: 'line', from: [-52, top], to: [52, top], w: 6 }, // Querträger über dem Kopf mit den Drehachsen
+    { type: 'line', from: [10, top], to: [hr[0], top], w: 4 }, { type: 'line', from: [hr[0], top], to: [hr[0], hr[1] - 10], w: 4 }, // Hebel rechts (waagerecht, dann senkrecht zum Griff)
+    { type: 'line', from: [-10, top], to: [hl[0], top], w: 4 }, { type: 'line', from: [hl[0], top], to: [hl[0], hl[1] - 10], w: 4 },
+    { type: 'line', from: [hr[0], hr[1] - 12], to: [hr[0], hr[1] + 10], w: 5, front: true }, { type: 'line', from: [hl[0], hl[1] - 12], to: [hl[0], hl[1] + 10], w: 5, front: true } // senkrechte Griffe (Neutralgriff)
+  ] };
+}
 
 export function animationFor(ref) { return ANIMATIONS.find((a) => a.ref === ref) || null; }
 export function framesOf(anim, variant) {

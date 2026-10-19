@@ -28,6 +28,8 @@ const nrm = (d) => [d[1], -d[0]];
 const fdir = (deg) => [Math.sin(deg * DEG), Math.cos(deg * DEG)];
 
 // Gelenke im Stand (rechte Seite; linke gespiegelt)
+const NECK_F = 40;
+const neckFold = (e, f) => (f >= 1 ? e : e <= NECK_F ? e * f : NECK_F * f + (e - NECK_F)); // e: Abstand über der Schulter entlang des Rumpfs
 export const J0F = { pelvis: [0, -183], hip: [16, -183], knee: [13, -95], ankle: [13, -15], shoulder: [38, -287], elbow: [43, -219], wrist: [46, -165] };
 const MIN_SCALE = 0.12;
 
@@ -60,6 +62,10 @@ export const SHAPES_F = [
   { seg: 'farm', id: 'body', both: true, pts: [[36, -222], [50, -222], [53, -205], [52, -185], [50, -168], [51, -158], [50, -146], [45, -141], [40, -144], [39, -156], [40, -168], [40, -180], [37, -200]] },
   { seg: 'farm', id: 'forearms', both: true, pts: [[37, -220], [49, -220], [52, -204], [48, -190], [40, -192], [37, -206]] }
 ];
+// v2.10: Beine in der Frontansicht breiter (vorher wirkten sie neben dem Rumpf zu schmal, v. a. bei weitem Stand).
+// Oberschenkel oben ≈ 41 Einheiten (≈ 20 cm), Unterschenkel ≈ 24 (≈ 12 cm) statt 28 und 16 – Zeichenkonvention, keine Messung.
+const LEG_WIDEN = { thigh: [17, 1.45], shank: [13.5, 1.5], foot: [14, 1.2] }; // [Mittellinie x, Faktor]
+for (const sh of SHAPES_F) { const w = LEG_WIDEN[sh.seg]; if (w) sh.pts = sh.pts.map(([x, y]) => [w[0] + (x - w[0]) * w[1], y]); }
 // v2.5.0: weibliche Formen (js/motion-female.js); Gelenke wie oben.
 let SHAPES_F_FEMALE = null;
 export const shapesForF = (sex) => (sex === 'female' ? (SHAPES_F_FEMALE ??= femaleFront(SHAPES_F)) : SHAPES_F);
@@ -179,7 +185,7 @@ export function solveFront(spec) {
     F['uarm' + s] = fr(A.sh, A.dU, A.sU); F['farm' + s] = fr(A.E, A.dF, A.sF);
   }
   J.shoulder = J.shoulderR; J.elbow = J.elbowR; J.wrist = J.wristR; J.hand = J.handR; J.hip = J.hipR; J.knee = J.kneeR; J.ankle = J.ankleR;
-  J.chin = add(shC, mul(tUp, 26)); J.head = add(shC, mul(tUp, 71));
+  J.chin = add(shC, mul(tUp, neckFold(26, tScale))); J.head = add(shC, mul(tUp, neckFold(71, tScale)));
   J.toe = add(J.ankleR, [0, 13]); J.toe2 = add(J.ankleL, [0, 13]); // Sohle wie in der Seitenansicht 2 Einheiten über dem Boden
   // Wurzel verschieben
   const root = spec.root || 'pelvis';
@@ -209,7 +215,9 @@ function tfF(P, seg, side, pt) {
   const nRest = nrm(dRest);
   const v = sub(pRest, JRest);
   const ur = dot(v, dRest), f = A.f || 1, w = dot(v, nRest);
-  const u = seg === 'trunk' && f !== 1 ? Math.min(ur, LEN.trunk) * f + Math.max(0, ur - LEN.trunk) : ur * f;
+  // v2.11: Bei Vorneigung zeigt der Hals zum Betrachter – der Halsbereich (NECK_F über der Schulter) wird mit dem Rumpf verkürzt,
+  // der Kopf darüber nur verschoben (bleibt unverzerrt) und sinkt so zur Schulterlinie.
+  const u = seg === 'trunk' && f !== 1 ? Math.min(ur, LEN.trunk) * f + neckFold(Math.max(0, ur - LEN.trunk), f) : ur * f;
   return [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
 }
 // Schulter: Deltamuskel und Armansatz folgen beim Armheben teils dem Rumpf (Schulterblatt dreht mit), wie in der Seitenansicht (motion.js).

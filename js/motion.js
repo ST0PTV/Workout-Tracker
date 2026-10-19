@@ -112,6 +112,8 @@ export function smooth(pts) {
 //   armScale [oberarm, unterarm] Projektionsfaktoren für Arme außerhalb der Bildebene; elbowSide ±1;
 //   leg2: { hip, knee, ankle } oder { ankle: [x,y], foot: Winkel } (zweites Bein per Zwei-Glieder-IK);
 //   arm2: { shoulder, elbow } (zweiter Arm, sonst wie der erste);
+//   armWorld: [x, y] – Handgelenk-Ziel in Weltkoordinaten (Zwei-Glieder-IK wie armTarget; Hände bleiben an einer festen Stange);
+//   handFlat2 – wie handFlat, nur für den zweiten Arm (Stützhand auf der Bank, die andere Hand hält eine Hantel);
 //   armAt: [x, y] – gestreckter Arm zeigt von der Schulter auf einen festen Punkt (Weltkoordinaten, z. B. die Stange);
 //   solve: { param: 'trunk'|'shank', joint, y, range } – unbekannten Winkel so lösen, dass ein Gelenk eine Höhe erreicht,
 //     oder { param, joint, at: [x,y], dist } – so, dass ein Gelenk einen festen Abstand zu einem Punkt hat (z. B. Schulter–Stange = Armlänge).
@@ -186,6 +188,7 @@ function buildPose(spec) {
   const rp = spec.rootPos ? [num(spec.rootPos[0]), num(spec.rootPos[1])] : (root === 'toe' ? [TOE.u, -2] : [0, root === 'ankle' ? -15 : 0]);
   const off = rootRel[root] ? sub(rp, rootRel[root]) : null; // null: Wurzel ist ein Armgelenk, Verschiebung folgt unten
 
+  if (!target && spec.armWorld && off) target = sub(sub([num(spec.armWorld[0]), num(spec.armWorld[1])], off), shP); // v2.10: Weltziel → relativ zur Schulter
   let armPts = null, ikForearm = null;
   if (spec.armPoints) { // Projizierte Armgeometrie: Ellbogen und Handgelenk relativ zur Schulter (Arme außerhalb der Bildebene)
     const E = [num(spec.armPoints.elbow[0]), num(spec.armPoints.elbow[1])], W = [num(spec.armPoints.wrist[0]), num(spec.armPoints.wrist[1])];
@@ -267,7 +270,7 @@ function buildPose(spec) {
     J.elbow2 = el2; J.wrist2 = wr2; J.hand2 = add(wr2, mul(dir(aF2), LEN.hand));
     F.uarm2 = fr(J.shoulder, dir(aU2), sc[0]); F.farm2 = fr(el2, dir(aF2), sc[1]);
   }
-  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, headTilt: num(spec.headTilt) || 0 };
+  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, handFlat2: num(spec.handFlat2) || 0, headTilt: num(spec.headTilt) || 0 };
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -281,9 +284,10 @@ function tf1(P, seg, pt) {
   const R = REST[baseSeg(seg)], A = P.F[seg];
   const v = sub(pt, R.J);
   let u = dot(v, R.d) * A.f, w = dot(v, R.n);
-  if (P.handFlat && baseSeg(seg) === 'farm' && u > LEN.farm * A.f) { // Hand liegt flach auf (Liegestütz): Handteil quer statt längs
+  const hf = seg === 'farm2' ? (P.handFlat2 || P.handFlat) : P.handFlat;
+  if (hf && baseSeg(seg) === 'farm' && u > LEN.farm * A.f) { // Hand liegt flach auf (Liegestütz): Handteil quer statt längs
     const extra = u - LEN.farm * A.f;
-    u = LEN.farm * A.f; w += P.handFlat * extra;
+    u = LEN.farm * A.f; w += hf * extra;
   }
   const out = [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
   // v2.9: Kopfneigung (headTilt, Grad; positiv = Kinn zur Brust). Kopf und Hals oberhalb y = −300 drehen um den Halsansatz.

@@ -94,7 +94,7 @@ function labelSlots(anim, frames, b, upp, sex = 'male') {
 function sceneNodes(scene, behind) {
   const out = [];
   for (const s of scene) {
-    const front = s.front || s.type === 'plate' || s.type === 'dumbbell' || s.type === 'bar' || s.type === 'db';
+    const front = !s.back && (s.front || s.type === 'plate' || s.type === 'dumbbell' || s.type === 'bar' || s.type === 'db'); // v2.10: back erzwingt „hinter der Figur“
     if (front === behind) continue;
     if (s.type === 'plate') { out.push(el('circle', { cx: s.at[0], cy: s.at[1], r: s.r, class: 'an-plate' }), el('circle', { cx: s.at[0], cy: s.at[1], r: 4, class: 'an-barend' })); }
     else if (s.type === 'dumbbell') out.push(el('rect', { x: s.at[0] - 10, y: s.at[1] - 5, width: 20, height: 10, rx: 3, class: 'an-barend' }));
