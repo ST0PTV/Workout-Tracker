@@ -1,4 +1,4 @@
 // Einzige Quelle für die App-Version (SemVer).
 // Bei jedem Deploy zusammen mit CACHE_VERSION in sw.js erhöhen.
-export const APP_VERSION = '2.13.0';
+export const APP_VERSION = '2.14.0';
 export const APP_NAME = 'Workout Tracker';
