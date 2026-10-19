@@ -221,6 +221,49 @@ const MSP = (() => {
 // Seitheben am Kabel (Frontansicht): Turm auf der Gegenseite, Rolle auf Handhöhe (Larsen et al. 2025), Seil vor dem Körper.
 const CLR = { tower: -150, pulleyY: -152 };
 
+// ---------- Runde 8 (v2.12): Trizeps ----------
+// Überkopf-Trizepsstrecken am Kabel: Rücken zum Turm (Mir et al. 2025), Turm ≈ 45 cm hinter der Figur, Rolle auf Hüfthöhe (Konvention).
+const OHX = { tower: -95, pulley: [-87, -170] };
+// Bankdips: Hand fest an der Bankkante (Oberkante y = −92), Ferse fest am Boden, Beine fast gestreckt.
+// Rumpf, Schulter und Ellbogen je Keyframe → Hüfte (über die Wurzel „Handgelenk“); Knie per Zwei-Glieder-IK zur festen Ferse.
+// Gezeichnet wird mit der Wurzel „Knöchel“ und armWorld, damit Hand und Ferse auch zwischen den Keyframes still stehen.
+const BDIP = (() => {
+  const W = [0, -98], hipOf = (k) => solvePose({ root: 'wrist', rootPos: W, trunk: k.trunk, shoulder: k.shoulder, elbow: k.elbow, hip: 80, knee: 0 }).joints.hip;
+  const top = { trunk: 5, shoulder: -25, elbow: 10 }, bottom = { trunk: 12.6, shoulder: -88.1, elbow: 90 };
+  const ht = hipOf(top), hb = hipOf(bottom), reach = LEN.thigh + LEN.shank - 0.2; // oben Knie ≈ 3°
+  const A = [Math.round(ht[0] + Math.sqrt(reach ** 2 - (-15 - ht[1]) ** 2)), -15];
+  const leg = (h) => { // Knöchel → Hüfte: Schienbein- und Kniewinkel (Knie nach oben)
+    const v = [h[0] - A[0], h[1] - A[1]], L = Math.hypot(v[0], v[1]), D = 180 / Math.PI;
+    const g = Math.acos(Math.min(1, (LEN.shank ** 2 + L * L - LEN.thigh ** 2) / (2 * LEN.shank * L))) * D;
+    const aAH = Math.atan2(v[0], -v[1]) * D, aSup = aAH + g; // Knöchel → Knie
+    const kn = [A[0] + LEN.shank * Math.sin(aSup / D), A[1] - LEN.shank * Math.cos(aSup / D)];
+    const aTh = Math.atan2(kn[0] - h[0], -(kn[1] - h[1])) * D; // Hüfte → Knie
+    return { shank: Math.round((aSup) * 10) / 10, knee: Math.round((aSup + 180 - aTh) * 10) / 10 };
+  };
+  return { W, A, top, bottom, legTop: leg(ht), legBottom: leg(hb), drop: Math.round((hb[1] - ht[1]) * 10) / 10 };
+})();
+// ---------- Runde 9 (v2.12): Fliegende ----------
+// Arm im Raum → Frontansicht (armPoints relativ zur Schulter, dx nach außen, dy nach unten). e = Hebung aus dem Hängen
+// (0° unten, 90° waagerecht, 180° oben), a = Richtung in der Waagerechten (0° nach vorn, 90° zur Seite, negativ = über die Körpermitte),
+// b = leichte Ellbogenbeugung, Unterarm dreht nach innen/vorn. Die Tiefe (zum Betrachter) fällt weg; Arme vorn erscheinen verkürzt.
+function armFront(e, a, b) {
+  const R = Math.PI / 180, u = [Math.sin(e * R) * Math.sin(a * R), Math.cos(e * R), Math.sin(e * R) * Math.cos(a * R)];
+  const p = [-Math.cos(a * R), 0, Math.sin(a * R)], cb = Math.cos(b * R), sb = Math.sin(b * R);
+  const f = [u[0] * cb + p[0] * sb, u[1] * cb, u[2] * cb + p[2] * sb], n = Math.hypot(f[0], f[1], f[2]);
+  const r1 = (v) => Math.round(v * 10) / 10, E = [LEN.uarm * u[0], LEN.uarm * u[1]];
+  return { elbow: E.map(r1), wrist: [E[0] + LEN.farm * f[0] / n, E[1] + LEN.farm * f[1] / n].map(r1) };
+}
+// Kabelturm-Paar (Frontansicht, Konvention): Türme bei x = ±170, Rollen 10 innen; oben ≈ 1,6 m, unten ≈ 20 cm.
+const XOV = { tower: 170, high: -330, low: -40 };
+// Dip-Maschine (sitzend): Griffe seitlich, Hebel mit Drehpunkt hinter der Figur auf der Mittelsenkrechten der beiden Griffpositionen (Konvention).
+const DIPM = (() => {
+  const base = { root: 'hip', rootPos: [0, -98], trunk: 0, hip: 90, knee: 90, foot: 90 };
+  const a = solvePose({ ...base, shoulder: -35, elbow: 95 }).joints.hand, b = solvePose({ ...base, shoulder: -15, elbow: 20 }).joints.hand;
+  const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d = [b[0] - a[0], b[1] - a[1]];
+  const px = m[0] - 150, py = m[1] - (px - m[0]) * d[0] / d[1];
+  return { pivot: [Math.round(px), Math.round(py)] };
+})();
+
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
@@ -1746,7 +1789,7 @@ export const ANIMATIONS = [
   // ---------- Hammercurls (v2.11) ----------
   {
     ref: 'hammer-curl', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
-    basisNote: 'Keine Bewegungsstudie zum Hammercurl mit Gewicht gefunden. Der Ellbogen-Bewegungsumfang ist vom Kurzhantelcurl übertragen (123,1 ± 12,3°, Marcolin et al. 2018, Volltext); Start ≈ 20° wie bei frei gewählten Curls (Oliveira et al. 2009, Volltext; Winkel dort aus einem Beschleunigungssensor geschätzt). Neutralgriff nach Coratella et al. 2023; die Hantel steht quer zum Unterarm (Konvention).',
+    basisNote: 'Keine Bewegungsstudie zum Hammercurl mit Gewicht gefunden. Der Ellbogen-Bewegungsumfang ist vom Kurzhantelcurl übertragen (123,1 ± 12,3°, Marcolin et al. 2018, Volltext); Start ≈ 20° wie bei frei gewählten Curls (Oliveira et al. 2009, Volltext; Winkel dort aus einem Beschleunigungssensor geschätzt). Neutralgriff nach Coratella et al. 2023 (Volltext; dort am Kabelturm mit Seil, nicht mit Kurzhanteln); die Hantel steht quer zum Unterarm (Konvention).',
     tempo: { basis: 'measured', note: 'Übertragen vom Kurzhantelcurl: heben 1,44 ± 0,26 s, senken 1,72 ± 0,47 s bei Metronomvorgabe 3 s je Wiederholung (Marcolin et al. 2018).' },
     frames: [
       { label: 'Unten', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: C(0, 'Oberarm am Körper'), elbow: V(20, 'O1', 'fulltext', 'Start ≈ 20° (frei gewählte Kurzhantelcurls)'), props: hammerProps } },
@@ -1755,18 +1798,18 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.44, label: 'Beugen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 1.72, label: 'Senken', kp: [3] }],
     keyPoints: [
       { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Neutralgriff: Daumen zeigen nach oben, der Unterarm dreht nicht mit.', src: ['C2'],
-        explain: 'Neutraler Griff als eine der drei Varianten bei Coratella et al. 2023 (Untergriff, Obergriff, neutral). Die Handstellung bleibt über die ganze Wiederholung gleich.' },
+        explain: 'Neutraler Griff als eine der drei Varianten bei Coratella et al. 2023 (Untergriff und Obergriff an der Stange, neutral am Seil, jeweils am Kabelturm; Handabstand gleich). Die Handstellung bleibt über die ganze Wiederholung gleich.' },
       { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme bleiben seitlich am Körper; nur der Unterarm bewegt sich.', src: ['M1'],
         explain: 'Haltung im Protokoll der Kurzhantelcurls: stehend, Arme seitlich am Körper (Marcolin et al. 2018). Für den Hammercurl selbst nicht gemessen.' },
       { short: 'Weg', anchor: 'elbow', side: 'r', status: 'single', text: 'Unten fast strecken, oben so weit beugen, wie es ohne Ausweichen geht.', src: ['M1', 'O1'],
         explain: 'Übertragen: Kurzhantelcurls hatten einen Umfang von 123,1 ± 12,3° (Marcolin et al. 2018); frei gewählte Curls begannen bei ≈ 20° statt ganz gestreckt (Oliveira et al. 2009).' },
       { short: 'Muskeln', anchor: 'chest', side: 'l', status: 'contested', text: 'Im Neutralgriff arbeitete der Bizeps meist etwas weniger als im Untergriff.', src: ['C2', 'X1', 'K1'],
-        explain: 'Umstritten. Bei Bodybuildern war der Bizeps im Neutralgriff ≈ 12 % und auch der Brachioradialis ≈ 6 % weniger aktiv als im Untergriff (Coratella et al. 2023); in einer zweiten Studie hatte der Hammercurl die niedrigste Bizepsaktivität von vier Curls (Croskery et al. 2026, Abstract). Ohne Last änderte die Handstellung die Bizepsaktivität nicht (Kleiber et al. 2015, Abstract). Dass der Hammercurl den Unterarm stärker trainiert, zeigen diese EMG-Daten nicht.' }
+        explain: 'Umstritten. Bei Bodybuildern war der Bizeps im Neutralgriff beim Heben ≈ 12 % und auch der Brachioradialis ≈ 6 % weniger aktiv als im Untergriff, beim Senken gab es keinen Unterschied (Coratella et al. 2023, Kabel mit Seil statt Kurzhanteln); in einer zweiten Studie hatte der Hammercurl die niedrigste Bizepsaktivität von vier Curls (Croskery et al. 2026, Abstract). Ohne Last änderte die Handstellung die Bizepsaktivität nicht (Kleiber et al. 2015, Abstract). Dass der Hammercurl den Unterarm stärker trainiert, zeigen diese EMG-Daten nicht.' }
     ],
     sources: {
       M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
       O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' },
-      C2: { label: 'Coratella et al. 2023, Sports (Basel)', url: 'https://doi.org/10.3390/sports11030064', read: 'abstract' },
+      C2: { label: 'Coratella et al. 2023, Sports (Basel)', url: 'https://doi.org/10.3390/sports11030064', read: 'fulltext' },
       X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'abstract' },
       K1: { label: 'Kleiber et al. 2015, Front Physiol', url: 'https://doi.org/10.3389/fphys.2015.00215', read: 'abstract' }
     }
@@ -1990,6 +2033,279 @@ export const ANIMATIONS = [
       K1: { label: 'Kim et al. 2026, J Clin Med', url: 'https://doi.org/10.3390/jcm15103925', read: 'fulltext' },
       R1: { label: 'Reed et al. 2018, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2017.07.024', read: 'abstract' },
       H1: { label: 'Hernández-Belmonte et al. 2023, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003271', read: 'abstract' }
+    }
+  },
+
+  // ---------- Überkopf-Trizepsstrecken am Kabel (v2.12) ----------
+  {
+    ref: 'overhead-triceps-extension', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsstudie. Aufbau nach Maeo et al. 2022 (Volltext, 21 Untrainierte, 12 Wochen): stehend, einarmig am Kabelzug, Schulter fest in 180° Beugung, Ellbogen 90° → 0°, Handfläche nach oben. Rücken zum Turm und gestreckte Hüfte und Knie nach Mir et al. 2025 (Volltext, Seil, Schulter 160–180°). Turmabstand, Rollenhöhe und Griff sind Zeichenkonvention; der freie Arm hängt.',
+    tempo: { basis: 'protocol', note: '2 s strecken, 2 s beugen ohne Pause (Metronom 60/min, Maeo et al. 2022).' },
+    frames: [
+      { label: 'Gebeugt', pose: { shank: C(0), knee: V(0, 'X2', 'protocol', 'Knie nicht gebeugt'), hip: C(0), ankle: C(0), trunk: V(0, 'X2', 'protocol', 'aufrecht'), shoulder: V(180, 'X1', 'protocol', 'Schulter 180° gebeugt'), elbow: V(90, 'X1', 'protocol', 'Start bei 90° Beugung'), arm2: { shoulder: C(0, 'freier Arm hängt'), elbow: C(5) }, props: overheadCableProps } },
+      { label: 'Gestreckt', pose: { shank: C(0), knee: V(0, 'X2', 'protocol', 'Knie nicht gebeugt'), hip: C(0), ankle: C(0), trunk: V(0, 'X2', 'protocol', 'aufrecht'), shoulder: V(180, 'X1', 'protocol', 'Schulter bleibt bei 180°'), elbow: V(0, 'X1', 'protocol', 'volle Streckung'), arm2: { shoulder: C(0, 'freier Arm hängt'), elbow: C(5) }, props: overheadCableProps },
+        facts: [V(160, 'X2', 'fulltext', 'Mir et al. 2025: Schulter 160–180°, Ellbogen aus voller Beugung bis gestreckt')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Gebeugt', kp: [0, 2] }, { a: 0, b: 1, dur: 2.0, label: 'Strecken', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Gestreckt', kp: [1, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Beugen', kp: [2, 4] }],
+    keyPoints: [
+      { short: 'Stand', anchor: 'back', side: 'l', status: 'consensus', text: 'Rücken zum Kabelzug, aufrecht stehen; Hüfte und Knie bleiben gestreckt.', src: ['X1', 'X2'],
+        explain: 'Stehend am Kabelzug (Maeo et al. 2022); Rücken zur Maschine, Hüfte und Knie nicht beugen (Mir et al. 2025). Wie weit der Turm entfernt steht und wie hoch die Rolle sitzt, nannte keine der beiden Studien.' },
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'consensus', text: 'Oberarm zeigt senkrecht nach oben und bleibt dort; nur der Unterarm bewegt sich.', src: ['X1', 'X2'],
+        explain: 'Schulter fest in 180° Beugung (Maeo et al. 2022) bzw. 160–180° (Mir et al. 2025). Ob der Oberarm wirklich ruhig blieb, wurde nicht gemessen.' },
+      { short: 'Weg', anchor: 'elbow', side: 'r', status: 'contested', text: 'Ab etwa 90° Beugung (oder tiefer) bis zur vollen Streckung.', src: ['X1', 'X2'],
+        explain: 'Umstritten, weil die Protokolle verschieden waren: 90° → 0° (Maeo et al. 2022) bzw. aus voller Beugung bis gestreckt (Mir et al. 2025, dort ohne Messung des Muskelwachstums). Ob ein tieferer Start mehr Wachstum bringt, ist nicht untersucht.' },
+      { short: 'Wachstum', anchor: 'hand', side: 'r', status: 'single', text: 'Überkopf wuchs der Trizeps stärker als beim Strecken mit hängendem Arm.', src: ['X1'],
+        explain: 'MRT nach 12 Wochen, Arm gegen Arm: langer Kopf +28,5 % gegenüber +19,6 %, ganzer Trizeps +19,9 % gegenüber +13,9 % (Maeo et al. 2022, 21 Untrainierte). Auch der seitliche und innere Kopf wuchsen mehr. Eine Einzelstudie.' },
+      { short: 'Gewicht', anchor: 'chest', side: 'l', status: 'single', text: 'Das Gewicht ist überkopf deutlich niedriger als beim Trizepsdrücken.', src: ['X1', 'K3'],
+        explain: 'Das Maximalgewicht lag überkopf 34–39 % niedriger (Maeo et al. 2022). Ein Grund: Der lange Kopf ist überkopf stark gedehnt; in einer Modellrechnung übernahm ab 90° Schulterhebung der innere Kopf den größten Teil der Kraft (Kholinne et al. 2018, ohne Last, 10 Personen).' }
+    ],
+    sources: {
+      X1: { label: 'Maeo et al. 2022, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2022.2100279', read: 'fulltext' },
+      X2: { label: 'Mir et al. 2025, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-025-01060-2', read: 'fulltext' },
+      K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Überkopf-Trizepsstrecken mit Kurzhantel (v2.12) ----------
+  {
+    ref: 'overhead-dumbbell-triceps-extension', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Bewegungs- oder Aufbaustudie mit Kurzhantel gelesen (Alves et al. 2017 nur als Abstract, ohne Winkel). Schulterstellung und Bewegungsweg sind von den Kabelprotokollen übertragen: Schulter 160–180° gebeugt, Ellbogen aus voller Beugung bis gestreckt (Mir et al. 2025, Volltext), 2 s / 2 s (Maeo et al. 2022, Volltext). Sitz mit Lehne, beidhändiger Griff an einer Hantel und tiefster Winkel (≈ 140°) sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: 'Übertragen vom Kabel: 2 s strecken, 2 s beugen (Maeo et al. 2022).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -98], trunk: C(-5, 'Lehne fast senkrecht'), hip: C(95), knee: C(90), foot: C(90, 'Füße flach'), shoulder: K(170, 'X2', 'Mitte von 160–180°'), elbow: C(140, 'volle Beugung, Hantel hinter dem Kopf'), props: overheadDbProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -98], trunk: C(-5, 'Lehne fast senkrecht'), hip: C(95), knee: C(90), foot: C(90, 'Füße flach'), shoulder: K(170, 'X2', 'Mitte von 160–180°'), elbow: V(0, 'X2', 'protocol', 'volle Streckung'), props: overheadDbProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 2.0, label: 'Strecken', kp: [0, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [1, 3] }],
+    keyPoints: [
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme zeigen nach oben neben dem Kopf und bleiben dort.', src: ['X2', 'X1'],
+        explain: 'Übertragen vom Kabel: Schulter 160–180° (Mir et al. 2025) bzw. 180° gebeugt (Maeo et al. 2022). Für die Kurzhantel gibt es keine gelesene Vorgabe.' },
+      { short: 'Tief', anchor: 'elbow', side: 'r', status: 'single', text: 'Hantel hinter dem Kopf kontrolliert tief absenken.', src: ['X2', 'K3'],
+        explain: 'Volle Beugung als Start (Mir et al. 2025, Kabel). Der lange Kopf wird mit gehobener Schulter länger, ab etwa 135° Schulterhebung kaum noch (Kholinne et al. 2018, Modellrechnung). Wie tief am besten ist, wurde nicht verglichen.' },
+      { short: 'Strecken', anchor: 'hand', side: 'r', status: 'single', text: 'Nach oben strecken, bis die Arme gestreckt sind.', src: ['X2', 'X1'],
+        explain: 'Endpunkt beider Kabelprotokolle (0° Ellbogenbeugung).' },
+      { short: 'Liegend', anchor: 'chest', side: 'l', status: 'single', text: 'Überkopf und im Liegen zeigte der Trizeps ein ähnliches EMG-Muster.', src: ['A1'],
+        explain: 'Alves et al. 2017 (21 Trainierte, 40 % der isometrischen Maximalkraft, nur Abstract gelesen): langer und seitlicher Kopf gleich verteilt über den Bewegungsweg. Die Autoren raten, nicht beide Übungen in dieselbe Einheit zu legen. EMG ist kein Maß für Wachstum.' }
+    ],
+    sources: {
+      X1: { label: 'Maeo et al. 2022, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2022.2100279', read: 'fulltext' },
+      X2: { label: 'Mir et al. 2025, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-025-01060-2', read: 'fulltext' },
+      K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' },
+      A1: { label: 'Alves et al. 2017, J Sports Med Phys Fitness', url: 'https://doi.org/10.23736/S0022-4707.17.06849-9', read: 'abstract' }
+    }
+  },
+
+  // ---------- Skullcrusher (v2.12) ----------
+  {
+    ref: 'ez-bar-skullcrusher', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
+    basisNote: 'Keine Bewegungsstudie und kein gelesenes Protokoll mit Winkeln (Brandão et al. 2020 nur als Abstract). Rückenlage auf der Flachbank, Oberarm etwas zum Kopf geneigt (≈ 100° Schulterbeugung), Ellbogen 0° → ≈ 100° mit der Stange über der Stirn, SZ-Stange und Griffbreite sind Zeichenkonvention. Tempo nach Soncin et al. 2014 (Volltext).',
+    tempo: { basis: 'protocol', note: '1 s strecken, 1 s beugen ohne Pause, voller Bewegungsweg (Metronom, Soncin et al. 2014, liegendes Trizepsstrecken).' },
+    frames: [
+      { label: 'Oben', pose: { ...BENCH_POSE(), shoulder: C(100, 'Oberarm leicht zum Kopf geneigt'), elbow: C(0, 'gestreckt'), props: skullProps } },
+      { label: 'Unten', pose: { ...BENCH_POSE(), shoulder: C(100, 'Oberarm bleibt stehen'), elbow: C(100, 'Stange über der Stirn'), props: skullProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Senken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 1.0, label: 'Strecken', kp: [2, 3] }],
+    keyPoints: [
+      { short: 'Tempo', anchor: 'elbow', side: 'r', status: 'single', text: 'Gleichmäßig über den ganzen Weg, etwa 1 s je Richtung.', src: ['S1'],
+        explain: 'Protokoll von Soncin et al. 2014 (10 Trainierte, 8RM): 1 s strecken, 1 s beugen per Metronom, keine Pause, ganzer Bewegungsweg Pflicht. Andere Tempi wurden nicht verglichen.' },
+      { short: 'Kopf', anchor: 'bar', side: 'r', status: 'single', text: 'Langer Kopf wuchs hier mehr als mit Bankdrücken allein.', src: ['B1'],
+        explain: 'Brandão et al. 2020 (43 junge Männer, 10 Wochen, Abstract): Mit liegendem Langhantel-Trizepsstrecken wuchs der lange Kopf stärker als nur mit Bankdrücken, der seitliche Kopf dagegen mit Bankdrücken stärker.' },
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme bleiben ruhig; nur die Unterarme bewegen sich.', src: ['K3'],
+        explain: 'Bei gehobenem Oberarm (90° zum Rumpf, wie hier im Liegen) trug in einer Modellrechnung der innere Kopf den größten Teil der Kraft, der lange Kopf weniger (Kholinne et al. 2018, ohne Last, 10 Personen). Wie stark der Oberarm in der Praxis mitgeht, ist nicht gemessen.' },
+      { short: 'Überkopf', anchor: 'chest', side: 'l', status: 'single', text: 'Im Liegen und überkopf zeigte der Trizeps ein ähnliches EMG-Muster.', src: ['A1'],
+        explain: 'Alves et al. 2017 (21 Trainierte, Kurzhantel, Abstract): langer und seitlicher Kopf ähnlich verteilt über den Weg. Die Autoren raten, nicht beide Übungen in dieselbe Einheit zu legen. EMG ist kein Maß für Wachstum.' }
+    ],
+    sources: {
+      S1: { label: 'Soncin et al. 2014, J Hum Kinet', url: 'https://doi.org/10.2478/hukin-2014-0127', read: 'fulltext' },
+      B1: { label: 'Brandão et al. 2020, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003550', read: 'abstract' },
+      K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' },
+      A1: { label: 'Alves et al. 2017, J Sports Med Phys Fitness', url: 'https://doi.org/10.23736/S0022-4707.17.06849-9', read: 'abstract' }
+    }
+  },
+
+  // ---------- Kurzhantel-Kickback (v2.12) ----------
+  {
+    ref: 'dumbbell-triceps-kickback', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
+    basisNote: 'Keine Bewegungsstudie und kein gelesenes Protokoll mit Winkeln (Serbest et al. 2025 nur als Abstract). Gezeichnet auf derselben Bank wie das einarmige Rudern: Knie und Hand der Gegenseite auf der Bank, Rumpf ≈ 20° über der Waagerechten, Oberarm waagerecht neben dem Rumpf, Ellbogen 90° → 0°. Alles Zeichenkonvention.',
+    tempo: { basis: 'convention', note: '≈ 1,5 s strecken, 1,5 s beugen (Konvention); kein Tempo untersucht.' },
+    frames: [
+      { label: 'Gebeugt', pose: { ...ONE_ROW.pose, shoulder: C(-20, 'Oberarm waagerecht neben dem Rumpf'), elbow: C(90, 'Unterarm hängt senkrecht'), props: kickbackDbProps } },
+      { label: 'Gestreckt', pose: { ...ONE_ROW.pose, shoulder: C(-20, 'Oberarm bleibt stehen'), elbow: C(0, 'gestreckt'), props: kickbackDbProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Gebeugt', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Strecken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Gestreckt', kp: [1] }, { a: 1, b: 0, dur: 1.5, label: 'Beugen', kp: [2] }],
+    keyPoints: [
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarm bleibt neben dem Rumpf; nur der Unterarm streckt nach hinten.', src: ['K3'],
+        explain: 'Mit dem Oberarm parallel zum Rumpf (wie bei 0° Schulterhebung) trug in einer Modellrechnung der lange Kopf den größten Teil der Kraft (Kholinne et al. 2018, ohne Last, 10 Personen). Für den Kickback selbst ist das nicht gemessen.' },
+      { short: 'Gewicht', anchor: 'hand', side: 'r', status: 'single', text: 'Gewicht behutsam steigern; mehr Last brachte nicht im gleichen Maß mehr.', src: ['S1'],
+        explain: 'Serbest et al. 2025 (14 Frauen, Bewegungsanalyse, Modell und EMG, Abstract): Mit schwereren Hanteln stieg die Trizepskontraktion nicht linear mit der Kraft.' },
+      { short: 'Wachstum', anchor: 'chest', side: 'l', status: 'single', text: 'Strecken überkopf brachte mehr Wachstum als mit hängendem Arm.', src: ['X1'],
+        explain: 'Übertrag: Maeo et al. 2022 verglichen Kabelstrecken mit dem Arm am Körper und überkopf (MRT, 12 Wochen); überkopf wuchs der Trizeps etwa 1,4-mal so stark. Der Kickback wurde nicht untersucht, seine Schulterstellung ähnelt aber der neutralen.' }
+    ],
+    sources: {
+      K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' },
+      S1: { label: 'Serbest et al. 2025, Phys Eng Sci Med', url: 'https://doi.org/10.1007/s13246-025-01672-5', read: 'abstract' },
+      X1: { label: 'Maeo et al. 2022, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2022.2100279', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Bankdips (v2.12) ----------
+  {
+    ref: 'bench-dips', checkedAt: '2026-10-19', view: 'side', basis: 'measured', noFloor: false,
+    basisNote: 'Schulterstreckung (88,1 ± 8,9°) und Rumpfneigung (12,6 ± 6,5°) am Tiefpunkt aus McKenzie et al. 2022 (3D, 13 geübte Männer, selbst gewählte Technik; Volltext). Der Ellbogenwinkel ist dort nur als Grafik ohne Zahl berichtet; gezeichnet sind die üblichen 90°. Oberer Punkt (Schulter 25° gestreckt, Ellbogen ≈ 10°), Bankhöhe (≈ 45 cm) und gestreckte Beine sind Konvention. Probe: Damit sinkt das Becken um ≈ 33 cm (gemessen 31,8 ± 8,6 cm).',
+    tempo: { basis: 'measured', note: '2,17 ± 0,40 s je Wiederholung, Tiefpunkt bei 59 % (McKenzie et al. 2022): ≈ 1,3 s ab, ≈ 0,9 s hoch.' },
+    frames: [
+      { label: 'Oben', pose: { root: 'ankle', rootPos: BDIP.A, shank: C(BDIP.legTop.shank, 'aus der Geometrie: Ferse fest, Bein fast gestreckt'), knee: C(BDIP.legTop.knee, 'aus der Geometrie: Ferse fest'), trunk: C(BDIP.top.trunk, 'fast aufrecht'), foot: C(90, 'Ferse am Boden'), armWorld: BDIP.W, handFlat: 1, props: benchDipProps },
+        facts: [V(-25, [], 'convention', 'Schulter oben ≈ 25° gestreckt, Ellbogen ≈ 10°')] },
+      { label: 'Unten', pose: { root: 'ankle', rootPos: BDIP.A, shank: K(BDIP.legBottom.shank, 'M1', 'aus Schulter- und Rumpfwinkel bei fester Ferse'), knee: K(BDIP.legBottom.knee, 'M1', 'aus Schulter- und Rumpfwinkel bei fester Ferse'), trunk: V(12.6, 'M1', 'fulltext', '12,61 ± 6,49° Vorneigung'), foot: C(90, 'Ferse am Boden'), armWorld: BDIP.W, handFlat: 1, props: benchDipProps },
+        facts: [V(88.1, 'M1', 'fulltext', 'Schulterstreckung 88,13 ± 8,86° = 101 % des Maximaltests'), V(90, [], 'convention', 'Ellbogen ≈ 90° (übliche Vorgabe; in der Studie weniger als beim Barrendip)'), V(BDIP.drop, 'M1', 'computed', 'Becken sinkt in der Zeichnung um ≈ 33 cm; gemessen 31,8 ± 8,6 cm')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [3] }, { a: 0, b: 1, dur: 1.3, label: 'Absenken', kp: [0, 3] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [0, 1] }, { a: 1, b: 0, dur: 0.9, label: 'Hochdrücken', kp: [2] }],
+    keyPoints: [
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Hier wird die Schulter am weitesten nach hinten gestreckt, bis an die Grenze.', src: ['M1'],
+        explain: 'Am Tiefpunkt 88 ± 9° Schulterstreckung, im Mittel 101 % des vorher gemessenen Maximums – mehr als beim Barren- (88 %) und Ringdip (69 %) (McKenzie et al. 2022, 13 geübte Männer, selbst gewählte Tiefe).' },
+      { short: 'Tiefe', anchor: 'elbow', side: 'l', status: 'contested', text: 'Nur so tief, wie die Schulter es beschwerdefrei zulässt.', src: ['M1'],
+        explain: 'Umstritten. Die Autoren raten, Bankdips nicht regelmäßig zu trainieren, weil die endgradige Streckung den vorderen Kapsel-Band-Apparat belasten könnte. Das ist eine Begründung aus der Mechanik, keine Verletzungsstatistik; Bankdips wurden nur mit vier Wiederholungen ohne Zusatzgewicht gemessen.' },
+      { short: 'Trizeps', anchor: 'uarm', side: 'r', status: 'single', text: 'Der Trizeps arbeitete weniger als beim Barrendip, gemessen an der Last aber viel.', src: ['M1'],
+        explain: 'Spitzen-EMG des seitlichen Trizepskopfs: 0,83 mV bei Bankdips, 1,04 mV am Barren, 1,05 mV an Ringen; Brust und vordere Schulter arbeiteten bei Bankdips deutlich weniger (McKenzie et al. 2022). Die Füße tragen einen Teil des Körpergewichts.' },
+      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper bleibt fast aufrecht und nah an der Bank.', src: ['M1'],
+        explain: 'Rumpfneigung am Tiefpunkt 12,6 ± 6,5°, deutlich weniger als am Barren und an Ringen (McKenzie et al. 2022). Weil der Rumpf kaum kippt, entsteht die Tiefe vor allem aus der Schulterstreckung.' }
+    ],
+    sources: {
+      M1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Dip-Maschine (v2.12) ----------
+  {
+    ref: 'machine-triceps-dip', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
+    basisNote: 'Keine Studie zur sitzenden Dip-Maschine gefunden. Sitz, Griffe neben dem Körper, Start mit ≈ 95° gebeugten Ellbogen und Oberarm ≈ 35° hinter dem Rumpf, Ende fast gestreckt (≈ 20°) mit den Griffen neben der Hüfte, Hebel mit Drehpunkt hinter der Figur: alles Zeichenkonvention.',
+    tempo: { basis: 'convention', note: '≈ 1,5 s drücken, 2 s zurück (Konvention).' },
+    frames: [
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -98], trunk: C(0, 'aufrecht an der Lehne'), hip: C(90), knee: C(90), foot: C(90, 'Füße flach'), shoulder: C(-35, 'Oberarm hinter dem Rumpf'), elbow: C(95, 'Griffe etwa auf Brusthöhe'), props: dipMachineProps } },
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -98], trunk: C(0, 'aufrecht an der Lehne'), hip: C(90), knee: C(90), foot: C(90, 'Füße flach'), shoulder: C(-15, 'Arm neben dem Körper'), elbow: C(20, 'fast gestreckt, Griffe neben der Hüfte'), props: dipMachineProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Drücken', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [0, 2] }],
+    keyPoints: [
+      { short: 'Gerät', anchor: 'hand', side: 'r', status: 'single', text: 'Die Maschine selbst ist nicht untersucht; Aussagen stammen von freien Dips.', src: ['M1'],
+        explain: 'Bei Bank-, Barren- und Ringdips arbeiten Trizeps, Brust und vordere Schulter (McKenzie et al. 2022). Die Autoren nennen die Dip-Maschine nur als Hilfe beim Erlernen des Barrendips – gemeint ist dort die unterstützte Variante, nicht die sitzende.' },
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Mit dem Oberarm nah am Rumpf trägt der lange Trizepskopf viel.', src: ['K3'],
+        explain: 'Bei hängendem Oberarm (0° Schulterhebung) leistete der lange Kopf in einer Modellrechnung den größten Teil der Kraft (Kholinne et al. 2018, ohne Last, 10 Personen). Übertragen, an der Maschine nicht gemessen.' },
+      { short: 'Maschine', anchor: 'chest', side: 'l', status: 'single', text: 'Maschinen brachten in einer Studie ähnliche Zuwächse wie freie Gewichte.', src: ['H1'],
+        explain: 'Hernández-Belmonte et al. 2023 (38 Trainierte, 8 Wochen, Abstract): Kniebeuge, Bankdrücken, Rudern und Schulterdrücken an Maschinen oder frei gaben ähnliche Kraft- und Muskelzuwächse. Eine Dip-Maschine war nicht dabei.' }
+    ],
+    sources: {
+      M1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' },
+      K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' },
+      H1: { label: 'Hernández-Belmonte et al. 2023, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003271', read: 'abstract' }
+    }
+  },
+
+  // ---------- Kurzhantel-Fliegende (v2.12) ----------
+  {
+    ref: 'dumbbell-fly', checkedAt: '2026-10-19', view: 'front', basis: 'protocol', noFloor: true,
+    basisNote: 'Blick von oben auf die Flachbank (Kopf links), weil sich die Arme quer zur Seitenansicht bewegen; senkrechte Arme erscheinen dabei stark verkürzt. Aufbau nach Bergquist et al. 2018 (Volltext, 29 Personen, 10RM): Rückenlage, Start mit senkrechten Armen, Ellbogen durchgehend leicht gebeugt, Hanteln im Bogen zur Seite senken, bis die Oberarme waagerecht sind. Beine auf der Bank, Ellbogenwinkel (≈ 15°) und Hantelgröße sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s senken, 2 s heben (Metronom 60/min, Bergquist et al. 2018); Campos et al. 2020: 2 s senken, 1 s heben, ohne Pause.' },
+    frames: [
+      { label: 'Oben', pose: { rotate: -90, rootPos: [0, -200], legs: { hip: C(0, 'Beine auf der Bank'), knee: C(0) }, armPoints: armFront(90, 18, 15), props: flyDbProps },
+        facts: [V(90, 'B1', 'protocol', 'Start: Arme senkrecht nach oben, Ellbogen leicht gebeugt')] },
+      { label: 'Senken', pose: { rotate: -90, rootPos: [0, -200], legs: { hip: C(0), knee: C(0) }, armPoints: armFront(90, 42, 15), props: flyDbProps } }, // Zwischenbilder: Bogen im Raum, nicht linear in der Projektion
+      { label: 'Senken', pose: { rotate: -90, rootPos: [0, -200], legs: { hip: C(0), knee: C(0) }, armPoints: armFront(90, 66, 15), props: flyDbProps } },
+      { label: 'Unten', pose: { rotate: -90, rootPos: [0, -200], legs: { hip: C(0, 'Beine auf der Bank'), knee: C(0) }, armPoints: armFront(90, 90, 15), props: flyDbProps },
+        facts: [V(0, 'B1', 'protocol', 'Ende: Oberarme waagerecht (parallel zum Boden)'), V(45, 'C2', 'fulltext', 'Campos et al. 2020: bis etwa 45° unter die Rumpflinie')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 0.67, label: 'Senken', kp: [0, 1] }, { a: 1, b: 2, dur: 0.67, label: 'Senken', kp: [0, 1] }, { a: 2, b: 3, dur: 0.66, label: 'Senken', kp: [0, 1] }, { a: 3, b: 3, dur: 0.15, label: 'Unten', kp: [1, 2] }, { a: 3, b: 2, dur: 0.66, label: 'Heben', kp: [2, 3] }, { a: 2, b: 1, dur: 0.67, label: 'Heben', kp: [2, 3] }, { a: 1, b: 0, dur: 0.67, label: 'Heben', kp: [2, 3] }],
+    keyPoints: [
+      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'consensus', text: 'Ellbogen leicht gebeugt und über die ganze Bewegung gleich lassen.', src: ['B1', 'C2'],
+        explain: 'Ellbogen durchgehend leicht gebeugt (Bergquist et al. 2018) bzw. gestreckt (Campos et al. 2020). Der Winkel wurde in keiner der gelesenen Studien gemessen.' },
+      { short: 'Tiefe', anchor: 'hand', side: 'r', status: 'contested', text: 'Senken, bis die Oberarme etwa waagerecht sind; tiefer ist nicht belegt besser.', src: ['B1', 'C2'],
+        explain: 'Umstritten, weil die Protokolle verschieden tief gingen: bis die Oberarme parallel zum Boden sind (Bergquist et al. 2018) oder bis etwa 45° unter die Rumpflinie (Campos et al. 2020). Verglichen wurden die Tiefen nicht.' },
+      { short: 'Unten', anchor: 'uarm', side: 'l', status: 'single', text: 'Am schwersten ist der Anfang des Hebens; danach sinkt die Brustaktivität.', src: ['B1'],
+        explain: 'Mit Hanteln war die Brustaktivität in der ersten Hälfte des Hebens am höchsten und fiel nach dem schwersten Punkt deutlich ab, weil der Hebelarm unten am längsten ist (Bergquist et al. 2018, EMG, 29 Personen).' },
+      { short: 'Vergleich', anchor: 'chest', side: 'l', status: 'single', text: 'Bankdrücken aktivierte Brust, Schulter und Trizeps stärker; Fliegende mehr den Bizeps.', src: ['S1', 'C2'],
+        explain: 'Solstad et al. 2020 (17 Trainierte, 6RM, Abstract): Brust, vordere Schulter und Trizeps beim Bankdrücken 8–81 % höher, Bizeps bei Fliegenden 57–86 % höher. Vordere Schulter bei Fliegenden ≈ 19 % der Maximalaktivität, seitliche und hintere kaum (Campos et al. 2020). EMG ist kein Maß für Wachstum.' }
+    ],
+    sources: {
+      B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' },
+      C2: { label: 'Campos et al. 2020, J Hum Kinet', url: 'https://doi.org/10.2478/hukin-2020-0033', read: 'fulltext' },
+      S1: { label: 'Solstad et al. 2020, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7675616/', read: 'abstract' }
+    }
+  },
+
+  // ---------- Kabel-Crossover (v2.12) ----------
+  {
+    ref: 'cable-crossover', checkedAt: '2026-10-19', view: 'front', basis: 'transfer',
+    basisNote: 'Keine Studie zum Kabel-Crossover gefunden. Haltung übertragen vom stehenden Fliegen mit Gummiband bei Bergquist et al. 2018 (Volltext): ein Fuß vorn, Oberkörper leicht vorgeneigt, Ellbogen durchgehend leicht gebeugt, 2 s / 2 s. Hohe Rollen (≈ 1,6 m), Turmabstand, Rumpfneigung (≈ 15°) und Endpunkt mit gekreuzten Händen vor dem Bauch sind Zeichenkonvention; der Ausfallschritt ist von vorn nicht zu sehen.',
+    tempo: { basis: 'protocol', note: 'Übertragen: 2 s zusammenführen, 2 s zurück (Metronom 60/min, Bergquist et al. 2018, Band).' },
+    frames: [
+      { label: 'Außen', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(12, 'leicht gebeugt'), shank: C(6) }, trunkFlex: V(15, 'B1', 'protocol', 'leicht vorgeneigt (kein Winkel genannt)'), armPoints: armFront(120, 75, 15), props: crossoverProps(true) } },
+      { label: 'Zusammen', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(12), shank: C(6) }, trunkFlex: C(15), armPoints: armFront(85, 35, 15), props: crossoverProps(true) } }, // Zwischenbild: Bogen im Raum
+      { label: 'Vorn', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(12), shank: C(6) }, trunkFlex: V(15, 'B1', 'protocol', 'leicht vorgeneigt'), armPoints: armFront(50, -15, 15), props: crossoverProps(true) } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Außen', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Zusammen', kp: [1, 3] }, { a: 1, b: 2, dur: 1.0, label: 'Zusammen', kp: [1, 3] }, { a: 2, b: 2, dur: 0.3, label: 'Vorn', kp: [2] }, { a: 2, b: 1, dur: 1.0, label: 'Zurück', kp: [1, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Zurück', kp: [1, 3] }],
+    keyPoints: [
+      { short: 'Stand', anchor: 'belly', side: 'l', status: 'single', text: 'Ein Fuß vorn, Oberkörper leicht nach vorn geneigt.', src: ['B1'],
+        explain: 'Übertragen vom stehenden Fliegen mit Gummiband (Bergquist et al. 2018): nicht dominanter Fuß vorn, Oberkörper leicht vorgeneigt zur Balance. Am Kabelturm wurde das nicht untersucht.' },
+      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Ellbogen leicht gebeugt lassen; die Arme bewegen sich im Bogen.', src: ['B1'],
+        explain: 'Leicht gebeugte Ellbogen über die ganze Bewegung (Bergquist et al. 2018, Band und Hanteln). Ein Winkel wurde nicht genannt.' },
+      { short: 'Kabel', anchor: 'chest', side: 'l', status: 'single', text: 'Mit Zugwiderstand arbeitete die vordere Schulter mehr, die Brust etwas weniger.', src: ['B1'],
+        explain: 'Stehend mit Band gegenüber liegend mit Hanteln: Brust etwas weniger, vordere Schulter deutlich mehr aktiv (Bergquist et al. 2018, 29 Personen, 10RM). Ein Kabel wurde nicht gemessen; Rollenhöhe und Zugrichtung sind nicht untersucht.' },
+      { short: 'Tempo', anchor: 'hand', side: 'r', status: 'single', text: 'Gleichmäßig: etwa 2 s zusammen, 2 s zurück.', src: ['B1'],
+        explain: 'Metronom 60/min im Protokoll von Bergquist et al. 2018. Andere Tempi wurden nicht verglichen.' }
+    ],
+    sources: {
+      B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Kabelzug von unten nach oben (v2.12) ----------
+  {
+    ref: 'low-to-high-cable-fly', checkedAt: '2026-10-19', view: 'front', basis: 'convention',
+    basisNote: 'Keine Studie zu Kabelfliegenden von unten gefunden. Untere Rollen (≈ 20 cm), Start mit tiefen, seitlich gestreckten Armen, Ende mit den Händen vor der oberen Brust, leicht gebeugte Ellbogen und aufrechter Stand sind Zeichenkonvention; Ellbogen und Tempo wie beim Band-Fliegen von Bergquist et al. 2018 (Volltext).',
+    tempo: { basis: 'protocol', note: 'Übertragen: 2 s heben, 2 s senken (Metronom 60/min, Bergquist et al. 2018, Band).' },
+    frames: [
+      { label: 'Unten', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(40, 70, 15), props: crossoverProps(false) } },
+      { label: 'Heben', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(70, 35, 15), props: crossoverProps(false) } }, // Zwischenbild: Bogen im Raum
+      { label: 'Oben', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(85, -12, 15), props: crossoverProps(false) } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 2, dur: 1.0, label: 'Heben', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Oben', kp: [0] }, { a: 2, b: 1, dur: 1.0, label: 'Senken', kp: [2] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Brust', anchor: 'chest', side: 'l', status: 'contested', text: 'Der obere Brustanteil hebt den Arm nach vorn; mehr Aktivität ist nicht gemessen.', src: ['A1', 'R1'],
+        explain: 'Umstritten. Anatomisch beugt der Schlüsselbeinanteil des großen Brustmuskels den Arm nach vorn (StatPearls). Am Kabel wurde das nicht gemessen; beim Bankdrücken war der obere Brustmuskel bei 30° Schräge am aktivsten (Rodríguez-Ridao et al. 2020, Abstract).' },
+      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Ellbogen leicht gebeugt lassen und die Arme im Bogen führen.', src: ['B1'],
+        explain: 'Leicht gebeugte Ellbogen über die ganze Bewegung, übertragen vom Fliegen mit Band und Hanteln (Bergquist et al. 2018).' },
+      { short: 'Tempo', anchor: 'hand', side: 'r', status: 'single', text: 'Gleichmäßig: etwa 2 s heben, 2 s senken.', src: ['B1'],
+        explain: 'Metronom 60/min im Protokoll von Bergquist et al. 2018 (Band). Für das Kabel von unten gibt es kein Protokoll.' }
+    ],
+    sources: {
+      A1: { label: 'Solari & Burns, StatPearls: Pectoralis Major (Stand 2023)', url: 'https://www.ncbi.nlm.nih.gov/books/NBK525991/', read: 'summary' },
+      R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'abstract' },
+      B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Butterfly (v2.12) ----------
+  {
+    ref: 'pec-deck', checkedAt: '2026-10-19', view: 'front', basis: 'convention',
+    basisNote: 'Keine Bewegungsstudie. Gezeichnet ist die Variante mit Armpolstern: aufrecht an der Lehne, Oberarme etwa waagerecht zur Seite, Ellbogen 90° gebeugt, Unterarme senkrecht an den Polstern; Weg von seitlich bis die Oberarme nach vorn zeigen. Diese Haltung beschreibt Marchetti et al. 2019 (isometrisch, 10 Trainierte; nur als automatische Zusammenfassung des PDFs gelesen). Maschine wie beim Reverse Butterfly, Tempo und Sitzhöhe sind Zeichenkonvention. Vorn zeigende Oberarme erscheinen von vorn stark verkürzt.',
+    tempo: { basis: 'convention', note: '≈ 2 s zusammenführen, 2 s zurück (Konvention).' },
+    frames: [
+      { label: 'Außen', pose: { rootPos: [0, RPD.seat], legs: { hip: C(85, 'sitzend'), knee: C(85) }, armPoints: { elbow: [68, 6], wrist: [68, -48] }, props: pecDeckProps },
+        facts: [V(90, 'M1', 'summary', 'Oberarme 90° abgespreizt, Ellbogen 90° gebeugt, auf Schulterhöhe')] },
+      { label: 'Vorn', pose: { rootPos: [0, RPD.seat], legs: { hip: C(85, 'sitzend'), knee: C(85) }, armPoints: { elbow: [4, 6], wrist: [4, -48] }, props: pecDeckProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Außen', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Zusammen', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Vorn', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [1, 3] }],
+    keyPoints: [
+      { short: 'Arme', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme etwa auf Schulterhöhe, Ellbogen rund 90° gebeugt am Polster.', src: ['M1'],
+        explain: 'Haltung bei Marchetti et al. 2019: Rumpf an der Lehne, Schultern 90° abgespreizt, Ellbogen und Handgelenk auf Schulterhöhe, Ellbogen 90° gebeugt. Nur als automatische Zusammenfassung des PDFs gelesen.' },
+      { short: 'Offen', anchor: 'hand', side: 'r', status: 'single', text: 'Weit geöffnet war die Brust aktiver als in der Mitte des Wegs.', src: ['M1'],
+        explain: 'Isometrische Maximalversuche (Marchetti et al. 2019, 10 Trainierte): in der weit geöffneten Stellung (90°) war der große Brustmuskel deutlich aktiver als bei 45°. Das ist eine Haltemessung, keine Bewegung. Nur als automatische Zusammenfassung gelesen.' },
+      { short: 'Sätze', anchor: 'chest', side: 'l', status: 'single', text: 'Ein Satz brachte bei Einsteigern ähnlich viel Wachstum wie drei.', src: ['P1'],
+        explain: 'Pinto et al. 2025 (15 untrainierte Männer, 12 Wochen, Arm gegen Arm, Abstract): Brustdicke oben +17 % / +18 %, unten +21 % / +21 %, Maximalkraft +46 % / +43 % mit einem bzw. drei Sätzen. Für Trainierte nicht geprüft.' },
+      { short: 'Region', anchor: 'belly', side: 'l', status: 'single', text: 'Oberer und unterer Brustanteil wuchsen am Butterfly ähnlich.', src: ['P1'],
+        explain: 'Ultraschall nach 12 Wochen: Schlüsselbein- und Brustbeinanteil nahmen ähnlich zu; die Autoren sehen keinen Hinweis auf gezieltes Wachstum einzelner Bereiche (Pinto et al. 2025, Abstract).' }
+    ],
+    sources: {
+      M1: { label: 'Marchetti et al. 2019, Rev Bras Pesq Ciênc Saúde', url: 'https://revistas.icesp.br/index.php/RBPeCS/article/view/733', read: 'summary' },
+      P1: { label: 'Pinto et al. 2025, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000005045', read: 'abstract' }
     }
   }
 
@@ -2408,6 +2724,90 @@ function machinePressProps(P) {
     { type: 'line', from: [pv[0], pv[1]], to: [pv[0], 0], w: 8, back: true }, foot(pv[0] - 40, pv[0] + 40), { type: 'bar', at: pv, r: 7 }, // Säule mit Drehachse
     { type: 'line', from: pv, to: hand, w: 5, back: true }, // Hebelarm (seitlich neben dem Kopf, daher hinter der Figur)
     { type: 'line', from: [hand[0] - 3, hand[1] - 9], to: [hand[0] + 3, hand[1] + 9], w: 6, front: true } // Griff
+  ] };
+}
+
+// ---------- Szenen Runde 8 (v2.12) ----------
+function overheadCableProps(P) {
+  const g = gripOf(P), t = OHX.tower, p = OHX.pulley, d = segNrm(P, 'farm');
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'line', from: [t, 0], to: [t, -330], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm hinter der Figur, Rolle auf Hüfthöhe
+    { type: 'line', from: p, to: g, w: 1.5, dash: true }, // Seil
+    { type: 'line', from: along(g, d, -8), to: along(g, d, 8), w: 5, front: true } // Einhandgriff
+  ] };
+}
+function overheadDbProps(P) {
+  const g = gripOf(P), h = P.joints.hip;
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'rect', x: h[0] - 30, y: h[1] + 14, w: 64, h: 10, rx: 3 }, benchLine(P, 24, 105, -14), // Sitz, Lehne
+    { type: 'line', from: [h[0], h[1] + 24], to: [h[0], 0], w: 6 }, foot(h[0] - 45, h[0] + 45),
+    db([g[0], g[1] + DB.len / 2 - DB.hw / 2], [0, 1]) // eine Hantel, beidhändig unter dem oberen Kopf gehalten: hängt senkrecht
+  ] };
+}
+function skullProps(P) {
+  const g = gripOf(P);
+  return { anchors: { bar: g, uarm: uarmMid(P) }, scene: [
+    { type: 'rect', x: -95, y: -92, w: 225, h: 12, rx: 3 }, { type: 'line', from: [-60, -80], to: [-60, 0], w: 5 }, { type: 'line', from: [100, -80], to: [100, 0], w: 5 }, // Flachbank
+    plate(g, CURL_PLATE) // SZ-Stange mit kleinen Scheiben (Konvention)
+  ] };
+}
+function kickbackDbProps(P) {
+  const g = gripOf(P), [x0, x1] = ONE_ROW.bench;
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'rect', x: x0, y: -92, w: x1 - x0, h: 12, rx: 3 }, { type: 'line', from: [x0 + 30, -80], to: [x0 + 30, 0], w: 5 }, { type: 'line', from: [x1 - 30, -80], to: [x1 - 30, 0], w: 5 }, // Flachbank
+    db(g, [1, 0], true) // Neutralgriff: Hantelachse zeigt aus dem Bild
+  ] };
+}
+function benchDipProps(P) {
+  const w = BDIP.W;
+  return { anchors: { uarm: uarmMid(P), bench: [w[0] - 50, -92] }, scene: [
+    { type: 'rect', x: w[0] - 150, y: -92, w: 156, h: 12, rx: 3 }, { type: 'line', from: [w[0] - 130, -80], to: [w[0] - 130, 0], w: 5 }, { type: 'line', from: [w[0] - 18, -80], to: [w[0] - 18, 0], w: 5, back: true } // Flachbank hinter der Figur
+  ] };
+}
+function dipMachineProps(P) {
+  const hand = P.joints.hand, h = P.joints.hip, pv = DIPM.pivot;
+  return { anchors: { hand, uarm: uarmMid(P) }, scene: [
+    { type: 'rect', x: h[0] - 30, y: h[1] + 2, w: 64, h: 12, rx: 4 }, benchLine(P, 26, 120, -8), // Sitz, Lehne
+    { type: 'line', from: [h[0], h[1] + 14], to: [h[0], 0], w: 6 }, foot(h[0] - 50, h[0] + 60),
+    { type: 'line', from: [pv[0], pv[1]], to: [pv[0], 0], w: 8, back: true }, foot(pv[0] - 40, pv[0] + 40), { type: 'bar', at: pv, r: 7 }, // Säule mit Drehachse
+    { type: 'line', from: pv, to: hand, w: 5, back: true }, // Hebelarm (seitlich neben dem Körper, daher hinter der Figur)
+    { type: 'line', from: [hand[0] - 9, hand[1]], to: [hand[0] + 9, hand[1]], w: 6, front: true } // Griff
+  ] };
+}
+
+// ---------- Szenen Runde 9 (v2.12) ----------
+function crossoverProps(high) {
+  return (P) => {
+    const hr = P.joints.handR, hl = P.joints.handL, t = XOV.tower, y = high ? XOV.high : XOV.low, px = t - 10;
+    const grip = (h) => ({ type: 'rect', x: h[0] - 5, y: h[1] - 7, w: 10, h: 14, rx: 3, front: true });
+    return { anchors: {}, scene: [
+      { type: 'line', from: [t, 0], to: [t, -380], w: 8 }, foot(t - 30, t + 30), { type: 'line', from: [-t, 0], to: [-t, -380], w: 8 }, foot(-t - 30, -t + 30), // zwei Türme
+      { type: 'bar', at: [px, y], r: 7 }, { type: 'bar', at: [-px, y], r: 7 }, // Rollen
+      { type: 'line', from: [px, y], to: hr, w: 1.5, dash: true }, { type: 'line', from: [-px, y], to: hl, w: 1.5, dash: true }, // Seile
+      grip(hr), grip(hl)
+    ] };
+  };
+}
+// Kurzhantel-Fliegende im Blick von oben (Figur um −90° gedreht, Kopf links): Bank als Rechteck unter Kopf, Rumpf und Gesäß.
+function flyDbProps(P) {
+  const J = P.joints, hR = J.handR, hL = J.handL, x0 = J.head[0] - 8, x1 = J.pelvis[0] + 40, y = J.pelvis[1];
+  const g = (h, w) => [(h[0] + w[0]) / 2, (h[1] + w[1]) / 2];
+  return { anchors: { bench: [x1 - 30, y + 30] }, scene: [
+    { type: 'rect', x: x0, y: y - 28, w: x1 - x0, h: 56, rx: 4 }, // Flachbank von oben
+    db(g(hR, J.wristR), [1, 0]), db(g(hL, J.wristL), [1, 0]) // Neutralgriff: Hantelachse längs zum Körper
+  ] };
+}
+
+// Butterfly mit Armpolstern (Frontansicht): dieselbe Maschine wie der Reverse Butterfly (RPD), Unterarme senkrecht an den Polstern.
+function pecDeckProps(P) {
+  const J = P.joints, top = RPD.seat - 250, pel = J.pelvis;
+  const pad = (e, w) => ({ type: 'line', from: [e[0], e[1] + 4], to: [w[0], w[1] - 4], w: 12, front: true }); // Polster am Unterarm
+  return { anchors: { pad: [(J.elbowR[0] + J.wristR[0]) / 2, (J.elbowR[1] + J.wristR[1]) / 2] }, scene: [
+    { type: 'rect', x: -38, y: pel[1] + 6, w: 76, h: 10, rx: 3 }, { type: 'line', from: [0, pel[1] + 16], to: [0, 0], w: 6 }, foot(-70, 70), // Sitz, Stütze
+    { type: 'line', from: [-52, top], to: [52, top], w: 6 }, // Querträger mit den Drehachsen
+    { type: 'line', from: [10, top], to: [J.wristR[0], top], w: 4 }, { type: 'line', from: [J.wristR[0], top], to: [J.wristR[0], J.wristR[1] - 6], w: 4 }, // Hebel rechts
+    { type: 'line', from: [-10, top], to: [J.wristL[0], top], w: 4 }, { type: 'line', from: [J.wristL[0], top], to: [J.wristL[0], J.wristL[1] - 6], w: 4 },
+    pad(J.elbowR, J.wristR), pad(J.elbowL, J.wristL)
   ] };
 }
 

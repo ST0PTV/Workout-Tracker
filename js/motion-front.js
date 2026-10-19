@@ -189,6 +189,14 @@ export function solveFront(spec) {
   J.shoulder = J.shoulderR; J.elbow = J.elbowR; J.wrist = J.wristR; J.hand = J.handR; J.hip = J.hipR; J.knee = J.kneeR; J.ankle = J.ankleR;
   J.chin = add(shC, mul(tUp, neckFold(26, tScale))); J.head = add(shC, mul(tUp, neckFold(71, tScale)));
   J.toe = add(J.ankleR, [0, 13]); J.toe2 = add(J.ankleL, [0, 13]); // Sohle wie in der Seitenansicht 2 Einheiten über dem Boden
+  // v2.12: Drehung der ganzen Figur in der Bildebene (Grad, um den Ursprung) – z. B. −90° für den Blick von oben auf eine liegende Figur
+  // (Kopf links). Gelenke und Segmentrahmen drehen mit, daher folgen Formen und Anker; die Winkelangaben bleiben die der Figur.
+  const rotDeg = num(spec.rotate) || 0;
+  if (rotDeg) {
+    const c = Math.cos(rotDeg * DEG), s = Math.sin(rotDeg * DEG), rot = (p) => [p[0] * c - p[1] * s, p[0] * s + p[1] * c];
+    for (const k of Object.keys(J)) J[k] = rot(J[k]);
+    for (const k of Object.keys(F)) F[k] = { ...F[k], J: rot(F[k].J), d: rot(F[k].d), n: rot(F[k].n) };
+  }
   // Wurzel verschieben
   const root = spec.root || 'pelvis';
   const rp = spec.rootPos ? [num(spec.rootPos[0]), num(spec.rootPos[1])] : [0, planted ? planted.pelvisY : J0F.pelvis[1]];
