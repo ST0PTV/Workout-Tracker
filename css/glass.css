@@ -515,6 +515,7 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
   border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; min-height: 30px; }
 .anim-badge.protocol { border-color: rgba(255, 207, 122, 0.5); background: rgba(255, 207, 122, 0.14); color: var(--warn); }
 .anim-badge.transfer { border-color: rgba(166, 176, 212, 0.5); background: rgba(166, 176, 212, 0.14); color: var(--muted); }
+.anim-badge.convention { border-color: rgba(166, 176, 212, 0.45); background: transparent; color: var(--muted); border-style: dashed; }
 .anim-seg { flex: 1; min-width: 180px; max-width: 240px; }
 .anim-seg button { min-height: 34px; font-size: 13px; }
 .anim-stage { position: relative; border-radius: 22px; background: rgba(255, 255, 255, 0.07); border: 1px solid var(--glass-border); padding: 6px 6px 90px; display: flex; justify-content: center; cursor: pointer; }
@@ -533,6 +534,7 @@ body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--s
 .an-m.far.rest { fill: #2c355f; } .an-m.far.prim { fill: #3f8f86; } .an-m.far.sec { fill: #3a52a0; }
 .an-plate { fill: rgba(122, 162, 255, 0.10); stroke: var(--accent-2); stroke-width: 2.5; }
 .an-barend { fill: var(--accent-2); }
+.an-db { fill: rgba(122, 162, 255, 0.22); stroke: var(--accent-2); stroke-width: 2; stroke-linejoin: round; }
 .an-gear { fill: rgba(255, 255, 255, 0.10); stroke: rgba(255, 255, 255, 0.3); stroke-width: 1.2; }
 .an-gear-line { stroke: rgba(255, 255, 255, 0.35); stroke-linecap: round; }
 .an-gear-line.dash { stroke-dasharray: 5 5; }

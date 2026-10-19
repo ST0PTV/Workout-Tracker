@@ -9,6 +9,10 @@
 //        Ellbogenbeugung in der Bildebene (Unterarm dreht zur Körpermitte / nach unten);
 //   armPoints: { elbow: [dx, dy], wrist: [dx, dy] } – projizierte Armgeometrie relativ zur Schulter (dx nach außen, dy nach unten);
 //   legs: { hip, knee } – Beugung in der Sagittalebene; in der Frontansicht nur als Verkürzung sichtbar;
+//   legs: { planted: true, stance, toeOut, knee, shank } (v2.9) – Füße stehen am Boden (Knöchelmitte bei x = ±stance),
+//        das Bein liegt in einer um toeOut nach außen gedrehten Ebene (Knie folgt der Fußrichtung). knee = Kniebeugung,
+//        shank = Schienbeinneigung in dieser Ebene; Becken- und Kniehöhe folgen aus der Geometrie (räumlich gelöst, dann projiziert);
+//   trunkFlex – Vorneigung des Rumpfs in der Sagittalebene (v2.9); in der Frontansicht als Verkürzung bis zur Schulter, Kopf bleibt unverzerrt;
 //   props(P, spec) → { anchors, scene } wie in der Seitenansicht.
 import { LEN, smooth, num, f1 } from './motion.js';
 import { femaleFront, ANCHORS_F_FEMALE } from './motion-female.js';
@@ -47,6 +51,7 @@ export const SHAPES_F = [
   { seg: 'trunk', id: 'abs', mid: true, pts: [[12, -250], [13, -225], [12, -200], [8, -186], [0, -184]] },
   { seg: 'thigh', id: 'body', both: true, pts: [[4, -181], [28, -183], [32, -160], [28, -130], [24, -105], [20, -92], [8, -92], [6, -110], [5, -140], [4, -165]] },
   { seg: 'thigh', id: 'quads', both: true, pts: [[10, -176], [26, -176], [30, -150], [26, -120], [22, -100], [12, -100], [9, -125], [8, -150]] },
+  { seg: 'thigh', id: 'adductors', both: true, pts: [[5, -177], [12, -173], [14, -152], [11, -128], [7, -117], [5, -138], [4, -160]] }, // v2.9: Innenseite, Zeichenkonvention
   { seg: 'shank', id: 'body', both: true, pts: [[6, -96], [21, -96], [22, -80], [19, -50], [18, -25], [17, -14], [9, -14], [8, -28], [6, -55], [5, -78]] },
   { seg: 'foot', id: 'body', both: true, pts: [[6, -16], [21, -16], [23, -6], [20, 0], [8, 0], [5, -8]] },
   { seg: 'uarm', id: 'body', both: true, pts: [[28, -296], [38, -300], [48, -294], [52, -282], [50, -262], [49, -240], [48, -222], [43, -212], [37, -220], [35, -240], [31, -262], [28, -280]] },
@@ -58,8 +63,8 @@ export const SHAPES_F = [
 // v2.5.0: weibliche Formen (js/motion-female.js); Gelenke wie oben.
 let SHAPES_F_FEMALE = null;
 export const shapesForF = (sex) => (sex === 'female' ? (SHAPES_F_FEMALE ??= femaleFront(SHAPES_F)) : SHAPES_F);
-export const MUSCLE_SHAPE_F = { chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', biceps: 'biceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques', quads: 'quads' };
-export const HIDDEN_MUSCLES_F = ['triceps', 'lower-back', 'glutes', 'hamstrings', 'calves', 'adductors', 'abductors', 'hip-flexors'];
+export const MUSCLE_SHAPE_F = { chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', biceps: 'biceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques', quads: 'quads', adductors: 'adductors' };
+export const HIDDEN_MUSCLES_F = ['triceps', 'lower-back', 'glutes', 'hamstrings', 'calves', 'abductors', 'hip-flexors'];
 export const ANCHORS_F = {
   head: { seg: 'trunk', p: [0, -358] }, chin: { seg: 'trunk', p: [0, -313] }, neck: { seg: 'trunk', p: [9, -312] }, chest: { seg: 'trunk', p: [0, -268] },
   belly: { seg: 'trunk', p: [0, -210] }, hip: { seg: 'trunk', p: [30, -186] }, shoulder: { seg: 'uarm', p: [48, -294] }, uarm: { seg: 'uarm', p: [50, -250] },
@@ -76,25 +81,71 @@ for (const [k, [from, to]] of Object.entries(SEGS_F)) {
 }
 const mirror = (p) => [-p[0], p[1]];
 
+// Stehendes Bein räumlich lösen (rechte Seite, Ursprung Becken, y nach unten, z nach vorn) und in die Frontalebene projizieren.
+// Ebene des Beins: um toeOut nach außen gedreht; darin Schienbein (shank) und Oberschenkel wie in der Seitenansicht.
+// Der Abstand Hüfte–Knöchel folgt aus der Kniebeugung; die seitliche Lage aus Hüftbreite und Stand. Zeichenmodell, keine Messung.
+export function plantedLegs(legs) {
+  const knee = num(legs.knee) || 0, s = num(legs.shank) || 0, th = (num(legs.toeOut) || 0) * DEG;
+  const ax = Number.isFinite(num(legs.stance)) ? num(legs.stance) : J0F.ankle[0];
+  const t = knee - s; // Oberschenkelneigung zur Senkrechten in der Beinebene
+  // Ebene: Knöchel (0,0), vorn = +w, oben = −y
+  const kw = LEN.shank * Math.sin(s * DEG), ky = -LEN.shank * Math.cos(s * DEG);
+  const hw = kw - LEN.thigh * Math.sin(t * DEG), hy = ky - LEN.thigh * Math.cos(t * DEG);
+  const D = Math.hypot(hw, hy);
+  // Die Beinebene dreht um die Senkrechte, bis der Knöchel seitlich unter dem Stand liegt; reicht der waagerechte Abstand
+  // in der Ebene nicht (fast gestreckt), kippt das Bein in der Frontalebene (Abduktion). Höhe und Länge bleiben wie in der Ebene.
+  const hx = J0F.hip[0] - J0F.pelvis[0], dx = hx - ax;
+  let dz, dy;
+  if (hw * hw >= dx * dx) { dz = -Math.sqrt(hw * hw - dx * dx); dy = hy; } else { dz = 0; dy = -Math.sqrt(Math.max(D * D - dx * dx, 1)); }
+  const A3 = [ax, 0, 0], H3 = [hx, dy, dz]; // Knöchel auf Höhe 0 (relativ), Hüfte darüber
+  const u = (() => { const v = [A3[0] - H3[0], A3[1] - H3[1], A3[2] - H3[2]], l = Math.hypot(...v); return v.map((c) => c / l); })();
+  // Beugerichtung des Knies: waagerecht von der Hüfte zum Knöchel (das Bein bleibt eben, Knie über dem Fuß), bei fast
+  // gestrecktem Bein zusätzlich in Fußrichtung (toeOut), damit die Richtung stetig bleibt.
+  const hor = [A3[0] - H3[0], 0, A3[2] - H3[2]], fd = [Math.sin(th), 0, Math.cos(th)];
+  const fwd = [hor[0] + 5 * fd[0], 0, hor[2] + 5 * fd[2]], k = fwd[0] * u[0] + fwd[1] * u[1] + fwd[2] * u[2];
+  let v = [fwd[0] - k * u[0], fwd[1] - k * u[1], fwd[2] - k * u[2]]; const lv = Math.hypot(...v) || 1; v = v.map((c) => c / lv);
+  const a = (LEN.thigh ** 2 - LEN.shank ** 2 + D * D) / (2 * D), h = Math.sqrt(Math.max(LEN.thigh ** 2 - a * a, 0));
+  const K3 = [0, 1, 2].map((i) => H3[i] + u[i] * a + v[i] * h);
+  const ankleY = J0F.ankle[1]; // Knöchel 15 über dem Boden
+  const pelvisY = ankleY + dy; // Becken über dem Knöchel (dy < 0)
+  const leg = { hip: [hx, 0], knee: [K3[0], K3[1] - dy], ankle: [ax, -dy] };
+  const thigh3 = [K3[0] - H3[0], K3[1] - H3[1], K3[2] - H3[2]];
+  const hipAbd = Math.asin(Math.max(-1, Math.min(1, thigh3[0] / LEN.thigh))) / DEG; // Winkel des Oberschenkels zur Sagittalebene (≈ Abduktion)
+  const hipFlex = Math.acos(Math.max(-1, Math.min(1, thigh3[1] / LEN.thigh))) / DEG; // Winkel zur Senkrechten
+  return { pelvisY, leg, hipAbd, hipFlex, thighFront: Math.atan2(thigh3[0], thigh3[1]) / DEG, D };
+}
+
 // Pose in der Frontansicht lösen. Rückgabe wie solvePose: { view, joints, F, angles, scene, props }.
 export function solveFront(spec) {
   const g = (k, d = 0) => { const x = num(spec[k]); return Number.isFinite(x) ? x : d; };
   const lean = g('trunk'); // Rumpfneigung in der Frontalebene (nach rechts positiv), meist 0
   const tUp = fdir(180 + lean);
+  const flex = g('trunkFlex'), tScale = Math.max(Math.cos(flex * DEG), MIN_SCALE);
   // Rumpf relativ zum Beckenmittelpunkt
   const pelvis = [0, 0];
-  const shC = add(pelvis, mul(tUp, LEN.trunk));
+  const shC = add(pelvis, mul(tUp, LEN.trunk * tScale));
   const sides = { R: 1, L: -1 };
   const J = { pelvis };
   const F = {};
   const fr = (Jp, d, f = 1) => ({ J: Jp, d, n: nrm(d), f });
-  F.trunk = fr(pelvis, tUp); // Rumpfrahmen: Ursprung Becken, Richtung vom Becken zur Schulter
+  F.trunk = fr(pelvis, tUp, tScale); // Rumpfrahmen: Ursprung Becken, Richtung vom Becken zur Schulter
   // Beine: Beugung in der Sagittalebene erscheint als Verkürzung
   const legs = spec.legs || {};
   const hipF = num(legs.hip) || 0, kneeF = num(legs.knee) || 0;
   const thighScale = Math.max(Math.cos(hipF * DEG), MIN_SCALE), shankScale = Math.max(Math.cos((hipF - kneeF) * DEG), MIN_SCALE);
   const stance = num(legs.stance); // Fußabstand relativ zum Stand (± Einheiten je Seite), Konvention
+  const planted = legs.planted ? plantedLegs(legs) : null;
   for (const [s, sg] of Object.entries(sides)) {
+    if (planted) {
+      const L = planted.leg, m = (p) => [sg * p[0], p[1]];
+      const hip = add(pelvis, m(L.hip)), knee = add(pelvis, m(L.knee)), ankle = add(pelvis, m(L.ankle));
+      const dT = unit(sub(knee, hip)), dS = unit(sub(ankle, knee));
+      J['hip' + s] = hip; J['knee' + s] = knee; J['ankle' + s] = ankle;
+      F['thigh' + s] = fr(hip, dT, Math.max(Math.hypot(...sub(knee, hip)) / LEN.thigh, MIN_SCALE));
+      F['shank' + s] = fr(knee, dS, Math.max(Math.hypot(...sub(ankle, knee)) / LEN.shank, MIN_SCALE));
+      F['foot' + s] = fr(ankle, [0, 1], 1);
+      continue;
+    }
     const hip = add(pelvis, [sg * (J0F.hip[0] - J0F.pelvis[0]), 0]);
     const dT = unit([sg * (J0F.knee[0] - J0F.hip[0]) + sg * (Number.isFinite(stance) ? stance : 0) * 0.5, J0F.knee[1] - J0F.hip[1]]);
     const knee = add(hip, mul(dT, LEN.thigh * thighScale));
@@ -132,14 +183,15 @@ export function solveFront(spec) {
   J.toe = add(J.ankleR, [0, 13]); J.toe2 = add(J.ankleL, [0, 13]); // Sohle wie in der Seitenansicht 2 Einheiten über dem Boden
   // Wurzel verschieben
   const root = spec.root || 'pelvis';
-  const rp = spec.rootPos ? [num(spec.rootPos[0]), num(spec.rootPos[1])] : [0, J0F.pelvis[1]];
+  const rp = spec.rootPos ? [num(spec.rootPos[0]), num(spec.rootPos[1])] : [0, planted ? planted.pelvisY : J0F.pelvis[1]];
   const off = sub(rp, J[root] || J.pelvis);
   for (const k of Object.keys(J)) J[k] = add(J[k], off);
   for (const k of Object.keys(F)) F[k] = { ...F[k], J: add(F[k].J, off) };
   const A = armsOf('R');
   const abdDeg = Math.atan2(A.dU[0], A.dU[1]) / DEG; // 0 = hängend, 90 = waagerecht, 180 = oben
   const elbowDeg = Math.acos(Math.max(-1, Math.min(1, dot(A.dU, A.dF)))) / DEG;
-  const angles = { trunk: f1(lean), abd: f1(abdDeg), elbow: f1(elbowDeg), hip: f1(hipF), knee: f1(kneeF) };
+  const angles = { trunk: f1(lean), abd: f1(abdDeg), elbow: f1(elbowDeg), hip: f1(planted ? planted.hipFlex : hipF), knee: f1(planted ? num(legs.knee) : kneeF) };
+  if (planted) { angles.hipAbd = f1(planted.hipAbd); angles.thighFront = f1(planted.thighFront); angles.trunkFlex = f1(flex); }
   const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0 };
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
@@ -156,7 +208,8 @@ function tfF(P, seg, side, pt) {
   const JRest = side === 'L' ? mirror(R.J) : R.J, dRest = side === 'L' ? [-R.d[0], R.d[1]] : R.d;
   const nRest = nrm(dRest);
   const v = sub(pRest, JRest);
-  const u = dot(v, dRest) * (A.f || 1), w = dot(v, nRest);
+  const ur = dot(v, dRest), f = A.f || 1, w = dot(v, nRest);
+  const u = seg === 'trunk' && f !== 1 ? Math.min(ur, LEN.trunk) * f + Math.max(0, ur - LEN.trunk) : ur * f;
   return [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
 }
 // Schulter: Deltamuskel und Armansatz folgen beim Armheben teils dem Rumpf (Schulterblatt dreht mit), wie in der Seitenansicht (motion.js).

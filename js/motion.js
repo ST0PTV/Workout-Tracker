@@ -267,7 +267,7 @@ function buildPose(spec) {
     J.elbow2 = el2; J.wrist2 = wr2; J.hand2 = add(wr2, mul(dir(aF2), LEN.hand));
     F.uarm2 = fr(J.shoulder, dir(aU2), sc[0]); F.farm2 = fr(el2, dir(aF2), sc[1]);
   }
-  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0 };
+  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, headTilt: num(spec.headTilt) || 0 };
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -285,7 +285,15 @@ function tf1(P, seg, pt) {
     const extra = u - LEN.farm * A.f;
     u = LEN.farm * A.f; w += P.handFlat * extra;
   }
-  return [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
+  const out = [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
+  // v2.9: Kopfneigung (headTilt, Grad; positiv = Kinn zur Brust). Kopf und Hals oberhalb y = −300 drehen um den Halsansatz.
+  if (P.headTilt && baseSeg(seg) === 'trunk' && pt[1] < -300) {
+    const k = clamp((-300 - pt[1]) / 12, 0, 1), a = P.headTilt * k * DEG;
+    const pv = [-2, -310], c = [A.J[0] + dot(sub(pv, R.J), R.d) * A.f * A.d[0] + dot(sub(pv, R.J), R.n) * A.n[0], A.J[1] + dot(sub(pv, R.J), R.d) * A.f * A.d[1] + dot(sub(pv, R.J), R.n) * A.n[1]];
+    const dx = out[0] - c[0], dy = out[1] - c[1];
+    return [c[0] + dx * Math.cos(a) - dy * Math.sin(a), c[1] + dx * Math.sin(a) + dy * Math.cos(a)];
+  }
+  return out;
 }
 const SHOULDER_BLEND = 0.45;
 // Weiche Übergänge an der Hüfte: Gesäß und oberer Oberschenkel folgen teils dem Nachbarsegment.

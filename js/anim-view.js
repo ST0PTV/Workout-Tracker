@@ -6,7 +6,7 @@ import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import * as M from './motion.js';
 import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F } from './motion-front.js';
-import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT } from './anim-data.js';
+import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT, dumbbellPath, dumbbellBox } from './anim-data.js';
 import { poolEntry } from './pool.js';
 import { segmentsOf, segmentIndexAt, jumpTime, labelPlan } from './anim-bar.js';
 import { MUSCLES } from './model.js';
@@ -47,10 +47,12 @@ function bounds(anim, frames, sex = 'male') {
     const { pose } = M.poseAt(frames, anim.phases, (T * i) / 16);
     for (const l of M.layers(pose, undefined, sex)) { const n = nums(l.d); for (let k = 0; k < n.length; k += 2) add(n[k], n[k + 1]); }
     for (const s of pose.scene) {
+      if (s.noBounds) continue; // v2.9: lange Teile (Langhantel von vorn) dürfen über den Rand ragen
       if (s.type === 'rect') { add(s.x, s.y); add(s.x + s.w, s.y + s.h); }
       else if (s.type === 'plate' || s.type === 'bar') { add(s.at[0] - s.r, s.at[1] - s.r); add(s.at[0] + s.r, s.at[1] + s.r); }
       else if (s.type === 'line') { add(s.from[0], s.from[1]); add(s.to[0], s.to[1]); }
       else if (s.type === 'dumbbell') { add(s.at[0] - 10, s.at[1] - 6); add(s.at[0] + 10, s.at[1] + 6); }
+      else if (s.type === 'db') { const q = dumbbellBox(s); add(q[0], q[1]); add(q[2], q[3]); }
     }
   }
   if (!anim.noFloor) add(0, 0);
@@ -92,10 +94,11 @@ function labelSlots(anim, frames, b, upp, sex = 'male') {
 function sceneNodes(scene, behind) {
   const out = [];
   for (const s of scene) {
-    const front = s.front || s.type === 'plate' || s.type === 'dumbbell' || s.type === 'bar';
+    const front = s.front || s.type === 'plate' || s.type === 'dumbbell' || s.type === 'bar' || s.type === 'db';
     if (front === behind) continue;
     if (s.type === 'plate') { out.push(el('circle', { cx: s.at[0], cy: s.at[1], r: s.r, class: 'an-plate' }), el('circle', { cx: s.at[0], cy: s.at[1], r: 4, class: 'an-barend' })); }
     else if (s.type === 'dumbbell') out.push(el('rect', { x: s.at[0] - 10, y: s.at[1] - 5, width: 20, height: 10, rx: 3, class: 'an-barend' }));
+    else if (s.type === 'db') out.push(el('path', { d: dumbbellPath(s), class: 'an-db' }));
     else if (s.type === 'bar') out.push(el('circle', { cx: s.at[0], cy: s.at[1], r: s.r, class: 'an-barend' }));
     else if (s.type === 'rect') out.push(el('rect', { x: s.x, y: s.y, width: s.w, height: s.h, rx: s.rx || 0, class: 'an-gear' }));
     else if (s.type === 'line') out.push(el('line', { x1: s.from[0], y1: s.from[1], x2: s.to[0], y2: s.to[1], class: 'an-gear-line' + (s.dash ? ' dash' : ''), 'stroke-width': s.w || 2 }));
@@ -280,7 +283,7 @@ export function openDataSheet(anim, frames, pool) {
     hidden.length ? h('p', { class: 'muted small' }, `Nicht als Fläche sichtbar (${anim.view === 'front' ? 'Frontansicht' : 'Seitenansicht'}): ${hidden.map((m) => MUSCLES[m]).join(', ')}.`) : null,
     h('h3', {}, 'Quellen'),
     h('ul', { class: 'small' }, Object.entries(anim.sources).map(([id, s]) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), ` – ${READ[s.read] || s.read}`, s.note ? h('small', { class: 'muted' }, ` · ${s.note}`) : null))),
-    h('p', { class: 'muted small' }, `Recherche vom ${fmtDate(ANIM_CHECKED_AT)}. Werte mit „automatische Seitenzusammenfassung“ sind noch nicht am PDF geprüft.`)
+    h('p', { class: 'muted small' }, `Recherche vom ${fmtDate(anim.checkedAt || ANIM_CHECKED_AT)}. Werte mit „automatische Seitenzusammenfassung“ sind noch nicht am PDF geprüft.`)
   ), { title: 'Datenbasis der Animation', full: true });
 }
 
