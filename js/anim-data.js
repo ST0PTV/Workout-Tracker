@@ -193,6 +193,34 @@ const SAP = { tower: 240, pulley: [228, -420] };
 // Reverse Butterfly (Frontansicht): sitzend; Arme vorn auf Schulterhöhe (in der Projektion fast ein Punkt) bis seitlich in Linie mit dem Rumpf.
 const RPD = { seat: -105, start: { elbow: [6, 6], wrist: [8, 12] }, end: { elbow: [67, 6], wrist: [119, 10] } };
 
+// ---------- Runde 6 (v2.11): Armbeuger ----------
+// Griffmitte zwischen Handgelenk und Handende (dort sitzt Stange oder Hantel)
+const gripOf = (P) => [(P.joints.wrist[0] + P.joints.hand[0]) / 2, (P.joints.wrist[1] + P.joints.hand[1]) / 2];
+const CURL_PLATE = 26; // kleine Scheiben (Ø ≈ 25 cm) an der SZ-Stange, Konvention
+// Bayesian Curl: Rücken zum Turm, Oberarm 45° hinter dem Rumpf. Rolle so gesetzt, dass Seil und Unterarm bei 61,5° Ellbogenbeugung senkrecht stehen
+// (Lage des größten Drehmoments in Attarieh et al. 2025); der Turm steht ≈ 83 cm hinter der Figur (Konvention).
+const BAY = (() => {
+  const P = solvePose({ shank: 0, knee: 3, ankle: 0, trunk: 0, shoulder: -45, elbow: 61.5 }), g = gripOf(P), d = P.F.farm.d;
+  let c = [-d[1], d[0]]; if (c[0] > 0) c = [-c[0], -c[1]]; // senkrecht zum Unterarm, nach hinten
+  const tower = -170, px = tower + 8, k = (px - g[0]) / c[0];
+  return { tower, pulley: [px, Math.round((g[1] + c[1] * k) * 10) / 10] };
+})();
+
+// ---------- Runde 7 (v2.11): Schultern ----------
+// Aufrechtes Rudern (Frontansicht): Griff 100 % der Schulterbreite (Hände unter den Schultern); oben liegt die Stange an der oberen Brust.
+// Mit diesem Griff und der Unterarmlänge erreichen die Ellbogen ≈ 65° Abduktion (aus der Geometrie, unter Schulterhöhe).
+const URR = { grip: 0, start: { elbow: [4, 68], wrist: [0, 122] }, top: { elbow: [61.6, 28.7], wrist: [8, 22] } };
+// Schulterdrücken an der Maschine (Seitenansicht): Lehne 75° → Rumpf 15° zurück; Hebel mit Drehpunkt hinter dem Kopf auf der Mittelsenkrechten der beiden Griffpositionen.
+const MSP = (() => {
+  const base = { root: 'hip', rootPos: [0, -98], trunk: -15, hip: 75, knee: 90, foot: 90 };
+  const a = solvePose({ ...base, armPoints: { elbow: [14, 36], wrist: [20, -8] } }).joints.hand, b = solvePose({ ...base, armPoints: { elbow: [8, -50], wrist: [10, -102] } }).joints.hand;
+  const m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], d = [b[0] - a[0], b[1] - a[1]];
+  const px = m[0] - 150, py = m[1] - (px - m[0]) * d[0] / d[1]; // beide Endlagen gleich weit vom Drehpunkt
+  return { pivot: [Math.round(px), Math.round(py)] };
+})();
+// Seitheben am Kabel (Frontansicht): Turm auf der Gegenseite, Rolle auf Handhöhe (Larsen et al. 2025), Seil vor dem Körper.
+const CLR = { tower: -150, pulleyY: -152 };
+
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
@@ -1684,6 +1712,285 @@ export const ANIMATIONS = [
     sources: {
       B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
     }
+  },
+  // ---------- SZ-Curls / Langhantelcurls (v2.11) ----------
+  {
+    ref: 'barbell-curl-ez', checkedAt: '2026-10-19', view: 'side', basis: 'measured',
+    basisNote: 'Gemessen ist nur der Bewegungsumfang des Ellbogens: 119,9 ± 13,7° mit der SZ-Stange, 117,3 ± 10,9° mit der geraden Stange (Marcolin et al. 2018, Elektrogoniometer, 12 trainierte Männer, 65 % 1RM, Volltext). Unten berührt die Stange die Oberschenkel, deshalb bleibt der Ellbogen leicht gebeugt (Coratella et al. 2023, Volltext); ≈ 22° ist der Winkel, bei dem die Stange an den Oberschenkeln der Figur anliegt (Konvention), oben folgt daraus ≈ 142°. Oberarm am Rumpf wie in der strengen Variante. Kleine Scheiben (Ø ≈ 25 cm) sind Konvention.',
+    tempo: { basis: 'protocol', note: '1 s halten, 2 s heben, 1 s halten, 2 s senken (Coratella et al. 2023, Bodybuilder, 8-RM-Last).' },
+    frames: [
+      { label: 'Unten', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: V(0, 'C1', 'protocol', 'Arme am Rumpf, keine Armbeugung'), elbow: C(22, 'Stange liegt an den Oberschenkeln an (Coratella et al. 2023)'), props: ezCurlProps } },
+      { label: 'Oben', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: V(0, 'C1', 'protocol', 'Arme am Rumpf, keine Armbeugung'), elbow: K(142, 'M1', 'Start 22° + gemessener Umfang 119,9° (SZ-Stange)'), props: ezCurlProps },
+        facts: [V(117.3, 'M1', 'fulltext', 'gerade Stange: Umfang 117,3 ± 10,9°'), V(123.1, 'M1', 'fulltext', 'zum Vergleich Kurzhanteln: 123,1 ± 12,3°')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Unten', kp: [0, 3] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [1, 2] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [3, 4] }],
+    keyPoints: [
+      { short: 'Griff', anchor: 'bar', side: 'r', status: 'single', text: 'Gerade Stange etwas breiter als schulterbreit, SZ-Stange etwa schulterbreit greifen.', src: ['C1'],
+        explain: 'Protokoll von Coratella et al. 2023 (10 Bodybuilder): gerade Stange im Untergriff, Handabstand mit parallelen Unterarmen und daher breiter als die Schultern; SZ-Stange halb gedreht entlang der Biegung, etwa schulterbreit. Andere Griffbreiten wurden nicht verglichen.' },
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme bleiben am Rumpf; nur der Unterarm bewegt sich.', src: ['C1'],
+        explain: 'Strenge Variante bei Coratella et al. 2023. Wurde der Oberarm zusätzlich ≈ 30° nach vorn gehoben, stieg die Aktivität von Bizeps (beim Heben) und vorderem Deltamuskel deutlich, beim Senken war der Bizeps dagegen weniger aktiv. Welche Variante mehr Muskelwachstum bringt, ist nicht untersucht.' },
+      { short: 'Rumpf', anchor: 'chest', side: 'l', status: 'consensus', text: 'Rumpf und Beine ruhig halten – kein Schwung aus Hüfte oder Knien.', src: ['C1', 'M1'],
+        explain: 'In beiden Protokollen wurden Pendeln des Rumpfs und Bewegung der Beine untersagt und kontrolliert (Coratella et al. 2023; Marcolin et al. 2018). Wie stark der Rumpf bei schweren Gewichten ausweicht, wurde nicht gemessen.' },
+      { short: 'Unten', anchor: 'thigh', side: 'r', status: 'single', text: 'Senken, bis die Stange die Oberschenkel berührt.', src: ['C1'],
+        explain: 'Mit der Stange lässt sich der Ellbogen nicht ganz strecken, weil sie an die Oberschenkel stößt; dort endete die Bewegung (Coratella et al. 2023). Auch frei gewählte Curls begannen meist bei ≈ 20° Beugung (Oliveira et al. 2009).' },
+      { short: 'Stange', anchor: 'elbow', side: 'r', status: 'single', text: 'Gerade oder SZ-Stange: im EMG nur kleine Unterschiede beim Bizeps.', src: ['C1', 'M1'],
+        explain: 'Mit der geraden Stange war der Bizeps beim Heben ≈ 2 % aktiver als mit der SZ-Stange (Coratella et al. 2023, Bodybuilder); eine frühere Studie fand keinen Unterschied. Der Bewegungsumfang war mit Kurzhanteln am größten (Marcolin et al. 2018). EMG ist kein Maß für Muskelwachstum.' }
+    ],
+    sources: {
+      M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
+      C1: { label: 'Coratella et al. 2023, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk8010013', read: 'fulltext' },
+      O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Hammercurls (v2.11) ----------
+  {
+    ref: 'hammer-curl', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Bewegungsstudie zum Hammercurl mit Gewicht gefunden. Der Ellbogen-Bewegungsumfang ist vom Kurzhantelcurl übertragen (123,1 ± 12,3°, Marcolin et al. 2018, Volltext); Start ≈ 20° wie bei frei gewählten Curls (Oliveira et al. 2009, Volltext; Winkel dort aus einem Beschleunigungssensor geschätzt). Neutralgriff nach Coratella et al. 2023; die Hantel steht quer zum Unterarm (Konvention).',
+    tempo: { basis: 'measured', note: 'Übertragen vom Kurzhantelcurl: heben 1,44 ± 0,26 s, senken 1,72 ± 0,47 s bei Metronomvorgabe 3 s je Wiederholung (Marcolin et al. 2018).' },
+    frames: [
+      { label: 'Unten', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: C(0, 'Oberarm am Körper'), elbow: V(20, 'O1', 'fulltext', 'Start ≈ 20° (frei gewählte Kurzhantelcurls)'), props: hammerProps } },
+      { label: 'Oben', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: C(6, 'leichte Vorbewegung des Ellbogens; nicht gemessen'), elbow: K(143, 'M1', 'Start 20° + übertragener Umfang 123,1°'), props: hammerProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.44, label: 'Beugen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 1.72, label: 'Senken', kp: [3] }],
+    keyPoints: [
+      { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Neutralgriff: Daumen zeigen nach oben, der Unterarm dreht nicht mit.', src: ['C2'],
+        explain: 'Neutraler Griff als eine der drei Varianten bei Coratella et al. 2023 (Untergriff, Obergriff, neutral). Die Handstellung bleibt über die ganze Wiederholung gleich.' },
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme bleiben seitlich am Körper; nur der Unterarm bewegt sich.', src: ['M1'],
+        explain: 'Haltung im Protokoll der Kurzhantelcurls: stehend, Arme seitlich am Körper (Marcolin et al. 2018). Für den Hammercurl selbst nicht gemessen.' },
+      { short: 'Weg', anchor: 'elbow', side: 'r', status: 'single', text: 'Unten fast strecken, oben so weit beugen, wie es ohne Ausweichen geht.', src: ['M1', 'O1'],
+        explain: 'Übertragen: Kurzhantelcurls hatten einen Umfang von 123,1 ± 12,3° (Marcolin et al. 2018); frei gewählte Curls begannen bei ≈ 20° statt ganz gestreckt (Oliveira et al. 2009).' },
+      { short: 'Muskeln', anchor: 'chest', side: 'l', status: 'contested', text: 'Im Neutralgriff arbeitete der Bizeps meist etwas weniger als im Untergriff.', src: ['C2', 'X1', 'K1'],
+        explain: 'Umstritten. Bei Bodybuildern war der Bizeps im Neutralgriff ≈ 12 % und auch der Brachioradialis ≈ 6 % weniger aktiv als im Untergriff (Coratella et al. 2023); in einer zweiten Studie hatte der Hammercurl die niedrigste Bizepsaktivität von vier Curls (Croskery et al. 2026, Abstract). Ohne Last änderte die Handstellung die Bizepsaktivität nicht (Kleiber et al. 2015, Abstract). Dass der Hammercurl den Unterarm stärker trainiert, zeigen diese EMG-Daten nicht.' }
+    ],
+    sources: {
+      M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
+      O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' },
+      C2: { label: 'Coratella et al. 2023, Sports (Basel)', url: 'https://doi.org/10.3390/sports11030064', read: 'abstract' },
+      X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'abstract' },
+      K1: { label: 'Kleiber et al. 2015, Front Physiol', url: 'https://doi.org/10.3389/fphys.2015.00215', read: 'abstract' }
+    }
+  },
+
+  // ---------- Schrägbankcurls (v2.11) ----------
+  {
+    ref: 'incline-dumbbell-curl', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsstudie. Aufbau nach Kobayashi et al. 2026 (Volltext, sitzend auf der Schrägbank mit Lehne): Schulter ≈ 50° gestreckt, Ellbogen 0° → 130°, Unterarm supiniert. Hängt der Oberarm senkrecht, entspricht das einer Lehne ≈ 50° hinter der Senkrechten (berechnet); Zabaleta-Korta et al. 2023 nutzten eine 45°-Bank, Oliveira et al. 2009 einen um 50° zurückgelehnten Rumpf. Sitz, Beine und Hantelgröße sind Konvention.',
+    tempo: { basis: 'protocol', note: '2 s heben, 2 s senken ohne Pause (Metronom, Kobayashi et al. 2026).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -110], trunk: K(-50, 'B1', 'Schulter 50° gestreckt bei senkrecht hängendem Oberarm'), hip: C(30, 'hoher Sitz, Oberschenkel leicht abfallend'), knee: C(80), foot: C(90, 'Füße flach'), armPlumb: true, elbow: V(0, 'B1', 'protocol', 'ganz gestreckt'), props: inclineCurlProps },
+        facts: [V(50, 'B1', 'fulltext', 'Schulterstreckung ≈ 50° (relativ zur Rumpflängsachse)'), V(45, 'Z1', 'fulltext', 'Zabaleta-Korta et al. 2023: Bank 45°')] },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -110], trunk: K(-50, 'B1', 'Schulter 50° gestreckt bei senkrecht hängendem Oberarm'), hip: C(30, 'hoher Sitz, Oberschenkel leicht abfallend'), knee: C(80), foot: C(90, 'Füße flach'), armPlumb: true, elbow: V(130, 'B1', 'protocol', 'Ende bei 130° Beugung'), props: inclineCurlProps },
+        facts: [V(134.3, 'O1', 'fulltext', 'frei gewählter Umfang 134,3 ± 19,5° (Oliveira et al. 2009, Winkel aus einem Beschleunigungssensor geschätzt)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Beugen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [3] }],
+    keyPoints: [
+      { short: 'Bank', anchor: 'back', side: 'l', status: 'consensus', text: 'Lehne etwa 45–50° schräg stellen; die Arme hängen hinter dem Rumpf.', src: ['B1', 'Z1', 'O1'],
+        explain: 'Schulter ≈ 50° gestreckt (Kobayashi et al. 2026), Bank 45° (Zabaleta-Korta et al. 2023), Rumpf 50° zurückgelehnt mit frei hängendem Arm (Oliveira et al. 2009). Andere Bankwinkel wurden nicht verglichen.' },
+      { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'consensus', text: 'Oberarme bleiben hängen; nur der Unterarm bewegt sich, von gestreckt bis 130°.', src: ['B1', 'O1'],
+        explain: 'Schulterstellung fest, Ellbogen 0° → 130° (Kobayashi et al. 2026); Arm hängt frei (Oliveira et al. 2009). Ob der Oberarm wirklich still steht, wurde nicht gemessen.' },
+      { short: 'Bizeps', anchor: 'hand', side: 'r', status: 'single', text: 'Der Bizeps arbeitete über den ganzen Weg ähnlich wie beim Curl im Stehen.', src: ['O1'],
+        explain: 'Oliveira et al. 2009 (22 trainierte Männer, eine Wiederholung mit 40 % der Maximalkraft): Schrägbank- und Stehcurl zeigten dasselbe Muster der Bizepsaktivität, der Scottcurl nicht.' },
+      { short: 'Wachstum', anchor: 'elbow', side: 'r', status: 'contested', text: 'Ob der Bizeps hier mehr wächst als beim Scottcurl, ist nicht geklärt.', src: ['B1', 'Z1'],
+        explain: 'Umstritten. MRT, 12 Wochen, Arm gegen Arm: Der Bizeps wuchs bei Schrägbankcurls etwas mehr, Brachialis und Brachioradialis bei Scottcurls, alle Beuger zusammen gleich (Kobayashi et al. 2026). Ultraschall, 9 Wochen, trainierte Frauen: nach Schrägbankcurls kein messbarer Zuwachs, nach Scottcurls im unteren Bereich (Zabaleta-Korta et al. 2023).' }
+    ],
+    sources: {
+      B1: { label: 'Kobayashi et al. 2026, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2026.2741751', read: 'fulltext' },
+      Z1: { label: 'Zabaleta-Korta et al. 2023, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/163561', read: 'fulltext' },
+      O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Scottcurls (v2.11) ----------
+  {
+    ref: 'preacher-curl', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsstudie. Aufbau nach Pedrosa et al. 2023 (Volltext, Kurzhantel, sitzend): Winkel Oberarm–Rumpf fest 45°, Ellbogen von 0° (gestreckt) bis 135° (Unterarm senkrecht). Daraus folgt ein Pult ≈ 45° zur Waagerechten (berechnet); Zabaleta-Korta et al. 2023 nennen ein 50°-Pult. Sitzhöhe, Beinhaltung und Stütze sind Konvention.',
+    tempo: { basis: 'protocol', note: '2 s heben, 2 s senken (Metronom, Pedrosa et al. 2023).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -125], trunk: C(0, 'aufrecht'), hip: C(70, 'hoher Sitz, Oberschenkel leicht abfallend'), knee: C(70), foot: C(90, 'Füße flach'), shoulder: V(45, 'P1', 'protocol', 'Oberarm–Rumpf 45°'), elbow: V(0, 'P1', 'protocol', 'ganz gestreckt'), props: preacherProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -125], trunk: C(0, 'aufrecht'), hip: C(70, 'hoher Sitz, Oberschenkel leicht abfallend'), knee: C(70), foot: C(90, 'Füße flach'), shoulder: V(45, 'P1', 'protocol', 'Oberarm–Rumpf 45°'), elbow: V(135, 'P1', 'protocol', 'Unterarm senkrecht'), props: preacherProps },
+        facts: [V(115.5, 'O1', 'fulltext', 'frei gewählter Umfang 115,5 ± 11,2° bei Schulter 50° gebeugt (Oliveira et al. 2009)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Beugen', kp: [4] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [1, 3] }],
+    keyPoints: [
+      { short: 'Pult', anchor: 'pad', side: 'l', status: 'consensus', text: 'Oberarm liegt auf dem Pult, etwa 45–50° schräg nach vorn unten.', src: ['P1', 'B1', 'Z1'],
+        explain: 'Schulterwinkel fest 45° (Pedrosa et al. 2023) bzw. ≈ 50° (Kobayashi et al. 2026, Ellbogen 0–130°, 2 s / 2 s); Scottbank mit 50°-Pult (Zabaleta-Korta et al. 2023). Andere Pultwinkel wurden nicht verglichen.' },
+      { short: 'Unten', anchor: 'hand', side: 'r', status: 'single', text: 'Unten kontrolliert bis zur vollen Streckung ablassen.', src: ['P1'],
+        explain: 'Jede Wiederholung begann ganz gestreckt (0°). Wer nur den unteren Teil (0–68°) trainierte, bekam mehr Querschnitt im unteren Bizeps als im oberen Teil (68–135°; Pedrosa et al. 2023, untrainierte Frauen, Arm gegen Arm).' },
+      { short: 'Oben', anchor: 'wrist', side: 'r', status: 'single', text: 'Oben beugen, bis der Unterarm senkrecht steht.', src: ['P1'],
+        explain: 'Endpunkt im Protokoll: 135° Ellbogenbeugung, Unterarm senkrecht zum Boden (Pedrosa et al. 2023). Frei gewählt war der Umfang kleiner (115,5°; Oliveira et al. 2009).' },
+      { short: 'Tempo', anchor: 'elbow', side: 'l', status: 'single', text: 'Gleichmäßig: etwa 2 s heben und 2 s senken.', src: ['P1'],
+        explain: 'Vorgabe per Metronom (Pedrosa et al. 2023). Andere Tempi wurden nicht verglichen.' },
+      { short: 'Bizeps', anchor: 'uarm', side: 'l', status: 'single', text: 'Der Bizeps arbeitet vor allem im unteren, gestreckten Teil der Bewegung.', src: ['O1'],
+        explain: 'Beim Scottcurl war der Bizeps zu Beginn des Hebens stark aktiv und gegen Ende deutlich weniger (Oliveira et al. 2009, 22 trainierte Männer) – anders als beim Curl im Stehen oder auf der Schrägbank.' }
+    ],
+    sources: {
+      P1: { label: 'Pedrosa et al. 2023, Sports (Basel)', url: 'https://doi.org/10.3390/sports11020039', read: 'fulltext' },
+      B1: { label: 'Kobayashi et al. 2026, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2026.2741751', read: 'fulltext' },
+      Z1: { label: 'Zabaleta-Korta et al. 2023, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/163561', read: 'fulltext' },
+      O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Kabelcurls, Bayesian (v2.11) ----------
+  {
+    ref: 'cable-curl', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Gezeigt ist die Bayesian-Variante (Rücken zum Kabelzug). Keine Bewegungsstudie. Schulter ≈ 45° gestreckt: 43 ± 11° bei Larsen et al. 2026 (stehend, je Person mit Goniometer eingestellt) und ≈ 50° bei Attarieh et al. 2025 (sitzend); beide Volltext. Ellbogen 10° → 140° nach Attarieh et al. 2025 (Larsen begrenzte auf 0–90°). Die Rolle sitzt so, dass Seil und Unterarm bei 61,5° senkrecht stehen (Lage des größten Drehmoments bei Attarieh et al. 2025, für die Figur berechnet). Stand, Turmabstand und Griff sind Konvention.',
+    tempo: { basis: 'protocol', note: '1 s heben, 1 s senken (Attarieh et al. 2025); Larsen et al. 2026: heben so schnell wie möglich, senken ≈ 2 s.' },
+    frames: [
+      { label: 'Unten', pose: { shank: C(0), knee: C(5), hip: C(0), ankle: C(0), trunk: C(0, 'aufrecht; nicht berichtet'), shoulder: V(-45, 'L1', 'protocol', 'Schulter 43 ± 11° gestreckt (Larsen), ≈ 50° (Attarieh)'), elbow: V(10, 'A1', 'protocol', 'fast gestreckt'), props: bayesianProps } },
+      { label: 'Oben', pose: { shank: C(0), knee: C(5), hip: C(0), ankle: C(0), trunk: C(0, 'aufrecht; nicht berichtet'), shoulder: V(-45, 'L1', 'protocol', 'Schulter bleibt gestreckt'), elbow: V(140, 'A1', 'protocol', 'voll gebeugt'), props: bayesianProps },
+        facts: [V(61.5, 'A1', 'fulltext', 'größtes Drehmoment bei 61,5° Ellbogenbeugung (Seil senkrecht zum Unterarm)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Beugen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [3] }],
+    keyPoints: [
+      { short: 'Schulter', anchor: 'uarm', side: 'l', status: 'consensus', text: 'Rücken zum Kabelzug; der Oberarm zeigt etwa 45° nach hinten.', src: ['L1', 'A1'],
+        explain: '43 ± 11° Schulterstreckung, je Person 5–10° vor der eigenen Grenze (Larsen et al. 2026); ≈ 50° bei Attarieh et al. 2025.' },
+      { short: 'Oberarm', anchor: 'elbow', side: 'r', status: 'single', text: 'Der Oberarm bleibt hinten stehen; nur der Ellbogen beugt sich.', src: ['A1'],
+        explain: 'Die Schulterstellung wurde vorgegeben und per Handy-Goniometer stichprobenartig geprüft, nicht laufend gemessen (Attarieh et al. 2025). Bei Larsen et al. 2026 durften sich die Schulterblätter bewegen.' },
+      { short: 'Weg', anchor: 'hand', side: 'r', status: 'contested', text: 'Aus fast gestreckt bis ganz gebeugt curlen; Studien nutzten 10–140° oder 0–90°.', src: ['A1', 'L1'],
+        explain: 'Umstritten, weil die Protokolle verschieden waren: Umfang 10° → 140° (Attarieh et al. 2025) bzw. bewusst nur 0–90° (Larsen et al. 2026). Die Rollenhöhe legte fest, wo der Widerstand am größten war: in der Mitte bzw. nahe der Streckung.' },
+      { short: 'Wachstum', anchor: 'chest', side: 'l', status: 'consensus', text: 'Mehr Wachstum als mit neutraler Schulter oder als Scottcurl brachte das nicht.', src: ['L1', 'A1'],
+        explain: 'Ultraschall: Bayesian- und Scott-Kabelcurls mit gleichem Widerstandsprofil gaben gleiches Wachstum und gleiche Kraft (Attarieh et al. 2025); gestreckte gegen neutrale Schulter gab ebenfalls keinen Vorteil, obwohl mehr Gewicht bewegt wurde (Larsen et al. 2026).' }
+    ],
+    sources: {
+      L1: { label: 'Larsen et al. 2026, Front Physiol', url: 'https://doi.org/10.3389/fphys.2026.1750722', read: 'fulltext' },
+      A1: { label: 'Attarieh et al. 2025, Eur J Sport Sci', url: 'https://doi.org/10.1002/ejsc.12279', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Konzentrationscurls (v2.11) ----------
+  {
+    ref: 'concentration-curl', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Bewegungs- oder Aufbaustudie gefunden. Der Ellbogen-Bewegungsumfang ist vom Kurzhantelcurl übertragen (123,1 ± 12,3°, Marcolin et al. 2018, Volltext), Start ≈ 20° nach Oliveira et al. 2009. Sitz auf der Flachbank, Rumpf ≈ 35° vorgeneigt, Oberarm hängt senkrecht mit dem Ellbogen innen am Oberschenkel kurz vor dem Knie: Zeichenkonvention. In der Seitenansicht liegt der Arm vor dem Bein, obwohl er innen am Oberschenkel anliegt.',
+    tempo: { basis: 'measured', note: 'Übertragen vom Kurzhantelcurl: heben 1,44 s, senken 1,72 s (Marcolin et al. 2018); für den Konzentrationscurl kein Tempo untersucht.' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -96], trunk: C(35, 'vorgeneigt, Ellbogen am Oberschenkel'), hip: C(125, 'Oberschenkel waagerecht'), knee: C(90), foot: C(90, 'Füße flach'), armPlumb: true, elbow: V(20, 'O1', 'fulltext', 'Start ≈ 20°'), props: concentrationProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -96], trunk: C(35, 'vorgeneigt, Ellbogen am Oberschenkel'), hip: C(125, 'Oberschenkel waagerecht'), knee: C(90), foot: C(90, 'Füße flach'), armPlumb: true, elbow: K(143, 'M1', 'Start 20° + übertragener Umfang 123,1°'), props: concentrationProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 1.44, label: 'Beugen', kp: [0, 1] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 1.72, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Bizeps', anchor: 'uarm', side: 'l', status: 'single', text: 'In einer EMG-Studie war der Bizeps hier aktiver als beim Hammercurl.', src: ['X1'],
+        explain: 'Croskery et al. 2026 (15 Erwachsene, vier Curls mit ≈ 33 % der Maximalkraft, Abstract): Reihenfolge Konzentrationscurl vor Kurzhantel- und Schrägbankcurl vor Hammercurl; deutlich war nur der Abstand zum Hammercurl. EMG ist kein Maß für Muskelwachstum.' },
+      { short: 'Weg', anchor: 'hand', side: 'r', status: 'single', text: 'Unten fast strecken, oben so weit beugen, wie es ohne Ausweichen geht.', src: ['M1', 'O1'],
+        explain: 'Übertragen vom Kurzhantelcurl: Umfang 123,1 ± 12,3° (Marcolin et al. 2018), Start bei ≈ 20° (Oliveira et al. 2009).' },
+      { short: 'Gefühl', anchor: 'chest', side: 'l', status: 'single', text: 'Wie stark man den Muskel spürt, sagte wenig über seine gemessene Aktivität.', src: ['E1'],
+        explain: 'Sevilmiş et al. 2024 (13 Fußballer, sechs Übungen inkl. Konzentrationscurl, 4–6RM, Abstract): Selbsteinschätzung und EMG hingen bei keiner Übung zusammen.' }
+    ],
+    sources: {
+      M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
+      O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' },
+      X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'abstract' },
+      E1: { label: 'Sevilmiş et al. 2024, Percept Mot Skills', url: 'https://doi.org/10.1177/00315125241279086', read: 'abstract' }
+    }
+  },
+  // ---------- Frontheben (v2.11) ----------
+  {
+    ref: 'dumbbell-front-raise', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsstudie. Aufbau nach Coratella et al. 2020 (Volltext, 10 Bodybuilder, 8-RM-Last): im Sitzen, damit der untere Rücken nicht mithilft; Oberarm in neutraler Drehung mit gestrecktem Ellbogen nach vorn bis 90° Schulterbeugung. Leicht gebeugter Ellbogen (≈ 10°), Bank und Hantelgröße sind Konvention.',
+    tempo: { basis: 'protocol', note: '2 s heben, 0,5 s halten, 2 s senken, 0,5 s halten (Metronom, Coratella et al. 2020).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -96], trunk: V(0, 'F1', 'protocol', 'sitzend, aufrecht'), hip: C(90), knee: C(90), foot: C(90, 'Füße flach'), shoulder: C(8, 'Arm hängt vor dem Oberschenkel'), elbow: C(10, 'fast gestreckt'), props: frontRaiseProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -96], trunk: V(0, 'F1', 'protocol', 'sitzend, aufrecht'), hip: C(90), knee: C(90), foot: C(90, 'Füße flach'), shoulder: V(90, 'F1', 'protocol', 'Schulterbeugung bis 90°'), elbow: C(10, 'fast gestreckt, bleibt gleich'), props: frontRaiseProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.5, label: 'Oben', kp: [0, 2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [4] }],
+    keyPoints: [
+      { short: 'Höhe', anchor: 'hand', side: 'r', status: 'single', text: 'Arme vorn anheben, bis sie etwa auf Schulterhöhe sind (90°).', src: ['F1'],
+        explain: 'Zielwinkel im Protokoll von Coratella et al. 2020. Höhere Endpositionen wurden dort nicht verglichen.' },
+      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Ellbogen gestreckt lassen, Oberarm nicht nach innen oder außen drehen.', src: ['F1'],
+        explain: 'Protokoll: gestreckter Ellbogen, Oberarm in neutraler Drehung (Coratella et al. 2020). Die Figur zeigt ihn leicht gebeugt.' },
+      { short: 'Muskeln', anchor: 'chest', side: 'l', status: 'single', text: 'Arbeitet vor allem den vorderen Delta und den oberen Brustmuskel.', src: ['F1'],
+        explain: 'Bei Bodybuildern waren vorderer Deltamuskel und oberer (klavikulärer) Brustmuskel beim Frontheben aktiver als bei allen Seitheben-Varianten; seitlicher und hinterer Delta spielten kaum eine Rolle (Coratella et al. 2020). EMG ist kein Maß für Muskelwachstum.' },
+      { short: 'Rumpf', anchor: 'lowBack', side: 'l', status: 'single', text: 'Im Sitzen geübt, damit der untere Rücken nicht mit Schwung hilft.', src: ['F1'],
+        explain: 'Die Autoren ließen im Sitzen üben, um die Lendenmuskeln herauszuhalten (Coratella et al. 2020). Wie stark der Rumpf im Stehen ausweicht, wurde nicht gemessen.' },
+      { short: 'Tempo', anchor: 'uarm', side: 'l', status: 'single', text: 'Gleichmäßig: 2 s heben, kurz halten, 2 s senken.', src: ['F1'],
+        explain: 'Tempovorgabe per Metronom (Coratella et al. 2020). Andere Tempi wurden nicht verglichen.' }
+    ],
+    sources: {
+      F1: { label: 'Coratella et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17176015', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Seitheben am Kabel (Frontansicht, v2.11) ----------
+  {
+    ref: 'cable-lateral-raise', checkedAt: '2026-10-19', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht, einarmig. Aufbau nach Larsen et al. 2025 (Volltext, 24 Trainierte, 8 Wochen): Arm aus der Hängeposition in der Frontalebene bis 90° Abduktion, Ellbogen ganz gestreckt; die Rolle steht etwa auf Handhöhe, sodass der Widerstand unten am größten ist. Auf welcher Seite der Turm stand und wie weit entfernt, wird nicht genannt; Turm auf der Gegenseite, Seil vor dem Körper und der hängende andere Arm sind Konvention.',
+    tempo: { basis: 'convention', note: '≈ 1,5 s heben, 2 s senken (Konvention). Larsen et al. 2025 ließen das Tempo konstant halten; gegen Satzende beschleunigten die Teilnehmer aus der unteren Position.' },
+    frames: [
+      { label: 'Unten', pose: { arm: { abd: V(0, 'X1', 'protocol', 'Oberarm parallel zum Körper'), elbow: V(0, 'X1', 'protocol', 'Ellbogen ganz gestreckt') }, armL: { abd: C(6, 'freier Arm hängt'), elbow: C(8) }, legs: { hip: C(0), knee: C(0) }, props: cableLateralProps } },
+      { label: 'Oben', pose: { arm: { abd: V(90, 'X1', 'protocol', 'bis 90° Abduktion'), elbow: V(0, 'X1', 'protocol', 'Ellbogen ganz gestreckt') }, armL: { abd: C(6, 'freier Arm hängt'), elbow: C(8) }, legs: { hip: C(0), knee: C(0) }, props: cableLateralProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 1.5, label: 'Heben', kp: [0, 3] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Weg', anchor: 'handR', side: 'r', status: 'single', text: 'Arm seitlich mit gestrecktem Ellbogen bis auf Schulterhöhe (90°) heben.', src: ['X1'],
+        explain: 'Bewegungsumfang 0° → 90° in der Frontalebene, vorher mit Goniometer geübt (Larsen et al. 2025).' },
+      { short: 'Rolle', anchor: 'hipR', side: 'l', status: 'single', text: 'Rolle etwa auf Handhöhe: dann ist der Widerstand unten am größten.', src: ['X1'],
+        explain: 'So eingestellt, dass die Last am Anfang der Bewegung am größten ist (Larsen et al. 2025). Mit der Kurzhantel ist es umgekehrt: unten fast keine, oben die größte Last.' },
+      { short: 'Wachstum', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Kabel und Kurzhantel ließen den seitlichen Delta gleich stark wachsen.', src: ['X1'],
+        explain: '8 Wochen, ein Arm am Kabel, einer mit Kurzhantel, Sätze bis zum Versagen: Die Dicke des seitlichen Deltamuskels nahm in beiden Armen ähnlich zu (Ultraschall, Larsen et al. 2025).' },
+      { short: 'Ebene', anchor: 'elbowR', side: 'r', status: 'single', text: 'Fällt die Seitenebene schwer, darf der Arm etwas nach vorn kommen.', src: ['X1'],
+        explain: 'Wer die Frontalebene nicht halten konnte, durfte zwischen Frontal- und Schulterblattebene heben (Larsen et al. 2025).' }
+    ],
+    sources: {
+      X1: { label: 'Larsen et al. 2025, Front Physiol', url: 'https://doi.org/10.3389/fphys.2025.1611468', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Aufrechtes Rudern (Frontansicht, v2.11) ----------
+  {
+    ref: 'barbell-upright-row', checkedAt: '2026-10-19', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht. Keine Studie hat die Bewegung vermessen oder eine Endposition vorgegeben. Griff 100 % der Schulterbreite (eine der drei Griffbreiten bei McAllister et al. 2013, Abstract). Stange bis zur oberen Brust; daraus ergeben sich mit Arm- und Unterarmlänge der Figur ≈ 65° Abduktion der Ellbogen (berechnet, unter Schulterhöhe). Stange 2,2 m mit Scheiben Ø 45 cm: Konvention.',
+    tempo: { basis: 'convention', note: '≈ 1,5 s hochziehen, 2 s senken (Konvention); keine Tempoangabe in den gelesenen Quellen.' },
+    frames: [
+      { label: 'Unten', pose: { armPoints: URR.start, legs: { hip: C(0), knee: C(4) }, props: uprightRowProps },
+        facts: [V(100, 'M1', 'abstract', 'Griff 100 % der Schulterbreite (verglichen: 50, 100, 200 %)')] },
+      { label: 'Oben', pose: { armPoints: URR.top, legs: { hip: C(0), knee: C(4) }, props: uprightRowProps },
+        facts: [K(65, 'M1', 'Ellbogen-Abduktion aus Griffbreite und Stangenhöhe (Figur)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Ziehen', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Griff', anchor: 'bar', side: 'r', status: 'single', text: 'Breiterer Griff: mehr Delta- und Trapezaktivität, weniger Bizeps.', src: ['M1'],
+        explain: 'McAllister et al. 2013 (16 Trainierte, 85 % 1RM): Griffe von 50, 100 und 200 % der Schulterbreite; mit breiterem Griff stieg die Aktivität von Deltamuskel und Trapez, die des Bizeps sank. EMG ist kein Maß für Muskelwachstum.' },
+      { short: 'Höhe', anchor: 'elbowR', side: 'r', status: 'single', text: 'Die Ellbogen nicht über Schulterhöhe ziehen.', src: ['K2'],
+        explain: 'Aufrechtes Rudern und Seitheben über 90° waren in einer Querschnittsstudie mit Zeichen eines Impingements verbunden (Kolber et al. 2014, 77 Männer). Das ist ein Zusammenhang, kein Beleg für eine Ursache; Verletzungsstudien gibt es nicht.' },
+      { short: 'Senken', anchor: 'chest', side: 'l', status: 'single', text: 'Mit gleicher Last ändert die Griffbreite vor allem das Absenken.', src: ['M1'],
+        explain: 'Die meisten Unterschiede zwischen den Griffbreiten fand McAllister et al. 2013 in der exzentrischen Phase (seitlicher Delta, oberer und mittlerer Trapez, Bizeps); beim Heben unterschieden sich nur seitlicher und hinterer Delta.' }
+    ],
+    sources: {
+      M1: { label: 'McAllister et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31824f23ad', read: 'abstract' },
+      K2: { label: 'Kolber et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000250', read: 'abstract' }
+    }
+  },
+
+  // ---------- Schulterdrücken an der Maschine (v2.11) ----------
+  {
+    ref: 'machine-shoulder-press', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsstudie. Aufbau nach Kim et al. 2026 (Volltext, 31 Untrainierte, 40 % 1RM): Lehne 75° (Bezug nicht genannt, hier zur Waagerechten gelesen → Rumpf ≈ 15° zurück, berechnet), Knie ≈ 90°, Start mit Griffen auf Schulterhöhe und ≈ 90° gebeugten Ellbogen, Drücken bis zur vollen Streckung, Ellbogen seitlich in der Frontalebene. Die seitlichen Arme sind in der Seitenansicht verkürzt; Hebel, Drehpunkt und Säule sind Zeichenkonvention.',
+    tempo: { basis: 'convention', note: '≈ 1,5 s drücken, 2 s ablassen (Konvention); bei Kim et al. 2026 frei gewählt.' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, -98], trunk: K(-15, 'K1', 'Lehne 75°'), hip: C(75), knee: V(90, 'K1', 'protocol', 'Knie ≈ 90°'), foot: C(90, 'Füße flach'), armPoints: { elbow: [14, 36], wrist: [20, -8] }, props: machinePressProps },
+        facts: [V(90, 'K1', 'protocol', 'Start: Ellbogen ≈ 90° gebeugt, Griffe auf Schulterhöhe')] },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, -98], trunk: K(-15, 'K1', 'Lehne 75°'), hip: C(75), knee: V(90, 'K1', 'protocol', 'Knie ≈ 90°'), foot: C(90, 'Füße flach'), armPoints: { elbow: [8, -50], wrist: [10, -102] }, props: machinePressProps },
+        facts: [V(0, 'K1', 'protocol', 'volle Ellbogenstreckung')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.5, label: 'Drücken', kp: [2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Ablassen', kp: [1, 4] }],
+    keyPoints: [
+      { short: 'Lehne', anchor: 'back', side: 'l', status: 'single', text: 'Rücken bleibt an der Lehne; der Rumpf weicht nicht aus.', src: ['K1'],
+        explain: 'Protokoll: Rumpf an der Lehne (75°), Ausweichbewegungen des Rumpfs wurden kontrolliert (Kim et al. 2026).' },
+      { short: 'Start', anchor: 'hand', side: 'r', status: 'single', text: 'Griffe starten etwa auf Schulterhöhe, Ellbogen rund 90° gebeugt.', src: ['K1'],
+        explain: 'Startposition bei Kim et al. 2026; zurück wurde jeweils bis auf Schulterhöhe abgelassen.' },
+      { short: 'Oben', anchor: 'elbow', side: 'r', status: 'single', text: 'Hochdrücken bis die Arme gestreckt sind; Ellbogen bleiben seitlich.', src: ['K1'],
+        explain: 'Bis zur vollen Ellbogenstreckung, die Ellbogen bewegten sich parallel zur Frontalebene (Kim et al. 2026). Der Deltamuskel war dabei aktiver als Trizeps und oberer Trapez.' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Mittlerer Delta wie mit Hanteln, Rotatorenmanschette weniger gefordert.', src: ['R1'],
+        explain: 'Reed et al. 2018 (Abstract, EMG mit Oberflächen- und Nadelelektroden): Der mittlere Deltamuskel war an der Schulterdrückmaschine gleich aktiv wie beim Seitheben mit Hanteln; Rotatorenmanschette und Teile des Trapez arbeiteten an der Maschine weniger.' },
+      { short: 'Maschine', anchor: 'chest', side: 'l', status: 'single', text: 'Maschinen brachten im Training ähnliche Zuwächse wie freie Gewichte.', src: ['H1'],
+        explain: 'Hernández-Belmonte et al. 2023 (38 Trainierte, 8 Wochen, Abstract): Kniebeuge, Bankdrücken, Rudern und Schulterdrücken an Maschinen oder mit Langhantel gaben ähnliche Kraft- und Muskelzuwächse ohne mehr Gelenkbeschwerden. Der Deltamuskel selbst wurde nicht vermessen.' }
+    ],
+    sources: {
+      K1: { label: 'Kim et al. 2026, J Clin Med', url: 'https://doi.org/10.3390/jcm15103925', read: 'fulltext' },
+      R1: { label: 'Reed et al. 2018, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2017.07.024', read: 'abstract' },
+      H1: { label: 'Hernández-Belmonte et al. 2023, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003271', read: 'abstract' }
+    }
   }
 
 ];
@@ -2030,6 +2337,77 @@ function rpdProps(P) {
     { type: 'line', from: [10, top], to: [hr[0], top], w: 4 }, { type: 'line', from: [hr[0], top], to: [hr[0], hr[1] - 10], w: 4 }, // Hebel rechts (waagerecht, dann senkrecht zum Griff)
     { type: 'line', from: [-10, top], to: [hl[0], top], w: 4 }, { type: 'line', from: [hl[0], top], to: [hl[0], hl[1] - 10], w: 4 },
     { type: 'line', from: [hr[0], hr[1] - 12], to: [hr[0], hr[1] + 10], w: 5, front: true }, { type: 'line', from: [hl[0], hl[1] - 12], to: [hl[0], hl[1] + 10], w: 5, front: true } // senkrechte Griffe (Neutralgriff)
+  ] };
+}
+
+// ---------- Szenen Runde 6 (v2.11) ----------
+const uarmMid = (P) => midpoint(P.joints.shoulder, P.joints.elbow);
+function ezCurlProps(P) { const g = gripOf(P); return { anchors: { bar: g, uarm: uarmMid(P) }, scene: [plate(g, CURL_PLATE)] }; }
+function hammerProps(P) { const g = gripOf(P); return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [db(g, segNrm(P, 'farm'))] }; } // Neutralgriff: Hantelachse quer zum Unterarm in der Bildebene
+function inclineCurlProps(P) {
+  const g = gripOf(P), h = P.joints.hip;
+  const top = along(along(h, segNrm(P, 'trunk'), -24), segDir(P, 'trunk'), -165);
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    benchLine(P, 24, 170, -6), { type: 'line', from: [h[0] - 20, h[1] + 24], to: [h[0] + 50, h[1] + 24], w: 14 }, // Lehne 45°, Sitz
+    { type: 'line', from: [h[0] + 10, h[1] + 30], to: [h[0] + 10, 0], w: 6 }, { type: 'line', from: top, to: [top[0], 0], w: 6, back: true }, foot(h[0] - 20, h[0] + 40), foot(top[0] - 30, top[0] + 30),
+    db(g, [1, 0], true)
+  ] };
+}
+function preacherProps(P) {
+  const g = gripOf(P), s = P.joints.shoulder, e = P.joints.elbow, h = P.joints.hip, u = segDir(P, 'uarm');
+  let n = segNrm(P, 'uarm'); if (n[1] < 0) n = [-n[0], -n[1]]; // Unterseite des Oberarms
+  const a = along(along(s, u, 18), n, 20), b = along(along(e, u, 12), n, 20), m = midpoint(a, b);
+  return { anchors: { pad: m, hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'line', from: a, to: b, w: 12, front: true }, // Pult direkt unter dem Oberarm
+    { type: 'line', from: [m[0], m[1] + 6], to: [m[0], 0], w: 6, back: true }, foot(m[0] - 45, m[0] + 45), // Stütze (hinter den Beinen)
+    { type: 'line', from: [h[0] - 26, h[1] + 22], to: [h[0] + 28, h[1] + 22], w: 12 }, { type: 'line', from: [h[0], h[1] + 28], to: [h[0], 0], w: 6, back: true }, // Sitz
+    db(g, [1, 0], true)
+  ] };
+}
+function bayesianProps(P) {
+  const g = gripOf(P), t = BAY.tower, p = BAY.pulley, d = segNrm(P, 'farm');
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'line', from: [t, 0], to: [t, -300], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm mit verstellbarer Rolle auf Hüfthöhe
+    { type: 'line', from: p, to: g, w: 1.5, dash: true }, // Seil
+    { type: 'line', from: along(g, d, -8), to: along(g, d, 8), w: 5, front: true } // Einhandgriff
+  ] };
+}
+function concentrationProps(P) {
+  const g = gripOf(P), h = P.joints.hip;
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'rect', x: h[0] - 70, y: h[1] + 14, w: 110, h: 10, rx: 3 }, { type: 'line', from: [h[0] - 50, h[1] + 24], to: [h[0] - 50, 0], w: 5 }, { type: 'line', from: [h[0] + 22, h[1] + 24], to: [h[0] + 22, 0], w: 5, back: true }, // Flachbank
+    db(g, [1, 0], true)
+  ] };
+}
+
+// ---------- Szenen Runde 7 (v2.11) ----------
+function frontRaiseProps(P) {
+  const g = gripOf(P), h = P.joints.hip;
+  return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
+    { type: 'rect', x: h[0] - 55, y: h[1] + 14, w: 95, h: 10, rx: 3 }, { type: 'line', from: [h[0] - 40, h[1] + 24], to: [h[0] - 40, 0], w: 5 }, { type: 'line', from: [h[0] + 26, h[1] + 24], to: [h[0] + 26, 0], w: 5, back: true }, // Flachbank
+    db(g, [1, 0], true)
+  ] };
+}
+function cableLateralProps(P) {
+  const hr = P.joints.handR, w = P.joints.wristR, g = [(hr[0] + w[0]) / 2, (hr[1] + w[1]) / 2], t = CLR.tower, p = [t + 8, CLR.pulleyY];
+  return { anchors: {}, scene: [
+    { type: 'line', from: [t, 0], to: [t, -300], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm, Rolle auf Handhöhe
+    { type: 'line', from: p, to: g, w: 1.5, dash: true, front: true }, // Seil vor dem Körper zur Gegenseite
+    { type: 'rect', x: g[0] - 5, y: g[1] - 8, w: 10, h: 16, rx: 3, front: true } // Einhandgriff
+  ] };
+}
+function uprightRowProps(P) {
+  const w = P.joints.wristR, hr = P.joints.handR, y = (w[1] + hr[1]) / 2;
+  return { anchors: { bar: [0, y] }, scene: frontBarbell(y) };
+}
+function machinePressProps(P) {
+  const hand = P.joints.hand, h = P.joints.hip, pv = MSP.pivot;
+  return { anchors: { hand }, scene: [
+    { type: 'rect', x: h[0] - 30, y: h[1] + 2, w: 64, h: 12, rx: 4 }, benchLine(P, 26, 140, -8), // Sitz, Lehne 75°
+    { type: 'line', from: [h[0], h[1] + 14], to: [h[0], 0], w: 6 }, foot(h[0] - 50, h[0] + 60),
+    { type: 'line', from: [pv[0], pv[1]], to: [pv[0], 0], w: 8, back: true }, foot(pv[0] - 40, pv[0] + 40), { type: 'bar', at: pv, r: 7 }, // Säule mit Drehachse
+    { type: 'line', from: pv, to: hand, w: 5, back: true }, // Hebelarm (seitlich neben dem Kopf, daher hinter der Figur)
+    { type: 'line', from: [hand[0] - 3, hand[1] - 9], to: [hand[0] + 3, hand[1] + 9], w: 6, front: true } // Griff
   ] };
 }
 

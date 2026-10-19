@@ -165,12 +165,14 @@ export function solveFront(spec) {
     const sg = sides[side];
     const sh = add(shC, [sg * J0F.shoulder[0], 0]);
     let E, W, sU = 1, sF = 1;
-    if (spec.armPoints) {
-      const e = spec.armPoints.elbow, w = spec.armPoints.wrist;
+    const own = side === 'L' && spec.armL ? spec.armL : null; // v2.11: linker Arm getrennt (einarmige Übungen); gleiche Form wie arm / armPoints
+    const pts = own ? own.points : spec.armPoints;
+    if (pts) {
+      const e = pts.elbow, w = pts.wrist;
       E = add(sh, [sg * num(e[0]), num(e[1])]); W = add(sh, [sg * num(w[0]), num(w[1])]);
       sU = Math.hypot(num(e[0]), num(e[1])) / LEN.uarm; sF = Math.hypot(num(w[0]) - num(e[0]), num(w[1]) - num(e[1])) / LEN.farm;
     } else {
-      const arm = spec.arm || {};
+      const arm = own || spec.arm || {};
       const abd = num(arm.abd) || 0, el = num(arm.elbow) || 0;
       const dU = fdir(abd), dF = fdir(abd - el);
       E = add(sh, mul([sg * dU[0], dU[1]], LEN.uarm)); W = add(E, mul([sg * dF[0], dF[1]], LEN.farm));
