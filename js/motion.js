@@ -92,6 +92,24 @@ for (const [k, s] of Object.entries(SEGS)) {
 }
 const baseSeg = (seg) => seg.replace(/2$/, '');
 
+// v2.13: Rumpfbeugung (curl, Grad; positiv = Beugung nach vorn, z. B. Crunch). Der Rumpf biegt sich gleichmäßig in einer Zone
+// 35–80 Einheiten über dem Hüftgelenk (etwa Lendenwirbelsäule bis untere Brustwirbelsäule, Zeichenkonvention); darunter bleibt er
+// wie bisher, darüber dreht er starr mit. Rechnet in Standkoordinaten des Rumpfs; curl = 0 lässt jeden Punkt unverändert.
+const BEND = { y0: J0.hip[1], s0: 35, s1: 80 };
+export function bendLocal(pt, curl) {
+  const s = BEND.y0 - pt[1];
+  if (!curl || s <= BEND.s0) return pt;
+  const K = (curl * DEG) / (BEND.s1 - BEND.s0), sr = Math.min(s, BEND.s1) - BEND.s0, a = K * sr;
+  let cx = (1 - Math.cos(a)) / K, cy = -BEND.s0 - Math.sin(a) / K; // Mittellinie relativ zu (0, y0)
+  if (s > BEND.s1) { const r = s - BEND.s1; cx += r * Math.sin(a); cy -= r * Math.cos(a); }
+  return [cx + pt[0] * Math.cos(a), BEND.y0 + cy + pt[0] * Math.sin(a)];
+}
+// Punkt in Standkoordinaten des Rumpfs → Welt, mit dem ungebogenen Rumpfrahmen (Ursprung Schulter, Richtung Schulter → Hüfte).
+function mapTrunk(Jsh, d, pt) {
+  const R = REST.trunk, v = sub(pt, R.J), u = dot(v, R.d), w = dot(v, R.n), n = nrm(d);
+  return [Jsh[0] + u * d[0] + w * n[0], Jsh[1] + u * d[1] + w * n[1]];
+}
+
 // Geschlossener Pfad durch Punkte (Catmull-Rom als Bézier).
 export function smooth(pts) {
   const n = pts.length;
@@ -164,7 +182,8 @@ function buildPose(spec) {
     aThigh = t - hip + 180;
     aShank = aThigh + knee;
   }
-  const aTrunkUp = t; // Hüfte → Schulter
+  const aTrunkUp = t; // Hüfte → Schulter (unterer Rumpf; bei curl ≠ 0 nur bis zur Biegezone)
+  const curl = g('curl'), tu = t + curl; // tu: Neigung des oberen Rumpfs (Brustkorb), daran hängen Arme und Kopf
   let aFoot = aShank - 90 - ankle; // Knöchel → Zehen
   if (Number.isFinite(num(spec.foot))) { aFoot = num(spec.foot); ankle = aShank - 90 - aFoot; }
   // Arm
@@ -173,12 +192,14 @@ function buildPose(spec) {
   let elbow = g('elbow'), aU;
   let target = spec.armTarget ? [num(spec.armTarget[0]), num(spec.armTarget[1])] : null;
   if (!target && spec.armTargetTrunk) { // Ziel in Rumpfkoordinaten (dx nach vorn, dy nach oben entlang des Rumpfs)
-    const up = dir(t), fw = dir(t + 90), dx = num(spec.armTargetTrunk[0]), dy = num(spec.armTargetTrunk[1]);
+    const up = dir(tu), fw = dir(tu + 90), dx = num(spec.armTargetTrunk[0]), dy = num(spec.armTargetTrunk[1]);
     target = [fw[0] * dx + up[0] * dy, fw[1] * dx + up[1] * dy];
   }
   // Positionen relativ zur Hüfte (Beine zuerst, damit die Wurzelverschiebung für Weltziele des Arms bekannt ist)
   const hipP = [0, 0];
-  const shP = add(hipP, mul(dir(aTrunkUp), LEN.trunk));
+  const shU = add(hipP, mul(dir(aTrunkUp), LEN.trunk)); // ungebogener Rumpf: Ursprung des Rumpfrahmens
+  const dTrunk = dir(aTrunkUp + 180);
+  const shP = curl ? mapTrunk(shU, dTrunk, bendLocal(J0.shoulder, curl)) : shU; // Schultergelenk am gebogenen Rumpf
   const knP = add(hipP, mul(dir(aThigh), LEN.thigh));
   const anP = add(knP, mul(dir(aShank), LEN.shank));
   const fd = dir(aFoot), fn = nrm(fd);
@@ -212,10 +233,10 @@ function buildPose(spec) {
     elbow = ((aU - aFdir) % 360 + 540) % 360 - 180; // vorzeichenbehaftet, nur intern
     ikForearm = aFdir;
   } else {
-    aU = t + 180 - g('shoulder');
+    aU = tu + 180 - g('shoulder');
   }
   const aF = ikForearm !== null ? ikForearm : aU - elbow;
-  const shoulderFlex = ((t + 180 - aU) % 360 + 540) % 360 - 180;
+  const shoulderFlex = ((tu + 180 - aU) % 360 + 540) % 360 - 180;
   const aLen = armPts ? armPts.a : a, bLen = armPts ? armPts.b : b;
   const scU = armPts ? armPts.a / LEN.uarm : sc[0], scF = armPts ? armPts.b / LEN.farm : sc[1];
 
@@ -229,12 +250,13 @@ function buildPose(spec) {
 
   const fr = (Jp, d, f) => ({ J: Jp, d, n: nrm(d), f: f || 1 });
   const F = {
-    trunk: fr(J.shoulder, dir(aTrunkUp + 180)), thigh: fr(J.hip, dir(aThigh)), shank: fr(J.knee, dir(aShank)),
+    trunk: fr(curl ? add(shU, offAll) : J.shoulder, dTrunk), thigh: fr(J.hip, dir(aThigh)), shank: fr(J.knee, dir(aShank)),
     foot: fr(J.ankle, fd), uarm: fr(J.shoulder, dir(aU), scU), farm: fr(J.elbow, dir(aF), scF)
   };
   const angles = { trunk: f1(t), hip: f1(hip), knee: f1(knee), ankle: f1(ankle), shoulder: f1(shoulderFlex), elbow: f1(Math.abs(elbow)) };
+  if (curl) { angles.curl = f1(curl); angles.upper = f1(tu); }
   // Segmentwinkel in Spezifikationskonvention (für das Angleichen der Keyframes vor dem Mischen)
-  const segAngles = { trunk: t, shank: aShank - 180, knee, hip, ankle, foot: aFoot, armHang: aU - 180, elbow: Math.abs(elbow) };
+  const segAngles = { trunk: t, shank: aShank - 180, knee, hip, ankle, foot: aFoot, armHang: aU - 180, elbow: Math.abs(elbow), curl };
 
   // Zweites Bein
   if (spec.leg2) {
@@ -265,12 +287,12 @@ function buildPose(spec) {
   }
   // Zweiter Arm
   if (spec.arm2) {
-    const A2 = spec.arm2, aU2 = t + 180 - (num(A2.shoulder) || 0), aF2 = aU2 - (num(A2.elbow) || 0);
+    const A2 = spec.arm2, aU2 = tu + 180 - (num(A2.shoulder) || 0), aF2 = aU2 - (num(A2.elbow) || 0);
     const el2 = add(J.shoulder, mul(dir(aU2), a)), wr2 = add(el2, mul(dir(aF2), b));
     J.elbow2 = el2; J.wrist2 = wr2; J.hand2 = add(wr2, mul(dir(aF2), LEN.hand));
     F.uarm2 = fr(J.shoulder, dir(aU2), sc[0]); F.farm2 = fr(el2, dir(aF2), sc[1]);
   }
-  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, handFlat2: num(spec.handFlat2) || 0, headTilt: num(spec.headTilt) || 0 };
+  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, handFlat2: num(spec.handFlat2) || 0, headTilt: num(spec.headTilt) || 0, curl };
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -280,8 +302,14 @@ function buildPose(spec) {
 }
 
 // ---------- Hautmodell ----------
-function tf1(P, seg, pt) {
+function tf1(P, seg, pt0) {
   const R = REST[baseSeg(seg)], A = P.F[seg];
+  const pt = P.curl && baseSeg(seg) === 'trunk' ? bendLocal(pt0, P.curl) : pt0;
+  if (P.curl && P.headTilt && baseSeg(seg) === 'trunk' && pt0[1] < -300) { // Kopfneigung am gebogenen Rumpf (in Rumpfkoordinaten, gleiche Drehung)
+    const k = clamp((-300 - pt0[1]) / 12, 0, 1), a = P.headTilt * k * DEG, c = bendLocal([-2, -310], P.curl);
+    const dx = pt[0] - c[0], dy = pt[1] - c[1];
+    return tf1({ ...P, curl: 0, headTilt: 0 }, seg, [c[0] + dx * Math.cos(a) - dy * Math.sin(a), c[1] + dx * Math.sin(a) + dy * Math.cos(a)]);
+  }
   const v = sub(pt, R.J);
   let u = dot(v, R.d) * A.f, w = dot(v, R.n);
   const hf = seg === 'farm2' ? (P.handFlat2 || P.handFlat) : P.handFlat;
@@ -411,12 +439,13 @@ export function resolveFrames(frames) {
     return { ...f, pose, P };
   });
   const any = (k) => out.some((f) => isSet(f.pose[k]) || (k === 'armHang' && f.pose.armPlumb));
-  const fillFoot = any('foot');
+  const fillFoot = any('foot'), fillCurl = any('curl');
   const hangArm = any('armHang') && !out.some((f) => f.pose.armPoints || f.pose.armTarget || f.pose.armTargetTrunk || f.pose.armAt);
   for (const f of out) {
     const S = f.P.segAngles;
     for (const k of LEG_KEYS) if (!isSet(f.pose[k])) f.pose[k] = f1(S[k]);
     if (fillFoot && !isSet(f.pose.foot)) f.pose.foot = f1(S.foot);
+    if (fillCurl && !isSet(f.pose.curl)) f.pose.curl = 0;
     if (hangArm) { // armPlumb ≙ armHang 0; beide Formen mischen sich dann als Zahl
       if (f.pose.armPlumb) { delete f.pose.armPlumb; if (!isSet(f.pose.armHang)) f.pose.armHang = 0; }
       if (!isSet(f.pose.elbow)) f.pose.elbow = f1(S.elbow);

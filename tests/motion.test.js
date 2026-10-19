@@ -267,4 +267,36 @@ test('Weibliche Figur: gleiche Muskelflächen wie die männliche, nur Haarknoten
   assert.equal(MF.shapesForF(undefined), MF.SHAPES_F);
 });
 
+test('Rumpfbeugung (v2.13): curl 0 ändert nichts; Crunch hebt die Schulter, Becken bleibt; Reverse Crunch hebt das Becken, Schulter bleibt', () => {
+  const lie = { root: 'hip', rootPos: [0, -36], trunk: -90, hip: 35, knee: 90, foot: 90, shoulder: 30 };
+  const a = M.solvePose(lie), b = M.solvePose({ ...lie, curl: 0 });
+  assert.deepEqual(M.layers(a).map((l) => l.d), M.layers(b).map((l) => l.d), 'curl 0 zeichnet identisch');
+  assert.deepEqual(M.bendLocal([5, -250], 0), [5, -250]);
+  assert.deepEqual(M.bendLocal([5, -200], 30), [5, -200], 'unter der Biegezone unverändert');
+  const c = M.solvePose({ ...lie, curl: 30 });
+  assert.ok(c.joints.shoulder[1] < a.joints.shoulder[1] - 15, `Schulter hebt sich (${c.joints.shoulder[1]})`);
+  assert.deepEqual(c.joints.hip, a.joints.hip, 'Hüfte bleibt');
+  near(dist(c.joints.shoulder, c.joints.hip), M.LEN.trunk, 6, 'Rumpflänge bleibt etwa gleich (Bogen statt Strecke)');
+  near(c.angles.upper, -60, 0.1, 'oberer Rumpf = Rumpf + curl');
+  const lieS = { root: 'shoulder', rootPos: [-104, -36], trunk: -90, hip: 90, knee: 90 };
+  const r0 = M.solvePose(lieS), r1 = M.solvePose({ ...lieS, trunk: -110, curl: 20 });
+  assert.deepEqual(r1.joints.shoulder, r0.joints.shoulder, 'Schulter bleibt liegen');
+  assert.ok(r1.joints.hip[1] < r0.joints.hip[1] - 10, `Becken hebt sich (${r1.joints.hip[1]})`);
+  near(M.anchor(r1, 'upperBack')[1], M.anchor(r0, 'upperBack')[1], 0.5, 'oberer Rücken bleibt liegen');
+});
+
+test('Liegende Übungen (v2.13): Körper liegt auf der Matte, nichts sinkt in den Boden', () => {
+  for (const ref of ['floor-crunch', 'sit-up', 'reverse-crunch', 'lying-leg-raise', 'dead-bug']) {
+    const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases);
+    for (const sex of ['male', 'female']) for (let i = 0; i <= 24; i++) {
+      const { pose } = M.poseAt(fr, a.phases, (T * i) / 24);
+      let low = -1e9;
+      for (const sh of M.shapesFor(sex)) if (pose.F[sh.seg]) for (const q of sh.pts) low = Math.max(low, M.tf(pose, sh.seg, q)[1]); // Konturpunkte (ohne Bézier-Kontrollpunkte)
+      const sink = sex === 'female' ? 10 : 1.5; // weibliche Figur: Gesäß und Haarknoten tiefer, drückt bis ≈ 4,5 cm in die Matte
+      assert.ok(low <= -6 + sink, `${ref} (${sex}) t=${i}: tiefster Punkt ${low.toFixed(1)} unter der Matte`);
+      assert.ok(low >= -6 - 8, `${ref} (${sex}) t=${i}: schwebt (${low.toFixed(1)})`);
+    }
+  }
+});
+
 done();

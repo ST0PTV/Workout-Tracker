@@ -2,7 +2,7 @@
 // Jeder Zahlenwert trägt seine Herkunft: V(wert, quellen, lesart). Lesarten (READ): wie der Wert gelesen wurde.
 // Winkelkonvention siehe js/motion.js. Alle Werte sind Gruppenmittel kleiner Studien, keine Vorgabe für die eigene Technik.
 // Recherche: Drive „Research - Animations“ (2026-10-14), Rohdaten im claude.ai-Projekt (claude/v2-animation-research/).
-import { LEN, ARM_REACH, solvePose } from './motion.js';
+import { LEN, ARM_REACH, solvePose, anchor, shapesFor, tf } from './motion.js';
 
 export const ANIM_CHECKED_AT = '2026-10-14';
 
@@ -263,6 +263,31 @@ const DIPM = (() => {
   const px = m[0] - 150, py = m[1] - (px - m[0]) * d[0] / d[1];
   return { pivot: [Math.round(px), Math.round(py)] };
 })();
+
+// ---------- Runde 10 (v2.13): Bauch am Boden ----------
+// Rückenlage auf einer Matte (6 Einheiten ≈ 3 cm, Konvention), Kopf links. Höhe des Hüftgelenks so gelöst, dass der tiefste Punkt
+// des liegenden Körpers auf der Matte liegt. Rumpfbeugung über curl (js/motion.js): Crunch und Sit-up rollen den oberen Rumpf ein,
+// beim Reverse Crunch und Beinheben bleibt der obere Rücken liegen (Wurzel Schulter, Rumpf −90 − curl) und das Becken rollt ein.
+const MAT = 6;
+const lowestY = (spec) => { const P = solvePose(spec); let m = -1e9; for (const sh of shapesFor('male')) if (sh.seg === 'trunk') for (const q of sh.pts) m = Math.max(m, tf(P, 'trunk', q)[1]); return m; }; // tiefster Konturpunkt des Rumpfs (Standardfigur; die weibliche liegt am Gesäß und Haarknoten bis ≈ 4,5 cm tiefer und drückt in die Matte)
+const FLOOR = (() => {
+  const r = (v) => Math.round(v * 10) / 10;
+  // Liegewinkel: Rumpf so geneigt, dass Gesäß und Schulterblätter zugleich aufliegen (die Figur ist am Gesäß tiefer als am Rücken).
+  const low = (t, f) => { const P = solvePose({ root: 'hip', rootPos: [0, 0], trunk: t, hip: 30, knee: 90 }); let m = -1e9; for (const sh of shapesFor('male')) if (sh.seg === 'trunk') for (const q of sh.pts) if (f(q)) m = Math.max(m, tf(P, 'trunk', q)[1]); return m; };
+  const lie = r(bisect((t) => low(t, (q) => q[1] < -240) - low(t, (q) => q[1] > -215), -110, -85));
+  const hipY = r(-MAT - lowestY({ root: 'hip', rootPos: [0, 0], trunk: lie, hip: 30, knee: 90, foot: 90, shoulder: 90 }));
+  const sh = solvePose({ root: 'hip', rootPos: [0, hipY], trunk: lie, hip: 90, knee: 90 }).joints.shoulder.map(r);
+  // Crunch-Start: Knie 90°, Hüfte so gelöst, dass der Fuß flach auf der Matte steht (Ballen auf Mattenhöhe).
+  const hook = (h, x) => solvePose({ root: 'hip', rootPos: [0, hipY], trunk: lie, hip: h, knee: 90, foot: 90, ...x });
+  const hookHip = r(bisect((h) => hook(h).joints.toe[1] + MAT + 2, 0, 90));
+  const hookShank = r(hook(hookHip).segAngles.shank);
+  // Crunch oben: so weit eingerollt, dass der untere Schulterblattrand (Anker back) ≈ 4 cm von der Ausgangslage abhebt.
+  const back0 = anchor(hook(hookHip), 'back')[1];
+  const crunchCurl = r(bisect((c) => anchor(hook(hookHip, { curl: c }), 'back')[1] - back0 + 8, 0, 70));
+  return { lie, hipY, sh, hookHip, hookShank, crunchCurl };
+})();
+// Sit-up oben (Konvention): oberer Rumpf ≈ 15° über die Senkrechte, davon 20° Rumpfbeugung; die Ellbogen kommen damit etwa auf Kniehöhe.
+const SITUP = { curlTop: 20, trunkTop: -5 };
 
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
@@ -2307,13 +2332,160 @@ export const ANIMATIONS = [
       M1: { label: 'Marchetti et al. 2019, Rev Bras Pesq Ciênc Saúde', url: 'https://revistas.icesp.br/index.php/RBPeCS/article/view/733', read: 'summary' },
       P1: { label: 'Pinto et al. 2025, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000005045', read: 'abstract' }
     }
+  },
+
+  // ========== Runde 10 (v2.13): Bauch am Boden ==========
+  // ---------- Crunch (Boden) ----------
+  {
+    ref: 'floor-crunch', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
+    basisNote: 'Keine gelesene Studie hat den Crunch mit Bewegungsmessung des Rumpfs erfasst. Start und Ende folgen den Protokollen von Escamilla et al. 2006, Youdas et al. 2008, Barbado et al. 2015 und Lee et al. 2016 (alle Volltext): Rückenlage, Knie etwa 90°, Füße auf dem Boden; einrollen, bis die Schulterblätter von der Matte abheben. Wie weit sich der Rumpf dabei beugt, ist nicht gemessen: Die Beugung ist so gelöst, dass der untere Schulterblattrand ≈ 4 cm abhebt, und verteilt sich in der Zeichnung auf die untere Brust- und Lendenwirbelsäule (Zeichenkonvention). Die Hüfte ist so gelöst, dass der Fuß flach steht (Protokoll ≈ 45°). Matte, Kopfhaltung und Ellbogen sind Konvention.',
+    tempo: { basis: 'protocol', note: '1 s hoch, 1 s halten, 1 s ab, 1 s Pause (Metronom; Escamilla et al. 2006, ähnlich Youdas et al. 2008).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), hip: K(FLOOR.hookHip, 'E1', 'so gelöst, dass der Fuß flach steht (Protokoll ≈ 45°)'), knee: V(90, ['E1', 'Y1', 'B1'], 'protocol', 'Knie etwa 90°'), foot: C(90, 'Fuß flach'), headTilt: C(0), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: matProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie, 'Becken bleibt liegen'), curl: K(FLOOR.crunchCurl, ['E1', 'Y1', 'B1'], 'so gelöst, dass der untere Schulterblattrand ≈ 4 cm von der Ausgangslage abhebt'), hip: K(FLOOR.hookHip, 'E1'), knee: V(90, ['E1', 'Y1', 'B1'], 'protocol'), foot: C(90), headTilt: C(10, 'Kinn leicht zur Brust'), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: matProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Einrollen', kp: [1, 3] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [1, 2] }, { a: 1, b: 0, dur: 1.0, label: 'Ablegen', kp: [2, 4] }],
+    keyPoints: [
+      { short: 'Start', anchor: 'foot', side: 'r', status: 'consensus', text: 'Rückenlage, Füße flach auf dem Boden, Knie etwa 90° gebeugt.', src: ['E1', 'Y1', 'B1', 'L1'],
+        explain: 'So beginnen alle vier gelesenen Protokolle (Escamilla et al. 2006, Youdas et al. 2008, Barbado et al. 2015, Lee et al. 2016). Die Hüfte ist dort etwa 45° gebeugt. Die Hände lagen je nach Studie an den Ohren, gekreuzt vor der Brust oder neben dem Körper.' },
+      { short: 'Schulter', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Oberkörper einrollen, bis die Schulterblätter von der Matte abheben.', src: ['E1', 'Y1', 'B1', 'L1'],
+        explain: 'Das ist in allen gelesenen Protokollen der obere Umkehrpunkt. Ein Winkel ist dafür nicht gemessen. Ob ein höheres Aufrichten mehr bringt, ist offen.' },
+      { short: 'Lende', anchor: 'lowBack', side: 'l', status: 'single', text: 'Die Lendenwirbelsäule bleibt auf der Matte; nur der obere Rücken rollt ein.', src: ['B1', 'H1'],
+        explain: 'Barbado et al. 2015 beschreiben den Crunch mit aufliegender Lendenregion. Halpern & Bleck 1979 (Abstract) maßen beim Anheben bis zu den Schulterblättern ≈ 3° Lendenbeugung, beim vollen Sit-up ≈ 38°.' },
+      { short: 'Nacken', anchor: 'chin', side: 'l', status: 'single', text: 'Kinn leicht eingezogen; den Kopf nicht mit den Händen nach vorn ziehen.', src: ['L1'],
+        explain: 'Lee et al. 2016 (13 Männer, EMG): Wurde die Nackenbeugung begrenzt (Kinn eingezogen, Hand leicht am Kiefer), war der Kopfwender weniger und der gerade und schräge Bauchmuskel mehr aktiv. Winkel wurden nicht gemessen.' },
+      { short: 'Tempo', anchor: 'belly', side: 'r', status: 'single', text: 'Gleichmäßig: etwa 1 s hoch, 1 s halten, 1 s ab.', src: ['E1', 'B1'],
+        explain: 'Takt der Protokolle von Escamilla et al. 2006 und Youdas et al. 2008. Barbado et al. 2015 (17 Aktive) testeten 1 Wiederholung je 4 s bis je 1 s: auch schnell blieb die Bahn seitlich gleich stabil, die Ausgleichsbewegungen am Boden nahmen aber zu.' }
+    ],
+    sources: {
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' },
+      Y1: { label: 'Youdas et al. 2008, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31818745bf', read: 'fulltext' },
+      B1: { label: 'Barbado et al. 2015, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2015-0031', read: 'fulltext' },
+      L1: { label: 'Lee et al. 2016, J Phys Ther Sci', url: 'https://doi.org/10.1589/jpts.28.90', read: 'fulltext' },
+      H1: { label: 'Halpern & Bleck 1979, Clin Orthop Relat Res', url: 'https://pubmed.ncbi.nlm.nih.gov/161217/', read: 'abstract' }
+    }
+  },
+
+  // ---------- Sit-up ----------
+  {
+    ref: 'sit-up', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
+    basisNote: 'Keine im Volltext gelesene Bewegungsmessung. Start und Ende folgen dem Protokoll von Escamilla et al. 2006 (Volltext): Knie etwa 90°, Füße fixiert, Hände an den Ohren; Rumpf und Hüfte beugen, bis die Ellbogen auf Höhe der Knie sind. Die Reihenfolge – erst einrollen, dann aus der Hüfte aufrichten – folgt Cordo et al. 2003 (Abstract, gestreckte Beine). Wie weit sich der Rumpf oben aufrichtet und beugt (oberer Rumpf ≈ 15° über die Senkrechte, davon 20° Rumpfbeugung), Fußhalter und Matte sind Konvention. Die Negativ-Variante auf der Schrägbank ist nicht gezeichnet: keine Studie mit Bankwinkel gefunden.',
+    tempo: { basis: 'protocol', note: 'Protokoll: 1 s hoch, 1 s halten, 1 s ab (Metronom, Escamilla et al. 2006). Gezeichnet langsamer (≈ 1,5 s je Richtung, erst einrollen, dann aufrichten), damit die Folge sichtbar bleibt.' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], shank: K(FLOOR.hookShank, 'E1', 'Unterschenkel bleibt (Füße fixiert)'), knee: V(90, 'E1', 'protocol', 'Knie etwa 90°'), foot: C(90), trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), headTilt: C(0), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
+      { label: 'Eingerollt', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], shank: K(FLOOR.hookShank, 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(FLOOR.lie, 'Becken liegt noch'), curl: C(SITUP.curlTop, 'oberer Rumpf eingerollt (Cordo et al. 2003: zuerst Nacken und oberer Rumpf)'), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], shank: K(FLOOR.hookShank, 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(SITUP.trunkTop, 'oberer Rumpf ≈ 15° über die Senkrechte, Ellbogen etwa auf Kniehöhe'), curl: C(SITUP.curlTop), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.6, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 0.5, label: 'Einrollen', kp: [1] }, { a: 1, b: 2, dur: 1.0, label: 'Aufrichten', kp: [1, 2] }, { a: 2, b: 2, dur: 1.0, label: 'Oben', kp: [2, 3] }, { a: 2, b: 1, dur: 1.0, label: 'Ablegen', kp: [1] }, { a: 1, b: 0, dur: 0.5, label: 'Ablegen', kp: [1] }],
+    keyPoints: [
+      { short: 'Start', anchor: 'foot', side: 'r', status: 'single', text: 'Knie etwa 90° gebeugt, Füße fixiert, Hände an den Ohren.', src: ['E1'],
+        explain: 'Protokoll von Escamilla et al. 2006 (21 Gesunde): Daumen in den Ohren, Hände locker am Kopf, Knie ≈ 90°, Hüfte ≈ 45°, Füße gehalten.' },
+      { short: 'Folge', anchor: 'upperBack', side: 'l', status: 'single', text: 'Erst Kopf und Schultern einrollen, dann aus der Hüfte aufrichten.', src: ['C1', 'H1'],
+        explain: 'Cordo et al. 2003 (8 Gesunde, Bewegungsanalyse, Abstract) teilen den Sit-up in Einrollen des Rumpfs (Nacken und oberer Rumpf, dann Lendenbereich) und anschließendes Drehen des Beckens Richtung Füße. Gemessen mit gestreckten, freien Beinen. Beim vollen Sit-up beugt sich die Lendenwirbelsäule deutlich mehr als beim Crunch (≈ 38° gegenüber ≈ 3°, Halpern & Bleck 1979, Abstract).' },
+      { short: 'Oben', anchor: 'elbow', side: 'r', status: 'single', text: 'Hochkommen, bis die Ellbogen auf Höhe der Knie sind.', src: ['E1'],
+        explain: 'Endpunkt im Protokoll von Escamilla et al. 2006. Dort war der gerade Oberschenkelmuskel (Hüftbeuger) beim Sit-up deutlich aktiver als beim Crunch.' },
+      { short: 'Füße', anchor: 'heel', side: 'r', status: 'contested', text: 'Fixierte Füße verschieben Arbeit Richtung Hüftbeuger.', src: ['P1', 'A1'],
+        explain: 'Umstritten: Bei Parfrey et al. 2008 (14 Personen, Abstract) senkte das Fixieren der Füße die Aktivität aller Bauchmessstellen und erhöhte die des geraden Oberschenkelmuskels. Andersson et al. 1997 (6 Männer, Abstract) fanden mit gestützten Beinen mehr Hüftbeuger-Arbeit, die Bauchmuskeln änderten sich aber meist nicht.' },
+    ],
+    sources: {
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' },
+      C1: { label: 'Cordo et al. 2003, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/s1050-6411(03)00023-3', read: 'abstract' },
+      P1: { label: 'Parfrey et al. 2008, Appl Physiol Nutr Metab', url: 'https://doi.org/10.1139/H08-061', read: 'abstract' },
+      A1: { label: 'Andersson et al. 1997, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s004210050135', read: 'abstract' },
+      H1: { label: 'Halpern & Bleck 1979, Clin Orthop Relat Res', url: 'https://pubmed.ncbi.nlm.nih.gov/161217/', read: 'abstract' }
+    }
+  },
+
+  // ---------- Reverse Crunch ----------
+  {
+    ref: 'reverse-crunch', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsmessung gefunden. Start und Ende folgen dem Protokoll von Escamilla et al. 2006 (Volltext, „reverse crunch flat“): Rückenlage, Hüfte und Knie ≈ 90°; Hüfte maximal beugen bis ≈ 125–135° Hüft- und Kniebeugung mit nach hinten gekipptem Becken. Wie weit das Becken kippt, ist nicht gemessen: Gezeichnet rollt es um 20° ein, der obere Rücken bleibt liegen (Konvention). Arme neben dem Körper und Matte sind Konvention.',
+    tempo: { basis: 'protocol', note: '1 s hoch, 1 s halten, 1 s ab, 1 s Pause (Metronom, Escamilla et al. 2006).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'shoulder', rootPos: FLOOR.sh, trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), hip: V(90, 'E1', 'protocol', 'Hüfte ≈ 90°'), knee: V(90, 'E1', 'protocol', 'Knie ≈ 90°'), ankle: C(-20, 'Fuß locker'), shoulder: C(-6, 'Arme neben dem Körper'), elbow: C(0), handFlat: 0, props: matProps } },
+      { label: 'Oben', pose: { root: 'shoulder', rootPos: FLOOR.sh, trunk: C(FLOOR.lie - 20, 'Becken eingerollt'), curl: C(20, 'Becken kippt nach hinten, oberer Rücken bleibt liegen'), hip: V(130, 'E1', 'protocol', 'Hüfte 125–135°'), knee: V(130, 'E1', 'protocol', 'Knie 125–135°'), ankle: C(-20), shoulder: C(-6), elbow: C(0), handFlat: 0, props: matProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Einrollen', kp: [1, 2] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [1, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Ablegen', kp: [4] }],
+    keyPoints: [
+      { short: 'Start', anchor: 'knee', side: 'r', status: 'single', text: 'Rückenlage, Hüfte und Knie etwa 90° gebeugt, Füße in der Luft.', src: ['E1'],
+        explain: 'Startstellung im Protokoll von Escamilla et al. 2006 (21 Gesunde). Die Armhaltung zeigt dort nur eine Abbildung; hier liegen die Arme neben dem Körper (Konvention).' },
+      { short: 'Becken', anchor: 'glute', side: 'r', status: 'single', text: 'Becken nach hinten einrollen und die Knie Richtung Brust ziehen.', src: ['E1'],
+        explain: 'Escamilla et al. 2006 beschreiben die Bewegung als Kippen des Beckens nach hinten mit Hüftbeugung bis ≈ 125–135°. Wie weit das Becken abhebt, wurde nicht gemessen.' },
+      { short: 'Rücken', anchor: 'upperBack', side: 'l', status: 'single', text: 'Oberer Rücken und Kopf bleiben auf der Matte.', src: ['E1'],
+        explain: 'Beim Reverse Crunch bewegt sich das Becken zum Rumpf, nicht umgekehrt (Escamilla et al. 2006: „Crunch in umgekehrter Richtung“). Dass Kopf und Schultern liegen bleiben, ist hier Zeichenkonvention.' },
+      { short: 'Unten', anchor: 'belly', side: 'r', status: 'contested', text: 'Ob der untere Bauch hier mehr arbeitet, ist ungeklärt.', src: ['W1', 'K1'],
+        explain: 'Umstritten: Willett et al. 2001 (25 Gesunde, Abstract) fanden beim Reverse Curl die höchste Aktivität im unteren geraden Bauchmuskel. Clark et al. 2003 (8 Personen, Abstract) fanden keinen Unterschied zwischen oberem und unterem Anteil und beim Reverse Curl weniger Aktivität als beim Crunch.' },
+      { short: 'Tempo', anchor: 'hip', side: 'r', status: 'single', text: 'Ohne Schwung: etwa 1 s hoch, 1 s halten, 1 s ab.', src: ['E1'],
+        explain: 'Takt im Protokoll von Escamilla et al. 2006 (Metronom). Beim Reverse Crunch auf 30° Schräge war der gerade Oberschenkelmuskel dort hoch aktiv; flach war die Belastung geringer.' }
+    ],
+    sources: {
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' },
+      W1: { label: 'Willett et al. 2001, J Strength Cond Res', url: 'https://pubmed.ncbi.nlm.nih.gov/11726260/', read: 'abstract' },
+      K1: { label: 'Clark et al. 2003, J Strength Cond Res', url: 'https://doi.org/10.1519/1533-4287(2003)017%3C0475:ECOTUA%3E2.0.CO;2', read: 'abstract' }
+    }
+  },
+
+  // ---------- Beinheben liegend ----------
+  {
+    ref: 'lying-leg-raise', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
+    basisNote: 'Keine im Volltext gelesene Bewegungsmessung der Übung. Oben folgt der Startstellung des Beinsenk-Tests bei Lindegren et al. 2022 (Volltext): Beine 90° zur Unterlage, Knie bis 5–10° gebeugt erlaubt, Arme vor der Brust gekreuzt. Wie tief die Beine sinken, ist Konvention (25° über der Matte; zitierte Normwerte Erwachsener für den Kontrollverlust im Test: 15–55°). Oben rollt das Becken leicht ein (10°, Konvention); Elvira et al. 2014 (Abstract) maßen Beckenkippung, die Werte sind hier nicht übernommen.',
+    tempo: { basis: 'protocol', note: '≈ 2 s heben, 2 s senken (Elvira et al. 2014 testeten 1 Wiederholung je 4 s bis je 1 s, Abstract).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'shoulder', rootPos: FLOOR.sh, trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), hip: C(FLOOR.lie + 115, 'Beine schweben ≈ 25° über der Matte'), knee: V(5, 'L2', 'protocol', 'Knie bis 5–10° gebeugt erlaubt'), ankle: C(-20), armTargetTrunk: [20, -6], armScale: [0.7, 0.9], elbowSide: -1, props: matProps } },
+      { label: 'Oben', pose: { root: 'shoulder', rootPos: FLOOR.sh, trunk: C(FLOOR.lie - 10, 'Becken leicht eingerollt'), curl: C(10), hip: K(FLOOR.lie + 170, 'L2', 'Oberschenkel senkrecht (90° zur Matte) bei 10° Beckenkippung'), knee: V(5, 'L2', 'protocol'), ankle: C(-20), armTargetTrunk: [20, -6], armScale: [0.7, 0.9], elbowSide: -1, props: matProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [2] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [0, 3] }, { a: 1, b: 1, dur: 0.4, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [1, 2] }],
+    keyPoints: [
+      { short: 'Senkrecht', anchor: 'knee', side: 'r', status: 'single', text: 'Beine gestreckt bis etwa senkrecht heben; leicht gebeugte Knie sind normal.', src: ['L2'],
+        explain: 'Startstellung im Beinsenk-Test bei Lindegren et al. 2022 (90 Jugendliche): Beine 90° zur Unterlage, 5–10° Kniebeugung wegen der hinteren Oberschenkelmuskeln erlaubt. Das ist ein Test, keine Trainingsstudie.' },
+      { short: 'Becken', anchor: 'glute', side: 'r', status: 'single', text: 'Beim Absenken kippt das Becken früh nach vorn ins Hohlkreuz.', src: ['Z1'],
+        explain: 'Zannotti et al. 2002 (17 Personen, Videoanalyse, Abstract): Das Becken kippte schon nach ≈ 3,6° Absenken nach vorn, auch wenn die Personen es verhindern wollten.' },
+      { short: 'Tiefe', anchor: 'lowBack', side: 'l', status: 'single', text: 'Nur so tief senken, wie der untere Rücken Kontakt zur Matte hält.', src: ['L2'],
+        explain: 'So endet der Beinsenk-Test (Lindegren et al. 2022, Druckkissen unter der Lende). Gesunde Erwachsene verloren den Kontakt laut dort zitierten Studien bei 15–55° über der Unterlage, Jugendliche im Mittel bei 72°.' },
+      { short: 'Tempo', anchor: 'thigh', side: 'r', status: 'single', text: 'Langsam: Schnell werden Hüft- und Beckenweg kleiner, die Knie beugen mehr.', src: ['V1'],
+        explain: 'Elvira et al. 2014 (17 Trainierte, 3D-Analyse, Abstract): Bei höherem Tempo nahmen Beckenkippung und Hüftweg ab und die Kniebeugung zu.' }
+    ],
+    sources: {
+      L2: { label: 'Lindegren et al. 2022, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.31042', read: 'fulltext' },
+      Z1: { label: 'Zannotti et al. 2002, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2002.32.9.432', read: 'abstract' },
+      V1: { label: 'Elvira et al. 2014, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2013.860483', read: 'abstract' }
+    }
+  },
+
+  // ---------- Dead Bug ----------
+  {
+    ref: 'dead-bug', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Bewegungsmessung gefunden. Start nach Tsartsapakis et al. 2023 (Volltext): Arme senkrecht über der Brust, Hüfte und Knie je 90°, unterer Rücken in Kontakt mit der Matte. Das gestreckte Bein endet bei 30° Hüftbeugung mit gestrecktem Knie wie die Begrenzung bei Pereira et al. 2017 (Volltext). Der Arm über dem Kopf (170°) und das gegengleiche Muster sind Konvention bzw. nur aus automatischen Zusammenfassungen koreanischer Studien bekannt. In der Seitenansicht arbeiten erst der nahe Arm und das ferne Bein, dann umgekehrt.',
+    tempo: { basis: 'protocol', note: 'Metronom 40 Schläge je Minute (Pereira et al. 2017): ≈ 1,5 s strecken, 1,5 s zurück.' },
+    frames: [
+      { label: 'Start', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), hip: V(90, 'T1', 'protocol', 'Hüfte 90°'), knee: V(90, 'T1', 'protocol', 'Knie 90°'), ankle: C(-10), shoulder: V(90, 'T1', 'protocol', 'Arme senkrecht über der Brust'), elbow: C(0), leg2: { hip: V(90, 'T1', 'protocol'), knee: V(90, 'T1', 'protocol'), ankle: C(-10) }, arm2: { shoulder: V(90, 'T1', 'protocol'), elbow: C(0) }, props: matProps } },
+      { label: 'Gestreckt A', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie), curl: C(0), hip: V(90, 'T1', 'protocol'), knee: V(90, 'T1', 'protocol'), ankle: C(-10), shoulder: C(170, 'Arm über dem Kopf, schwebt über der Matte'), elbow: C(0), leg2: { hip: V(30, 'P2', 'protocol', 'Hüfte bis 30°, Knie gestreckt'), knee: V(0, 'P2', 'protocol'), ankle: C(-10) }, arm2: { shoulder: V(90, 'T1', 'protocol'), elbow: C(0) }, props: matProps } },
+      { label: 'Gestreckt B', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie), curl: C(0), hip: V(30, 'P2', 'protocol', 'Hüfte bis 30°, Knie gestreckt'), knee: V(0, 'P2', 'protocol'), ankle: C(-10), shoulder: V(90, 'T1', 'protocol'), elbow: C(0), leg2: { hip: V(90, 'T1', 'protocol'), knee: V(90, 'T1', 'protocol'), ankle: C(-10) }, arm2: { shoulder: C(170), elbow: C(0) }, props: matProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Start', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Strecken', kp: [1, 2] }, { a: 1, b: 0, dur: 1.5, label: 'Zurück', kp: [2] }, { a: 0, b: 0, dur: 0.5, label: 'Start', kp: [0] }, { a: 0, b: 2, dur: 1.5, label: 'Strecken', kp: [1, 2] }, { a: 2, b: 0, dur: 1.5, label: 'Zurück', kp: [3] }],
+    keyPoints: [
+      { short: 'Start', anchor: 'hand', side: 'r', status: 'single', text: 'Arme senkrecht über der Brust, Hüfte und Knie je 90° gebeugt.', src: ['T1'],
+        explain: 'Ausgangslage bei Tsartsapakis et al. 2023 (44 Frauen mit Pilates-Erfahrung, Volltext). Dort wurde die Lage 10 s gehalten; gemessen wurde die Dicke des queren Bauchmuskels, keine Bewegung.' },
+      { short: 'Kreuz', anchor: 'shoulder', side: 'l', status: 'single', text: 'Einen Arm über den Kopf und das Gegenbein nach vorn strecken, Wechsel.', src: ['K2', 'P2'],
+        explain: 'Gegengleiches Muster nach Kim et al. 2020 (nur automatische Zusammenfassung gelesen). Das Bein streckt bis 30° Hüftbeugung mit gestrecktem Knie wie bei Pereira et al. 2017 (Holzkasten als Grenze).' },
+      { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Der untere Rücken hält Kontakt zur Matte.', src: ['T1'],
+        explain: 'Anweisung bei Tsartsapakis et al. 2023. Im selben Satz steht „neutrale Wirbelsäule“; ob flach gedrückt oder natürlich gekrümmt, ist nicht gemessen.' },
+      { short: 'Stärke', anchor: 'belly', side: 'r', status: 'contested', text: 'Wie stark die Bauchmuskeln arbeiten, unterscheidet sich je nach Studie.', src: ['P2', 'S1'],
+        explain: 'Umstritten: Bei Pereira et al. 2017 (19 Gesunde, Volltext) war der gerade Bauchmuskel ≈ 27 %, die schrägen ≈ 82–85 % der Maximalkraft aktiv. Souza et al. 2001 (12 Gesunde, Abstract) fanden keinen Muskel über 41 % und halten die Übung für zu leicht für Kraftzuwachs. Varianten und Normierung unterscheiden sich.' }
+    ],
+    sources: {
+      T1: { label: 'Tsartsapakis et al. 2023, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk8030110', read: 'fulltext' },
+      P2: { label: 'Pereira et al. 2017, J Manipulative Physiol Ther', url: 'https://doi.org/10.1016/j.jmpt.2017.02.010', read: 'fulltext' },
+      K2: { label: 'Kim, Cho & Kim 2020, J Korean Soc Integr Med', url: 'https://doi.org/10.15268/ksim.2020.8.2.001', read: 'summary' },
+      S1: { label: 'Souza et al. 2001, Arch Phys Med Rehabil', url: 'https://doi.org/10.1053/apmr.2001.26082', read: 'abstract' }
+    }
   }
 
 ];
 
 // ---------- Szenen (Geräte) ----------
 function trunkPoint(P, dx, dy) { // Punkt in Rumpfkoordinaten (dx nach vorn, dy nach oben) ab Schultergelenk
-  const t = P.angles.trunk * Math.PI / 180, up = [Math.sin(t), -Math.cos(t)], fw = [Math.cos(t), Math.sin(t)];
+  const t = (P.angles.upper ?? P.angles.trunk) * Math.PI / 180, up = [Math.sin(t), -Math.cos(t)], fw = [Math.cos(t), Math.sin(t)]; // v2.13: oberer Rumpf, wenn gebogen
   const s = P.joints.shoulder;
   return [s[0] + fw[0] * dx + up[0] * dy, s[1] + fw[1] * dx + up[1] * dy];
 }
@@ -2743,6 +2915,13 @@ function overheadDbProps(P) {
     { type: 'line', from: [h[0], h[1] + 24], to: [h[0], 0], w: 6 }, foot(h[0] - 45, h[0] + 45),
     db([g[0], g[1] + DB.len / 2 - DB.hw / 2], [0, 1]) // eine Hantel, beidhändig unter dem oberen Kopf gehalten: hängt senkrecht
   ] };
+}
+// ---------- Szenen Runde 10 (v2.13) ----------
+// Matte fest unter dem liegenden Körper (Hüfte bei x = 0 bzw. Schulter bei FLOOR.sh); Sit-up zusätzlich ein Fußhalter (Rolle über dem Rist).
+function matProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: FLOOR.sh[0] - 70, y: -MAT, w: 400, h: MAT, rx: 3 }] }; }
+function situpProps(P) {
+  const an = P.joints.ankle, roll = [an[0] + 14, an[1] - 13];
+  return { anchors: { roll }, scene: [{ type: 'rect', x: FLOOR.sh[0] - 70, y: -MAT, w: 400, h: MAT, rx: 3 }, { type: 'line', from: [roll[0], roll[1]], to: [roll[0], -MAT], w: 4 }, { type: 'bar', at: roll, r: 8 }] };
 }
 function skullProps(P) {
   const g = gripOf(P);

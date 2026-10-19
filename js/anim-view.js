@@ -16,7 +16,7 @@ import * as store from './store.js';
 const figureSex = () => (store.get('settings')?.figure === 'female' ? 'female' : 'male');
 
 const NS = 'http://www.w3.org/2000/svg';
-const JOINT_DE = { shank: 'Schienbein', knee: 'Knie', hip: 'Hüfte', ankle: 'Sprunggelenk', trunk: 'Rumpf', shoulder: 'Schulter', abd: 'Schulter (seitlich)', elbow: 'Ellbogen', foot: 'Fuß', armHang: 'Armneigung' };
+const JOINT_DE = { shank: 'Schienbein', knee: 'Knie', hip: 'Hüfte', ankle: 'Sprunggelenk', trunk: 'Rumpf', curl: 'Rumpfbeugung', shoulder: 'Schulter', abd: 'Schulter (seitlich)', elbow: 'Ellbogen', foot: 'Fuß', armHang: 'Armneigung' };
 const LABEL_W = 88, LABEL_H = 24, GAP = 30, COL = 108, ROWPAD = 62;
 
 export function hasAnimation(ref) { return !!animationFor(ref); }
