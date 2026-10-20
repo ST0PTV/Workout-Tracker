@@ -395,13 +395,54 @@ const ease = (u) => (1 - Math.cos(Math.PI * u)) / 2;
 // Aufeinanderfolgende Phasen mit in → none → out ergeben eine Bewegung ohne Stopp an den Zwischenbildern (Sit-up).
 const EASES = { in: (u) => 1 - Math.cos((Math.PI * u) / 2), none: (u) => u, out: (u) => Math.sin((Math.PI * u) / 2) };
 export function cycleLength(phases) { return phases.reduce((s, p) => s + p.dur, 0); }
-export function phaseAt(phases, t) {
+// v2.15.0: Bewegungsketten. Folgen mehrere Bewegungsphasen ohne Umkehr aufeinander (a → b → c, z. B. Schritt → Aufsetzen → Absenken),
+// bremste bisher jede Phase an ihrem Zwischenbild auf null ab. In einer Kette behält jede Phase ihre Dauer; der Verlauf in der Phase ist
+// eine kubische Hermite-Kurve, deren Steigung am Zwischenbild aus den mittleren Geschwindigkeiten der beiden Nachbarphasen folgt
+// (Weg der Gelenke ÷ Dauer, geometrisches Mittel). So läuft die Bewegung ohne Stopp und ohne Geschwindigkeitssprung durch das Zwischenbild;
+// Anfang und Ende der Kette starten und stoppen weich (Steigung 0). Ohne frames (phaseAt allein) gilt der Weg als proportional zur Dauer.
+// Halten (a === b), Umkehr (c === a), eine Phase mit eigenem ease oder flow: false beenden die Kette.
+const RUNS = new WeakMap();
+function pathLen(frames, a, b) {
+  const A = solvePose(frames[a].pose).joints, B = solvePose(frames[b].pose).joints;
+  let s = 0;
+  for (const k of Object.keys(A)) if (Array.isArray(A[k]) && Array.isArray(B[k])) s += Math.hypot(B[k][0] - A[k][0], B[k][1] - A[k][1]);
+  return s;
+}
+function runsOf(phases, frames) {
+  const key = frames || phases;
+  let byPh = RUNS.get(key);
+  if (!byPh) { byPh = new WeakMap(); RUNS.set(key, byPh); }
+  let r = byPh.get(phases);
+  if (r) return r;
+  r = phases.map(() => null);
+  const moving = (p) => p.a !== p.b && !p.ease && p.flow !== false;
+  for (let i = 0; i < phases.length; ) {
+    let j = i;
+    while (j + 1 < phases.length && moving(phases[j]) && moving(phases[j + 1]) && phases[j + 1].a === phases[j].b && phases[j + 1].b !== phases[j].a) j++;
+    if (j > i) {
+      const rate = [];
+      for (let k = i; k <= j; k++) rate.push((frames ? Math.max(pathLen(frames, phases[k].a, phases[k].b), 1e-3) : phases[k].dur) / phases[k].dur);
+      const at = (n) => (n <= 0 || n >= rate.length ? 0 : Math.sqrt(rate[n - 1] * rate[n])); // Geschwindigkeit an der Grenze vor Teilstück n
+      for (let k = i; k <= j; k++) {
+        const n = k - i;
+        r[k] = { m0: Math.min(3, at(n) / rate[n]), m1: Math.min(3, at(n + 1) / rate[n]) };
+      }
+    }
+    i = j + 1;
+  }
+  byPh.set(phases, r);
+  return r;
+}
+const hermite = (t, m0, m1) => { const t2 = t * t, t3 = t2 * t; return (t3 - 2 * t2 + t) * m0 + (3 * t2 - 2 * t3) + (t3 - t2) * m1; };
+export function phaseAt(phases, t, frames) {
   const T = cycleLength(phases);
   let x = ((t % T) + T) % T;
+  const runs = runsOf(phases, frames);
   for (let i = 0; i < phases.length; i++) {
     const p = phases[i];
     if (x < p.dur || i === phases.length - 1) {
-      const u = p.a === p.b ? 0 : (EASES[p.ease] || ease)(clamp(x / p.dur, 0, 1));
+      const v = clamp(x / p.dur, 0, 1), R = runs[i];
+      const u = p.a === p.b ? 0 : R ? clamp(hermite(v, R.m0, R.m1), 0, 1) : (EASES[p.ease] || ease)(v);
       return { index: i, a: p.a, b: p.b, u, label: p.label, kp: p.kp || [] };
     }
     x -= p.dur;
@@ -443,6 +484,15 @@ export function resolveFrames(frames) {
   });
   const any = (k) => out.some((f) => isSet(f.pose[k]) || (k === 'armHang' && f.pose.armPlumb));
   const fillFoot = any('foot'), fillCurl = any('curl'), fillScale = out.some((f) => f.pose.armScale);
+  // v2.15.0: zweites Bein in beiden Formen (Winkel { hip, knee, ankle } und Ziel { ankle: [x, y], foot }) innerhalb eines Satzes – die Mischung
+  // beider Formen sprang am Keyframe (Ausfallschritt vorwärts: ≈ 5 Einheiten beim Aufsetzen). Winkelform wird in die Zielform umgerechnet.
+  if (out.some((f) => f.pose.leg2 && Array.isArray(f.pose.leg2.ankle)) && out.some((f) => f.pose.leg2 && !Array.isArray(f.pose.leg2.ankle))) {
+    for (const f of out) {
+      if (!f.pose.leg2 || Array.isArray(f.pose.leg2.ankle)) continue;
+      const fd = f.P.F.foot2.d;
+      f.pose.leg2 = { ankle: f.P.joints.ankle2.map(f1), foot: f1(angOf(fd)) };
+    }
+  }
   const hangArm = any('armHang') && !out.some((f) => f.pose.armPoints || f.pose.armTarget || f.pose.armTargetTrunk || f.pose.armAt);
   for (const f of out) {
     const S = f.P.segAngles;
@@ -459,7 +509,7 @@ export function resolveFrames(frames) {
   return out;
 }
 export function poseAt(frames, phases, t) {
-  const ph = phaseAt(phases, t);
+  const ph = phaseAt(phases, t, frames);
   const spec = mixSpec(frames[ph.a].pose, frames[ph.b].pose, ph.u);
   return { pose: solvePose(spec), phase: ph };
 }

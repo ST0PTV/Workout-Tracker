@@ -75,7 +75,21 @@ function barShank(spec, off, x) {
   for (let i = 0; i < 40; i++) { const m = (lo + hi) / 2; if ((bx(m) > x) !== dec) hi = m; else lo = m; }
   return Math.round((lo + hi) / 2 * 10) / 10;
 }
-const GM = { shank: [barShank({ knee: 4, hip: 4 }, [-8, 15], 13), barShank({ knee: 20.1, hip: 100.7 }, [-8, 15], 13)] };
+// v2.15.0: Good Morning – Schienbein so gelöst, dass der gemeinsame Schwerpunkt von Körper und Stange über dem Mittelfuß liegt (vorher: die Stange
+// selbst). Das hielt die Stange zu weit hinten: Schienbein −21°, Oberschenkel stark nach hinten gekippt, die Hüfte „sackte“ nach hinten weg.
+// Segmentmassen nach Dempster (Anteile am Körpergewicht, Trainingswissen, nicht nachgeprüft): Rumpf 0,497, Kopf 0,081, Arme 0,1, Oberschenkel 0,2,
+// Unterschenkel 0,093, Füße 0,029; Stange 0,5 × Körpergewicht (Konvention, Vigotsky et al. 2015 nennen die Last nur in % 1RM).
+function comShank(spec, off, barMass, x) {
+  const lerp = (p, q, u) => [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
+  const cx = (s) => {
+    const P = solvePose({ ...spec, shank: s }), J = P.joints, bar = trunkPoint(P, off[0], off[1]);
+    const parts = [[0.497, lerp(J.shoulder, J.hip, 0.5)], [0.081, lerp(J.hip, J.shoulder, 1.25)], [0.1, J.shoulder], [0.2, lerp(J.hip, J.knee, 0.433)], [0.093, lerp(J.knee, J.ankle, 0.433)], [0.029, [J.ankle[0] + 10, J.ankle[1]]], [barMass, bar]];
+    let m = 0, sx = 0; for (const [w, q] of parts) { m += w; sx += w * q[0]; }
+    return sx / m - x;
+  };
+  return Math.round(bisect(cx, -40, 30) * 10) / 10;
+}
+const GM = { shank: [comShank({ knee: 4, hip: 4 }, [-8, 15], 0.5, 13), comShank({ knee: 20.1, hip: 100.7 }, [-8, 15], 0.5, 13)] };
 // Glute Bridge: Rückenlage, Füße flach (Knöchel bei x = 0). Unten liegen Schultern (y = −20) und Hüftgelenk (y = −26) am Boden,
 // oben bleibt die Schulter an derselben Stelle und Schulter–Hüfte–Knie bilden eine Linie (Hüfte 0°). Verschachtelte Bisektion.
 function bisect(f, lo, hi) { let flo = f(lo); for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2, fm = f(m); if (flo * fm <= 0) hi = m; else { lo = m; flo = fm; } } return (lo + hi) / 2; }
@@ -100,7 +114,9 @@ const DECLINE_POSE = () => ({ root: 'shoulder', rootPos: [0, -96], trunk: V(-105
 // Step-up: Box 40 cm ≈ 82 Einheiten (Bruenger et al. 2012: 38,7–41,3 cm, Knie und Sprunggelenk je 90°).
 const STEPUP = { box: 82 };
 // Goblet Squat: Kurzhantel senkrecht vor dem Brustbein, Hände unter dem oberen Kopf (Konvention).
-const GOBLET = { at: [40, -34], hand: [36, -15] };
+const GOBLET = { at: [34, -34], hand: [30, -30] }; // v2.15.0: Hantel an der Brust, Handgelenk unter dem oberen Kopf (Hände umfassen ihn von unten); Unterarm verkürzt (zeigt nach innen zur Hantel), damit er fast senkrecht steht
+// v2.15.0: Frontkniebeuge – Handgelenk an der Stange vor der Schulter (Rumpfkoordinaten), Ellbogen vorn; Unterarm verkürzt gezeichnet (zeigt schräg nach innen).
+const FSQ_HAND = [20, 6], FSQ_SIDE = 1;
 const DL_BAR = { start: [16, -PLATE], knee: [14, -95], top: [8, -150] };
 
 // Hantelscheibe an einem Punkt (Seitenansicht) – als Szene-Objekt
@@ -186,7 +202,8 @@ const CHIN = (() => {
   return { grip, hang, top, tHang: r1(solveT(hang).t), tTop: r1(solveT(top).t), elbowTop: r1(solveT(top).P.angles.elbow) };
 })();
 // Latzug eng/neutral (Seitenansicht): sitzend, Oberschenkel unter dem Polster; Umlenkrolle über dem Griff in Startstellung.
-const CGP = { hip: [0, -100], start: [18, -121], end: [38, 12] };
+const CGP = { hip: [0, -100], start: [18, -121], end: [38, 12], lean: -10 }; // v2.15.0: lean = leichte Rücklage an der Brust (Konvention)
+const CGP_PULLEY_X = Math.round(solvePose({ root: 'hip', rootPos: CGP.hip, trunk: 0, hip: 90, knee: 90, foot: 90 }).joints.shoulder[0] + CGP.start[0] + 8);
 // Überzüge am Kabel (Seitenansicht): Turm vor der Figur, obere Rolle auf ≈ 2,05 m.
 const SAP = { tower: 240, pulley: [228, -420] };
 // Reverse Butterfly (Frontansicht): sitzend; Arme vorn auf Schulterhöhe (in der Projektion fast ein Punkt) bis seitlich in Linie mit dem Rumpf.
@@ -757,8 +774,8 @@ export const ANIMATIONS = [
     basisNote: 'Knie- und Hüftwinkel aus Sorrentino et al. 2024 (Trägheitssensoren, 12 geübte Männer, Langhantel mit 25 % Körpergewicht; Volltext). Der Hüftwinkel der Sensoren ist ein Becken–Oberschenkel-Winkel und enthält die Beckenkippung; die daraus berechnete Rumpfneigung fällt deshalb größer aus als eine Thorax-Messung. Sprunggelenk nicht gemessen (Wert der Kniebeuge übernommen). Oberarme waagerecht, Stange auf den vorderen Schultern (Protokoll McCormick et al. 2023).',
     tempo: { basis: 'protocol', note: '≈ 3 s je Wiederholung (Sorrentino et al. 2024); 2 s ab / 2 s auf mit Metronom (Goršič et al. 2020, Bozkurt et al. 2026). Natürliches Tempo nicht gemessen.' },
     frames: [
-      { label: 'Oben', pose: { shank: K(0, 'S1', 'Standwert'), knee: V(6, 'S1', 'fulltext', '6,0 ± 5,8° (Langhantel); 4,9 ± 4,6° ohne Last'), hip: V(9, 'S1', 'fulltext', '9,0 ± 7,8° (Langhantel); 11,6 ± 8,3° ohne Last'), ankle: C(0), shoulder: V(90, 'S5', 'protocol', 'Oberarme waagerecht'), elbow: C(140), armScale: [0.9, 0.85], props: frontSquatProps } },
-      { label: 'Unten', pose: { shank: C(33, 'gleich der Dorsalflexion; nicht gemessen'), knee: V(118.3, 'S1', 'fulltext', '118,3 ± 7,0° (Langhantel); 113,5 ± 8,4° ohne Last'), hip: V(111.4, 'S1', 'fulltext', '111,4 ± 11,3° (Langhantel); 126,1 ± 12,1° ohne Last, Becken–Oberschenkel'), ankle: C(33, 'nicht gemessen; Wert der Kniebeuge (33°) übernommen'), shoulder: V(90, 'S5', 'protocol', 'Oberarme waagerecht'), elbow: C(140), armScale: [0.9, 0.85], props: frontSquatProps } }
+      { label: 'Oben', pose: { shank: K(0, 'S1', 'Standwert'), knee: V(6, 'S1', 'fulltext', '6,0 ± 5,8° (Langhantel); 4,9 ± 4,6° ohne Last'), hip: V(9, 'S1', 'fulltext', '9,0 ± 7,8° (Langhantel); 11,6 ± 8,3° ohne Last'), ankle: C(0), shoulder: V(90, 'S5', 'protocol', 'Oberarme waagerecht'), armTargetTrunk: FSQ_HAND, armScale: [0.9, 0.77], elbowSide: FSQ_SIDE, props: frontSquatProps } },
+      { label: 'Unten', pose: { shank: C(33, 'gleich der Dorsalflexion; nicht gemessen'), knee: V(118.3, 'S1', 'fulltext', '118,3 ± 7,0° (Langhantel); 113,5 ± 8,4° ohne Last'), hip: V(111.4, 'S1', 'fulltext', '111,4 ± 11,3° (Langhantel); 126,1 ± 12,1° ohne Last, Becken–Oberschenkel'), ankle: C(33, 'nicht gemessen; Wert der Kniebeuge (33°) übernommen'), shoulder: V(90, 'S5', 'protocol', 'Oberarme waagerecht'), armTargetTrunk: FSQ_HAND, armScale: [0.9, 0.77], elbowSide: FSQ_SIDE, props: frontSquatProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 3] }, { a: 1, b: 0, dur: 1.5, label: 'Aufstehen', kp: [4] }],
     keyPoints: [
@@ -1163,8 +1180,8 @@ export const ANIMATIONS = [
     basisNote: 'Keine Gelenkwinkel für den Goblet Squat gefunden (Collins et al. 2021 messen nur Muskelaktivität und Bodenkräfte). Knie- und Hüftwinkel sind von der Frontkniebeuge mit leichter Last übertragen (Sorrentino et al. 2024, Langhantel mit 25 % Körpergewicht; Volltext) – die Last liegt bei beiden vor dem Körper. Sprunggelenk wie bei der Kniebeuge; Haltung der Kurzhantel ist Konvention.',
     tempo: { basis: 'convention', note: 'Je ≈ 1,5 s ab und auf (Konvention); Collins et al. 2021 werteten Absenk- und Hebephase getrennt aus, ohne Zeiten im Abstract.' },
     frames: [
-      { label: 'Oben', pose: { shank: C(0), knee: V(6, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 6,0 ± 5,8°'), hip: V(9, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 9,0 ± 7,8°'), ankle: C(0), armTargetTrunk: GOBLET.hand, elbowSide: 1, props: gobletProps } },
-      { label: 'Unten', pose: { shank: C(33, 'wie bei der Kniebeuge; nicht gemessen'), knee: V(118.3, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 118,3 ± 7,0° (25 % Körpergewicht)'), hip: V(111.4, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 111,4 ± 11,3°, Becken–Oberschenkel'), ankle: C(33), armTargetTrunk: GOBLET.hand, elbowSide: 1, props: gobletProps } }
+      { label: 'Oben', pose: { shank: C(0), knee: V(6, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 6,0 ± 5,8°'), hip: V(9, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 9,0 ± 7,8°'), ankle: C(0), armTargetTrunk: GOBLET.hand, armScale: [1, 0.6], elbowSide: 1, props: gobletProps } },
+      { label: 'Unten', pose: { shank: C(33, 'wie bei der Kniebeuge; nicht gemessen'), knee: V(118.3, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 118,3 ± 7,0° (25 % Körpergewicht)'), hip: V(111.4, 'S1', 'fulltext', 'übertragen: Frontkniebeuge 111,4 ± 11,3°, Becken–Oberschenkel'), ankle: C(33), armTargetTrunk: GOBLET.hand, armScale: [1, 0.6], elbowSide: 1, props: gobletProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [2] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 1, b: 0, dur: 1.5, label: 'Aufstehen', kp: [1] }],
     keyPoints: [
@@ -1215,11 +1232,11 @@ export const ANIMATIONS = [
   // ---------- Good Morning (v2.9) ----------
   {
     ref: 'good-morning', checkedAt: '2026-10-19', view: 'side', basis: 'measured',
-    basisNote: 'Knie, Hüfte und Lendenbeugung unten aus Vigotsky et al. 2015 (2D-Video, 15 trainierte Männer, 50–90 % 1RM, Stange hochstabig; Tabelle 2 im Volltext geprüft), hier die Werte bei 70 % 1RM. Der Hüftwinkel der Studie ist ein Becken–Oberschenkel-Winkel; der gezeichnete Rumpfwinkel ist daraus plus Lendenbeugung berechnet. Die Schienbeinneigung ist so gelöst, dass die Stange über dem Mittelfuß bleibt.',
+    basisNote: 'Knie, Hüfte und Lendenbeugung unten aus Vigotsky et al. 2015 (2D-Video, 15 trainierte Männer, 50–90 % 1RM, Stange hochstabig; Tabelle 2 im Volltext geprüft), hier die Werte bei 70 % 1RM. Der Hüftwinkel der Studie ist ein Becken–Oberschenkel-Winkel; der gezeichnete Rumpfwinkel ist daraus plus Lendenbeugung berechnet. Die Schienbeinneigung ist so gelöst, dass der gemeinsame Schwerpunkt von Körper und Stange über dem Mittelfuß liegt (Segmentmassen nach Dempster, Stange halbes Körpergewicht; Konvention).',
     tempo: { basis: 'convention', note: 'Je ≈ 1,5 s ab und auf (Konvention). Vigotsky et al. 2015 gaben Tiefe und Tempo bewusst nicht vor.' },
     frames: [
-      { label: 'Oben', pose: { shank: K(GM.shank[0], 'S1', 'so gelöst, dass die Stange über dem Mittelfuß liegt'), knee: C(4), hip: C(4), ankle: C(0), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) } },
-      { label: 'Unten', pose: { shank: K(GM.shank[1], 'S1', 'so gelöst, dass die Stange über dem Mittelfuß liegt'), knee: V(20.1, 'S1', 'fulltext', '20,1° (70 % 1RM; 17,1° bei 50 %, 24,8° bei 90 %)'), hip: K(100.7, 'S1', 'Hüfte 75,7° (Becken–Oberschenkel) plus Lendenbeugung 25,0°, beide bei 70 % 1RM'), ankle: C(0), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) },
+      { label: 'Oben', pose: { shank: K(GM.shank[0], 'S1', 'so gelöst, dass der Schwerpunkt von Körper und Stange über dem Mittelfuß liegt (Konvention)'), knee: C(4), hip: C(4), ankle: C(0), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) } },
+      { label: 'Unten', pose: { shank: K(GM.shank[1], 'S1', 'so gelöst, dass der Schwerpunkt von Körper und Stange über dem Mittelfuß liegt (Konvention)'), knee: V(20.1, 'S1', 'fulltext', '20,1° (70 % 1RM; 17,1° bei 50 %, 24,8° bei 90 %)'), hip: K(100.7, 'S1', 'Hüfte 75,7° (Becken–Oberschenkel) plus Lendenbeugung 25,0°, beide bei 70 % 1RM'), ankle: C(0), armTargetTrunk: [-8, 15], armScale: [0.55, 0.95], elbowSide: -1, props: squatProps([-8, 15]) },
         facts: [V(75.7, 'S1', 'fulltext', 'Hüftbeugung 75,7° (Becken–Oberschenkel), ohne Lasteffekt (74,7–75,8°)'), V(25.0, 'S1', 'fulltext', 'Lendenbeugung 25,0° (25,0–27,5° je nach Last)'), V(5.3, 'S2', 'fulltext', 'Knie 5,3 ± 6,7°, wenn gestreckte Knie verlangt waren (Schellenberg et al. 2013, +25 % Körpergewicht)')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 3] }, { a: 1, b: 0, dur: 1.5, label: 'Aufrichten', kp: [4] }],
@@ -1232,8 +1249,8 @@ export const ANIMATIONS = [
         explain: 'Umstritten, wie stark. Mit gestreckten Knien als Vorgabe 5,3° (Schellenberg et al. 2013); frei gewählt 17° bei 50 % bis 25° bei 90 % 1RM (Vigotsky et al. 2015). Mehr Kniebeugung verkürzt die Beinbeuger.' },
       { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Rücken möglichst neutral halten; ein wenig Rundung tritt trotzdem auf.', src: ['S1', 'S2'],
         explain: 'Auch geübte Personen beugten die Lendenwirbelsäule um 25–27° (Vigotsky et al. 2015) bzw. 24° (Schellenberg et al. 2013). Ob das schadet, wurde nicht untersucht.' },
-      { short: 'Auf', anchor: 'hip', side: 'l', status: 'single', text: 'Über die Hüfte wieder aufrichten, die Stange bleibt über dem Mittelfuß.', src: ['S1'],
-        explain: 'Die Beinbeuger und Rückenstrecker arbeiteten mit steigender Last stärker (Vigotsky et al. 2015). Dass die Stange über dem Mittelfuß bleibt, ist hier gezeichnete Konvention.' }
+      { short: 'Auf', anchor: 'hip', side: 'l', status: 'single', text: 'Über die Hüfte wieder aufrichten, das Gewicht bleibt über dem Mittelfuß.', src: ['S1'],
+        explain: 'Die Beinbeuger und Rückenstrecker arbeiteten mit steigender Last stärker (Vigotsky et al. 2015). Gezeichnet bleibt der gemeinsame Schwerpunkt von Körper und Stange über dem Mittelfuß; das ist Konvention, nicht gemessen.' }
     ],
     sources: {
       S1: { label: 'Vigotsky et al. 2015, PeerJ', url: 'https://doi.org/10.7717/peerj.708', read: 'fulltext', note: 'Tabelle 2 im PMC-Volltext' },
@@ -1673,18 +1690,18 @@ export const ANIMATIONS = [
   // ---------- Latzug eng/neutral (v2.11) ----------
   {
     ref: 'close-grip-lat-pulldown', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
-    basisNote: 'Seitenansicht. Keine Studie hat Gelenkwinkel für den engen Neutralgriff gemessen. Griffbreite (Abstand der Schulterhöhen), aufrechter Rumpf und Tempo stammen aus dem Protokoll von Buonsenso et al. 2025 (Volltext), Oberschenkelpolster und Zug bis zur Brust aus Padovan et al. 2024 (Volltext). Schulter- und Ellbogenwinkel, Sitz und Rolle sind Zeichenkonvention.',
+    basisNote: 'Seitenansicht. Keine Studie hat Gelenkwinkel für den engen Neutralgriff gemessen. Griffbreite (Abstand der Schulterhöhen), aufrechter Rumpf und Tempo stammen aus dem Protokoll von Buonsenso et al. 2025 (Volltext), Oberschenkelpolster und Zug bis zur Brust aus Padovan et al. 2024 (Volltext). Schulter- und Ellbogenwinkel, Sitz und Rolle sind Zeichenkonvention. Die leichte Rücklage beim Ziehen (≈ 10°) ist ebenfalls Konvention; eine Messung der Rumpfneigung beim engen Griff wurde nicht gefunden (PubMed-Suche 2026-10-21).',
     tempo: { basis: 'protocol', note: '2 s ziehen, 2 s zurück (Buonsenso et al. 2025; Lusk et al. 2010).' },
     frames: [
       { label: 'Oben', pose: { root: 'hip', rootPos: CGP.hip, trunk: V(0, 'L2', 'protocol', 'aufrecht (enger Neutralgriff ohne Rumpfneigung)'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.start, elbowSide: 1, props: cgpProps },
         facts: [V(0, 'L4', 'protocol', 'Start mit gestreckten Armen')] },
-      { label: 'Brust', pose: { root: 'hip', rootPos: CGP.hip, trunk: V(0, 'L2', 'protocol', 'aufrecht'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.end, elbowSide: 1, props: cgpProps },
+      { label: 'Brust', pose: { root: 'hip', rootPos: CGP.hip, trunk: C(CGP.lean, 'leichte Rücklage beim Ziehen (Zeichenkonvention; im Protokoll aufrecht)'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.end, elbowSide: 1, props: cgpProps },
         facts: [V(1, 'L1', 'protocol', 'Griff bis zur Brust')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 1, dur: 0.5, label: 'Brust', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
     keyPoints: [
-      { short: 'Sitz', anchor: 'thigh', side: 'r', status: 'consensus', text: 'Oberschenkel unter dem Polster fixieren, Rumpf aufrecht halten.', src: ['L1', 'L2'],
-        explain: 'Oberschenkelpolster fixiert das Becken (Padovan et al. 2024); aufrechter Rumpf beim engen Neutralgriff (Buonsenso et al. 2025, 40 trainierte Männer). Eine Variante mit 30° Neigung wurde dort nur mit weitem Griff getestet.' },
+      { short: 'Sitz', anchor: 'thigh', side: 'r', status: 'consensus', text: 'Oberschenkel unter dem Polster fixieren, Rumpf fast aufrecht halten.', src: ['L1', 'L2'],
+        explain: 'Oberschenkelpolster fixiert das Becken (Padovan et al. 2024); aufrechter Rumpf beim engen Neutralgriff (Buonsenso et al. 2025, 40 trainierte Männer). Eine Variante mit 30° Neigung wurde dort nur mit weitem Griff getestet. Gezeichnet ist beim Ziehen eine leichte Rücklage von etwa 10°, wie sie im Training häufig zu sehen ist – Zeichenkonvention, nicht gemessen.' },
       { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Enger Neutralgriff, etwa so breit wie der Abstand der Schulterhöhen.', src: ['L2'],
         explain: 'Griffbreite gleich der Biakromialbreite, mit dem Messzirkel bestimmt (Buonsenso et al. 2025). V-Griffe sind oft schmaler; verglichen wurde das nicht.' },
       { short: 'Zug', anchor: 'elbow', side: 'l', status: 'single', text: 'Griff bis zur Brust ziehen, die Ellbogen gehen dabei nach unten.', src: ['L1'],
@@ -2552,7 +2569,7 @@ function pulldownProps(P) {
   return { anchors: { bar: [0, y] }, scene: [
     { type: 'rect', x: -36, y: -100, w: 72, h: 10, rx: 3 }, { type: 'line', from: [0, -90], to: [0, 0], w: 5 }, foot(-64, 64), // Sitz, Standfuß
     { type: 'line', from: [-32, -376], to: [32, -376], w: 6 }, { type: 'bar', at: [0, -370], r: 6 }, // Träger und Umlenkrolle oben
-    { type: 'line', from: [0, -370], to: [0, y - 4], w: 1.5, dash: true }, // Seilzug
+    { type: 'line', from: [0, -370], to: [0, y - 4], w: 1.5, dash: true, front: true }, // Seilzug (v2.15.0: vor dem Gesicht, wie die Stange)
     // Oberschenkelpolster: zwei Polster auf den Oberschenkeln, an den Sitzkanten gehalten
     { type: 'rect', x: -34, y: -130, w: 28, h: 10, rx: 4, front: true }, { type: 'rect', x: 6, y: -130, w: 28, h: 10, rx: 4, front: true },
     { type: 'line', from: [-34, -125], to: [-34, -100], w: 4 }, { type: 'line', from: [34, -125], to: [34, -100], w: 4 },
@@ -2635,7 +2652,7 @@ function chestPressProps(P) {
   const pivot = [sh[0] - 46, sh[1] - 60]; // Drehpunkt der Hebelarme hinter und über der Schulter (Konvention); Hebel läuft seitlich am Körper vorbei
   return { anchors: { hand }, scene: [
     { type: 'rect', x: h[0] - 30, y: h[1] + 2, w: 70, h: 12, rx: 4 }, benchLine(P, 26, 140, -8), // Sitz, Lehne
-    { type: 'line', from: [h[0] - 40, h[1] + 14], to: [h[0] - 40, 0], w: 6 }, { type: 'line', from: [pivot[0], 0], to: pivot, w: 7 }, foot(h[0] - 70, h[0] + 30), // Sitzstütze, Säule
+    { type: 'line', from: [h[0] - 10, h[1] + 14], to: [h[0] - 10, 0], w: 6 }, { type: 'line', from: [pivot[0], 0], to: pivot, w: 7 }, foot(h[0] - 70, h[0] + 30), // Sitzstütze (v2.15.0: unter dem Sitz statt daneben), Säule
     { type: 'line', from: pivot, to: [pivot[0] + 30, hand[1] - 2], w: 5 }, { type: 'line', from: [pivot[0] + 30, hand[1] - 2], to: [hand[0], hand[1] - 2], w: 5 }, // Hebelarm hinter dem Körper
     { type: 'line', from: [hand[0], hand[1] - 14], to: [hand[0], hand[1] + 10], w: 5, front: true } // Griff
   ] };
@@ -2702,7 +2719,7 @@ function legExtensionProps(P) {
   return { anchors: { pad }, scene: [
     { type: 'rect', x: h[0] - 40, y: h[1] + 2, w: 90, h: 12, rx: 4 }, benchLine(P, 26, 120, -8), // Sitz, Lehne
     { type: 'line', from: [h[0] - 10, h[1] + 14], to: [h[0] - 10, 0], w: 6 }, { type: 'line', from: [h[0] - 50, 0], to: [h[0] + 40, 0], w: 4 },
-    { type: 'line', from: kn, to: pad, w: 7, front: true }, { type: 'bar', at: pad, r: 11 } // gepolsterter Hebel ab Knieachse, Rolle
+    { type: 'line', from: kn, to: pad, w: 7, back: true }, { type: 'bar', at: pad, r: 11 } // gepolsterter Hebel ab Knieachse (seitlich, v2.15.0: hinter dem Bein), Rolle
   ] };
 }
 function legCurlProps(P) {
@@ -2715,7 +2732,7 @@ function legCurlProps(P) {
     { type: 'line', from: along(h, segNrm(P, 'thigh'), 20), to: along(seat, segNrm(P, 'thigh'), 20), w: 14 }, // schräges Polster Oberschenkel
     { type: 'line', from: [h[0] + 20, h[1] + 27], to: [h[0] + 20, 0], w: 6 }, { type: 'line', from: [s[0] + 30, h[1] + 27], to: [s[0] + 30, 0], w: 6 },
     foot(Math.min(h[0] + 20, s[0] + 30) - 30, Math.max(h[0] + 20, s[0] + 30) + 30), // Standfuß
-    { type: 'line', from: kn, to: pad, w: 7, front: true }, { type: 'bar', at: pad, r: 11 }
+    { type: 'line', from: kn, to: pad, w: 7, back: true }, { type: 'bar', at: pad, r: 11 } // v2.15.0: Hebel seitlich, hinter dem Bein
   ] };
 }
 function ohpProps(P) { const bar = P.joints.hand; return { anchors: { bar }, scene: [plate(bar)] }; }
@@ -2755,14 +2772,17 @@ function oneRowProps(P) {
     db(hand, [1, 0]) // Neutralgriff: Griff läuft von vorn nach hinten
   ] };
 }
+// v2.15.0: kleinere Scheiben weiter vorn an der Stange – die 45-cm-Scheibe ragte oben in Brust und Oberschenkel. Werte so gewählt, dass der Rand
+// über den ganzen Zyklus ≥ 2 Einheiten vor der Körperkontur bleibt (Test); Ø ≈ 30 cm entspricht kleinen Scheiben (Konvention).
+const TBAR_PLATE = { r: 30, off: 40 };
 function tbarProps(P) {
   const g = P.joints.hand, p = TBAR.pivot, u = unit2([g[0] - p[0], g[1] - p[1]]), L = Math.hypot(g[0] - p[0], g[1] - p[1]);
-  const pl = along(p, u, L + 30), end = along(p, u, L + 52);
+  const pl = along(p, u, L + TBAR_PLATE.off), end = along(p, u, L + TBAR_PLATE.off + 22);
   return { anchors: { hand: g, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
     { type: 'rect', x: p[0] - 16, y: -12, w: 32, h: 12, rx: 3 }, { type: 'bar', at: p, r: 6 }, // Bodenplatte mit Drehpunkt (Landmine)
     { type: 'line', from: p, to: end, w: 5 }, // Stange
     { type: 'line', from: along(g, [u[1], -u[0]], -4), to: along(g, [u[1], -u[0]], 8), w: 4, front: true }, // Griff unter der Stange
-    { ...plate(pl), back: true } // Scheiben in der Körpermitte: hinter dem nahen Arm
+    { ...plate(pl, TBAR_PLATE.r), back: true } // Scheiben in der Körpermitte: hinter dem nahen Arm
   ] };
 }
 function csrProps(P) {
@@ -2807,7 +2827,7 @@ function chinProps(P) {
 }
 function cgpProps(P) {
   const h = P.joints.hip, k = P.joints.knee, hand = P.joints.hand, s = P.joints.shoulder;
-  const pulley = [s[0] + CGP.start[0] + 8, -410], col = pulley[0] + 80;
+  const pulley = [CGP_PULLEY_X, -410], col = pulley[0] + 80; // v2.15.0: Rolle fest in der Welt (vorher an der Schulter – wanderte bei Rücklage mit)
   return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
     { type: 'rect', x: h[0] - 34, y: h[1] + 6, w: 72, h: 10, rx: 3 }, { type: 'line', from: [h[0], h[1] + 16], to: [h[0], 0], w: 5 }, foot(h[0] - 40, col + 40), // Sitz
     { type: 'bar', at: [k[0] - 18, k[1] - 24], r: 9 }, { type: 'line', from: [k[0] - 18, k[1] - 24], to: [col, k[1] - 24], w: 4 }, // Oberschenkelpolster mit Halter
@@ -2920,7 +2940,7 @@ function overheadDbProps(P) {
   return { anchors: { hand: g, uarm: uarmMid(P) }, scene: [
     { type: 'rect', x: h[0] - 30, y: h[1] + 14, w: 64, h: 10, rx: 3 }, benchLine(P, 24, 105, -14), // Sitz, Lehne
     { type: 'line', from: [h[0], h[1] + 24], to: [h[0], 0], w: 6 }, foot(h[0] - 45, h[0] + 45),
-    db([g[0], g[1] + DB.len / 2 - DB.hw / 2], [0, 1]) // eine Hantel, beidhändig unter dem oberen Kopf gehalten: hängt senkrecht
+    db([g[0], g[1] + DB.len / 2 - DB.hw / 2 - 23], [0, 1]) // eine Hantel, beidhändig unter dem oberen Kopf gehalten: hängt senkrecht; v2.15.0: der obere Kopf sitzt in den Handflächen und verdeckt die Fingerspitzen (vorher ragte die Hand über den Kopf)
   ] };
 }
 // ---------- Szenen Runde 10 (v2.13) ----------

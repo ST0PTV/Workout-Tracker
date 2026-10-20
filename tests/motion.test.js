@@ -349,4 +349,90 @@ test('v2.14.1: „Konsens“ braucht mindestens zwei Quellen', () => {
   }
 });
 
+
+// ---------- v2.15.0 ----------
+const jointSpeed = (fr, ph, t, dt = 1 / 240) => {
+  const J = (x) => Object.values(M.poseAt(fr, ph, x).pose.joints).filter((p) => Array.isArray(p) && p.length === 2);
+  const a = J(t - dt / 2), b = J(t + dt / 2); let s = 0; for (let i = 0; i < a.length; i++) s += Math.hypot(b[i][0] - a[i][0], b[i][1] - a[i][1]); return s / dt;
+};
+test('v2.15.0: Bewegungsketten ohne Stopp am Zwischenbild, Phasendauern bleiben', () => {
+  for (const ref of ['standing-barbell-overhead-press', 'dumbbell-forward-lunge', 'dumbbell-reverse-lunge', 'dumbbell-step-up', 'smith-machine-squat', 'deadlift', 'dumbbell-fly']) {
+    const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases);
+    let peak = 0; for (let t = 0; t < T; t += 0.01) peak = Math.max(peak, jointSpeed(fr, a.phases, t));
+    let t0 = 0;
+    a.phases.forEach((p, i) => {
+      const q = a.phases[(i + 1) % a.phases.length]; t0 += p.dur;
+      if (p.a !== p.b && q.a !== q.b && q.a === p.b && q.b !== p.a) assert.ok(jointSpeed(fr, a.phases, t0) / peak > 0.15, `${ref}: Stopp bei ${p.label} → ${q.label}`);
+    });
+    const occ = a.phases.map(() => 0); for (let t = 0; t < T; t += 0.001) occ[M.phaseAt(a.phases, t, fr).index] += 0.001;
+    a.phases.forEach((p, i) => near(occ[i], p.dur, 0.01, `${ref} Dauer ${p.label}`));
+  }
+  // Umkehr (Dead Bug) und Halten bleiben wie bisher: Stopp am Wendepunkt
+  const db = D.animationFor('dead-bug'), fdb = M.resolveFrames(D.framesOf(db));
+  const tw = db.phases[0].dur + db.phases[1].dur; assert.ok(jointSpeed(fdb, db.phases, tw) < 1, 'Dead Bug hält am Wendepunkt');
+});
+
+test('v2.15.0: Griffe – Frontkniebeuge Hand an der Stange, Goblet Unterarm steil, Überkopf-Hantel verdeckt die Fingerspitzen', () => {
+  const fs = D.animationFor('front-squat'), ffs = M.resolveFrames(D.framesOf(fs));
+  for (const f of ffs) { const P = M.solvePose(f.pose), bar = P.scene.find((s) => s.type === 'plate').at;
+    assert.ok(Math.hypot(P.joints.wrist[0] - bar[0], P.joints.wrist[1] - bar[1]) < 20, `Frontkniebeuge ${f.label}: Handgelenk an der Stange`);
+    assert.ok(P.joints.hand[1] > P.joints.shoulder[1] - 20, `Frontkniebeuge ${f.label}: Hand nicht am Ohr`); }
+  const gb = D.animationFor('goblet-squat'), fgb = M.resolveFrames(D.framesOf(gb));
+  for (const f of fgb) { const P = M.solvePose(f.pose), J = P.joints, t = P.angles.trunk;
+    const fa = Math.atan2(J.wrist[0] - J.elbow[0], -(J.wrist[1] - J.elbow[1])) * 180 / Math.PI - t;
+    assert.ok(Math.abs(fa) < 25, `Goblet ${f.label}: Unterarm fast parallel zum Rumpf (${fa.toFixed(0)}°)`); }
+  const oh = D.animationFor('overhead-dumbbell-triceps-extension'), foh = M.resolveFrames(D.framesOf(oh));
+  const P = M.solvePose(foh[1].pose), dbs = P.scene.find((s) => s.type === 'db');
+  let tip = 1e9; for (const sh of M.shapesFor('male')) if (sh.seg === 'farm' && sh.id === 'body') for (const q of sh.pts) tip = Math.min(tip, M.tf(P, 'farm', q)[1]);
+  assert.ok(dbs.at[1] - 39 <= tip + 1, 'Überkopf oben: oberer Hantelkopf über den Fingerspitzen');
+});
+
+test('v2.15.0: Good Morning – Schienbein fast senkrecht, Schwerpunkt-Lösung', () => {
+  const a = D.animationFor('good-morning'), fr = M.resolveFrames(D.framesOf(a));
+  const sh = fr.map((f) => M.num ? M.num(f.pose.shank) : f.pose.shank.v);
+  assert.ok(sh[1] > -15 && sh[1] < 5, `Schienbein unten ${sh[1]}° (vorher −20,7°)`);
+});
+
+test('v2.15.0: Geräte – Hebel hinter dem Bein, Sitzstütze unter dem Sitz, T-Bar-Scheiben frei, feste Rolle beim engen Latzug', () => {
+  for (const ref of ['leg-extension', 'lying-leg-curl']) {
+    const a = D.animationFor(ref), P = M.solvePose(M.resolveFrames(D.framesOf(a))[0].pose);
+    const lever = P.scene.find((s) => s.type === 'line' && s.w === 7 && Math.hypot(s.from[0] - P.joints.knee[0], s.from[1] - P.joints.knee[1]) < 1);
+    assert.ok(lever && lever.back && !lever.front, `${ref}: Hebel hinter dem Bein`);
+  }
+  const cp = M.solvePose(M.resolveFrames(D.framesOf(D.animationFor('chest-press-machine')))[0].pose);
+  const seat = cp.scene.find((s) => s.type === 'rect'), post = cp.scene.find((s) => s.type === 'line' && s.to[1] === 0 && Math.abs(s.from[1] - (seat.y + seat.h)) < 1);
+  assert.ok(post && post.from[0] >= seat.x && post.from[0] <= seat.x + seat.w, 'Brustpresse: Stütze unter dem Sitz');
+  const tb = D.animationFor('t-bar-row'), ftb = M.resolveFrames(D.framesOf(tb)), T = M.cycleLength(tb.phases);
+  for (let i = 0; i <= 30; i++) {
+    const { pose } = M.poseAt(ftb, tb.phases, (T * i) / 30 - (i === 30 ? 1e-6 : 0)), pl = pose.scene.find((s) => s.type === 'plate');
+    for (const sh of M.shapesFor('male')) if (sh.id === 'body' && ['trunk', 'thigh'].includes(sh.seg)) for (const q of sh.pts) {
+      const w = M.tf(pose, sh.seg, q); assert.ok(Math.hypot(w[0] - pl.at[0], w[1] - pl.at[1]) >= pl.r, `T-Bar t=${i}: Scheibe im Körper`); }
+  }
+  const cg = D.animationFor('close-grip-lat-pulldown'), fcg = M.resolveFrames(D.framesOf(cg));
+  const rolls = fcg.map((f) => M.solvePose(f.pose).scene.find((s) => s.type === 'bar' && s.r === 8).at[0]);
+  near(rolls[0], rolls[1], 0.01, 'Rolle bleibt bei Rücklage stehen');
+  assert.ok(M.solvePose(fcg[1].pose).angles.trunk < -5, 'Rücklage an der Brust');
+});
+
+test('v2.15.0: Frontansicht – Kopf bei starker Vorneigung vor dem Rumpf, aufrecht unverändert', () => {
+  const up = MF.solveFront({ trunkFlex: 0 }), bent = MF.solveFront({ trunkFlex: 75 });
+  near(up.joints.head[1] - up.joints.shoulderR[1], -71, 0.5, 'aufrecht: Kopf wie bisher');
+  assert.ok(bent.joints.head[1] - bent.joints.shoulderR[1] > -40, 'vorgebeugt: Kopf tiefer');
+  const L = MF.layersFront(bent, () => '', 'male'), idxArms = L.length; // Kopf wird nach den Rumpfmuskeln erneut gezeichnet
+  assert.ok(L.filter((l) => l.cls === 'an-body fill').length > MF.layersFront(up, () => '', 'male').filter((l) => l.cls === 'an-body fill').length, 'Kopf zusätzlich vorn');
+  assert.ok(idxArms > 0);
+});
+
+
+test('v2.15.0: Kein Sprung an Phasengrenzen (alle Animationen und Varianten)', () => {
+  for (const a of D.ANIMATIONS) for (const v of a.variants ? a.variants.map((x) => x.key) : [undefined]) {
+    const fr = M.resolveFrames(D.framesOf(a, v)); let t0 = 0;
+    for (const p of a.phases) {
+      t0 += p.dur;
+      const A = M.poseAt(fr, a.phases, t0 - 1e-4).pose.joints, B = M.poseAt(fr, a.phases, t0 + 1e-4).pose.joints;
+      for (const k of Object.keys(A)) if (Array.isArray(A[k]) && A[k].length === 2 && B[k]) assert.ok(Math.hypot(B[k][0] - A[k][0], B[k][1] - A[k][1]) < 0.5, `${a.ref}${v ? ':' + v : ''} ${p.label}: ${k} springt`);
+    }
+  }
+});
+
 done();

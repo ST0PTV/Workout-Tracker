@@ -28,8 +28,12 @@ const nrm = (d) => [d[1], -d[0]];
 const fdir = (deg) => [Math.sin(deg * DEG), Math.cos(deg * DEG)];
 
 // Gelenke im Stand (rechte Seite; linke gespiegelt)
-const NECK_F = 40;
-const neckFold = (e, f) => (f >= 1 ? e : e <= NECK_F ? e * f : NECK_F * f + (e - NECK_F)); // e: Abstand über der Schulter entlang des Rumpfs
+// e: Abstand über der Schulter entlang des Rumpfs. Hals (bis zum Kinn) wird mit dem Rumpf verkürzt (bis v2.14: bis NECK_F). v2.15.0: Der Kopf wird als Ganzes so verschoben,
+// dass seine Mitte (HEAD_C) ebenfalls verkürzt erscheint (bleibt dabei unverzerrt). Vorher saß der Kopf bei starker Vorneigung in voller Höhe
+// auf dem kurzen Rumpf – die Figur wirkte wie ein aufrechter, gestauchter Oberkörper (vorgebeugtes Seitheben). Jetzt liegt der Kopf vor dem
+// oberen Rücken, wie man ihn von vorn sieht. Bei aufrechtem Rumpf (f = 1) unverändert.
+const HEAD_C = 49, CHIN_E = 26; // Kopfmitte (y −336) und Kinn (y −313) über der Schulter (y −287)
+const neckFold = (e, f) => (f >= 1 ? e : e < CHIN_E ? e * f : e - HEAD_C + HEAD_C * f);
 export const J0F = { pelvis: [0, -183], hip: [16, -183], knee: [13, -95], ankle: [13, -15], shoulder: [38, -287], elbow: [43, -219], wrist: [46, -165] };
 const MIN_SCALE = 0.12;
 
@@ -225,7 +229,7 @@ function tfF(P, seg, side, pt) {
   const nRest = nrm(dRest);
   const v = sub(pRest, JRest);
   const ur = dot(v, dRest), f = A.f || 1, w = dot(v, nRest);
-  // v2.11: Bei Vorneigung zeigt der Hals zum Betrachter – der Halsbereich (NECK_F über der Schulter) wird mit dem Rumpf verkürzt,
+  // v2.11: Bei Vorneigung zeigt der Hals zum Betrachter – der Halsbereich bis zum Kinn wird mit dem Rumpf verkürzt,
   // der Kopf darüber nur verschoben (bleibt unverzerrt) und sinkt so zur Schulterlinie.
   const u = seg === 'trunk' && f !== 1 ? Math.min(ur, LEN.trunk) * f + neckFold(Math.max(0, ur - LEN.trunk), f) : ur * f;
   return [A.J[0] + u * A.d[0] + w * A.n[0], A.J[1] + u * A.d[1] + w * A.n[1]];
@@ -276,6 +280,11 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
   };
   group(['thigh', 'shank', 'foot'], [['kneeR', 8], ['kneeL', 8]]);
   group(['trunk'], []);
+  // v2.15.0: Bei starker Vorneigung liegt der Kopf vor dem oberen Rücken – er wird nach den Rumpfmuskeln noch einmal gezeichnet (sonst verdeckt).
+  if (P.F.trunk && P.F.trunk.f < 0.6) {
+    const head = shapesForF(sex).find((sh) => sh.part === 'head');
+    if (head) { const d = smooth(head.pts.map((q) => tfFS(P, 'trunk', 'R', q))); out.push({ d, cls: 'an-body edge' }, { d, cls: 'an-body fill' }); }
+  }
   group(['uarm', 'farm'], [['shoulderR', 10], ['shoulderL', 10], ['elbowR', 6], ['elbowL', 6]]);
   return out;
 }
