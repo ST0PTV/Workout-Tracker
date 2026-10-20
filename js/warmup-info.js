@@ -18,6 +18,6 @@ export const WARMUP_INFO = {
     { label: 'McCrary, Ackermann & Halaki 2015, Br J Sports Med (Systematic Review)', url: 'https://doi.org/10.1136/bjsports-2014-094228', note: 'Keine Studie zu Verletzungen; Aufwärmen mit hoher Last verbessert Kraft und Leistung im Oberkörper.' },
     { label: 'Iversen, Norum, Schoenfeld & Fimland 2021, Sports Med (Narrative Review)', url: 'https://doi.org/10.1007/s40279-021-01490-1', note: 'Empfiehlt, spezifisches Aufwärmen auf die erste Übung je Muskelgruppe zu beschränken.' },
     { label: 'Lisboa et al. 2024, Aging Clin Exp Res', url: 'https://doi.org/10.1007/s40520-024-02880-x', note: 'Zusätzlicher Aufwärmsatz vor Isolationsübungen nach Grundübungen brachte nichts bzw. weniger Wiederholungen (ältere trainierte Frauen).' },
-    { label: 'Barroso et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3182606cd9', note: 'Langes, intensives allgemeines Aufwärmen senkte das 1RM, leichtes erhöhte es.' }
+    { label: 'Barroso et al. 2013, J Strength Cond Res (RCT, Crossover)', url: 'https://doi.org/10.1519/JSC.0b013e3182606cd9', note: 'Langes, intensives allgemeines Aufwärmen senkte das 1RM, leichtes erhöhte es.' }
   ]
 };

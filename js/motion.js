@@ -391,6 +391,9 @@ export function layers(P, roleOf = () => '', sex = 'male') {
 // ---------- Zeitachse ----------
 // phases: [{ a, b, dur, label, kp }] – von Keyframe a nach b (a === b: halten), kp = aktive Kernpunkte (Indizes).
 const ease = (u) => (1 - Math.cos(Math.PI * u)) / 2;
+// v2.14.1: optional phases[].ease – 'in' (aus der Ruhe anfahren, am Ende mit Tempo), 'none' (gleichmäßig), 'out' (mit Tempo starten, sanft stoppen).
+// Aufeinanderfolgende Phasen mit in → none → out ergeben eine Bewegung ohne Stopp an den Zwischenbildern (Sit-up).
+const EASES = { in: (u) => 1 - Math.cos((Math.PI * u) / 2), none: (u) => u, out: (u) => Math.sin((Math.PI * u) / 2) };
 export function cycleLength(phases) { return phases.reduce((s, p) => s + p.dur, 0); }
 export function phaseAt(phases, t) {
   const T = cycleLength(phases);
@@ -398,7 +401,7 @@ export function phaseAt(phases, t) {
   for (let i = 0; i < phases.length; i++) {
     const p = phases[i];
     if (x < p.dur || i === phases.length - 1) {
-      const u = p.a === p.b ? 0 : ease(clamp(x / p.dur, 0, 1));
+      const u = p.a === p.b ? 0 : (EASES[p.ease] || ease)(clamp(x / p.dur, 0, 1));
       return { index: i, a: p.a, b: p.b, u, label: p.label, kp: p.kp || [] };
     }
     x -= p.dur;
@@ -439,13 +442,14 @@ export function resolveFrames(frames) {
     return { ...f, pose, P };
   });
   const any = (k) => out.some((f) => isSet(f.pose[k]) || (k === 'armHang' && f.pose.armPlumb));
-  const fillFoot = any('foot'), fillCurl = any('curl');
+  const fillFoot = any('foot'), fillCurl = any('curl'), fillScale = out.some((f) => f.pose.armScale);
   const hangArm = any('armHang') && !out.some((f) => f.pose.armPoints || f.pose.armTarget || f.pose.armTargetTrunk || f.pose.armAt);
   for (const f of out) {
     const S = f.P.segAngles;
     for (const k of LEG_KEYS) if (!isSet(f.pose[k])) f.pose[k] = f1(S[k]);
     if (fillFoot && !isSet(f.pose.foot)) f.pose.foot = f1(S.foot);
     if (fillCurl && !isSet(f.pose.curl)) f.pose.curl = 0;
+    if (fillScale && !f.pose.armScale) f.pose.armScale = [1, 1]; // v2.14.1: armScale nur in einem Keyframe → Arm sprang am Phasenende (Langhantelrudern)
     if (hangArm) { // armPlumb ≙ armHang 0; beide Formen mischen sich dann als Zahl
       if (f.pose.armPlumb) { delete f.pose.armPlumb; if (!isSet(f.pose.armHang)) f.pose.armHang = 0; }
       if (!isSet(f.pose.elbow)) f.pose.elbow = f1(S.elbow);

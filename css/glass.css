@@ -664,9 +664,9 @@ body { overflow-wrap: anywhere; }
 .info-btn.small::after { content: ''; position: absolute; inset: -7px; }
 
 /* v2.8.0: Pool – Auswählen-Modus und „Alle übernehmen“ */
-.pool-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pool-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
 .pool-top p { flex: 1; margin: 0; }
-.pool-top .chip { min-height: 36px; padding: 0 14px; }
+.pool-top .chip { min-height: 40px; padding: 0 14px; }
 .box { flex: none; width: 28px; height: 28px; border-radius: 9px; border: 2px solid rgba(255, 255, 255, 0.35); display: inline-flex; align-items: center; justify-content: center; color: #06101f; }
 .box.on { background: linear-gradient(135deg, var(--accent-2), var(--accent)); border-color: transparent; }
 .box.dashed { border-style: dashed; }

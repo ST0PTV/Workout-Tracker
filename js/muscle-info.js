@@ -10,7 +10,7 @@ export const MUSCLE_INFO = {
     includes: 'Großer Brustmuskel (Pectoralis major) mit Schlüsselbein- und Brustbeinanteil; darunter der kleine Brustmuskel.',
     location: 'Vordere Brustwand, vom Schlüsselbein und Brustbein zum Oberarm.',
     functions: ['Zieht den Arm zum Körper heran und dreht ihn nach innen.', 'Oberer Anteil hebt den Arm nach vorne.', 'Unterer Anteil führt den gehobenen Arm wieder nach unten.'],
-    sources: [{ label: 'StatPearls: Pectoralis Major (Solari & Burns 2023)', url: 'https://www.ncbi.nlm.nih.gov/books/NBK525991/' }, TMA('upper-limb/muscles/pectoral-region/', 'Muscles of the Pectoral Region')]
+    sources: [{ label: 'Solari & Burns 2023, StatPearls: Pectoralis Major', url: 'https://www.ncbi.nlm.nih.gov/books/NBK525991/' }, TMA('upper-limb/muscles/pectoral-region/', 'Muscles of the Pectoral Region')]
   },
   'front-delts': {
     includes: 'Vorderer Anteil des Deltamuskels (Pars clavicularis).',
@@ -34,7 +34,7 @@ export const MUSCLE_INFO = {
     includes: 'Breiter Rückenmuskel (Latissimus dorsi); der Teres major arbeitet mit ihm zusammen.',
     location: 'Großer, flacher Muskel am unteren und seitlichen Rücken, von Wirbelsäule und Becken zur Vorderseite des Oberarms.',
     functions: ['Zieht den Arm nach unten, nach hinten und zum Körper.', 'Dreht den Arm nach innen.', 'Zieht bei festgehaltenen Armen (Klimmzug) den Körper nach oben.'],
-    sources: [{ label: 'StatPearls: Latissimus Dorsi (Jeno & Varacallo 2023)', url: 'https://www.ncbi.nlm.nih.gov/books/NBK448120/' }, TMA('upper-limb/muscles/shoulder/extrinsic/', 'Extrinsic Muscles of the Shoulder')]
+    sources: [{ label: 'Jeno & Varacallo 2023, StatPearls: Latissimus Dorsi', url: 'https://www.ncbi.nlm.nih.gov/books/NBK448120/' }, TMA('upper-limb/muscles/shoulder/extrinsic/', 'Extrinsic Muscles of the Shoulder')]
   },
   'upper-back': {
     includes: 'Trapezmuskel (oberer, mittlerer, unterer Anteil) und die Rhomboiden.',
@@ -112,7 +112,7 @@ export const MUSCLE_INFO = {
     includes: 'Wadenmuskel (Gastrocnemius, zwei Köpfe) und Schollenmuskel (Soleus).',
     location: 'Rückseite des Unterschenkels, über die Achillessehne zur Ferse.',
     functions: ['Heben die Ferse (Fußspitzenstand).', 'Gastrocnemius überquert auch das Knie, der Soleus nicht.', 'Stehend trainiert vor allem den Gastrocnemius, sitzend vor allem den Soleus (MRT-Studie).'],
-    sources: [KH('triceps-surae-muscle', 'Triceps surae'), TMA('lower-limb/muscles/leg/posterior-compartment', 'Posterior Compartment of the Leg'), { label: 'Kinoshita, Maeo et al. 2023, Front Physiol', url: 'https://doi.org/10.3389/fphys.2023.1272106' }]
+    sources: [KH('triceps-surae-muscle', 'Triceps surae'), TMA('lower-limb/muscles/leg/posterior-compartment', 'Posterior Compartment of the Leg'), { label: 'Kinoshita et al. 2023, Front Physiol', url: 'https://doi.org/10.3389/fphys.2023.1272106' }]
   },
   'hip-flexors': {
     includes: 'Iliopsoas (Psoas major und Iliacus); Rectus femoris und Tensor fasciae latae helfen mit.',

@@ -299,4 +299,54 @@ test('Liegende Übungen (v2.13): Körper liegt auf der Matte, nichts sinkt in de
   }
 });
 
+
+test('v2.14.1: Langhantelrudern ohne Sprung am Schleifenende (armScale in allen Keyframes)', () => {
+  const a = D.animationFor('barbell-row'), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases);
+  for (const f of fr) assert.ok(Array.isArray(f.pose.armScale), 'armScale in jedem Keyframe');
+  const p0 = M.poseAt(fr, a.phases, 0).pose, p1 = M.poseAt(fr, a.phases, T - 1e-6).pose;
+  near(p1.joints.hand[0], p0.joints.hand[0], 0.5, 'Hand x am Schleifenende');
+  near(p1.joints.hand[1], p0.joints.hand[1], 0.5, 'Hand y am Schleifenende');
+});
+
+test('v2.14.1: Phasen-Easing in/none/out ist stetig und monoton', () => {
+  const ph = [{ a: 0, b: 1, dur: 1, ease: 'in' }, { a: 1, b: 2, dur: 1, ease: 'none' }, { a: 2, b: 3, dur: 1, ease: 'out' }];
+  for (const e of ['in', 'none', 'out']) {
+    const p = [{ a: 0, b: 1, dur: 1, ease: e }]; let last = -1;
+    for (let i = 0; i <= 20; i++) { const u = M.phaseAt(p, i / 20 - (i === 20 ? 1e-9 : 0)).u; assert.ok(u >= last - 1e-12, `${e} monoton`); last = u; }
+    near(M.phaseAt(p, 0).u, 0, 1e-9, `${e} Start`); near(M.phaseAt(p, 1 - 1e-9).u, 1, 1e-6, `${e} Ende`);
+  }
+  assert.ok(ph.length === 3);
+});
+
+test('v2.14.1: Sit-up – Gesäß bleibt auf der Matte, Füße bleiben fest', () => {
+  const a = D.animationFor('sit-up'), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases);
+  const ank0 = M.poseAt(fr, a.phases, 0).pose.joints.ankle;
+  for (let i = 0; i <= 60; i++) {
+    const { pose } = M.poseAt(fr, a.phases, (T * i) / 60 - (i === 60 ? 1e-6 : 0));
+    let low = -1e9;
+    for (const sh of M.shapesFor('male')) if (sh.seg === 'trunk') for (const q of sh.pts) low = Math.max(low, M.tf(pose, 'trunk', q)[1]);
+    assert.ok(Math.abs(low + 6) <= 3, `t=${i}: tiefster Rumpfpunkt ${low.toFixed(1)} statt −6`);
+    near(pose.joints.ankle[0], ank0[0], 0.5, 'Knöchel x'); near(pose.joints.ankle[1], ank0[1], 0.5, 'Knöchel y');
+  }
+});
+
+test('v2.14.1: Kabelcurl langsamer; keine Block-Hanteln mehr in den Szenen', () => {
+  const a = D.animationFor('cable-curl'); const up = a.phases.find((p) => p.label === 'Beugen'), dn = a.phases.find((p) => p.label === 'Senken');
+  assert.ok(up.dur >= 1.5 && dn.dur >= 2, 'heben ≥ 1,5 s, senken ≥ 2 s');
+  for (const ref of ['lateral-raise-dumbbell', 'dumbbell-reverse-fly', 'shoulder-press-dumbbell', 'dumbbell-curl', 'incline-press-dumbbell']) {
+    const an = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(an));
+    const { pose } = M.poseAt(fr, an.phases, 0);
+    const sc = pose.scene || [];
+    assert.ok(sc.some((s) => s.type === 'db'), `${ref}: echte Kurzhantel`);
+    assert.ok(!sc.some((s) => s.type === 'dumbbell'), `${ref}: kein Block`);
+  }
+});
+
+
+test('v2.14.1: „Konsens“ braucht mindestens zwei Quellen', () => {
+  for (const a of D.ANIMATIONS) {
+    for (const k of a.keyPoints) if (k.status === 'consensus') assert.ok((k.src || []).length >= 2, `${a.ref} „${k.short}“: Konsens mit einer Quelle`);
+  }
+});
+
 done();

@@ -105,7 +105,6 @@ const DL_BAR = { start: [16, -PLATE], knee: [14, -95], top: [8, -150] };
 
 // Hantelscheibe an einem Punkt (Seitenansicht) – als Szene-Objekt
 const plate = (at, r = PLATE) => ({ type: 'plate', at, r });
-const dumbbell = (at) => ({ type: 'dumbbell', at });
 // Kurzhantel in echter Größe (v2.9): Griffmitte „at“, Achse „dir“ (Einheitsvektor in der Bildebene) oder endOn (Achse zeigt aus dem Bild).
 // Maße sind Konvention (übliche Kurzhantel 10–20 kg): Länge ≈ 38 cm, Kopf ≈ 14 cm hoch und ≈ 10 cm breit, Griff ≈ 13 cm.
 const DB = { len: 78, hr: 14.5, hw: 20 };
@@ -288,6 +287,14 @@ const FLOOR = (() => {
 })();
 // Sit-up oben (Konvention): oberer Rumpf ≈ 15° über die Senkrechte, davon 20° Rumpfbeugung; die Ellbogen kommen damit etwa auf Kniehöhe.
 const SITUP = { curlTop: 20, trunkTop: -5 };
+// v2.14.1: Das Gesäß bleibt beim Aufrichten auf der Matte. Wurzel Knöchel (Füße fixiert, Knie 90°); das Schienbein neigt sich so, dass der tiefste
+// Rumpfpunkt auf der Matte liegt (das Hüftgelenk sinkt beim Aufrichten um ≈ 8 cm und rutscht ein wenig zu den Füßen: Becken kippt nach vorn).
+const SITUP_ROOT = (() => {
+  const P0 = solvePose({ root: 'hip', rootPos: [0, FLOOR.hipY], trunk: FLOOR.lie, hip: FLOOR.hookHip, knee: 90, foot: 90 });
+  const ank = P0.joints.ankle.map((v) => Math.round(v * 10) / 10);
+  const at = (trunk, curl) => Math.round(bisect((sh) => lowestY({ root: 'ankle', rootPos: ank, shank: sh, knee: 90, foot: 90, trunk, curl }) + MAT, -75, -20) * 10) / 10;
+  return { ank, at, midTrunk: Math.round(((FLOOR.lie + SITUP.trunkTop) / 2) * 10) / 10 };
+})();
 
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
@@ -312,7 +319,7 @@ export const ANIMATIONS = [
         explain: 'Die hochstabige Variante (Stange auf dem Trapezmuskel) läuft mit aufrechterem Rumpf und mehr Knie- und Sprunggelenkbeugung, die tiefstabige (Stange über der hinteren Schulter) mit mehr Vorlage. In Murawa et al. 2020 unterschied sich der Hüftwinkel zwischen beiden nicht signifikant. Keine Variante ist „richtiger“; sie verteilen die Last anders.' },
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'contested', text: 'Knie dürfen über die Zehen wandern; das verteilt die Last zwischen Knie und Hüfte.', src: ['S5', 'S4', 'S6'],
         explain: 'Umstritten. Wird das Knie am Vorwandern gehindert, sinkt das Kniedrehmoment (117 statt 150 N·m), aber das Hüftdrehmoment steigt stark (303 statt 28 N·m) und der Rumpf neigt sich weiter vor (Fry et al. 2003, n = 7). Bei der Kraftdreikampf-Kniebeuge im breiten Stand wurde ein möglichst senkrechtes Schienbein angewiesen; der Körperschwerpunkt wanderte dadurch nach hinten (Swinton et al. 2012, n = 12 Kraftdreikämpfer). Die Regel „Knie nicht über die Zehen“ gilt in der Übersicht von Straub & Powers 2024 als Lastverteilung, nicht als Fehler.' },
-      { short: 'Rücken', anchor: 'back', side: 'l', status: 'consensus', text: 'Vorlage aus der Hüfte, Rücken neutral halten statt rund werden lassen.', src: ['S6'],
+      { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Vorlage aus der Hüfte, Rücken neutral halten statt rund werden lassen.', src: ['S6'],
         explain: 'Empfehlung aus einem klinischen Kommentar (Evidenzstufe 5) zur Belastbarkeit der Wirbelsäule. Daten, dass eine bestimmte Rückenhaltung Verletzungen verhindert, gibt es dazu nicht.' },
       { short: 'Tiefe', anchor: 'hip', side: 'l', status: 'contested', text: 'Tiefe nach Beweglichkeit: so tief, wie Becken und Rücken stabil bleiben.', src: ['S10', 'S11', 'S6'],
         explain: 'Umstritten. Für die tiefe Kniebeuge: mehr Zuwachs an Adduktoren, Gesäß und tiefer 1RM nach 10 Wochen (Kubo et al. 2019, n = 17); eine Übersicht fand keine Belege für ein höheres Risiko passiver Strukturen (Hartmann et al. 2013). Dagegen: Straub & Powers 2024 raten, die Tiefe dort zu begrenzen, wo die Hüftbeugung ausgeschöpft ist und das Becken nach hinten kippt. Einteilung: teilweise 0–90°, parallel 90–110°, tief 110–135° Kniebeugung.' },
@@ -380,9 +387,9 @@ export const ANIMATIONS = [
     keyPoints: [
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'consensus', text: 'Knie leicht gebeugt halten; die Bewegung kommt aus der Hüfte.', src: ['S10', 'S11'],
         explain: 'Kniebeugung unten 15–35°: Definition ≈ 15° (Lee et al. 2018), gemessen 33° bis zum Boden (Lee et al. 2018) und 34,8 ± 9,7° bis unter das Knie (Sørensen et al. 2021).' },
-      { short: 'Hüfte', anchor: 'glute', side: 'l', status: 'consensus', text: 'Hüfte nach hinten schieben, Oberkörper neigt sich nach vorn.', src: ['S11'],
+      { short: 'Hüfte', anchor: 'glute', side: 'l', status: 'single', text: 'Hüfte nach hinten schieben, Oberkörper neigt sich nach vorn.', src: ['S11'],
         explain: 'Hüftbeugung unten 100,2 ± 7,5° (Sørensen et al. 2021). Die Rumpfneigung selbst wurde nicht gemessen; in der Animation ist sie aus Hüft- und Kniewinkel berechnet.' },
-      { short: 'Stange', anchor: 'bar', side: 'r', status: 'consensus', text: 'Stange eng an den Oberschenkeln entlang nach unten führen.', src: ['S10'],
+      { short: 'Stange', anchor: 'bar', side: 'r', status: 'single', text: 'Stange eng an den Oberschenkeln entlang nach unten führen.', src: ['S10'],
         explain: 'Der enge Kontakt der Stange zu den Beinen unterscheidet das rumänische vom gestreckten Kreuzheben (Definition in Lee et al. 2018). Ein gemessener Stangenweg liegt nicht vor.' },
       { short: 'Tiefe', anchor: 'hand', side: 'r', status: 'contested', text: 'Tiefe: bis knapp unter das Knie oder so weit, wie der Rücken stabil bleibt.', src: ['S10', 'S11'],
         explain: 'Umstritten. Sørensen et al. 2021 und die von Lee et al. 2018 zitierten Studien senkten bis knapp unter das Knie; Lee et al. 2018 bis zum Boden, wobei einige Teilnehmer den Boden nicht erreichten (Autoren vermuten verkürzte Beinbeuger). Rumpf- und Lendenwinkel wurden für diese Übung nicht gemessen.' },
@@ -474,7 +481,7 @@ export const ANIMATIONS = [
         explain: 'Umstritten. 70 % Beinlänge (Riemann et al. 2012) bis 100 % (Stastny et al. 2015). Ein kurzer Schritt erhöht die Last im Kniescheibengelenk bei 70–90° Kniebeugung (Escamilla et al. 2008).' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper aufrecht halten; leichte Vorneigung verlagert Arbeit zur Hüfte.', src: ['L1', 'L5'],
         explain: 'Aufrecht in Riemann et al. 2012 und Stastny et al. 2015; ein vorgeneigter Rumpf erhöhte Hüftbeugung und Hüftstrecker-Impuls (Farrokhi et al. 2008, n = 10).' },
-      { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'consensus', text: 'Absenken, bis das vordere Knie etwa 90° gebeugt ist.', src: ['L1'],
+      { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'single', text: 'Absenken, bis das vordere Knie etwa 90° gebeugt ist.', src: ['L1'],
         explain: 'Gemessene Spitzenbeugung 92–96° (Riemann et al. 2012), Zusatzlast änderte die Winkel nicht signifikant.' },
       { short: 'Abdruck', anchor: 'thigh', side: 'r', status: 'single', text: 'Über das vordere Bein kräftig abdrücken und zurück in den Stand gehen.', src: ['L1'],
         explain: 'Kinematisch dominiert das Knie, kinetisch die Hüftstrecker; Zusatzlast erhöhte die Arbeit von Hüfte und Sprunggelenk, nicht des Knies (Riemann et al. 2012).' },
@@ -635,7 +642,7 @@ export const ANIMATIONS = [
         explain: 'Start und Ende mit gestreckten Ellbogen in allen Protokollen.' }
     ],
     sources: {
-      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      S1: { label: 'Winther Nielsen et al. 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
       S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
       S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' },
       S4: { label: 'Vasconcelos et al. 2023, Int J Strength Cond', url: 'https://doi.org/10.47206/ijsc.v3i1.190', read: 'fulltext' },
@@ -736,7 +743,6 @@ export const ANIMATIONS = [
     ],
     sources: {
       L1: { label: 'Coratella et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17176015', read: 'fulltext' },
-      L2: { label: 'Kai et al. 2016, J Phys Ther Sci', url: 'https://doi.org/10.1589/jpts.28.1876', read: 'fulltext' },
       L3: { label: 'Braman et al. 2009, J Shoulder Elbow Surg', url: 'https://doi.org/10.1016/j.jse.2009.02.001', read: 'fulltext' },
       L4: { label: 'Thigpen et al. 2005, Am J Sports Med', url: 'https://doi.org/10.1177/0363546505281797', read: 'abstract' },
       L5: { label: 'Kolber et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000250', read: 'abstract' },
@@ -918,7 +924,7 @@ export const ANIMATIONS = [
         explain: 'Sitzend war die vordere Schulter mit Kurzhanteln ≈ 11 % aktiver als mit der Langhantel; das 1RM mit Kurzhanteln lag stehend ≈ 7 % unter dem der Langhantel (Saeterbakken & Fimland 2013, n = 15, Abstract). Mit Kurzhanteln sank die Last und die Trizepsaktivität (Kohler et al. 2010, n = 30, Abstract).' }
     ],
     sources: {
-      D1: { label: 'Schulteraktivierung beim Kurzhanteldrücken, 2013, J Sports Med (Hindawi)', url: 'https://doi.org/10.1155/2013/612650', read: 'fulltext' },
+      D1: { label: 'Luczak et al. 2013, J Sports Med', url: 'https://doi.org/10.1155/2013/612650', read: 'fulltext' },
       D3: { label: 'Kohler et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181c8655a', read: 'abstract' },
       S1: { label: 'Hernández-Belmonte et al. 2020, Biol Sport', url: 'https://doi.org/10.5114/biolsport.2020.98453', read: 'fulltext' },
       S5: { label: 'Paoli et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181d756ea', read: 'abstract' },
@@ -950,7 +956,7 @@ export const ANIMATIONS = [
         explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Sports 2023). Das Absenktempo ist nicht untersucht.' }
     ],
     sources: {
-      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      R1: { label: 'Nieto-Acevedo et al. 2023, Sports', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
       R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' }
     }
   },
@@ -1037,7 +1043,7 @@ export const ANIMATIONS = [
     ],
     sources: {
       P1: { label: 'Schütz et al. 2022, Sports (MDPI)', url: 'https://doi.org/10.3390/sports10020019', read: 'fulltext', note: 'Langhantel, 15/30 % Körpergewicht, Bankwinkel nicht berichtet' },
-      P2: { label: 'Kraft-Geschwindigkeit Flach- und Schrägbank, 2025, Sci Rep', url: 'https://doi.org/10.1038/s41598-025-12166-5', read: 'fulltext' },
+      P2: { label: 'Marques et al. 2025, Sci Rep', url: 'https://doi.org/10.1038/s41598-025-12166-5', read: 'fulltext' },
       P3: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'abstract' },
       P4: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'abstract' },
       P5: { label: 'Saeterbakken et al. 2020, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0235555', read: 'fulltext' },
@@ -1502,8 +1508,8 @@ export const ANIMATIONS = [
         explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Langhantelrudern, Sports 2023). Das Absenktempo ist nicht untersucht.' }
     ],
     sources: {
-      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
-      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      R1: { label: 'Nieto-Acevedo et al. 2023, Sports', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      S1: { label: 'Winther Nielsen et al. 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
       R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' },
       R4: { label: 'Saeterbakken et al. 2015, Int J Sports Med', url: 'https://doi.org/10.1055/s-0034-1398646', read: 'abstract' },
       S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
@@ -1533,7 +1539,7 @@ export const ANIMATIONS = [
         explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Sports 2023, übertragen). Das Absenktempo ist nicht untersucht.' }
     ],
     sources: {
-      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      R1: { label: 'Nieto-Acevedo et al. 2023, Sports', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
       R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' }
     }
   },
@@ -1561,8 +1567,8 @@ export const ANIMATIONS = [
         explain: 'Beim Rudern im Sitzen: fixierte und freie Schulterblätter gaben ähnliche Gesamtmuster mit kleinen Unterschieden einzelner Muskeln (Padovan et al. 2025, HD-EMG, n = 14); isometrisch kein Unterschied bei Trapez und Rhomboideus (Lehman et al. 2004, n = 12). Übertragen.' }
     ],
     sources: {
-      R1: { label: 'Kraft-Geschwindigkeits-Profile dreier Ruderübungen, 2023, Sports (MDPI)', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
-      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      R1: { label: 'Nieto-Acevedo et al. 2023, Sports', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
+      S1: { label: 'Winther Nielsen et al. 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
       F1: { label: 'Fischer et al. 2025, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2025.103025', read: 'abstract' },
       S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
       S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' }
@@ -1592,7 +1598,7 @@ export const ANIMATIONS = [
         explain: 'Start und Ende mit gestreckten Ellbogen in beiden Protokollen; gemessen blieb vorn eine Restbeugung von ≈ 6° (Rudern am Kabel).' }
     ],
     sources: {
-      S1: { label: 'E4D-Kinematikstudie 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
+      S1: { label: 'Winther Nielsen et al. 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
       S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
       S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' },
       S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
@@ -1904,13 +1910,13 @@ export const ANIMATIONS = [
   {
     ref: 'cable-curl', checkedAt: '2026-10-19', view: 'side', basis: 'protocol',
     basisNote: 'Gezeigt ist die Bayesian-Variante (Rücken zum Kabelzug). Keine Bewegungsstudie. Schulter ≈ 45° gestreckt: 43 ± 11° bei Larsen et al. 2026 (stehend, je Person mit Goniometer eingestellt) und ≈ 50° bei Attarieh et al. 2025 (sitzend); beide Volltext. Ellbogen 10° → 140° nach Attarieh et al. 2025 (Larsen begrenzte auf 0–90°). Die Rolle sitzt so, dass Seil und Unterarm bei 61,5° senkrecht stehen (Lage des größten Drehmoments bei Attarieh et al. 2025, für die Figur berechnet). Stand, Turmabstand und Griff sind Konvention.',
-    tempo: { basis: 'protocol', note: '1 s heben, 1 s senken (Attarieh et al. 2025); Larsen et al. 2026: heben so schnell wie möglich, senken ≈ 2 s.' },
+    tempo: { basis: 'convention', note: 'Hier 1,5 s heben, 2 s senken. Studien: Senken ≈ 2 s (Larsen et al. 2026), heben so schnell wie möglich; 1 s / 1 s im Protokoll von Attarieh et al. 2025 wirkt als Animation zu hektisch.' },
     frames: [
       { label: 'Unten', pose: { shank: C(0), knee: C(5), hip: C(0), ankle: C(0), trunk: C(0, 'aufrecht; nicht berichtet'), shoulder: V(-45, 'L1', 'protocol', 'Schulter 43 ± 11° gestreckt (Larsen), ≈ 50° (Attarieh)'), elbow: V(10, 'A1', 'protocol', 'fast gestreckt'), props: bayesianProps } },
       { label: 'Oben', pose: { shank: C(0), knee: C(5), hip: C(0), ankle: C(0), trunk: C(0, 'aufrecht; nicht berichtet'), shoulder: V(-45, 'L1', 'protocol', 'Schulter bleibt gestreckt'), elbow: V(140, 'A1', 'protocol', 'voll gebeugt'), props: bayesianProps },
         facts: [V(61.5, 'A1', 'fulltext', 'größtes Drehmoment bei 61,5° Ellbogenbeugung (Seil senkrecht zum Unterarm)')] }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Beugen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [3] }],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.5, label: 'Beugen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [3] }],
     keyPoints: [
       { short: 'Schulter', anchor: 'uarm', side: 'l', status: 'consensus', text: 'Rücken zum Kabelzug; der Oberarm zeigt etwa 45° nach hinten.', src: ['L1', 'A1'],
         explain: '43 ± 11° Schulterstreckung, je Person 5–10° vor der eigenen Grenze (Larsen et al. 2026); ≈ 50° bei Attarieh et al. 2025.' },
@@ -2301,7 +2307,7 @@ export const ANIMATIONS = [
         explain: 'Metronom 60/min im Protokoll von Bergquist et al. 2018 (Band). Für das Kabel von unten gibt es kein Protokoll.' }
     ],
     sources: {
-      A1: { label: 'Solari & Burns, StatPearls: Pectoralis Major (Stand 2023)', url: 'https://www.ncbi.nlm.nih.gov/books/NBK525991/', read: 'summary' },
+      A1: { label: 'Solari & Burns 2023, StatPearls: Pectoralis Major', url: 'https://www.ncbi.nlm.nih.gov/books/NBK525991/', read: 'summary' },
       R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'abstract' },
       B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
     }
@@ -2370,13 +2376,14 @@ export const ANIMATIONS = [
   {
     ref: 'sit-up', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
     basisNote: 'Keine im Volltext gelesene Bewegungsmessung. Start und Ende folgen dem Protokoll von Escamilla et al. 2006 (Volltext): Knie etwa 90°, Füße fixiert, Hände an den Ohren; Rumpf und Hüfte beugen, bis die Ellbogen auf Höhe der Knie sind. Die Reihenfolge – erst einrollen, dann aus der Hüfte aufrichten – folgt Cordo et al. 2003 (Abstract, gestreckte Beine). Wie weit sich der Rumpf oben aufrichtet und beugt (oberer Rumpf ≈ 15° über die Senkrechte, davon 20° Rumpfbeugung), Fußhalter und Matte sind Konvention. Die Negativ-Variante auf der Schrägbank ist nicht gezeichnet: keine Studie mit Bankwinkel gefunden.',
-    tempo: { basis: 'protocol', note: 'Protokoll: 1 s hoch, 1 s halten, 1 s ab (Metronom, Escamilla et al. 2006). Gezeichnet langsamer (≈ 1,5 s je Richtung, erst einrollen, dann aufrichten), damit die Folge sichtbar bleibt.' },
+    tempo: { basis: 'protocol', note: 'Protokoll: 1 s hoch, 1 s halten, 1 s ab (Metronom, Escamilla et al. 2006). Gezeichnet langsamer (≈ 2 s je Richtung, erst einrollen, dann ohne Stopp aufrichten), damit die Folge sichtbar bleibt.' },
     frames: [
-      { label: 'Unten', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], shank: K(FLOOR.hookShank, 'E1', 'Unterschenkel bleibt (Füße fixiert)'), knee: V(90, 'E1', 'protocol', 'Knie etwa 90°'), foot: C(90), trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), headTilt: C(0), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
-      { label: 'Eingerollt', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], shank: K(FLOOR.hookShank, 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(FLOOR.lie, 'Becken liegt noch'), curl: C(SITUP.curlTop, 'oberer Rumpf eingerollt (Cordo et al. 2003: zuerst Nacken und oberer Rumpf)'), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
-      { label: 'Oben', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], shank: K(FLOOR.hookShank, 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(SITUP.trunkTop, 'oberer Rumpf ≈ 15° über die Senkrechte, Ellbogen etwa auf Kniehöhe'), curl: C(SITUP.curlTop), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } }
+      { label: 'Unten', pose: { root: 'ankle', rootPos: SITUP_ROOT.ank, shank: K(SITUP_ROOT.at(FLOOR.lie, 0), 'E1', 'Unterschenkel bleibt (Füße fixiert)'), knee: V(90, 'E1', 'protocol', 'Knie etwa 90°'), foot: C(90), trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), headTilt: C(0), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
+      { label: 'Eingerollt', pose: { root: 'ankle', rootPos: SITUP_ROOT.ank, shank: K(SITUP_ROOT.at(FLOOR.lie, SITUP.curlTop), 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(FLOOR.lie, 'Becken liegt noch'), curl: C(SITUP.curlTop, 'oberer Rumpf eingerollt (Cordo et al. 2003: zuerst Nacken und oberer Rumpf)'), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
+      { label: 'Aufrichten', pose: { root: 'ankle', rootPos: SITUP_ROOT.ank, shank: K(SITUP_ROOT.at(SITUP_ROOT.midTrunk, SITUP.curlTop), 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(SITUP_ROOT.midTrunk, 'Zwischenbild: Mitte zwischen Liegen und Oben'), curl: C(SITUP.curlTop), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
+      { label: 'Oben', pose: { root: 'ankle', rootPos: SITUP_ROOT.ank, shank: K(SITUP_ROOT.at(SITUP.trunkTop, SITUP.curlTop), 'E1'), knee: V(90, 'E1', 'protocol'), foot: C(90), trunk: C(SITUP.trunkTop, 'oberer Rumpf ≈ 15° über die Senkrechte, Ellbogen etwa auf Kniehöhe'), curl: C(SITUP.curlTop), headTilt: C(10), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.6, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 0.5, label: 'Einrollen', kp: [1] }, { a: 1, b: 2, dur: 1.0, label: 'Aufrichten', kp: [1, 2] }, { a: 2, b: 2, dur: 1.0, label: 'Oben', kp: [2, 3] }, { a: 2, b: 1, dur: 1.0, label: 'Ablegen', kp: [1] }, { a: 1, b: 0, dur: 0.5, label: 'Ablegen', kp: [1] }],
+    phases: [{ a: 0, b: 0, dur: 0.6, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 0.5, label: 'Einrollen', kp: [1], ease: 'in' }, { a: 1, b: 2, dur: 0.6, label: 'Aufrichten', kp: [1, 2], ease: 'none' }, { a: 2, b: 3, dur: 0.94, label: 'Aufrichten', kp: [1, 2], ease: 'out' }, { a: 3, b: 3, dur: 1.0, label: 'Oben', kp: [2, 3] }, { a: 3, b: 2, dur: 0.94, label: 'Ablegen', kp: [1], ease: 'in' }, { a: 2, b: 1, dur: 0.6, label: 'Ablegen', kp: [1], ease: 'none' }, { a: 1, b: 0, dur: 0.5, label: 'Ablegen', kp: [1], ease: 'out' }],
     keyPoints: [
       { short: 'Start', anchor: 'foot', side: 'r', status: 'single', text: 'Knie etwa 90° gebeugt, Füße fixiert, Hände an den Ohren.', src: ['E1'],
         explain: 'Protokoll von Escamilla et al. 2006 (21 Gesunde): Daumen in den Ohren, Hände locker am Kopf, Knie ≈ 90°, Hüfte ≈ 45°, Füße gehalten.' },
@@ -2553,7 +2560,7 @@ function pulldownProps(P) {
   ] };
 }
 function raiseProps(P) {
-  return { anchors: {}, scene: [{ type: 'dumbbell', at: P.joints.handR }, { type: 'dumbbell', at: P.joints.handL }] };
+  return { anchors: {}, scene: [db(P.joints.handR, [1, 0], true), db(P.joints.handL, [1, 0], true)] }; // v2.14.1: echte Kurzhantel, Achse zeigt aus dem Bild (Daumen vorn / Neutralgriff)
 }
 // Langhantel in der Frontansicht (v2.9): Stange 2,2 m (± 225), Scheiben Ø 45 cm hochkant ab der Hülse (± 134), zwei je Seite.
 // noBounds: die Karte richtet sich nach der Figur; Stangenenden und Scheiben dürfen über den Rand ragen.
@@ -2716,11 +2723,11 @@ function shoulderPressProps(P) {
   const hand = P.joints.hand, h = P.joints.hip;
   return { anchors: { hand }, scene: [
     { type: 'rect', x: h[0] - 30, y: h[1] + 2, w: 64, h: 12, rx: 4 }, benchLine(P, 26, 130, -8),
-    { type: 'line', from: [h[0], h[1] + 14], to: [h[0], 0], w: 6 }, foot(h[0] - 40, h[0] + 40), dumbbell(hand)
+    { type: 'line', from: [h[0], h[1] + 14], to: [h[0], 0], w: 6 }, foot(h[0] - 40, h[0] + 40), db(hand, [1, 0], true)
   ] };
 }
 function rowBarProps(P) { const bar = P.joints.hand; return { anchors: { bar, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [plate(bar)] }; }
-function curlProps(P) { const hand = P.joints.hand; return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [dumbbell(hand)] }; }
+function curlProps(P) { const hand = P.joints.hand; return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [db(hand, [1, 0], true)] }; } // v2.14.1: echte Kurzhantel (Achse zeigt aus dem Bild)
 function pushdownProps(P) {
   const hand = P.joints.hand, top = [100, -410];
   return { anchors: { hand, uarm: midpoint(P.joints.shoulder, P.joints.elbow) }, scene: [
@@ -2734,7 +2741,7 @@ function inclineProps(P) {
   const top = along(along(h, segNrm(P, 'trunk'), -24), segDir(P, 'trunk'), -165); // oberes Ende der Lehne
   return { anchors: { hand }, scene: [
     benchLine(P, 24, 170, -6), { type: 'line', from: [h[0] - 20, h[1] + 24], to: [h[0] + 50, h[1] + 24], w: 14 }, // Lehne, Sitz
-    { type: 'line', from: [h[0] + 10, h[1] + 30], to: [h[0] + 10, 0], w: 6 }, { type: 'line', from: top, to: [top[0], 0], w: 6 }, foot(h[0] - 20, h[0] + 40), foot(top[0] - 30, top[0] + 30), dumbbell(hand)
+    { type: 'line', from: [h[0] + 10, h[1] + 30], to: [h[0] + 10, 0], w: 6 }, { type: 'line', from: top, to: [top[0], 0], w: 6 }, foot(h[0] - 20, h[0] + 40), foot(top[0] - 30, top[0] + 30), db(hand, [1, 0], true)
   ] };
 }
 const foot = (x0, x1) => ({ type: 'line', from: [x0, 0], to: [x1, 0], w: 5 }); // Standfuß einer Maschine auf dem Boden

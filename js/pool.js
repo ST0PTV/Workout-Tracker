@@ -46,7 +46,7 @@ const P = (ref, name, equipment, primary, secondary, info, kind = 'strength') =>
 const CORATELLA_2019 = S('Coratella et al. 2019, Eur J Sport Sci', '10.1080/17461391.2019.1655101', 'EMG: Schrägbank 45° aktiviert den oberen Brustanteil am stärksten; Maschinenpresse und Flachbank ähnlich für den mittleren Anteil.');
 const BERGQUIST_2018 = S('Bergquist et al. 2018, J Hum Kinet', '10.1515/hukin-2017-0137', 'EMG: Fliegende und Reverse Flys – Brust bzw. hintere Schulter als Hauptmuskel, Schulteranteile deutlich beteiligt.');
 const LEHMAN_2004 = S('Lehman et al. 2004, Dyn Med', '10.1186/1476-5918-3-4', 'EMG: Latzug mit hohem Latissimus-Anteil; Rudern sitzend mit der höchsten Aktivität von mittlerem Trapez/Rhomboiden.');
-const SAETERBAKKEN_2015 = S('Saeterbakken et al. 2015, Int J Sports Med', '10.1055/s-0034-1398646', 'EMG: freies vorgebeugtes Rudern belastet den unteren Rücken deutlich stärker als Rudern an der Maschine.');
+const SAETERBAKKEN_2015 = S('Saeterbakken et al. 2015, Int J Sports Med', '10.1055/s-0034-1398646', 'EMG: freies vorgebeugtes Rudern aktiviert den unteren Rücken deutlich stärker als Rudern an der Maschine (gemessen wurde die Muskelaktivität, nicht die Wirbelsäulenlast).');
 const PLOTKIN_2023 = S('Plotkin et al. 2023, Front Physiol', '10.3389/fphys.2023.1279170', 'MRT: Hip Thrust und Kniebeuge mit ähnlichem Wachstum des großen Gesäßmuskels; Kniebeuge zusätzlich Quadrizeps und Adduktoren.');
 const KINOSHITA_2026 = S('Kinoshita, Maeo et al. 2026, Med Sci Sports Exerc', '10.1249/MSS.0000000000003957', 'MRT: Beinpresse und Beinstrecker mit ähnlichem Quadrizeps-Wachstum; nur die Beinpresse auch Gesäß und Adduktor magnus, nur der Beinstrecker auch Rectus femoris.');
 const MAEO_2021 = S('Maeo et al. 2021, Med Sci Sports Exerc', '10.1249/MSS.0000000000002523', 'MRT: Beinbeuger sitzend mit mehr Wachstum der Beinbeuger als liegend (+14 % vs. +9 %).');
@@ -92,7 +92,7 @@ export const POOL = [
     confidence: 'medium', basis: 'EMG (eine Studie)',
     others: ['Serratus anterior (stabilisierend)'],
     sources: [
-      S('McKenzie et al. 2022, IJERPH', '10.3390/ijerph192114390', 'EMG: Brust, Trizeps und vordere Schulter als bewegende Muskeln.')
+      S('McKenzie et al. 2022, Int J Environ Res Public Health (Ermüdung, Barrendip)', '10.3390/ijerph192114390', 'EMG: Brust, Trizeps und vordere Schulter als bewegende Muskeln.')
     ]
   }, 'bodyweight'),
   P('push-up', 'Liegestütz', 'bodyweight', ['chest'], ['triceps', 'front-delts', 'abs'], {
@@ -112,7 +112,7 @@ export const POOL = [
     sources: [
       S('Farias et al. 2017, J Strength Cond Res', '10.1519/JSC.0000000000001651', 'Kurzhantel-Bankdrücken zeigte mehr Brust-EMG als Langhantel, aber weniger Trizeps- und mehr Bizeps-Aktivität.'),
       S('Welsch et al. 2005, J Strength Cond Res', '10.1519/14513.1', 'Brust- und vordere Schulter-EMG unterschieden sich nicht zwischen Lang- und Kurzhantel-Bankdrücken; beide austauschbar.'),
-      S('Saeterbakken et al. 2017, Eur J Appl Physiol', '10.1007/s00421-016-3470-3', '10-Wochen-Training: Kraftzuwachs bei Kurzhanteln stark übungsspezifisch; misst Kraft und EMG, keine Muskeldicke.')
+      S('Saeterbakken et al. 2016, Eur J Appl Physiol', '10.1007/s00421-016-3470-3', '10-Wochen-Training: Kraftzuwachs bei Kurzhanteln stark übungsspezifisch; misst Kraft und EMG, keine Muskeldicke.')
     ]
   }),
   P('incline-barbell-bench-press', 'Schrägbankdrücken mit der Langhantel', 'barbell', ['chest', 'front-delts'], ['triceps'], {
@@ -129,7 +129,7 @@ export const POOL = [
     note: 'Bank ca. −15°, Füße sichern. Kürzerer Weg, betont den unteren Brustanteil; mit Spotter oder Sicherung trainieren.',
     sources: [
       S('Coratella et al. 2019, Eur J Sport Sci', '10.1080/17461391.2019.1655101', 'Bodybuilder bei −15°: unterer Brustanteil ähnlich aktiv wie flach, oberer Anteil weniger aktiv als bei Schrägbank.'),
-      S('Lauver et al. 2015, Eur J Sport Sci', '10.1080/17461391.2015.1022605', 'Bei −15° war der untere Brustanteil im EMG genauso aktiv wie flach und mehr als bei 45°. Dazu wurden Trizeps und Schulter gemessen.')
+      S('Lauver et al. 2016, Eur J Sport Sci', '10.1080/17461391.2015.1022605', 'Bei −15° war der untere Brustanteil im EMG genauso aktiv wie flach und mehr als bei 45°. Dazu wurden Trizeps und Schulter gemessen.')
     ]
   }),
   P('dumbbell-fly', 'Kurzhantel-Fliegende', 'dumbbell', ['chest'], ['front-delts', 'biceps'], {
@@ -145,7 +145,7 @@ export const POOL = [
     confidence: 'low', basis: 'Anatomie',
     note: 'Kabel unten, Arme im Bogen auf Brust- bis Kinnhöhe führen. Mehr obere Brust ist nur anatomisch begründet, nicht gemessen.',
     sources: [
-      S('Solari & Burns 2023, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK525991/', 'Der Schlüsselbeinanteil des großen Brustmuskels beugt den Arm im Schultergelenk nach vorn. Die Anatomie stützt die Zugrichtung nach oben.'),
+      S('Solari & Burns 2023, StatPearls: Pectoralis Major', 'https://www.ncbi.nlm.nih.gov/books/NBK525991/', 'Der Schlüsselbeinanteil des großen Brustmuskels beugt den Arm im Schultergelenk nach vorn. Die Anatomie stützt die Zugrichtung nach oben.'),
       S('Reiser et al. 2014, Rev Bras Prescr Fisiol Exerc', 'https://doaj.org/article/b30da9121dea490a864f046f3ea86479', 'Fliegende auf 30°-Schrägbank (n=7): kein Unterschied der Brustanteile zu flach, aber mehr vordere Schulter.')
     ]
   }),
@@ -170,7 +170,7 @@ export const POOL = [
     note: 'Füße auf Bank oder Stufe (ca. 30–50 cm), Körper gerade halten. Schwerer als der normale Liegestütz.',
     others: ['serratus anterior'],
     sources: [
-      S('Kowalski et al. 2021, Shoulder Elbow', '10.1177/17585732211019373', 'Übersicht: Trizeps und großer Brustmuskel haben beim Standard-Liegestütz die höchste EMG, der Serratus ist ebenfalls stark beteiligt.'),
+      S('Kowalski et al. 2021, Shoulder & Elbow (Scoping Review)', '10.1177/17585732211019373', 'Übersicht: Trizeps und großer Brustmuskel haben beim Standard-Liegestütz die höchste EMG, der Serratus ist ebenfalls stark beteiligt.'),
       S('Wu et al. 2025, Sci Rep', '10.1038/s41598-025-28012-7', 'Bei 10–30° Fußerhöhung lag die Bodenreaktionskraft unter den Händen bei ca. 77–86 % des Körpergewichts. Keine EMG-Messung.')
     ]
   }, 'bodyweight'),
@@ -189,7 +189,7 @@ export const POOL = [
     note: 'Daumen nach oben → mehr vordere Schulter; Daumen nach unten → mehr hintere Schulter.',
     others: ['Supraspinatus (Rotatorenmanschette)'],
     sources: [
-      S('Coratella et al. 2020, IJERPH', '10.3390/ijerph17176015', 'EMG: seitliche Schulter am stärksten; Armrotation verschiebt die Arbeit deutlich zu vorderer bzw. hinterer Schulter.')
+      S('Coratella et al. 2020, Int J Environ Res Public Health', '10.3390/ijerph17176015', 'EMG: seitliche Schulter am stärksten; Armrotation verschiebt die Arbeit deutlich zu vorderer bzw. hinterer Schulter.')
     ]
   }),
   P('reverse-pec-deck', 'Reverse Butterfly', 'machine', ['rear-delts'], ['upper-back', 'side-delts'], {
@@ -226,7 +226,7 @@ export const POOL = [
     others: ['Supraspinatus (Rotatorenmanschette)'],
     sources: [
       S('Larsen et al. 2025, Front Physiol', '10.3389/fphys.2025.1611468', 'Kabel und Kurzhantel lassen den seitlichen Delta gleich gut wachsen; das Lastprofil scheint zweitrangig (Maschine nicht getestet).'),
-      S('Coratella et al. 2020, IJERPH', '10.3390/ijerph17176015', 'EMG bei Bodybuildern: Seitheben-Varianten aktivieren v. a. mittleren Delta; gebeugter Ellbogen senkt dessen Aktivität etwas.')
+      S('Coratella et al. 2020, Int J Environ Res Public Health', '10.3390/ijerph17176015', 'EMG bei Bodybuildern: Seitheben-Varianten aktivieren v. a. mittleren Delta; gebeugter Ellbogen senkt dessen Aktivität etwas.')
     ]
   }),
   P('standing-barbell-overhead-press', 'Schulterdrücken mit der Langhantel stehend', 'barbell', ['front-delts'], ['side-delts', 'triceps', 'upper-back', 'abs', 'lower-back'], {
@@ -252,7 +252,7 @@ export const POOL = [
     confidence: 'medium', basis: 'EMG + Anatomie',
     note: 'Kurzhanteln mit leicht gebeugtem Ellbogen bis Schulterhöhe heben; nicht schwingen. Auch am Kabel möglich.',
     sources: [
-      S('Coratella et al. 2020, IJERPH', '10.3390/ijerph17176015', 'EMG: Frontheben aktiviert vorderen Delta und oberen Brustmuskel stärker als alle Seitheben-Varianten; mittlerer/hinterer Delta gering.'),
+      S('Coratella et al. 2020, Int J Environ Res Public Health', '10.3390/ijerph17176015', 'EMG: Frontheben aktiviert vorderen Delta und oberen Brustmuskel stärker als alle Seitheben-Varianten; mittlerer/hinterer Delta gering.'),
       S('Elzanie & Varacallo 2024, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK537056/', 'Anatomie: Vorderer Delta beugt den Arm gemeinsam mit dem großen Brustmuskel.')
     ]
   }),
@@ -279,7 +279,7 @@ export const POOL = [
     others: ['Infraspinatus', 'Teres minor'],
     sources: [
       S('Schoenfeld et al. 2013, J Strength Cond Res', '10.1519/JSC.0b013e318281e1e9', 'EMG an der Reverse-Fly-Maschine: neutraler Griff steigert Aktivität von hinterem Delta und Infraspinatus.'),
-      S('Rabello et al. 2022, J Bodyw Mov Ther', '10.1016/j.jbmt.2022.12.002', 'Systematische Übersicht (EMG): horizontale Abduktionen aktivieren mittleren und hinteren Delta stark.')
+      S('Rabello et al. 2022, J Bodyw Mov Ther (Review)', '10.1016/j.jbmt.2022.12.002', 'Systematische Übersicht (EMG): horizontale Abduktionen aktivieren mittleren und hinteren Delta stark.')
     ]
   }),
   P('incline-prone-y-raise', 'Y-Raise auf der Schrägbank', 'dumbbell', ['upper-back'], ['side-delts', 'rear-delts', 'front-delts'], {
@@ -315,7 +315,7 @@ export const POOL = [
     note: 'Der untere Rücken hält die vorgebeugte Position und ist dabei stark gefordert.',
     others: ['Teres major'],
     sources: [
-      S('Fenwick, Brown & McGill 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181942019', 'EMG: hohe Aktivierung vom oberen bis zum unteren Rücken, höchste Last auf der Lendenwirbelsäule.'),
+      S('Fenwick, Brown & McGill 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181b07334', 'EMG: hohe Aktivierung vom oberen bis zum unteren Rücken, höchste Last auf der Lendenwirbelsäule.'),
       SAETERBAKKEN_2015
     ]
   }),
@@ -368,8 +368,8 @@ export const POOL = [
     note: 'Knie und Hand auf der Bank abstützen, Ellbogen nah am Körper zur Hüfte ziehen, Rumpf nicht verdrehen.',
     others: ['Teres major'],
     sources: [
-      S('Jeno & Varacallo 2023, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Der Lat streckt, adduziert und dreht den Oberarm nach innen, zusammen mit Teres major und Pectoralis major.'),
-      S('Fenwick et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181942019', 'EMG-Vergleich von Ruderformen: einarmiges Kabelrudern im Stand fordert vor allem die Rumpfmuskulatur gegen Rotation.')
+      S('Jeno & Varacallo 2023, StatPearls: Latissimus Dorsi', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Der Lat streckt, adduziert und dreht den Oberarm nach innen, zusammen mit Teres major und Pectoralis major.'),
+      S('Fenwick, Brown & McGill 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181b07334', 'EMG-Vergleich von Ruderformen: einarmiges Kabelrudern im Stand fordert vor allem die Rumpfmuskulatur gegen Rotation.')
     ]
   }),
   P('t-bar-row', 'T-Bar-Rudern', 'barbell', ['lats', 'upper-back'], ['rear-delts', 'biceps', 'lower-back', 'forearms', 'glutes', 'hamstrings'], {
@@ -377,8 +377,8 @@ export const POOL = [
     note: 'Rücken neutral, Oberkörper ca. 45° vorgebeugt. Mit Brustauflage-Variante wird der untere Rücken entlastet.',
     others: ['Teres major', 'Erector spinae'],
     sources: [
-      S('Fenwick et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181942019', 'EMG: Vorgebeugtes Rudern im Stand aktiviert den Rücken von oben bis unten stark, belastet die Lendenwirbelsäule aber am höchsten.'),
-      S('Jeno & Varacallo 2023, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Der Lat ist der Hauptstrecker und Adduktor des Oberarms. Er wirkt am stärksten aus gebeugter oder abgespreizter Ausgangsstellung.')
+      S('Fenwick, Brown & McGill 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181b07334', 'EMG: Vorgebeugtes Rudern im Stand aktiviert den Rücken von oben bis unten stark, belastet die Lendenwirbelsäule aber am höchsten.'),
+      S('Jeno & Varacallo 2023, StatPearls: Latissimus Dorsi', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Der Lat ist der Hauptstrecker und Adduktor des Oberarms. Er wirkt am stärksten aus gebeugter oder abgespreizter Ausgangsstellung.')
     ]
   }),
   P('machine-row', 'Rudern an der Maschine', 'machine', ['lats', 'upper-back'], ['rear-delts', 'biceps', 'forearms'], {
@@ -387,7 +387,7 @@ export const POOL = [
     others: ['Teres major'],
     sources: [
       S('Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', '10.3390/jfmk11030315', 'Studien am sitzenden Kabelrudern: enger Griff, wenig Abspreizung mehr Lat-EMG. Weiter, hoher Ellbogen mehr Trapezius, hinterer Delta.'),
-      S('Jeno & Varacallo 2023, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Lat-Funktionen (Extension, Adduktion, Innenrotation) erklären, warum ein körpernaher Zug den Lat stärker einbindet.')
+      S('Jeno & Varacallo 2023, StatPearls: Latissimus Dorsi', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Lat-Funktionen (Extension, Adduktion, Innenrotation) erklären, warum ein körpernaher Zug den Lat stärker einbindet.')
     ]
   }),
   P('straight-arm-pulldown', 'Überzüge am Kabel', 'cable', ['lats'], ['triceps', 'chest', 'rear-delts', 'abs'], {
@@ -396,7 +396,7 @@ export const POOL = [
     others: ['Teres major', 'Trizeps langer Kopf'],
     sources: [
       S('Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', '10.3390/jfmk11030315', 'Review: Lang-Pullover am Boden aktiviert eher die Brust. Gegenüber Straight-Arm-Pulldown kaum Unterschied bei Lat und Trizeps.'),
-      S('Jeno & Varacallo 2023, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Der Lat streckt den Oberarm, am stärksten aus gebeugter Schulter. Das ist die Kernbewegung beim Überzug.')
+      S('Jeno & Varacallo 2023, StatPearls: Latissimus Dorsi', 'https://www.ncbi.nlm.nih.gov/books/NBK448120/', 'Anatomie: Der Lat streckt den Oberarm, am stärksten aus gebeugter Schulter. Das ist die Kernbewegung beim Überzug.')
     ]
   }),
   P('inverted-row', 'Rudern im Hang', 'bodyweight', ['lats', 'upper-back'], ['rear-delts', 'biceps', 'lower-back', 'abs', 'glutes'], {
@@ -405,7 +405,7 @@ export const POOL = [
     others: ['Multifidus', 'Erector spinae', 'Infraspinatus'],
     sources: [
       S('Youdas et al. 2016, J Strength Cond Res', '10.1519/JSC.0000000000001210', 'EMG: Lat, Bizeps, unterer Trapezius und hinterer Delta sehr hoch aktiv, mittlerer und oberer Trapezius hoch. Untergriff veränderte die Lat-Aktivität.'),
-      S('Fenwick et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181942019', 'EMG: Unter drei Ruderformen höchste Aktivität von Lat, oberem Rücken und Hüftstreckern bei geringster Belastung der LWS.')
+      S('Fenwick, Brown & McGill 2009, J Strength Cond Res', '10.1519/JSC.0b013e3181b07334', 'EMG: Unter drei Ruderformen höchste Aktivität von Lat, oberem Rücken und Hüftstreckern bei geringster Belastung der LWS.')
     ]
   }, 'bodyweight'),
   P('dumbbell-shrug', 'Shrugs', 'dumbbell', ['upper-back'], ['forearms'], {
@@ -423,7 +423,7 @@ export const POOL = [
     confidence: 'high', basis: 'MRT-Trainingsstudien; unterer Rücken nur EMG',
     note: 'Tiefe Kniebeugen mit mehr Wachstum von Gesäß und Adduktoren. Der untere Rücken stabilisiert.',
     sources: [
-      S('Kubo, Ikebukuro & Yata 2019, Eur J Appl Physiol', '10.1007/s00421-019-04181-y', 'MRT: Kniebeugen ließen Quadrizeps (ohne Rectus femoris), Adduktoren und großen Gesäßmuskel wachsen, die Beinbeuger nicht.'),
+      S('Kubo et al. 2019, Eur J Appl Physiol', '10.1007/s00421-019-04181-y', 'MRT: Kniebeugen ließen Quadrizeps (ohne Rectus femoris), Adduktoren und großen Gesäßmuskel wachsen, die Beinbeuger nicht.'),
       PLOTKIN_2023,
       S('Park et al. 2022, IJERPH', '10.3390/ijerph192013480', 'EMG: Aktivität des Rückenstreckers steigt mit der Last.')
     ]
@@ -506,7 +506,7 @@ export const POOL = [
     confidence: 'high', basis: 'MRT-Trainingsstudie',
     note: 'Stehend wächst vor allem der Gastrocnemius; sitzend fast nur der Soleus.',
     sources: [
-      S('Kinoshita, Maeo et al. 2023, Front Physiol', '10.3389/fphys.2023.1272106', 'MRT: Wadenheben stehend ließ beide Gastrocnemius-Köpfe und den Soleus wachsen.')
+      S('Kinoshita et al. 2023, Front Physiol', '10.3389/fphys.2023.1272106', 'MRT: Wadenheben stehend ließ beide Gastrocnemius-Köpfe und den Soleus wachsen.')
     ]
   }),
 
@@ -839,7 +839,7 @@ export const POOL = [
     sources: [
       S('Maeo et al. 2022, Eur J Sport Sci', '10.1080/17461391.2022.2100279', '12 Wochen, MRT: Strecken überkopf brachte ca. 1,4–1,5× mehr Trizepsvolumen als in neutraler Armhaltung, v. a. im langen Kopf. Kabel, keine Kurzhantel.'),
       S('Alves et al. 2017, J Sports Med Phys Fitness', '10.23736/S0022-4707.17.06849-9', 'EMG von langem und lateralem Kopf beim Kurzhantel-Strecken überkopf und im Liegen: sehr ähnliche Muster, Aktivität am höchsten im ersten/mittleren Bewegungsdrittel.'),
-      S('Tiwana et al., StatPearls (NCBI Bookshelf)', 'https://www.ncbi.nlm.nih.gov/books/NBK536996/', 'Anatomie: Nur der lange Kopf entspringt am Schulterblatt und wirkt daher auch auf das Schultergelenk.')
+      S('Tiwana et al. 2023, StatPearls: Triceps Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK536996/', 'Anatomie: Nur der lange Kopf entspringt am Schulterblatt und wirkt daher auch auf das Schultergelenk.')
     ]
   }),
   P('ez-bar-skullcrusher', 'Skullcrusher (SZ-Stange)', 'barbell', ['triceps'], [], {
@@ -865,7 +865,7 @@ export const POOL = [
     note: 'Oberkörper vorgebeugt, Oberarm parallel zum Boden oder leicht höher fixieren, nur den Unterarm strecken. Leichtes Gewicht, nicht schwingen.',
     others: ['Anconeus'],
     sources: [
-      S('Tiwana et al., StatPearls (NCBI Bookshelf)', 'https://www.ncbi.nlm.nih.gov/books/NBK536996/', 'Anatomie: Alle drei Köpfe setzen am Olekranon an und strecken den Ellbogen. Der lange Kopf wirkt zusätzlich an der Schulter.'),
+      S('Tiwana et al. 2023, StatPearls: Triceps Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK536996/', 'Anatomie: Alle drei Köpfe setzen am Olekranon an und strecken den Ellbogen. Der lange Kopf wirkt zusätzlich an der Schulter.'),
       S('Serbest et al. 2025, Phys Eng Sci Med', '10.1007/s13246-025-01672-5', 'EMG/Modell bei Frauen: Mehr Hantelgewicht beim Kickback steigerte die Trizepskontraktion nicht linear. Laststeigerung behutsam wählen.')
     ]
   }),
@@ -874,15 +874,15 @@ export const POOL = [
     note: 'Hände auf der Bank, Beine angewinkelt (leichter) oder gestreckt. Nur so tief, wie die Schulter es beschwerdefrei zulässt.',
     others: ['Serratus anterior'],
     sources: [
-      S('McKenzie et al. 2022, IJERPH', '10.3390/ijerph192013211', 'EMG/3D: Bankdips beanspruchen v. a. den Trizeps, aber weniger als Barren- oder Ringdips. Sie zeigten die größte Schulterstreckung (~101 % der max. Beweglichkeit).')
+      S('McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', '10.3390/ijerph192013211', 'EMG/3D: Bankdips beanspruchen v. a. den Trizeps, aber weniger als Barren- oder Ringdips. Sie zeigten die größte Schulterstreckung (~101 % der max. Beweglichkeit).')
     ]
   }, 'bodyweight'),
   P('machine-triceps-dip', 'Trizepsdrücken an der Maschine (Dip-Maschine)', 'machine', ['triceps'], ['chest', 'front-delts'], {
     confidence: 'low', basis: 'Anatomie + Analogie zu Dips (EMG)',
     note: 'Sitzend die Griffe nach unten drücken, Oberkörper aufrecht, Ellbogen nah am Körper. Gut für einen kontrollierten Lastaufbau.',
     sources: [
-      S('McKenzie et al. 2022, IJERPH', '10.3390/ijerph192013211', 'EMG an freien Dip-Varianten: Trizeps, Brust und vordere Schulter arbeiten mit. Die Maschine selbst wurde nicht untersucht, Übertrag ist nur Analogie.'),
-      S('Tiwana et al., StatPearls (NCBI Bookshelf)', 'https://www.ncbi.nlm.nih.gov/books/NBK536996/', 'Anatomie: Der Trizeps ist der Hauptstrecker des Ellbogens, der lange Kopf wirkt zusätzlich an der Schulter.')
+      S('McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', '10.3390/ijerph192013211', 'EMG an freien Dip-Varianten: Trizeps, Brust und vordere Schulter arbeiten mit. Die Maschine selbst wurde nicht untersucht, Übertrag ist nur Analogie.'),
+      S('Tiwana et al. 2023, StatPearls: Triceps Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK536996/', 'Anatomie: Der Trizeps ist der Hauptstrecker des Ellbogens, der lange Kopf wirkt zusätzlich an der Schulter.')
     ]
   }),
 
@@ -962,7 +962,7 @@ export const POOL = [
     sources: [
       S('Park & Park 2019, J Back Musculoskelet Rehabil', '10.3233/BMR-181122', 'Isometrisches beidseitiges Beinheben zeigte höhere Rectus-EMG als der Plank (n=18 Frauen).'),
       S('Marchetti et al. 2011, J Sports Sci Med', 'https://pubmed.ncbi.nlm.nih.gov/24149878/', 'Beinheben und Curl-up aktivieren oberen und unteren Rectus mit leicht verschiedenem Muster; Muskel arbeitet als Einheit.'),
-      S('Bordoni & Varacallo, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas ist der Hauptbeuger im Hüftgelenk; bei fixiertem Bein beugt er den Rumpf.')
+      S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas ist der Hauptbeuger im Hüftgelenk; bei fixiertem Bein beugt er den Rumpf.')
     ]
   }, 'bodyweight'),
   P('sit-up', 'Sit-up / Negativ-Sit-up', 'bodyweight', ['abs', 'hip-flexors'], ['obliques'], {
@@ -979,7 +979,7 @@ export const POOL = [
     note: 'Unterarme auf den Polstern, Rücken an der Lehne; Knie heben und Becken einrollen, ohne Schwung. Langsam absenken.',
     sources: [
       S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Hängendes Knieheben in Armschlaufen (verwandte Variante): mit die höchste Rectus- und Obliques-EMG der Studie.'),
-      S('Bordoni & Varacallo, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas als Hauptbeuger der Hüfte; Knieheben ist primär Hüftbeugung.')
+      S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas als Hauptbeuger der Hüfte; Knieheben ist primär Hüftbeugung.')
     ]
   }, 'bodyweight'),
   P('side-plank', 'Seitstütz', 'bodyweight', ['obliques'], ['abductors', 'lower-back', 'abs'], {
@@ -1016,7 +1016,7 @@ export const POOL = [
     others: ['Transversus abdominis'],
     sources: [
       S('Kumar et al. 2001, Eur J Appl Physiol', '10.1007/s004210100510', 'EMG bei isometrischer Rumpfrotation: Der gegenseitige Obliquus externus gehört zu den am stärksten aktivierten Muskeln (bei Männern).'),
-      S('Bordoni & Varacallo, StatPearls: Iliopsoas', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger der Hüfte und kann bei fixierten Beinen den Rumpf beugen.')
+      S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger der Hüfte und kann bei fixierten Beinen den Rumpf beugen.')
     ]
   }, 'bodyweight'),
   P('bicycle-crunch', 'Fahrrad-Crunch', 'bodyweight', ['obliques', 'abs'], ['hip-flexors'], {
@@ -1025,7 +1025,7 @@ export const POOL = [
     others: ['Transversus abdominis'],
     sources: [
       S('Pereira et al. 2017, J Manipulative Physiol Ther', '10.1016/j.jmpt.2017.02.010', 'EMG: Criss-Cross (entspricht weitgehend dem Fahrrad-Crunch) zeigte unter drei Pilates-Übungen die höchste Aktivität von Rectus und Obliques.'),
-      S('Bordoni & Varacallo, StatPearls: Iliopsoas', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger des Oberschenkels. Er beugt die Hüfte beim Anziehen des Knies.')
+      S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger des Oberschenkels. Er beugt die Hüfte beim Anziehen des Knies.')
     ]
   }, 'bodyweight'),
   P('standing-cable-hip-flexion', 'Hüftbeugen am Kabel (stehend)', 'cable', ['hip-flexors'], ['abs', 'obliques'], {
@@ -1034,7 +1034,7 @@ export const POOL = [
     others: ['Tensor fasciae latae', 'Sartorius'],
     sources: [
       S('Juker et al. 1998, Med Sci Sports Exerc', '10.1097/00005768-199802000-00020', 'Feindraht-EMG am Psoas: Der höchste Wert trat bei maximaler Hüftbeugung auf. Eine Kabelübung wurde nicht getestet.'),
-      S('Bordoni & Varacallo, StatPearls: Iliopsoas', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas als Hauptbeuger des Oberschenkels, zusätzlich beteiligt an Adduktion und Außenrotation.'),
+      S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas als Hauptbeuger des Oberschenkels, zusätzlich beteiligt an Adduktion und Außenrotation.'),
       S('Hu et al. 2010, J Biomech', '10.1016/j.jbiomech.2009.09.035', 'Feindraht-EMG beim aktiven gestreckten Beinheben: Psoas und Iliacus aktiv, schräge und quere Bauchmuskeln arbeiten mit und stabilisieren das Becken.')
     ]
   }),
