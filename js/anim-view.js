@@ -141,9 +141,11 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
 
   function draw(t) {
     const { pose, phase } = M.poseAt(frames, anim.phases, t);
-    gBody.replaceChildren(...M.layers(pose, roleOf, sex).map((l) => el('path', { d: l.d, class: l.cls })));
+    const L = M.layers(pose, roleOf, sex), isHand = (l) => / hand /.test(' ' + l.cls + ' ');
+    const sp = M.sceneSplit(pose.scene, M.gripPoints(pose)); // v2.21.0: Hand umschließt Griffe – Griffe unter der Hand, Scheiben und Köpfe darüber
+    gBody.replaceChildren(...L.filter((l) => !isHand(l)).map((l) => el('path', { d: l.d, class: l.cls })));
     gBack.replaceChildren(...sceneNodes(pose.scene, true));
-    gFront.replaceChildren(...sceneNodes(pose.scene, false));
+    gFront.replaceChildren(...sceneNodes(sp.under, false), ...L.filter(isHand).map((l) => el('path', { d: l.d, class: l.cls })), ...sceneNodes(sp.over, false));
     const lw = LABEL_W * upp, lh = LABEL_H * upp;
     const marks = anim.keyPoints.map((kp, i) => {
       const a = M.anchor(pose, kp.anchor, sex);

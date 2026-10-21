@@ -588,4 +588,36 @@ test('v2.20.0: Rückansicht (Latzug) – Arme hinter dem Rumpf, Szene hinter der
   assert.deepEqual(B.map((l) => l.d), F.map((l) => l.d), 'Vorderansicht unverändert');
 });
 
+// ---------- v2.21.0: Runde 16 und greifende Hand ----------
+test('v2.21.0: Unterarme, Beinbeuger, Beine und Tragen – Kontakte über den ganzen Zyklus', () => {
+  const each = (ref, fn) => { const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases); for (let i = 0; i <= 40; i++) fn(M.poseAt(fr, a.phases, (T * i) / 40 - (i === 40 ? 1e-6 : 0)).pose, i); };
+  each('seated-leg-curl', (P, i) => { near(P.joints.hip[1], -112, 0.1, `SLC t=${i}: Hüfte`); assert.ok(P.joints.knee[1] > -130 && P.joints.knee[1] < -100, `SLC t=${i}: Oberschenkel waagerecht`); });
+  each('nordic-hamstring-curl', (P, i) => { near(P.joints.knee[1], -24, 0.1, `NHC t=${i}: Knie auf dem Polster`); near(P.joints.ankle[1], -24, 0.5, `NHC t=${i}: Unterschenkel waagerecht`); assert.ok(P.joints.wrist[1] <= -20, `NHC t=${i}: Hand nicht im Boden (${P.joints.wrist[1].toFixed(1)})`); });
+  each('reverse-hyperextension', (P, i) => { near(P.joints.hip[1], -222, 0.1, `RHE t=${i}: Hüfte an der Polsterkante`); assert.ok(P.joints.toe[1] < -2, `RHE t=${i}: Füße über dem Boden`); });
+  for (const ref of ['wrist-curl', 'reverse-wrist-curl']) each(ref, (P, i) => { const W = D.animationFor(ref).frames[0].pose.armWorld; assert.ok(dist(P.joints.wrist, W) < 0.5, `${ref} t=${i}: Handgelenk fest`); assert.ok(P.wrist >= 0 && P.wrist <= 60.01, `${ref} t=${i}: Handgelenk ${P.wrist}`); });
+  each('farmers-walk', (P, i) => { assert.ok(Math.max(P.joints.toe[1], P.joints.toe2[1], M.anchor(P, 'heel')[1], M.anchor(P, 'heel2')[1]) > -4, `FW t=${i}: ein Fuß am Boden`); const d = P.scene.find((x) => x.type === 'db'); assert.ok(d && !d.endOn, `FW t=${i}: Hantel längs`); });
+  each('walking-lunge', (P, i) => { assert.ok(Math.max(P.joints.toe[1], P.joints.toe2[1], M.anchor(P, 'heel')[1], M.anchor(P, 'heel2')[1]) > -4, `WL t=${i}: ein Fuß am Boden`); assert.ok(P.joints.hip[1] >= -182 && P.joints.hip[1] <= -100, `WL t=${i}: Hüfthöhe`); });
+  each('belt-squat', (P, i) => { near(P.joints.ankle[1], -35, 0.1, `BSQ t=${i}: Fuß auf dem Podest`); assert.ok(Math.abs(P.props.belt[0] - P.joints.ankle[0]) < 26, `BSQ t=${i}: Gurt über dem Fuß`); });
+  each('sissy-squat', (P, i) => { near(P.joints.toe[0], 30, 0.1, `SSQ t=${i}: Ballen x`); near(P.joints.toe[1], -2, 0.1, `SSQ t=${i}: Ballen y`); });
+});
+
+test('v2.21.0: Hand – Faust umschließt Griffe (unter der Hand gezeichnet), flache Hand beim Stütz, Handgelenk dreht nur die Hand', () => {
+  const ids = M.SHAPES.filter((s) => s.seg === 'farm' && s.hand).map((s) => s.hand);
+  assert.deepEqual(ids.sort(), ['fist', 'knuckle', 'open', 'thumb']);
+  const P = M.solvePose({ shank: 0, knee: 0, hip: 0, armPlumb: true, elbow: 0 });
+  const hands = M.layers(P).filter((l) => / hand /.test(' ' + l.cls + ' '));
+  assert.equal(hands.length, 6, 'Faust, Knöchel, Daumen je Rand und Füllung');
+  const F = M.solvePose({ shank: 0, knee: 0, hip: 0, armPlumb: true, elbow: 0, handFlat: 1 });
+  assert.equal(M.layers(F).filter((l) => / hand /.test(' ' + l.cls + ' ')).length, 0, 'Stütz: flache Hand, keine Faust');
+  const g = M.gripPoints(P)[0], sp = M.sceneSplit([{ type: 'db', at: g, dir: [1, 0] }, { type: 'db', at: g, dir: [1, 0], endOn: true }, { type: 'plate', at: g, r: 40 }, { type: 'line', from: [g[0] - 20, g[1]], to: [g[0] + 20, g[1]], w: 4, front: true }], [g]);
+  assert.equal(sp.under.length, 2, 'Griff in der Bildebene und Stange unter der Hand');
+  assert.equal(sp.over.length, 2, 'Hantelkopf zum Betrachter und Scheibe über der Hand');
+  const W = M.solvePose({ shank: 0, knee: 0, hip: 0, armPlumb: true, elbow: 0, wrist: 40 });
+  assert.deepEqual(W.joints.wrist, P.joints.wrist, 'Handgelenk bleibt');
+  assert.ok(dist(W.joints.hand, P.joints.hand) > 5, 'Hand dreht');
+  const vorn = MF.layersFront(MF.solveFront({}), () => '', 'male').filter((l) => / hand /.test(' ' + l.cls + ' '));
+  assert.equal(vorn.length, 8, 'Frontansicht: Faust und Daumen beidseitig');
+  assert.equal(MF.layersFront(MF.solveFront({ back: true }), () => '', 'male').filter((l) => / hand /.test(' ' + l.cls + ' ')).length, 0, 'Rückansicht: Hände nicht vorgezogen');
+});
+
 done();

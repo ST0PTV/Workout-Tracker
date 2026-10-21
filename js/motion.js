@@ -44,7 +44,13 @@ export const SHAPES = [
   { seg: 'uarm', id: 'delts', pts: [[-3, -294], [5, -298], [12, -291], [13, -275], [10, -260], [3, -257], [-8, -266], [-10, -282]] },
   { seg: 'uarm', id: 'biceps', pts: [[4, -256], [11, -254], [11, -240], [9, -226], [4, -224], [3, -242]] },
   { seg: 'uarm', id: 'triceps', pts: [[-1, -258], [-10, -260], [-10, -245], [-7, -228], [-2, -226], [-1, -245]] },
-  { seg: 'farm', id: 'body', pts: [[8, -217], [10, -205], [9, -190], [7, -175], [6, -166], [7, -158], [8, -145], [6, -130], [3, -125], [0, -128], [-2, -140], [-3, -155], [-3, -166], [-4, -178], [-6, -195], [-7, -210], [-5, -220]] },
+  // v2.21.0: Unterarm bis zum Handgelenk, Hand getrennt: Faust (hält Griffe, mit Fingerknöcheln und Daumen) oder flache Hand (handFlat, Stütz).
+  // Faust: Mitte 7–10 unter dem Handgelenk, Griff und Stange (Handgelenk + 7 bzw. + 14) liegen darin. Zeichenkonvention.
+  { seg: 'farm', id: 'body', pts: [[8, -217], [10, -205], [9, -190], [7, -176], [6, -168], [2, -164], [-3, -168], [-4, -178], [-6, -195], [-7, -210], [-5, -220]] },
+  { seg: 'farm', id: 'body', hand: 'open', pts: [[6, -170], [6, -166], [7, -158], [8, -145], [6, -130], [3, -125], [0, -128], [-2, -140], [-3, -155], [-3, -166], [-3, -170], [2, -172]] },
+  { seg: 'farm', id: 'body', hand: 'fist', pts: [[6, -172], [9, -166], [10, -158], [9, -150], [6, -146], [1, -144], [-4, -146], [-6, -151], [-6, -160], [-5, -167], [-3, -172]] },
+  { seg: 'farm', id: 'body', hand: 'knuckle', pts: [[-6, -154], [9.5, -154], [9, -149], [6, -145.5], [1, -144.5], [-4, -146], [-6, -149]] },
+  { seg: 'farm', id: 'body', hand: 'thumb', pts: [[7, -169], [11.5, -164], [12.5, -158], [10.5, -153.5], [7.5, -155], [6.5, -161]] },
   { seg: 'farm', id: 'forearms', pts: [[-5, -216], [7, -216], [9.5, -203], [8, -185], [2, -180], [-4, -182], [-6, -198]] }
 ];
 // Pool-Muskel → Form der Figur. Adduktoren und Abduktoren sind in der Seitenansicht nicht als Fläche sichtbar; Hüftbeuger seit v2.18.0 als kleine Fläche vorn an der Leiste.
@@ -243,7 +249,8 @@ function buildPose(spec) {
 
   const elP = add(shP, mul(dir(aU), aLen));
   const wrP = add(elP, mul(dir(aF), bLen));
-  const handP = add(wrP, mul(dir(aF), LEN.hand));
+  const wristDeg = num(spec.wrist) || 0; // v2.21.0: Hand dreht um das Handgelenk zur Unterarm-Normalen
+  const handP = add(wrP, mul(dir(aF - wristDeg), LEN.hand));
   const J = { hip: hipP, shoulder: shP, knee: knP, ankle: anP, toe: toeP, elbow: elP, wrist: wrP, hand: handP };
   // Wurzel verschieben
   const offAll = off || sub(rp, J[root]);
@@ -293,7 +300,8 @@ function buildPose(spec) {
     J.elbow2 = el2; J.wrist2 = wr2; J.hand2 = add(wr2, mul(dir(aF2), LEN.hand));
     F.uarm2 = fr(J.shoulder, dir(aU2), sc[0]); F.farm2 = fr(el2, dir(aF2), sc[1]);
   }
-  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, handFlat2: num(spec.handFlat2) || 0, headTilt: num(spec.headTilt) || 0, curl };
+  if (wristDeg) angles.wrist = f1(wristDeg);
+  const P = { joints: J, F, angles, segAngles, solved: spec.solved || null, props: {}, scene: [], handFlat: num(spec.handFlat) || 0, handFlat2: num(spec.handFlat2) || 0, headTilt: num(spec.headTilt) || 0, curl, wrist: wristDeg };
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -339,11 +347,19 @@ function blend(seg, pt) {
   if (b === 'uarm' && pt[1] < -262) return { other: 'trunk', w: c((-262 - pt[1]) / 30) * SHOULDER_BLEND };
   return null;
 }
-export function tf(P, seg, pt) {
+export function tf(P, seg, pt, hand = false) {
+  if (hand && P.wrist && baseSeg(seg) === 'farm' && P.F[seg]) return wristRot(P, seg, tf1(P, seg, pt));
   const a = tf1(P, seg, pt), bl = blend(seg, pt);
   if (!bl || !bl.w || !P.F[bl.other]) return a;
   const o = tf1(P, bl.other, pt);
   return [a[0] + (o[0] - a[0]) * bl.w, a[1] + (o[1] - a[1]) * bl.w];
+}
+// v2.21.0: Handgelenk (spec.wrist, Grad): die Hand dreht um das Handgelenk von der Unterarmrichtung zur Unterarm-Normalen (im Stand nach vorn).
+// Positiv = Hand zur Normalen; bei Handgelenkcurls mit Unterarm nach vorn ist das „Hand hoch“ (Beugung mit Handfläche oben, Streckung mit Handfläche unten).
+function wristRot(P, seg, q) {
+  const F = P.F[seg], W = seg === 'farm2' ? P.joints.wrist2 : P.joints.wrist, w = P.wrist * DEG, c = Math.cos(w), s = Math.sin(w);
+  const v = sub(q, W), a = dot(v, F.d), b = dot(v, F.n);
+  return [W[0] + a * (F.d[0] * c + F.n[0] * s) + b * (F.n[0] * c - F.d[0] * s), W[1] + a * (F.d[1] * c + F.n[1] * s) + b * (F.n[1] * c - F.d[1] * s)];
 }
 export function anchor(P, key, sex = 'male') {
   if (P.view === 'front') return anchorFront(P, key, sex);
@@ -366,27 +382,50 @@ export function layers(P, roleOf = () => '', sex = 'male') {
   const group = (segs, joints, far) => {
     const present = segs.filter((sg) => P.F[sg]);
     if (!present.length) return;
-    const shapes = [];
+    const shapes = [], hands = [];
+    const flat = far ? (P.handFlat2 || P.handFlat) : P.handFlat; // v2.21.0: flache Hand nur beim Stütz, sonst Faust
     for (const sh of shapesFor(sex)) {
       const seg = far ? sh.seg + '2' : sh.seg;
       if (!present.includes(seg)) continue;
-      shapes.push({ sh, d: smooth(sh.pts.map((q) => tf(P, seg, q))) });
+      if (sh.hand && (sh.hand === 'open') !== !!flat) continue;
+      const d = smooth(sh.pts.map((q) => tf(P, seg, q, !!sh.hand)));
+      if (sh.hand && sh.hand !== 'open') hands.push(d); else shapes.push({ sh, d });
     }
     const body = shapes.filter((x) => x.sh.id === 'body').map((x) => x.d).concat(joints.filter((j) => P.joints[j[0]]).map((j) => disc(P.joints[j[0]], j[1])));
     const cls = far ? 'an-body far' : 'an-body';
     for (const d of body) out.push({ d, cls: cls + ' edge' });
     for (const d of body) out.push({ d, cls: cls + ' fill' });
+    const handCls = far ? cls : cls + ' hand'; // nahe Hand: Klasse „hand“ – wird über Griffen gezeichnet (sceneSplit)
+    const handOut = [];
+    for (const d of hands) handOut.push({ d, cls: handCls + ' edge' }, { d, cls: handCls + ' fill' });
     for (const { sh, d } of shapes) {
       if (sh.id === 'body') continue;
       if (sh.id === 'ear') { if (!far) out.push({ d, cls: 'an-ear' }); continue; }
       const role = roleOf(sh.id);
       out.push({ d, cls: 'an-m ' + (role === 'p' ? 'prim' : role === 's' ? 'sec' : 'rest') + (far ? ' far' : '') });
     }
+    out.push(...handOut);
   };
   group(['thigh2', 'shank2', 'foot2', 'uarm2', 'farm2'], [['knee2', 12], ['ankle2', 7], ['elbow2', 7]], true);
   group(['trunk', 'thigh', 'shank', 'foot'], [['hip', 15], ['knee', 12], ['ankle', 7]], false);
   group(['uarm', 'farm'], [['shoulder', 11], ['elbow', 7]], false);
   return out;
+}
+
+// v2.21.0: Griffpunkte der greifenden Hände (Mitte der Faust) und Aufteilung der vorderen Szene: Teile, die durch die Faust laufen
+// (Kurzhantelgriff in der Bildebene, Stange/Griff nahe der Faust, Markierung underHand), liegen unter der Hand; Scheiben, Hantelköpfe
+// zum Betrachter und alles andere darüber. Gilt für die nahe Hand (Seite) und beide Hände (vorn, nicht in der Rückansicht).
+export function gripPoints(P) {
+  const J = P.joints, at = (w, h) => (w && h ? [w[0] + (h[0] - w[0]) * 0.65, w[1] + (h[1] - w[1]) * 0.65] : null);
+  if (P.view === 'front') return P.back ? [] : [at(J.wristR, J.handR), at(J.wristL, J.handL)].filter(Boolean);
+  return P.handFlat ? [] : [at(J.wrist, J.hand)].filter(Boolean);
+}
+function distSeg(p, a, b) { const ab = sub(b, a), t = clamp(dot(sub(p, a), ab) / (dot(ab, ab) || 1), 0, 1); return len(sub(p, add(a, mul(ab, t)))); }
+export function sceneSplit(scene, grips) {
+  const near = (s) => grips.some((g) => (s.type === 'line' ? distSeg(g, s.from, s.to) < 9 : s.type === 'rect' ? g[0] > s.x - 6 && g[0] < s.x + s.w + 6 && g[1] > s.y - 6 && g[1] < s.y + s.h + 6 : false));
+  const under = [], over = [];
+  for (const s of scene) (s.underHand || (s.type === 'db' && !s.endOn) || ((s.type === 'line' || s.type === 'rect') && near(s)) ? under : over).push(s);
+  return { under, over };
 }
 
 // ---------- Zeitachse ----------

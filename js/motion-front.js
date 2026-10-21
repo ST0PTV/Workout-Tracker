@@ -69,7 +69,10 @@ export const SHAPES_F = [
   { seg: 'uarm', id: 'body', both: true, pts: [[28, -296], [38, -300], [48, -294], [52, -282], [50, -262], [49, -240], [48, -222], [43, -212], [37, -220], [35, -240], [31, -262], [28, -280]] },
   { seg: 'uarm', id: 'delts', both: true, pts: [[28, -296], [38, -300], [48, -294], [52, -282], [50, -266], [42, -258], [32, -262], [28, -278]] },
   { seg: 'uarm', id: 'biceps', both: true, pts: [[34, -258], [44, -256], [47, -240], [45, -226], [38, -224], [34, -238]] },
-  { seg: 'farm', id: 'body', both: true, pts: [[36, -222], [50, -222], [53, -205], [52, -185], [50, -168], [51, -158], [50, -146], [45, -141], [40, -144], [39, -156], [40, -168], [40, -180], [37, -200]] },
+  // v2.21.0: Unterarm bis zum Handgelenk, Hand als Faust mit Daumen (innen) – greift Griffe und Stangen; Zeichenkonvention.
+  { seg: 'farm', id: 'body', both: true, pts: [[36, -222], [50, -222], [53, -205], [52, -185], [50, -171], [46, -167], [41, -171], [40, -180], [37, -200]] },
+  { seg: 'farm', id: 'body', both: true, hand: 'fist', pts: [[40, -173], [51, -173], [53.5, -165], [53.5, -155], [50.5, -148.5], [45.5, -146.5], [40.5, -148.5], [38, -155], [38, -165]] },
+  { seg: 'farm', id: 'body', both: true, hand: 'thumb', pts: [[37, -169], [41, -166], [42, -159], [39, -155], [36, -158], [35.5, -164]] },
   { seg: 'farm', id: 'forearms', both: true, pts: [[37, -220], [49, -220], [52, -204], [48, -190], [40, -192], [37, -206]] }
 ];
 // v2.20.0: Rückansicht (spec.back): gleiche Gelenke und Umrisse wie vorn, Muskeln der Rückseite; Arme werden hinter dem Rumpf gezeichnet
@@ -311,9 +314,10 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
   const out = [];
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
   const group = (segs, joints, order = ['R', 'L']) => {
-    const shapes = [];
+    const shapes = [], hands = [];
     for (const sh of P.back ? shapesForB(sex) : shapesForF(sex)) {
       if (!segs.includes(sh.seg)) continue;
+      if (sh.hand && !P.back) { for (const side of order) hands.push(smooth(sh.pts.map((q) => tfFS(P, sh.seg, side, q)))); continue; } // v2.21.0: Hände nach den Muskeln, über Griffen
       if (sh.mid) { // symmetrische Form: rechte Hälfte plus gespiegelte linke Hälfte als ein Pfad
         const right = sh.pts.map((q) => tfFS(P, sh.seg, 'R', q)), left = sh.pts.slice().reverse().map((q) => tfFS(P, sh.seg, 'L', q));
         shapes.push({ sh, d: smooth(right.concat(left)) });
@@ -330,6 +334,7 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
       const role = roleOf(sh.id);
       out.push({ d, cls: 'an-m ' + (role === 'p' ? 'prim' : role === 's' ? 'sec' : 'rest') });
     }
+    for (const d of hands) out.push({ d, cls: 'an-body hand edge' }, { d, cls: 'an-body hand fill' });
   };
   // v2.19.0: frontLeg 'R' – erst das linke Bein ganz (Umriss und Muskeln), dann das rechte darüber (Bein kreuzt vor dem Standbein)
   const legGroups = () => {

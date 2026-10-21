@@ -694,6 +694,89 @@ const FP = (() => {
 // Schlüsselbeins (Peeters et al. 2023, passiv an Körperspenden) und ≈ 15 cm Schlüsselbeinlänge (Trainingswissen, nicht nachgeprüft).
 const SHR = { up: 12 };
 
+// ---------- Runde 16 (v2.21): Unterarme, Beinbeuger, Beine und Tragen ----------
+// Beinbeuger sitzend (Seitenansicht): Hüfte ≈ 90° (Maeo et al. 2021), Oberschenkel waagerecht auf dem Sitz, Knie 0° → 90°. Kniegelenk auf der
+// Drehachse des Hebels (Protokoll), Polster oben auf dem Oberschenkel knapp vor dem Knie, Rolle hinten am Unterschenkel über der Ferse.
+// Hände an den Griffen neben dem Sitz (Handgelenk-Ziel in Weltkoordinaten). Sitzhöhe, Lehne und Griffe sind Konvention.
+const SLC2 = { hip: [0, -112], hand: [26, -124] };
+// Nordic Hamstring Curl (Seitenansicht): kniend auf einem Polster (Schienbein waagerecht, Polster 14 hoch, Konvention), Knöchel unter einer Rolle.
+// Start: Oberschenkel und Rumpf senkrecht (Knie 90°, Maeo et al. 2024). Absenken mit gestreckter Hüfte bis zum Bruchpunkt bei 58° Kniebeugung
+// (57,75 ± 13,28°, Soga et al. 2021, Unterschenkel flach), danach Fallen und mit den Händen abfangen (Knie ≈ 15°). Hüfte leicht gebeugt (8°,
+// Konvention; gemessen wurden 24° bei maximaler Aktivität, Jorge et al. 2024). Arme: vor der Brust, beim Abfangen gestreckt zum Boden.
+const NHC = (() => {
+  const KN = [0, -24], base = { root: 'knee', rootPos: KN, shank: 90, foot: 205 };
+  const sh = (knee, hip) => solvePose({ ...base, knee, hip }).joints.shoulder;
+  const chest = { shoulder: 25, elbow: 125 }; // Arme vor der Brust (Konvention); als Winkel, damit die Überblendung glatt bleibt
+  const WY = -22; // Handgelenk über dem Boden (Faust liegt auf)
+  const wristY = (knee, hip, shoulder, elbow) => solvePose({ ...base, knee, hip, shoulder, elbow }).joints.wrist[1];
+  const catchArm = (knee, hip, elbow) => ({ shoulder: r1(bisect((sh) => wristY(knee, hip, sh, elbow) - WY, 20, 120)), elbow }); // Schulterwinkel so, dass die Hand den Boden erreicht
+  // tiefstes Knie: die fast gestreckten Arme (Ellbogen 5°) erreichen den Boden gerade senkrecht unter der Schulter
+  const low = r1(bisect((k) => { const S = sh(k, 8); return -S[1] - (LEN.uarm + LEN.farm - 2) + WY + 0; }, 0, 58));
+  return { KN, base, chest, bp: 57.75, low, catch: catchArm(low, 8, 5), mid: catchArm(35, 8, 70) };
+})();
+// Reverse Hyperextension (Seitenansicht): Bauchlage auf einem hohen Polster, Hüfte an der Polsterkante, Beine hängen; gestreckte Beine von 77°
+// Hüftbeugung (76,6° Oberschenkel–Rumpf-Bewegung, Lawrence et al. 2019) bis in Linie mit dem Rumpf. Pendel mit Drehachse am Hüftgelenk,
+// Schlaufe an den Unterschenkeln über dem Knöchel; Hände an Griffen vorn. Polsterhöhe ≈ 1 m (Konvention).
+const RHE = { hip: [0, -222], hand: [126, -100], bottom: 76.6 };
+
+// Handgelenkcurls (Seitenansicht): sitzend auf der Bank, Oberkörper vorgeneigt, Unterarme auf den Oberschenkeln, Handgelenk knapp vor dem Knie.
+// Rumpfneigung so gelöst, dass der Ellbogen auf dem Oberschenkel liegt (Konvention; Studien fixierten den Unterarm, Takamori et al. 2026).
+// Hand von waagerecht (0°) bis 60° nach oben (Takamori: „voll gebeugt/gestreckt“ ohne Gradwert; Alltag braucht 54° Beugung / 60° Streckung, Ryu et al. 1991).
+const WCURL = (() => {
+  const base = { root: 'hip', rootPos: [0, -100], knee: 90, foot: 90 };
+  const pose = (t) => solvePose({ ...base, trunk: t, hip: t + 90 }); // Oberschenkel waagerecht auf der Bank
+  const W = (P) => { const K = P.joints.knee; return [K[0] + 12, K[1] - 16]; }; // Handgelenk vor dem Knie, über dem Oberschenkel
+  const elbowGap = (t) => { const P = pose(t), Wt = W(P), Q = solvePose({ ...base, trunk: t, hip: t + 90, armWorld: Wt, elbowSide: 1 }); const E = Q.joints.elbow, H = P.joints.hip, K = P.joints.knee;
+    const d = [K[0] - H[0], K[1] - H[1]], l = Math.hypot(d[0], d[1]), n = [d[1] / l, -d[0] / l]; return (E[0] - H[0]) * n[0] + (E[1] - H[1]) * n[1] - 22; }; // Ellbogen 22 über der Oberschenkelachse
+  const trunk = r1(bisect(elbowGap, 5, 75)), P = pose(trunk);
+  return { base, trunk, wrist: W(P), top: 60 };
+})();
+// Farmer's Walk (Seitenansicht, auf der Stelle – die Hüfte bleibt im Bild, die Füße wandern wie auf einem Laufband nach hinten).
+// Vier Bilder je Doppelschritt; Schritt ≈ 0,5 m (halbe Doppelschrittlänge 1,04 m bei Strongman-Athleten, Winwood et al. 2014 in Hindle et al. 2019),
+// Füße bei ±42 vor/hinter der Hüfte; Rumpf 5° vor (Konvention; Strongman bei Höchstlast ≈ 12°). Beine per IK (legTo) zu den Fußzielen.
+const FWK = (() => {
+  const front = [42, -14], back = [-40, -30], under = [8, -15], swing = [-8, -48];
+  const fr = (hy, near, nearFoot, far, farFoot) => ({ root: 'hip', rootPos: [0, hy], trunk: 5, ...legTo([0, hy], near), foot: nearFoot, leg2: { ankle: far, foot: farFoot } });
+  const hyLow = r1(-14 - Math.sqrt(165 ** 2 - 42 ** 2)), hyHigh = -181;
+  // Fußbahn eines Beins: Ziele und Fußwinkel; dazwischen Mittelbilder (gemittelte Ziele), damit der Knöchel der IK-Bahn folgt und der Fuß nicht in den Boden taucht
+  const path = [[front, 80], [under, 90], [back, 125], [swing, 110]], hy = [hyLow, hyHigh, hyLow, hyHigh];
+  const at = (i) => { const a = path[Math.floor(i) % 4], b = path[(Math.floor(i) + 1) % 4], u = i % 1; return [[r1(a[0][0] + (b[0][0] - a[0][0]) * u), r1(a[0][1] + (b[0][1] - a[0][1]) * u)], a[1] + (b[1] - a[1]) * u]; };
+  const k = [];
+  for (let i = 0; i < 8; i++) { const n = at(i / 2), f = at((i / 2 + 2) % 4), y = (hy[Math.floor(i / 2)] + hy[(Math.floor(i / 2) + 1) % 4]) / 2, h = i % 2 ? y - 1.5 : hy[i / 2];
+    k.push(fr(r1(h), n[0], r1(n[1]), f[0], r1(f[1]))); }
+  return { k };
+})();
+// Ausfallschritte gehend (Seitenansicht, Kamera folgt der Hüfte): abwechselnd links und rechts. Unten wie beim Ausfallschritt (Riemann et al. 2012,
+// hinteres Knie knapp über dem Boden, LUNGE); dazwischen Aufrichten mit Durchschwingen des hinteren Beins und Aufsetzen ≈ 21 weiter vorn.
+const WLG = (() => {
+  const H = LUNGE.H, fx = r1(-H[0]), hb = H[1], tx = r1(fx + 21); // Hüfte bei x = 0; vorderer Knöchel unten bei +72, beim Aufsetzen 21 weiter vorn
+  const ballB = r1(fx + LUNGE.ballX), ballT = r1(ballB + 21); // hinterer Ballen unten bzw. beim Aufsetzen (die Füße wandern im Bild nach hinten)
+  const flat = (x) => ({ ankle: [x, -15], foot: 90 }), onBall = (x, phi) => ({ ball: x, foot: phi, ankle: footAnkle([x, -2], phi) }), air = { ankle: [-10, -50], foot: 110 };
+  const hT = r1(-15 - Math.sqrt(164 ** 2 - tx ** 2));
+  // Zustände [Hüfthöhe, nahes Bein, fernes Bein]; zwischen zwei Zuständen je 3 Teilbilder mit gemittelten Zielen (Ballen bleibt am Boden)
+  const S = [[hb, flat(fx), onBall(ballB, LUNGE.phiB)], [-180, flat(10), air], [hT, onBall(ballT, 110), flat(tx)],
+    [hb, onBall(ballB, LUNGE.phiB), flat(fx)], [-180, air, flat(10)], [hT, flat(tx), onBall(ballT, 110)]];
+  const mixT = (a, b, u) => (a.ball !== undefined && b.ball !== undefined ? onBall(r1(a.ball + (b.ball - a.ball) * u), r1(a.foot + (b.foot - a.foot) * u))
+    : { ankle: [r1(a.ankle[0] + (b.ankle[0] - a.ankle[0]) * u), r1(a.ankle[1] + (b.ankle[1] - a.ankle[1]) * u)], foot: r1(a.foot + (b.foot - a.foot) * u) });
+  const pose = (hy, n, f) => ({ root: 'hip', rootPos: [0, hy], trunk: 3, ...legTo([0, hy], n.ankle), foot: n.foot, leg2: { ankle: f.ankle, foot: f.foot } });
+  const k = [], seg = [];
+  for (let i = 0; i < 6; i++) { const A = S[i], B = S[(i + 1) % 6];
+    for (let j = 0; j < 3; j++) { const u = j / 3; k.push(pose(r1(A[0] + (B[0] - A[0]) * u), mixT(A[1], B[1], u), mixT(A[2], B[2], u))); seg.push(i); } }
+  return { k, seg };
+})();
+// Belt Squat (Seitenansicht): Füße auf zwei Podesten (≈ 10 cm), Gurt um die Hüfte, Kette senkrecht zum Hebel unter dem Podest; Knöchel unter dem
+// Gurt-Ansatz (Joseph et al. 2020). Rumpf möglichst aufrecht; Schienbein je Bild so gelöst, dass oben die Hüfte und unten der Gurt-Ansatz (≈ 22 vor dem
+// Hüftgelenk) über dem Knöchel liegt (Gurt zieht senkrecht nach unten; Konvention). Tiefe 90° Kniebeugung (tiefste Testposition bei Varela-Olalla et al. 2024); Hände leicht am Griff vorn.
+const BSQ = (() => {
+  const PL = 20, root = { root: 'ankle', rootPos: [0, -15 - PL] };
+  const solve = (knee, trunk) => { const sh = bisect((s) => solvePose({ ...root, shank: s, knee, trunk, ankle: s }).joints.hip[0] + 22 * knee / 90, -15, 60); // oben Hüfte über dem Knöchel, unten Hüftgelenk ≈ 22 dahinter (Gurt-Ansatz vorn an der Hüfte über dem Knöchel)
+    return { shank: r1(sh), knee, trunk, ankle: r1(sh) }; };
+  return { PL, root, top: solve(2, 2), mid: solve(45, 8), bottom: solve(90, 12), hand: [70, -170 - PL] };
+})();
+// Sissy Squat (Seitenansicht): Fußballen fest (Wurzel Ballen), Fersen heben sich, Knie wandern weit nach vorn, Hüfte gestreckt (Rumpf und
+// Oberschenkel in einer Linie, Rücklage). Eine Hand hält einen Pfosten seitlich neben dem Körper. Keine Studie gefunden: alle Winkel Zeichenkonvention.
+const SSQ = { post: 66, hand: [60, -200], ball: [30, -2] }; // Pfosten seitlich neben der Figur (hinter ihr gezeichnet), Hand in allen Bildern erreichbar
+
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
@@ -3750,8 +3833,282 @@ export const ANIMATIONS = [
       PE: { label: 'Peeters et al. 2022, JSES Int', url: 'https://doi.org/10.1016/j.jseint.2022.09.014', read: 'fulltext' },
       HA: { label: 'Hallaçeli & Günal 2001, Arch Orthop Trauma Surg', url: 'https://doi.org/10.1007/s004020100339', read: 'abstract' }
     }
-  }
+  },
 
+  // ---------- Runde 16 (v2.21): Beinbeuger sitzend ----------
+  {
+    ref: 'seated-leg-curl', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Studie hat die Bewegung am sitzenden Beinbeuger gemessen. Hüfte ≈ 90° gebeugt und Knie 0° → 90° sind die Vorgaben aus Maeo et al. 2021 (Volltext), ebenso das Ausrichten des Kniegelenks auf die Drehachse und das festgeschnallte Becken. Sitz, Lehne, Polster und Armhaltung sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s beugen / 2 s strecken ohne Pause, Metronom 60 Schläge/min (Maeo et al. 2021).' },
+    frames: [
+      { label: 'Gestreckt', pose: { root: 'hip', rootPos: SLC2.hip, trunk: C(-5, 'an der Lehne'), hip: V(90, 'M1', 'protocol', 'Hüfte ≈ 90° gebeugt'), knee: V(0, 'M1', 'protocol', 'Knie gestreckt (0°)'), ankle: C(0, 'Fuß neutral'), armWorld: SLC2.hand, elbowSide: 1, props: seatedCurlProps } },
+      { label: 'Gebeugt', pose: { root: 'hip', rootPos: SLC2.hip, trunk: C(-5), hip: V(90, 'M1', 'protocol', 'Hüfte ≈ 90° gebeugt'), knee: V(90, 'M1', 'protocol', 'voller Umfang 0–90°'), ankle: C(0), armWorld: SLC2.hand, elbowSide: 1, props: seatedCurlProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Gestreckt', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Beugen', kp: [2, 3] }, { a: 1, b: 1, dur: 0.1, label: 'Gebeugt', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Strecken', kp: [4] }],
+    keyPoints: [
+      { short: 'Achse', anchor: 'knee', side: 'r', status: 'single', text: 'Kniegelenk auf Höhe der Drehachse der Maschine einstellen.', src: ['M1', 'M2'],
+        explain: 'In beiden Trainingsstudien der Gruppe um Maeo wurde das Kniegelenk auf die Drehachse des Hebels ausgerichtet und die Einstellung je Person beibehalten (Maeo et al. 2021 und 2024). Das ist ein Studienprotokoll, kein Vergleichstest.' },
+      { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Hüfte bleibt gebeugt (etwa 90°), Becken mit Gurt oder Polster fixieren.', src: ['M1'],
+        explain: 'Maeo et al. 2021 fixierten die Hüfte bei etwa 90° Beugung und schnallten das Becken fest. In einer späteren Studie lag die Hüfte bei 120° (Maeo et al. 2024).' },
+      { short: 'Weg', anchor: 'foot', side: 'r', status: 'single', text: 'Ganzer Weg: Knie von gestreckt bis etwa 90° beugen.', src: ['M1'],
+        explain: 'Als voller Bewegungsumfang galt 0–90° Kniebeugung (Maeo et al. 2021).' },
+      { short: 'Sitzend', anchor: 'thigh', side: 'r', status: 'single', text: 'Sitzend wuchs der hintere Oberschenkel stärker als liegend (+14 % gegen +9 %).', src: ['M1'],
+        explain: '20 untrainierte Erwachsene, 12 Wochen, ein Bein sitzend, das andere liegend (70 % 1RM, 5 × 10): Das Volumen der Beinbeuger (MRT) nahm sitzend um 14 %, liegend um 9 % zu (Maeo et al. 2021).' },
+      { short: 'Fuß', anchor: 'kneeBack', side: 'l', status: 'single', text: 'Fußstellung (neutral oder gestreckt) änderte die Schwellung der Beinbeuger nicht.', src: ['L1'],
+        explain: '17 junge Frauen: Die Schwellung der Beinbeuger (Ultraschall) unterschied sich zwischen neutralem und gestrecktem Fuß nicht; der seitliche Wadenmuskel schwoll nur mit neutralem Fuß an (Lisboa et al. 2026, Abstract). Schwellung ist kein Maß für Muskelaufbau.' }
+    ],
+    sources: {
+      M1: { label: 'Maeo et al. 2021, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000002523', read: 'fulltext' },
+      M2: { label: 'Maeo et al. 2024, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003490', read: 'fulltext' },
+      L1: { label: 'Lisboa et al. 2026, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000005344', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Nordic Hamstring Curl ----------
+  {
+    ref: 'nordic-hamstring-curl', checkedAt: '2026-10-21', view: 'side', basis: 'measured',
+    basisNote: 'Start nach Maeo et al. 2024 (Volltext): kniend, Unterschenkel waagerecht, Oberschenkel und Rumpf senkrecht (Knie 90°), Knöchel fixiert. Der Bruchpunkt – ab hier fällt man schneller – ist gemessen: 57,75 ± 13,28° Kniebeugung mit flachem Unterschenkel (Soga et al. 2021, Abstract). Danach fängt die Figur sich mit den Händen ab und drückt sich mit den Armen zurück (Protokoll Pai et al. 2025). Die leichte Hüftbeugung (8°), Polster, Rolle und Armhaltung sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: 'Absenken ≈ 4 s (Maeo et al. 2024); ≈ 5 s je Wiederholung mit Metronom (Pai et al. 2025). Hier 3 s bis zum Bruchpunkt, dann 1 s Fallen.' },
+    frames: [
+      { label: 'Kniestand', pose: { ...NHC.base, knee: V(90, 'N1', 'protocol', 'Unterschenkel waagerecht, Oberschenkel senkrecht'), hip: V(0, 'N1', 'protocol', 'Rumpf und Oberschenkel in einer Linie'), ankle: C(0), ...NHC.chest, props: nordicProps } },
+      { label: 'Bruchpunkt', pose: { ...NHC.base, knee: V(NHC.bp, 'S1', 'abstract', '57,75 ± 13,28° (Unterschenkel flach)'), hip: C(8, 'Hüfte fast gestreckt (Anweisung); gemessen 24° bei maximaler Aktivität'), ankle: C(0), ...NHC.chest, props: nordicProps } },
+      { label: 'Abfangen', pose: { ...NHC.base, knee: C(NHC.low, 'aus der Geometrie: Hände erreichen den Boden'), hip: C(8), ankle: C(0), ...NHC.catch, props: nordicProps } },
+      { label: 'Abdrücken', pose: { ...NHC.base, knee: C(35), hip: C(8), ankle: C(0), ...NHC.mid, props: nordicProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Kniestand', kp: [0] }, { a: 0, b: 1, dur: 3.0, label: 'Absenken', kp: [0, 1] }, { a: 1, b: 2, dur: 1.0, label: 'Fallen', kp: [2] }, { a: 2, b: 2, dur: 0.3, label: 'Abfangen', kp: [3] }, { a: 2, b: 3, dur: 0.8, label: 'Abdrücken', kp: [3] }, { a: 3, b: 0, dur: 1.2, label: 'Aufrichten', kp: [3] }],
+    keyPoints: [
+      { short: 'Linie', anchor: 'glute', side: 'l', status: 'single', text: 'Hüfte gestreckt halten: Rumpf und Oberschenkel bilden eine Linie.', src: ['N1', 'J1'],
+        explain: 'Die Protokolle verlangen eine gestreckte Hüfte (Maeo et al. 2024). Selbst mit dieser Anweisung beugten 8 Sportler die Hüfte bei maximaler Beinbeuger-Aktivität im Mittel um 24° (Jorge et al. 2024, Tabelle im Volltext).' },
+      { short: 'Langsam', anchor: 'knee', side: 'r', status: 'consensus', text: 'Langsam nach vorn sinken lassen, etwa 4–5 s bis zum Boden.', src: ['N1', 'P1'],
+        explain: 'Die Trainingsstudien gaben ≈ 4 s (Maeo et al. 2024) bzw. ≈ 5 s mit Metronom vor (Pai et al. 2025). Das sind Protokolle, kein Vergleich verschiedener Tempi.' },
+      { short: 'Bruchpunkt', anchor: 'thigh', side: 'r', status: 'single', text: 'Ab etwa 58° Kniebeugung lässt sich der Fall meist nicht mehr bremsen.', src: ['S1', 'B1'],
+        explain: 'Bruchpunkt (ab hier > 10°/s): 57,75 ± 13,28° mit flachem Unterschenkel, 36° und 16° mit 20° bzw. 40° angehobenem Unterschenkel (Soga et al. 2021, 15 Männer). Mit Partner lag er bei 74,8°, mit einem Trainingsgerät bei 56,0° (Bergmann et al. 2026, 42 Personen). Beides Abstracts.' },
+      { short: 'Arme', anchor: 'hand', side: 'r', status: 'single', text: 'Mit den Händen abfangen und mit den Armen zurück in den Kniestand drücken.', src: ['P1'],
+        explain: 'In Pai et al. 2025 (11 Personen) wurde nur nachgebend abgesenkt; zurück ging es mit den Armen. Maeo et al. 2024 ließen auf eine Matte fallen.' },
+      { short: 'Fersen', anchor: 'foot', side: 'l', status: 'single', text: 'Fersen fest fixieren: mit einem Gerät lag der Bruchpunkt tiefer als mit Partner.', src: ['B1'],
+        explain: '42 Personen: Bruchpunkt mit Trainingsgerät (feste Fersen, festgelegte Kniehöhe) 56,0 ± 13,8°, mit Partner 74,8 ± 9,4°, mit fester Fersenfixierung 74,3 ± 11,1°; die Beinbeuger-Aktivität war mit dem Gerät am höchsten (Bergmann et al. 2026, Abstract).' }
+    ],
+    sources: {
+      N1: { label: 'Maeo et al. 2024, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003490', read: 'fulltext' },
+      S1: { label: 'Soga et al. 2021, J Sports Sci Med', url: 'https://doi.org/10.52082/jssm.2021.216', read: 'abstract' },
+      B1: { label: 'Bergmann et al. 2026, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2026.2657898', read: 'abstract' },
+      J1: { label: 'Jorge et al. 2024, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.116158', read: 'fulltext' },
+      P1: { label: 'Pai et al. 2025, J Sport Health Sci', url: 'https://doi.org/10.1016/j.jshs.2025.101070', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 16: Reverse Hyperextension ----------
+  {
+    ref: 'reverse-hyperextension', checkedAt: '2026-10-21', view: 'side', basis: 'measured',
+    basisNote: 'Bewegungsumfang gemessen: 76,6° zwischen Oberschenkel und Rumpf (Lawrence et al. 2019, Bewegungsmessung, 20 Freizeitsportler, Abstract). Gezeichnet von 77° Hüftbeugung (Beine hängen) bis in Linie mit dem Rumpf; wie sich die 76,6° auf Start und Ende verteilen, steht im Abstract nicht (Konvention). Die gemessene Lendenbeugung (20,4°) ist nicht dargestellt. Polster, Pendel, Schlaufe und Griffe sind Zeichenkonvention.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s heben, 2 s senken (Konvention); keine Tempoangabe in den Abstracts.' },
+    frames: [
+      { label: 'Unten', pose: { root: 'hip', rootPos: RHE.hip, trunk: C(90, 'Bauchlage auf dem Polster'), hip: V(RHE.bottom, 'R1', 'abstract', 'Oberschenkel–Rumpf-Bewegung 76,6°'), knee: C(0, 'Beine gestreckt'), ankle: C(0), armWorld: RHE.hand, elbowSide: -1, props: rheProps } },
+      { label: 'Oben', pose: { root: 'hip', rootPos: RHE.hip, trunk: C(90), hip: C(0, 'Beine in Linie mit dem Rumpf'), knee: C(0), ankle: C(0), armWorld: RHE.hand, elbowSide: -1, props: rheProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [3] }],
+    keyPoints: [
+      { short: 'Gestreckt', anchor: 'thigh', side: 'l', status: 'single', text: 'Beine gestreckt lassen, die Bewegung kommt aus der Hüfte.', src: ['D1'],
+        explain: 'Dicus et al. 2023 behandeln die Übung als Hüftstreckung mit gestreckten Beinen. Bei 50 % 1RM waren großer Gesäßmuskel und Beinbeuger aktiver als beim rumänischen Kreuzheben (+19,5, +27,9 und +18,2 Prozentpunkte, Abstract).' },
+      { short: 'Weg', anchor: 'glute', side: 'l', status: 'single', text: 'Gemessen: etwa 77° Hüftweg bei rund 20° Beugung der Lendenwirbelsäule.', src: ['R1'],
+        explain: '20 Freizeitsportler: 76,6° Oberschenkel–Rumpf-Bewegung und 20,4° Lendenbeugung; beim Rückenstrecker 64,7° und 31,1° (Lawrence et al. 2019, Abstract).' },
+      { short: 'Rücken', anchor: 'lowBack', side: 'r', status: 'single', text: 'Das Streckmoment im unteren Rücken war höher als beim Rückenstrecker.', src: ['R1'],
+        explain: 'Spitzenmoment im unteren Rücken +129 % gegenüber dem Rückenstrecker bei gleicher Last (Lawrence et al. 2019). Das ist eine Belastungsangabe, keine Aussage zum Verletzungsrisiko.' },
+      { short: 'Last', anchor: 'foot', side: 'l', status: 'contested', text: 'Mehr Gewicht brachte nicht linear mehr Kraft; Muskelvergleiche sind uneinheitlich.', src: ['R2', 'C1', 'R1'],
+        explain: 'Umstritten. 100 und 150 % des Körpergewichts unterschieden sich kaum; mehr Last vergrößerte Hüft- (+5°) und Rumpfbeugung (+4°) (Lawrence et al. 2022). Cuthbert et al. 2021 (10 Personen) fanden 34–71 % höhere Spitzen-EMG als beim Rückenstrecker, Lawrence et al. 2019 dagegen mehr Gesäß- und Beinbeuger-Aktivität beim Rückenstrecker.' }
+    ],
+    sources: {
+      R1: { label: 'Lawrence et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003146', read: 'abstract' },
+      R2: { label: 'Lawrence et al. 2022, J Appl Biomech', url: 'https://doi.org/10.1123/jab.2022-0046', read: 'abstract' },
+      C1: { label: 'Cuthbert et al. 2021, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000004049', read: 'abstract' },
+      D1: { label: 'Dicus et al. 2023, Int J Exerc Sci', url: 'https://doi.org/10.70252/ZAOJ6139', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Reverse Curls (Seitenansicht) ----------
+  {
+    ref: 'reverse-curl', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Studie hat Ellbogenwinkel im Obergriff gemessen. Aufbau nach Coratella et al. 2023 (Volltext, 10 Bodybuilder, gerade Stange am Kabel, Obergriff): Oberarme bleiben am Rumpf, kein Schwung, voller Bewegungsumfang, Tempo 1-2-1-2 s. Der Ellbogenweg ist vom SZ-Curl übertragen (Start 22°, wo die Stange an den Oberschenkeln anliegt, plus 119,9° gemessener Umfang, Marcolin et al. 2018). Stange und Stand sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '1 s halten, 2 s heben, 1 s halten, 2 s senken (Coratella et al. 2023).' },
+    frames: [
+      { label: 'Unten', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: V(0, 'CO', 'protocol', 'Arme am Rumpf, keine Armbeugung'), elbow: C(22, 'Stange liegt an den Oberschenkeln an'), props: ezCurlProps } },
+      { label: 'Oben', pose: { shank: C(0), knee: C(3), hip: C(0), ankle: C(0), shoulder: V(0, 'CO', 'protocol', 'Arme am Rumpf'), elbow: K(142, 'M1', 'übertragen: Start 22° + Umfang 119,9° (SZ-Stange, Untergriff)'), props: ezCurlProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [1, 2] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [3] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [0] }],
+    keyPoints: [
+      { short: 'Oberarm', anchor: 'elbow', side: 'l', status: 'single', text: 'Oberarme bleiben am Körper, nur der Ellbogen beugt sich.', src: ['CO'],
+        explain: 'Protokoll bei 10 Wettkampf-Bodybuildern: Arme parallel zum Rumpf, kein Anheben des Oberarms, kein Schwung aus Rumpf oder Beinen (Coratella et al. 2023).' },
+      { short: 'Bizeps', anchor: 'uarm', side: 'r', status: 'single', text: 'Im Obergriff arbeitet der Bizeps weniger als im Untergriff.', src: ['CO'],
+        explain: 'Beim Heben war der Bizeps im Untergriff um 19 Prozentpunkte stärker erregt als im Obergriff (Coratella et al. 2023, 10 Bodybuilder, 8-RM).' },
+      { short: 'Speiche', anchor: 'hand', side: 'r', status: 'contested', text: 'Der Oberarmspeichenmuskel ist im Obergriff nicht aktiver als im Untergriff.', src: ['CO', 'CA'],
+        explain: 'Umstritten ist die verbreitete Annahme, der Obergriff fordere diesen Muskel besonders: Er war im Untergriff um 5 Prozentpunkte aktiver (Coratella et al. 2023). Caufriez et al. 2018 (15 Männer, Abstract) fanden ihn in allen Unterarmstellungen stark aktiv, etwas mehr in Supination.' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Der vordere Delta stabilisiert im Obergriff etwas mehr.', src: ['CO'],
+        explain: 'Der vordere Deltamuskel war beim Heben im Obergriff um 6, beim Senken um 5 Prozentpunkte aktiver als im Untergriff (Coratella et al. 2023).' }
+    ],
+    sources: {
+      CO: { label: 'Coratella et al. 2023, Sports (Basel)', url: 'https://doi.org/10.3390/sports11030064', read: 'fulltext' },
+      M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
+      CA: { label: 'Caufriez et al. 2018, J Hand Surg Asian Pac Vol', url: 'https://doi.org/10.1142/S2424835518500145', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Handgelenkcurls ----------
+  {
+    ref: 'wrist-curl', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Studie hat Handgelenkcurls mit Kurzhantel gemessen. Protokoll nach Takamori et al. 2026 (Volltext, 13 Gesunde): Unterarm fixiert, Handfläche oben, Start mit waagerechter Hand (0°), gegen die Schwerkraft voll beugen, 1 s halten, 2-s-Takt. Einen Gradwert für „voll gebeugt“ nennt die Studie nicht; gezeichnet sind 60° (Alltag braucht bis 54° Beugung, Ryu et al. 1991, Abstract). Bank, Unterarm auf dem Oberschenkel und Rumpfneigung (aus der Geometrie gelöst) sind Konvention.',
+    tempo: { basis: 'protocol', note: '1 s heben, 1 s halten, 1 s senken (2-s-Takt mit Halten, Takamori et al. 2026; 0,5 Hz in Haslam & Cobb 1983).' },
+    frames: [
+      { label: 'Waagerecht', pose: { ...WCURL.base, trunk: C(WCURL.trunk, 'aus der Geometrie: Unterarm auf dem Oberschenkel'), hip: C(WCURL.trunk + 90), armWorld: WCURL.wrist, elbowSide: 1, wrist: V(0, 'T1', 'protocol', 'Hand waagerecht'), props: wristCurlProps } },
+      { label: 'Gebeugt', pose: { ...WCURL.base, trunk: C(WCURL.trunk), hip: C(WCURL.trunk + 90), armWorld: WCURL.wrist, elbowSide: 1, wrist: C(WCURL.top, 'voll gebeugt; Gradwert Konvention (Alltag: bis 54°, Ryu et al. 1991)'), props: wristCurlProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Waagerecht', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Beugen', kp: [1] }, { a: 1, b: 1, dur: 1.0, label: 'Halten', kp: [2] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [3] }],
+    keyPoints: [
+      { short: 'Auflage', anchor: 'elbow', side: 'l', status: 'single', text: 'Unterarm auflegen, Handfläche nach oben – nur das Handgelenk bewegt sich.', src: ['T1'],
+        explain: 'Im MRT-Protokoll (13 Gesunde) war der Unterarm fixiert und die Hand supiniert; nur das Handgelenk beugte gegen die Schwerkraft (Takamori et al. 2026). Zur Auflage auf Bank oder Oberschenkel gibt es keine Studie.' },
+      { short: 'Ohne Last', anchor: 'hand', side: 'r', status: 'single', text: 'Schon ohne Gewicht arbeiten die Beuger, wenn man gegen die Schwerkraft beugt.', src: ['T1'],
+        explain: '150 Beugungen nur mit dem Handgewicht (≈ 350 g) gegen die Schwerkraft brachten mehrere Beugemuskeln in den anaeroben Bereich (MRT, etwa die Hälfte der Messungen); waagerechte Bewegungen nicht (Takamori et al. 2026).' },
+      { short: 'Oben', anchor: 'wrist', side: 'r', status: 'single', text: 'Voll beugen, oben kurz halten, dann kontrolliert zurück in die Waagerechte.', src: ['T1'],
+        explain: 'Protokoll: volle Beugung, 1 s halten, zurück, im 2-s-Takt (Takamori et al. 2026). Ein Gradwert wird nicht genannt.' },
+      { short: 'Weg', anchor: 'knee', side: 'r', status: 'single', text: 'Zum Vergleich: Im Alltag reichen etwa 54° Beugung und 60° Streckung.', src: ['R1'],
+        explain: '40 Gesunde mit Elektrogoniometer: Alle getesteten Alltagsaufgaben gelangen mit 60° Streckung und 54° Beugung (Ryu et al. 1991, Abstract). Das ist eine Orientierung, kein Trainingsbefund.' }
+    ],
+    sources: {
+      T1: { label: 'Takamori et al. 2026, Prog Rehabil Med', url: 'https://doi.org/10.2490/prm.20260037', read: 'fulltext' },
+      R1: { label: 'Ryu et al. 1991, J Hand Surg Am', url: 'https://doi.org/10.1016/0363-5023(91)90006-w', read: 'abstract' },
+      H1: { label: 'Haslam & Cobb 1983, Med Sci Sports Exerc', url: 'https://pubmed.ncbi.nlm.nih.gov/6645860/', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Reverse Handgelenkcurls ----------
+  {
+    ref: 'reverse-wrist-curl', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Wie die Handgelenkcurls, aber Handrücken oben: Takamori et al. 2026 (Volltext) ließen aus der Waagerechten gegen die Schwerkraft voll strecken, 1 s halten, im 2-s-Takt. Gezeichnet sind 50° Streckung (Gradwert Konvention; Alltag bis 60°, Ryu et al. 1991). Bank, Auflage und Rumpfneigung sind Konvention.',
+    tempo: { basis: 'protocol', note: '1 s heben, 1 s halten, 1 s senken (Takamori et al. 2026).' },
+    frames: [
+      { label: 'Waagerecht', pose: { ...WCURL.base, trunk: C(WCURL.trunk, 'aus der Geometrie: Unterarm auf dem Oberschenkel'), hip: C(WCURL.trunk + 90), armWorld: WCURL.wrist, elbowSide: 1, wrist: V(0, 'T1', 'protocol', 'Hand waagerecht'), props: wristCurlProps } },
+      { label: 'Gestreckt', pose: { ...WCURL.base, trunk: C(WCURL.trunk), hip: C(WCURL.trunk + 90), armWorld: WCURL.wrist, elbowSide: 1, wrist: C(50, 'voll gestreckt; Gradwert Konvention'), props: wristCurlProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Waagerecht', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Strecken', kp: [1] }, { a: 1, b: 1, dur: 1.0, label: 'Halten', kp: [2] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [3] }],
+    keyPoints: [
+      { short: 'Auflage', anchor: 'elbow', side: 'l', status: 'single', text: 'Handrücken nach oben, Unterarm aufgelegt, nur das Handgelenk streckt.', src: ['T1'],
+        explain: 'Protokoll mit fixiertem Unterarm und pronierter Hand, Strecken gegen die Schwerkraft aus der Waagerechten (Takamori et al. 2026, 13 Gesunde).' },
+      { short: 'Strecker', anchor: 'hand', side: 'r', status: 'single', text: 'Schon das Handgewicht reicht, damit die Strecker messbar arbeiten.', src: ['T1'],
+        explain: 'Nach 150 Streckungen nur mit dem Handgewicht zeigten die Handgelenk- und Fingerstrecker im MRT bei etwa 40 % der Messungen anaerobe Arbeit (Takamori et al. 2026).' },
+      { short: 'Finger', anchor: 'wrist', side: 'r', status: 'single', text: 'Beim Strecken krümmen sich die Finger von selbst etwas mit.', src: ['T1'],
+        explain: 'Die Autoren nennen den Tenodese-Effekt: Strecken im Handgelenk beugt die Finger passiv; der Fingerstrecker arbeitet dagegen (Takamori et al. 2026).' }
+    ],
+    sources: {
+      T1: { label: 'Takamori et al. 2026, Prog Rehabil Med', url: 'https://doi.org/10.2490/prm.20260037', read: 'fulltext' },
+      R1: { label: 'Ryu et al. 1991, J Hand Surg Am', url: 'https://doi.org/10.1016/0363-5023(91)90006-w', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Farmer's Walk ----------
+  {
+    ref: 'farmers-walk', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Gehen auf der Stelle gezeichnet (die Hüfte bleibt im Bild, die Füße wandern wie auf einem Laufband nach hinten). Schrittlänge übertragen von Strongman-Athleten: Doppelschritt 1,04 m mit Last statt 1,43 m ohne (Winwood et al. 2014, in der Übersicht von Hindle et al. 2019, Volltext); hier ein Schritt ≈ 0,4 m (Füße ±42 um die Hüfte). Aufrechter Rumpf und zurückgezogene Schultern nach dem Protokoll von Stastny et al. 2015 (Volltext). Leichte Vorneigung (5°), Kniewinkel und Fußhaltung sind Zeichenkonvention.',
+    tempo: { basis: 'convention', note: '≈ 1,4 s je Doppelschritt (Konvention; Strongman bei Höchstlast ≈ 1,4 Doppelschritte/s).' },
+    frames: FWK.k.map((pose, i) => ({ label: ['Rechts auf', 'Rechts', 'Mitte', 'Links ab', 'Links auf', 'Links', 'Mitte', 'Rechts ab'][i], pose: { ...pose, armPlumb: true, elbow: C(0), props: farmerProps } })),
+    phases: FWK.k.map((_, i) => ({ a: i, b: (i + 1) % 8, dur: 0.175, label: 'Gehen', kp: [[0, 1], [0, 1], [2], [2], [3], [3], [4], [4]][i], ease: 'none' })),
+    keyPoints: [
+      { short: 'Aufrecht', anchor: 'chest', side: 'r', status: 'single', text: 'Aufrecht gehen, Schultern zurück, Hanteln seitlich am Körper.', src: ['ST'],
+        explain: 'Protokoll bei 16 Kraftsportlern (75 % des 6RM, 8 m): Kurzhanteln mit zurückgezogenen Schultern und aufrechtem Rumpf; für die Beine gab es keine Vorgabe (Stastny et al. 2015).' },
+      { short: 'Schritte', anchor: 'foot', side: 'r', status: 'single', text: 'Mit Last werden die Schritte kürzer und häufiger als beim normalen Gehen.', src: ['HI'],
+        explain: 'Strongman-Athleten: Doppelschritt 1,04 statt 1,43 m, Schrittfrequenz 1,42 statt 0,88 Doppelschritte/s (Winwood et al. 2014, Tabelle in Hindle et al. 2019). Nur 6 Athleten mit sehr hoher Last.' },
+      { short: 'Gesäß', anchor: 'glute', side: 'l', status: 'single', text: 'Der mittlere Gesäßmuskel arbeitet mit, mehr bei schwachen Abduktoren.', src: ['ST'],
+        explain: 'Gluteus medius 26–47 % der Maximalkraft, höher bei Personen mit relativ schwachen Hüftabduktoren (Stastny et al. 2015, 16 Kraftsportler). Die Oberschenkelmuskeln blieben niedrig.' },
+      { short: 'Rumpf', anchor: 'belly', side: 'r', status: 'single', text: 'Beidseitig tragen: mehr Rumpfsteifigkeit, einseitig mehr Verdrehung.', src: ['HI'],
+        explain: 'Übersicht (nach McGill et al. 2009): Farmer\'s Walk mit mehr Muskelkompression und Steifigkeit, einseitiges Tragen mit mehr Verdrehung der Lendenwirbelsäule (≈ 11° gegen 8°) (Hindle et al. 2019).' },
+      { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Fest greifen, das Handgelenk leicht gestreckt.', src: ['OD'],
+        explain: 'Beim stärksten Griff wählten Gesunde im Mittel ≈ 35° Handgelenkstreckung; für volle Griffkraft brauchte es mindestens 25° (O\'Driscoll et al. 1992, Abstract). Gezeichnet ist das Handgelenk gerade (Konvention).' }
+    ],
+    sources: {
+      ST: { label: 'Stastny et al. 2015, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2015-0016', read: 'fulltext' },
+      HI: { label: 'Hindle et al. 2019, Sports Med Open (Review)', url: 'https://doi.org/10.1186/s40798-019-0222-z', read: 'fulltext' },
+      OD: { label: 'O\'Driscoll et al. 1992, J Hand Surg Am', url: 'https://doi.org/10.1016/0363-5023(92)90136-d', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Ausfallschritte gehend ----------
+  {
+    ref: 'walking-lunge', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Kamera folgt der Hüfte: die Figur geht abwechselnd links und rechts in den Ausfallschritt, die Füße wandern im Bild nach hinten. Unten wie beim Ausfallschritt vorwärts (vorderes Bein nach Riemann et al. 2012, hinteres Knie knapp über dem Boden). Die Tiefe passt zu Escamilla et al. 2025 (Volltext, 20 Personen, Kurzhanteln): vorderes Knie ≈ 90–100°, hinteres Knie berührt fast den Boden, Rumpf 10–20° vor (hier 3°). Durchschwingen und Aufsetzen sind Konvention; den Übergang zwischen den Schritten hat keine Studie gemessen.',
+    tempo: { basis: 'convention', note: '1,2 s hoch, 0,5 s Schritt, 1,2 s ab (Konvention). Escamilla et al. 2025: Metronom 25/min, Knie ≈ 45°/s.' },
+    frames: WLG.k.map((pose, i) => ({ label: ['Unten', 'Hoch', 'Aufsetzen', 'Unten', 'Hoch', 'Aufsetzen'][WLG.seg[i]] + (i % 3 ? ' ·' : ''), pose: { ...pose, armPlumb: true, elbow: C(0), props: lungeProps } })),
+    phases: (() => { const out = [], dur = [1.2, 0.5, 1.2, 1.2, 0.5, 1.2], lab = ['Hochdrücken', 'Schritt', 'Absenken', 'Hochdrücken', 'Schritt', 'Absenken'], kp = [[0], [3], [1, 2], [0], [3], [1, 2]];
+      for (let i = 0; i < 18; i++) { const sg = WLG.seg[i]; if (i % 9 === 0) out.push({ a: i, b: i, dur: 0.3, label: 'Unten', kp: [1] }); out.push({ a: i, b: (i + 1) % 18, dur: dur[sg] / 3, label: lab[sg], kp: kp[sg] }); }
+      return out; })(),
+    keyPoints: [
+      { short: 'Schritt', anchor: 'foot', side: 'r', status: 'single', text: 'Großer Schritt: unten steht das vordere Schienbein etwa senkrecht.', src: ['E5'],
+        explain: 'So war der lange Schritt in Escamilla et al. 2025 definiert (20 Personen, 3D-Messung): 86 ± 3 cm (Männer) und 77 ± 5 cm (Frauen) von der hinteren Fußspitze zur vorderen Ferse.' },
+      { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'single', text: 'So tief, bis das hintere Knie fast den Boden berührt.', src: ['E5'],
+        explain: 'Vorgabe in Escamilla et al. 2025; das vordere Knie erreichte dabei etwa 90–100° (langer Schritt) bzw. 100–110° (kurzer Schritt).' },
+      { short: 'Rumpf', anchor: 'back', side: 'l', status: 'single', text: 'Rumpf fast aufrecht; mehr Vorlage fordert den unteren Rücken stärker.', src: ['BZ', 'E5'],
+        explain: '12 trainierte Frauen: unterer Rückenstrecker mit geneigtem Rumpf 40 ± 29 statt 20 ± 15 % der Maximalkraft (Bezerra et al. 2021, Abstract). In Escamilla et al. 2025 lag die Vorneigung unten bei 10–20°, nicht vorgegeben.' },
+      { short: 'Gesäß', anchor: 'glute', side: 'l', status: 'consensus', text: 'Mit Schritt arbeitet der große Gesäßmuskel mehr als im Ausfallschritt am Platz.', src: ['BZ', 'E5'],
+        explain: 'Großer Gesäßmuskel gehend 58 ± 30, statisch 31 ± 12 % der Maximalkraft (Bezerra et al. 2021, 12 Frauen). Auch Escamilla et al. 2025 fanden mit Schritt mehr Gesäßaktivität als mit stehenden Füßen.' }
+    ],
+    sources: {
+      E5: { label: 'Escamilla et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk10010042', read: 'fulltext' },
+      BZ: { label: 'Bezerra et al. 2021, Int J Exerc Sci', url: 'https://doi.org/10.70252/IGJM9937', read: 'abstract' },
+      L1: { label: 'Riemann et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.4.16', read: 'fulltext', note: 'Ausfallschritt vorwärts, übertragen' }
+    }
+  },
+
+  // ---------- Runde 16: Belt Squat ----------
+  {
+    ref: 'belt-squat', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Studie hat die Bewegung gemessen (Joseph et al. 2020 schreiben das selbst). Aufbau nach Joseph et al. 2020 (Volltext): Knöchel unter dem Gurt-Ansatz, Hebel im Stand waagerecht, Hände nur leicht am Griff, 2 s ab / 2 s auf. Rumpf „möglichst senkrecht“ und Kniebeugung bis 90° aus dem isometrischen Belt Squat von Varela-Olalla et al. 2024 (Volltext). Schienbeinneigung und Rumpf (2–12°) sind aus der Geometrie gelöst bzw. Konvention, ebenso Podest, Kette und Hebel.',
+    tempo: { basis: 'protocol', note: '2 s ab / 2 s auf mit Metronom (Joseph et al. 2020).' },
+    frames: [
+      { label: 'Oben', pose: { ...BSQ.root, ...BSQ.top, armWorld: BSQ.hand, elbowSide: -1, props: beltSquatProps } },
+      { label: 'Mitte', pose: { ...BSQ.root, ...BSQ.mid, armWorld: BSQ.hand, elbowSide: -1, props: beltSquatProps } },
+      { label: 'Unten', pose: { ...BSQ.root, ...BSQ.bottom, knee: V(90, 'V1', 'protocol', 'tiefste Testposition 90° Kniebeugung (innen 90°)'), armWorld: BSQ.hand, elbowSide: -1, props: beltSquatProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 2] }, { a: 0, b: 1, dur: 1.0, label: 'Absenken', kp: [1] }, { a: 1, b: 2, dur: 1.0, label: 'Absenken', kp: [1] }, { a: 2, b: 2, dur: 0.2, label: 'Unten', kp: [3] }, { a: 2, b: 1, dur: 1.0, label: 'Aufstehen', kp: [4] }, { a: 1, b: 0, dur: 1.0, label: 'Aufstehen', kp: [4] }],
+    keyPoints: [
+      { short: 'Stand', anchor: 'foot', side: 'r', status: 'single', text: 'Füße so stellen, dass die Knöchel unter dem Gurt-Ansatz liegen.', src: ['J1'],
+        explain: 'Ausrichtung nach Herstellerangabe in Joseph et al. 2020 (10 Erfahrene); der Hebel stand im aufrechten Stand waagerecht.' },
+      { short: 'Aufrecht', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper möglichst aufrecht halten.', src: ['V1'],
+        explain: 'Vorgabe beim isometrischen Belt Squat bei 60–90° Kniebeugung (Varela-Olalla et al. 2024, 5 Trainierte). Gemessen wurde die Rumpfneigung nicht.' },
+      { short: 'Hände', anchor: 'hand', side: 'r', status: 'single', text: 'Hände nur leicht auf den Griff legen, nicht mitziehen.', src: ['J1'],
+        explain: 'Bei Joseph et al. 2020 durften die Hände nur über dem Griff schweben oder leicht aufliegen.' },
+      { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Unterer Rücken und Bauch arbeiten deutlich weniger als bei der Kniebeuge.', src: ['J1'],
+        explain: '10 Erfahrene, je 3 × 5 mit Körpergewicht als Last: unterer Rückenstrecker −45 % (Impuls) und −52 % (Spitze), gerader Bauchmuskel −44 % gegenüber der Langhantel-Kniebeuge (Joseph et al. 2020).' },
+      { short: 'Beine', anchor: 'thigh', side: 'r', status: 'consensus', text: 'Oberschenkel ähnlich gefordert wie bei der Kniebeuge, das Gesäß etwas weniger.', src: ['J1', 'EV'],
+        explain: 'Quadrizeps ohne Unterschied, großer Gesäßmuskel −32 bis −35 % (Joseph et al. 2020); Evans et al. 2019 (31 Personen, 5RM, Abstract) fanden ebenfalls weniger Gesäßaktivität (0,69 gegen 0,84).' }
+    ],
+    sources: {
+      J1: { label: 'Joseph et al. 2020, J Hum Kinet', url: 'https://doi.org/10.2478/hukin-2019-0126', read: 'fulltext' },
+      V1: { label: 'Varela-Olalla et al. 2024, Sensors (Basel)', url: 'https://doi.org/10.3390/s24103256', read: 'fulltext' },
+      EV: { label: 'Evans et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000002052', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 16: Sissy Squat ----------
+  {
+    ref: 'sissy-squat', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Keine Studie zum Sissy Squat gefunden (PubMed 2026-10-21: keine Treffer). Alle Winkel sind Zeichenkonvention: Fußballen fest, Fersen heben sich, Knie wandern weit nach vorn bis ≈ 100° Beugung, Hüfte gestreckt, Rumpf und Oberschenkel in einer Linie nach hinten geneigt; eine Hand am Pfosten. Die Kernpunkte sind von der Kniebeuge und vom Ausfallschritt übertragen. Gestreckte Hüfte und das Festhalten mit einer Hand sind übliche Praxis, aber nicht untersucht (Trainingswissen, ungeprüft).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 2 s ab / 2 s auf (Konvention).' },
+    frames: [
+      { label: 'Oben', pose: { root: 'toe', rootPos: SSQ.ball, shank: C(4), knee: C(4), hip: C(0), foot: C(95, 'Fersen leicht angehoben'), armWorld: SSQ.hand, elbowSide: 1, props: sissyProps } },
+      { label: 'Mitte', pose: { root: 'toe', rootPos: SSQ.ball, shank: C(32), knee: C(55), hip: C(0), foot: C(118), armWorld: SSQ.hand, elbowSide: 1, props: sissyProps } },
+      { label: 'Unten', pose: { root: 'toe', rootPos: SSQ.ball, shank: C(55, 'Knie weit vorn'), knee: C(100, 'Konvention, keine Messung'), hip: C(0, 'Hüfte gestreckt'), foot: C(135, 'auf den Fußballen'), armWorld: SSQ.hand, elbowSide: 1, props: sissyProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Absenken', kp: [0] }, { a: 1, b: 2, dur: 1.0, label: 'Absenken', kp: [0, 1] }, { a: 2, b: 2, dur: 0.2, label: 'Unten', kp: [1] }, { a: 2, b: 1, dur: 1.0, label: 'Aufrichten', kp: [1] }, { a: 1, b: 0, dur: 1.0, label: 'Aufrichten', kp: [0] }],
+    keyPoints: [
+      { short: 'Knie', anchor: 'knee', side: 'r', status: 'single', text: 'Knie wandern weit nach vorn – die Last liegt vor allem auf dem Kniestrecker.', src: ['FR'],
+        explain: 'Übertragen von der Kniebeuge (7 trainierte Männer): Durften die Knie nach vorn wandern, stieg das Kniemoment (150 statt 117 N·m) und das Hüftmoment sank (28 statt 303 N·m) (Fry et al. 2003, Abstract). Zum Sissy Squat selbst gibt es keine Studie.' },
+      { short: 'Hüfte', anchor: 'glute', side: 'l', status: 'single', text: 'Die Hüfte arbeitet kaum mit, wenn die Knie frei nach vorn wandern.', src: ['FR'],
+        explain: 'Übertragen von der Kniebeuge: Mit frei nach vorn wandernden Knien lag das Hüftmoment bei 28 statt 303 N·m (Fry et al. 2003, 7 Männer, Abstract). Beim Sissy Squat bleibt die Hüfte gestreckt; gemessen wurde das nicht.' },
+      { short: 'Kniedruck', anchor: 'thigh', side: 'r', status: 'single', text: 'Tiefe Beugung mit Knie vor den Zehen erhöht den Druck hinter der Kniescheibe.', src: ['E8'],
+        explain: 'Übertragen vom Ausfallschritt (18 Personen, 12RM): Zwischen 70 und 90° Kniebeugung waren Kraft und Druck im Kniescheibengelenk mit kurzem Schritt (Knie vor den Zehen) höher (Escamilla et al. 2008, Abstract).' }
+    ],
+    sources: {
+      FR: { label: 'Fry et al. 2003, J Strength Cond Res', url: 'https://doi.org/10.1519/1533-4287(2003)017<0629:eokpoh>2.0.co;2', read: 'abstract' },
+      E8: { label: 'Escamilla et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2694', read: 'abstract' }
+    }
+  }
 
 ];
 
@@ -4337,6 +4694,66 @@ function facePullProps(P) {
   return { anchors: { hand: g, rope: midpoint(g, p) }, scene: [
     { type: 'line', from: [t, 0], to: [t, -420], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm, Rolle
     { type: 'line', from: p, to: g, w: 3, front: true }, { type: 'bar', at: g, r: 4 } // Seil, Endstück in der Hand
+  ] };
+}
+
+// ---------- Szenen Runde 16 (v2.21) ----------
+function seatedCurlProps(P) {
+  const h = P.joints.hip, kn = P.joints.knee, an = P.joints.ankle, td = segDir(P, 'thigh'), tn = segNrm(P, 'thigh'), sd = segDir(P, 'shank'), sn = segNrm(P, 'shank');
+  const thighPad = along(along(kn, td, -18), tn, 16); // oben auf dem Oberschenkel, knapp vor dem Knie
+  const roll = along(along(an, sd, -12), sn, -18); // hinten am Unterschenkel über der Ferse
+  return { anchors: { pad: roll, thighPad }, scene: [
+    { type: 'line', from: [h[0] - 26, h[1] + 20], to: [kn[0] - 20, h[1] + 20], w: 14 }, // Sitz
+    { type: 'line', from: [h[0] - 30, h[1] + 16], to: [h[0] - 44, h[1] - 120], w: 14 }, // Lehne (leicht zurück)
+    { type: 'line', from: [h[0] - 10, h[1] + 27], to: [h[0] - 10, 0], w: 6 }, foot(h[0] - 60, kn[0] + 40),
+    { type: 'line', from: along(thighPad, td, -14), to: along(thighPad, td, 14), w: 12, front: true }, // Oberschenkelpolster
+    { type: 'line', from: [kn[0], kn[1]], to: [kn[0] + 4, 0], w: 6, back: true }, { type: 'bar', at: kn, r: 6, back: true }, // Säule mit Drehachse auf Kniehöhe
+    { type: 'line', from: kn, to: roll, w: 7, back: true }, { type: 'bar', at: roll, r: 11 }, // Hebel hinter dem Bein, Rolle
+    { type: 'line', from: [SLC2.hand[0] - 8, SLC2.hand[1] + 4], to: [SLC2.hand[0] + 8, SLC2.hand[1] + 4], w: 4 } // Griff
+  ] };
+}
+function nordicProps(P) {
+  const an = P.joints.ankle, kn = P.joints.knee, sd = segDir(P, 'shank'), sn = segNrm(P, 'shank');
+  const roll = along(along(an, sd, -10), sn, 15); // Rolle oben auf dem Unterschenkel über dem Knöchel
+  return { anchors: { roll, pad: [kn[0] - 30, -14] }, scene: [
+    { type: 'rect', x: kn[0] - 112, y: -14, w: 130, h: 14, rx: 4 }, // Kniepolster
+    { type: 'line', from: roll, to: [roll[0] - 6, 0], w: 6, back: true }, { type: 'bar', at: roll, r: 8 }, // Halter, Rolle
+    { type: 'rect', x: kn[0] + 20, y: -4, w: 190, h: 4, rx: 2 } // Matte zum Abfangen
+  ] };
+}
+function rheProps(P) {
+  const h = P.joints.hip, s = P.joints.shoulder, an = P.joints.ankle, sd = segDir(P, 'shank'), sn = segNrm(P, 'shank');
+  const strap = along(along(an, sd, -12), sn, -11); // Schlaufe hinten über dem Knöchel
+  return { anchors: { strap, pad: [s[0] - 30, RHE.hip[1] + 24] }, scene: [
+    { type: 'line', from: [h[0] + 4, RHE.hip[1] + 36], to: [s[0] + 34, RHE.hip[1] + 36], w: 14 }, // Polster unter Rumpf und Becken
+    { type: 'line', from: [s[0] + 10, RHE.hip[1] + 43], to: [s[0] + 10, 0], w: 7 }, { type: 'line', from: [h[0] + 30, RHE.hip[1] + 43], to: [h[0] + 30, 0], w: 7 }, foot(h[0] - 10, s[0] + 60),
+    { type: 'line', from: [RHE.hand[0], RHE.hand[1] - 4], to: [RHE.hand[0], 0], w: 5 }, { type: 'line', from: [RHE.hand[0] - 8, RHE.hand[1]], to: [RHE.hand[0] + 8, RHE.hand[1]], w: 4 }, // Griffstange
+    { type: 'bar', at: h, r: 6, back: true }, { type: 'line', from: h, to: strap, w: 6, back: true }, // Pendel mit Drehachse am Hüftgelenk
+    { type: 'rect', x: strap[0] - 7, y: strap[1] - 6, w: 14, h: 12, rx: 4, front: true }
+  ] };
+}
+
+function wristCurlProps(P) {
+  const h = P.joints.hip, g = gripOf(P);
+  return { anchors: { hand: g }, scene: [
+    { type: 'line', from: [h[0] - 40, h[1] + 22], to: [h[0] + 40, h[1] + 22], w: 12 }, { type: 'line', from: [h[0] - 30, h[1] + 28], to: [h[0] - 30, 0], w: 5 }, { type: 'line', from: [h[0] + 30, h[1] + 28], to: [h[0] + 30, 0], w: 5, back: true }, // Flachbank
+    { ...db(g, [1, 0], true), underHand: true } // Hantelachse quer zum Betrachter (Handfläche oben/unten); Faust darüber gezeichnet, damit die Handgelenkbewegung sichtbar bleibt (Konvention)
+  ] };
+}
+function farmerProps(P) { return { anchors: { hand: P.joints.hand }, scene: [db(gripOf(P), [1, 0])] }; } // Neutralgriff, Hantelachse längs
+function beltSquatProps(P) {
+  const h = P.joints.hip, an = P.joints.ankle, belt = trunkPoint(P, 20, -100), chainLow = [an[0] + 2, -BSQ.PL + 6];
+  return { anchors: { belt }, scene: [
+    { type: 'rect', x: an[0] - 28, y: -BSQ.PL, w: 76, h: BSQ.PL, rx: 3 }, // Podest unter den Füßen
+    { type: 'line', from: [chainLow[0], -6], to: [chainLow[0] + 150, -6], w: 7, back: true }, { type: 'bar', at: [chainLow[0] + 150, -6], r: 6, back: true }, // Hebel mit Drehpunkt vorn
+    { type: 'line', from: belt, to: [belt[0], -BSQ.PL], w: 2, dash: true, front: true }, // Kette vom Gurt senkrecht nach unten
+    { type: 'rect', x: belt[0] - 6, y: belt[1] - 5, w: 12, h: 10, rx: 3, front: true }, // Gurtschnalle
+    { type: 'line', from: [BSQ.hand[0], BSQ.hand[1] + 6], to: [BSQ.hand[0] + 10, 0], w: 5 }, { type: 'line', from: [BSQ.hand[0] - 10, BSQ.hand[1]], to: [BSQ.hand[0] + 10, BSQ.hand[1]], w: 4 } // Griffstange
+  ] };
+}
+function sissyProps(P) {
+  return { anchors: { post: [SSQ.post, -150] }, scene: [
+    { type: 'line', from: [SSQ.post, 0], to: [SSQ.post, -300], w: 7, back: true }, foot(SSQ.post - 30, SSQ.post + 30) // Pfosten zum Festhalten (seitlich, hinter der Figur)
   ] };
 }
 
