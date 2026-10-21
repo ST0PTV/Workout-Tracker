@@ -3,6 +3,7 @@
 // Winkelkonvention siehe js/motion.js. Alle Werte sind Gruppenmittel kleiner Studien, keine Vorgabe für die eigene Technik.
 // Recherche: Drive „Research - Animations“ (2026-10-14), Rohdaten im claude.ai-Projekt (claude/v2-animation-research/).
 import { LEN, ARM_REACH, solvePose, anchor, shapesFor, tf } from './motion.js';
+import { solveFront } from './motion-front.js';
 
 export const ANIM_CHECKED_AT = '2026-10-14';
 
@@ -311,6 +312,77 @@ const SITUP_ROOT = (() => {
   const ank = P0.joints.ankle.map((v) => Math.round(v * 10) / 10);
   const at = (trunk, curl) => Math.round(bisect((sh) => lowestY({ root: 'ankle', rootPos: ank, shank: sh, knee: 90, foot: 90, trunk, curl }) + MAT, -75, -20) * 10) / 10;
   return { ank, at, midTrunk: Math.round(((FLOOR.lie + SITUP.trunkTop) / 2) * 10) / 10 };
+})();
+
+
+// ---------- Runde 11 (v2.16): Halteübungen und Liegestütz mit erhöhten Füßen ----------
+// Gemeinsam: in die Position gehen, halten, ablegen. Kontaktstellen (Unterarm, Füße, Gesäß) sind gelöst, nicht geschätzt; Zeichenkonventionen
+// sind in den Datensätzen so benannt. Matte wie in Runde 10 (MAT).
+const r1 = (v) => Math.round(v * 10) / 10;
+const lowSeg = (P, segs) => { let m = -1e9; for (const sh of shapesFor('male')) if (sh.id === 'body' && segs.includes(sh.seg)) for (const q of sh.pts) m = Math.max(m, tf(P, sh.seg, q)[1]); return m; };
+// Unterarmstütz (Seitenansicht): Ellbogen senkrecht unter der Schulter, Unterarm flach (Gelenke 7 über der Matte), Zehen auf der Matte.
+// Start: Becken abgelegt – Rumpf so geneigt, dass das Hüftgelenk 22 über der Matte liegt, Hüfte so gestreckt, dass die Zehen aufliegen.
+const PLANK = (() => {
+  const base = { root: 'wrist', rootPos: [60, -MAT - 7], armPoints: { elbow: [0, 68], wrist: [54, 68] }, knee: 0, foot: 165 };
+  const hipFor = (t) => bisect((h) => solvePose({ ...base, trunk: t, hip: h }).joints.toe[1] + MAT, -80, 10);
+  const tS = bisect((t) => solvePose({ ...base, trunk: t, hip: hipFor(t) }).joints.hip[1] + MAT + 22, 50, 95);
+  const hold = solvePose({ ...base, hip: 0, solve: { param: 'trunk', joint: 'toe', y: -MAT, range: [60, 120] } });
+  return { base, start: { trunk: r1(tS), hip: r1(hipFor(tS)) }, mat: [Math.round(hold.joints.toe[0] - 40), 140] };
+})();
+// Liegestütz mit erhöhten Füßen: Arme wie beim Liegestütz (Suprak et al. 2013), Füße auf einer Stufe von ≈ 40 cm (82 Einheiten, Konvention);
+// unten so tief, dass der tiefste Rumpfpunkt (Kinn/Brust) ≈ 4 cm über dem Boden bleibt – mit erhöhten Füßen kippt der Kopf sonst in den Boden.
+const FEPU = (() => {
+  const BOX = 82, base = { root: 'wrist', rootPos: [0, -6], hip: 0, knee: 0, foot: 165, handFlat: 1 };
+  const top = { elbow: [3, 54], wrist: [6, 104] }, bot = { elbow: [-14, 4], wrist: [10, 32] };
+  const mix = (u) => ({ elbow: top.elbow.map((v, i) => r1(v + (bot.elbow[i] - v) * u)), wrist: top.wrist.map((v, i) => r1(v + (bot.wrist[i] - v) * u)) });
+  const sp = (arm) => ({ ...base, armPoints: arm, solve: { param: 'trunk', joint: 'toe', y: -BOX, range: [60, 150] } });
+  const u = bisect((x) => lowSeg(solvePose(sp(mix(x))), ['trunk']) + 8, 0, 1);
+  const P0 = solvePose(sp(top));
+  return { BOX, base, top, bottom: mix(u), depth: r1(u), toeX: Math.round(P0.joints.toe[0]), trunkTop: r1(P0.angles.trunk) };
+})();
+// Seitstütz und Copenhagen Plank: Frontfigur, um die Bildachse gedreht (rotate), Figur liegt auf der linken Seite (unten), rechte Seite oben.
+// Unterer Oberarm im Bild senkrecht unter der Schulter, Unterarm zeigt zum Betrachter (kurz gezeichnet). armL.points: relativ zur Schulter,
+// dx nach außen, dy nach unten (Körperrahmen). Ellbogen 8 und Knöchel 9 über der Matte (Dicke von Unterarm und Fußkante, Konvention).
+const SIDE_DEG = Math.PI / 180;
+const toBodyF = (r, v) => { const c = Math.cos(-r * SIDE_DEG), sn = Math.sin(-r * SIDE_DEG); return [v[0] * c - v[1] * sn, v[0] * sn + v[1] * c]; };
+const armDownF = (r) => { const d = toBodyF(r, [0, 1]); const e = [-d[0] * LEN.uarm, d[1] * LEN.uarm]; return { elbow: e.map(r1), wrist: [r1(e[0]), r1(e[1] - 10)] }; };
+const armToF = (r, sh, E) => { const v = toBodyF(r, [E[0] - sh[0], E[1] - sh[1]]); const e = [-v[0], v[1]]; return { pts: { elbow: e.map(r1), wrist: [r1(e[0]), r1(e[1] - 10)] }, len: Math.hypot(e[0], e[1]) }; };
+const SIDEP = (() => {
+  const AW = [120, -MAT - 9], EY = -MAT - 8;
+  const spec = (r, lean, armL, armR = 4) => ({ view: 'front', rotate: r, trunk: lean, root: 'ankleL', rootPos: AW, legs: { stance: -9 }, arm: { abd: armR }, armL: { points: armL } });
+  const rH = bisect((r) => solveFront(spec(r, 0, armDownF(r))).joints.elbowL[1] - EY, -95, -40);
+  const PH = solveFront(spec(rH, 0, armDownF(rH))), E = [r1(PH.joints.elbowL[0]), EY];
+  const at = (r, lean) => armToF(r, solveFront(spec(r, lean, { elbow: [68, 0], wrist: [68, -10] })).joints.shoulderL, E);
+  // Start: Hüfte abgesenkt (Hüftgelenk 34 über der Matte, Becken nahe am Boden), Ellbogen und Füße bleiben, der Rumpf knickt seitlich
+  const rS = bisect((r) => solveFront(spec(r, 0, armDownF(r))).joints.hipL[1] - (-MAT - 28), -100, -60);
+  const leanS = bisect((l) => at(rS, l).len - LEN.uarm, -80, 0);
+  return { hold: { rotate: r1(rH), trunk: 0, armL: armDownF(rH), armR: 4 }, start: { rotate: r1(rS), trunk: r1(leanS), armL: at(rS, leanS).pts, armR: r1(4 + leanS) }, AW, E };
+})();
+const COPEN = (() => {
+  const HB = 90, EW = [-150, -MAT - 8]; // Bank ≈ 44 cm (Konvention; im Protokoll hält ein Partner das Bein)
+  const spec = (r, lean, armL, abdL, root, rootPos, armR = 4) => ({ view: 'front', rotate: r, trunk: lean, root, rootPos, legs: { stance: -9, abdL }, arm: { abd: armR }, armL: { points: armL } });
+  const rH = bisect((r) => solveFront(spec(r, 0, armDownF(r), -4, 'elbowL', EW)).joints.ankleR[1] - (-HB - 9), -100, -30);
+  const PH = solveFront(spec(rH, 0, armDownF(rH), -4, 'elbowL', EW)), AR = PH.joints.ankleR.map(r1), KR = PH.joints.kneeR.map(r1);
+  const startFor = (r) => {
+    const at = (lean) => armToF(r, solveFront(spec(r, lean, { elbow: [68, 0], wrist: [68, -10] }, 0, 'ankleR', AR)).joints.shoulderL, EW);
+    const lean = bisect((l) => at(l).len - LEN.uarm, -60, 30), arm = at(lean).pts;
+    const abdL = bisect((a) => solveFront(spec(r, lean, arm, a, 'ankleR', AR)).joints.ankleL[1] - (-MAT - 9), -10, 80);
+    return { r, lean, arm, abdL };
+  };
+  const target = (PH.joints.hipL[1] + (-MAT - 24)) / 2; // halb abgesenkt (Serner et al. 2013)
+  const rS = bisect((r) => { const S = startFor(r); return solveFront(spec(r, S.lean, S.arm, S.abdL, 'ankleR', AR)).joints.hipL[1] - target; }, rH - 30, rH + 15);
+  const S = startFor(rS);
+  return { HB, AR, KR, hold: { rotate: r1(rH), trunk: 0, armL: armDownF(rH), abdL: -4, armR: 4 }, start: { rotate: r1(rS), trunk: r1(S.lean), armL: S.arm, abdL: r1(S.abdL), armR: r1(4 + S.lean) } };
+})();
+// L-Sitz (Seitenansicht): Hände auf niedrigen Griffen (≈ 12 cm, Konvention) neben der Hüfte. Halten: Arme fast gestreckt (Schulter–Handgelenk 120),
+// Rumpf 5° vor, Hüfte 95° – die Beine liegen waagerecht, Fußspitzen gestreckt. Start: Gesäß und Fersen am Boden, Arme gebeugt (Ellbogen hinten).
+const LSIT = (() => {
+  const HP = 24, HAND = [0, -HP - 4], base = { root: 'hip', trunk: 5, knee: 0, foot: 70, armWorld: HAND, elbowSide: 1, handFlat: 1 }; // handFlat: Hand liegt um den Griff statt nach unten in den Boden
+  const yH = bisect((y) => { const P = solvePose({ ...base, hip: 95, rootPos: [-6, y] }); return Math.hypot(P.joints.shoulder[0] - HAND[0], P.joints.shoulder[1] - HAND[1]) - 120; }, -200, -20);
+  // Start: Füße angezogen (90°), Ferse auf dem Boden; im Halten Fußspitzen gestreckt (Fuß in Verlängerung des Schienbeins)
+  const yS0 = -20, hipS = bisect((h) => anchor(solvePose({ ...base, foot: 90, hip: h, rootPos: [-6, yS0] }), 'heel')[1] + 1, 70, 120);
+  const yS = bisect((y) => lowSeg(solvePose({ ...base, foot: 90, hip: hipS, rootPos: [-6, y] }), ['trunk', 'thigh']), -60, 0);
+  return { HP, HAND, base, hold: { hip: 95, y: r1(yH) }, start: { hip: r1(hipS), y: r1(yS) } };
 })();
 
 export const ANIMATIONS = [
@@ -2503,6 +2575,143 @@ export const ANIMATIONS = [
       K2: { label: 'Kim, Cho & Kim 2020, J Korean Soc Integr Med', url: 'https://doi.org/10.15268/ksim.2020.8.2.001', read: 'summary' },
       S1: { label: 'Souza et al. 2001, Arch Phys Med Rehabil', url: 'https://doi.org/10.1053/apmr.2001.26082', read: 'abstract' }
     }
+  },
+
+  // ---------- Runde 11 (v2.16): Unterarmstütz (Plank) ----------
+  {
+    ref: 'plank', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Keine Studie hat Gelenkwinkel im Unterarmstütz gemessen. Aufbau nach den Protokollen von Escamilla et al. 2016 (Volltext, Abbildungen) und Cortell-Tormo et al. 2017 (Abstract): Unterarme auf dem Boden, Ellbogen unter den Schultern, Körper gerade, auf den Zehen. Start mit abgelegtem Becken und das Halten von 3 s sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: 'Escamilla et al. 2016: 1 s in die Position, 1 s halten, 1 s zurück (Metronom, für die EMG-Messung). Gezeichnet 1 s hoch, 3 s halten, 1 s ab; im Training wird meist länger gehalten (30 s bei Schoenfeld et al. 2014).' },
+    frames: [
+      { label: 'Ablegen', pose: { ...PLANK.base, trunk: C(PLANK.start.trunk, 'Becken auf der Matte (Konvention)'), hip: C(PLANK.start.hip, 'Hüfte gestreckt, Zehen aufgestellt'), props: plankProps } },
+      { label: 'Halten', pose: { ...PLANK.base, hip: V(0, 'E1', 'protocol', 'Körper gerade'), solve: { param: 'trunk', joint: 'toe', y: -MAT, range: [60, 120] }, props: plankProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.6, label: 'Ablegen', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [0, 1] }, { a: 1, b: 1, dur: 3.0, label: 'Halten', kp: [1, 2, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Ablegen', kp: [4] }],
+    keyPoints: [
+      { short: 'Arme', anchor: 'elbow', side: 'r', status: 'consensus', text: 'Ellbogen unter den Schultern, Unterarme flach auf dem Boden.', src: ['E1', 'C1'],
+        explain: 'Ausgangslage in beiden Protokollen (Escamilla et al. 2016, Abbildungen im Volltext; Cortell-Tormo et al. 2017 kontrollierten die Gelenkstellungen per 2D-Video, Abstract). Winkel sind dort nicht als Zahl berichtet.' },
+      { short: 'Linie', anchor: 'hip', side: 'l', status: 'single', text: 'Körper gerade von Kopf bis Ferse, das Becken hängt nicht durch.', src: ['E1'],
+        explain: 'Gerade Körperlinie auf den Zehen im Protokoll von Escamilla et al. 2016. Ein Durchhängen wurde nicht gemessen; die gerade Linie ist hier gezeichnet.' },
+      { short: 'Becken', anchor: 'glute', side: 'l', status: 'consensus', text: 'Becken leicht nach hinten kippen erhöhte die Aktivität der Bauchmuskeln.', src: ['S1', 'C1'],
+        explain: 'Schoenfeld et al. 2014 (19 Personen, je 30 s, Abstract): Kippung nach hinten mehr äußerer schräger Bauchmuskel, langer Hebel (Ellbogen weiter vorn) mehr gerader Bauchmuskel. Cortell-Tormo et al. 2017 (15 Personen, Abstract): Kippung nach hinten mit zusammengezogenen Schulterblättern am höchsten. EMG zeigt Aktivierung, nicht Wachstum.' },
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Gerader und schräger Bauchmuskel arbeiten mäßig, auf den Knien weniger.', src: ['E1'],
+        explain: 'Escamilla et al. 2016 (18 Personen, Volltext), Plank auf den Zehen in % der maximalen Anspannung: oberer gerader Bauchmuskel 34, unterer 40, äußerer schräger 40, innerer schräger 29; auf den Knien 27, 26, 22 und 20.' },
+      { short: 'Ende', anchor: 'shoulder', side: 'r', status: 'single', text: 'Bis zur Erschöpfung gehalten, endete der Plank meist durch Bauch- oder Armermüdung.', src: ['D1'],
+        explain: 'Devorski et al. 2021 (17 Personen, Abstract): 41 % hörten wegen Ermüdung der Bauchmuskeln auf, 47 % wegen Ermüdung von Armen und Schultern. Das beschreibt die Studie, keine Vorgabe für die Haltedauer.' }
+    ],
+    sources: {
+      E1: { label: 'Escamilla et al. 2016, Sports Health', url: 'https://doi.org/10.1177/1941738116653931', read: 'fulltext' },
+      S1: { label: 'Schoenfeld et al. 2014, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2014.942355', read: 'abstract' },
+      C1: { label: 'Cortell-Tormo et al. 2017, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001689', read: 'abstract' },
+      D1: { label: 'Devorski et al. 2021, J Sport Rehabil', url: 'https://doi.org/10.1123/jsr.2020-0485', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 11: Seitstütz ----------
+  {
+    ref: 'side-plank', checkedAt: '2026-10-21', view: 'front', basis: 'protocol', layout: 'cols',
+    basisNote: 'Frontansicht, um die Bildachse gedreht: Die Figur liegt auf der linken Seite. Unterer Oberarm senkrecht unter der Schulter, Körper gerade, Füße übereinander (Abbildungen in Youdas et al. 2014 und Escamilla et al. 2016, beide Volltext). Die Körperneigung (≈ 21°) folgt daraus geometrisch; der Start mit abgesenkter Hüfte und die Haltezeit sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: 'Youdas et al. 2014: Hüfte im Takt eines Metronoms (40/min) gehoben; Escamilla et al. 2016: 1 s hoch, 1 s halten, 1 s ab. Gezeichnet 1 s hoch, 3 s halten, 1 s ab.' },
+    frames: [
+      { label: 'Hüfte unten', pose: { rotate: C(SIDEP.start.rotate, 'gelöst: Hüfte nahe der Matte'), trunk: C(SIDEP.start.trunk, 'seitlich geknickt (Konvention)'), root: 'ankleL', rootPos: SIDEP.AW, legs: { stance: -9 }, arm: { abd: SIDEP.start.armR }, armL: { points: SIDEP.start.armL }, props: sidePlankProps } },
+      { label: 'Halten', pose: { rotate: K(SIDEP.hold.rotate, 'Y1', 'gelöst: Oberarm senkrecht, Körper gerade'), trunk: V(0, 'Y1', 'protocol', 'neutrale Wirbelsäule'), root: 'ankleL', rootPos: SIDEP.AW, legs: { stance: -9 }, arm: { abd: SIDEP.hold.armR }, armL: { points: SIDEP.hold.armL }, props: sidePlankProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.6, label: 'Hüfte unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [1] }, { a: 1, b: 1, dur: 3.0, label: 'Halten', kp: [1, 2, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [4] }],
+    keyPoints: [
+      { short: 'Ellbogen', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Unterer Ellbogen unter der Schulter, Füße übereinander.', src: ['Y1', 'E1'],
+        explain: 'Ausgangslage in den Abbildungen beider Studien (Volltext). Der Abstand Ellbogen–Schulter wurde nicht gemessen; die Füße übereinander sind hier gezeichnet, leichter ist der Seitstütz auf den Knien.' },
+      { short: 'Hüfte', anchor: 'hipL', side: 'l', status: 'single', text: 'Hüfte heben, bis Rumpf und Beine eine gerade Linie bilden.', src: ['Y1'],
+        explain: 'Youdas et al. 2014 (25 Gesunde, Volltext): Hüfte im Takt bis zur neutralen Wirbelsäule gehoben; ein Untersucher prüfte das, gemessen wurde der Winkel nicht.' },
+      { short: 'Seite', anchor: 'belly', side: 'r', status: 'consensus', text: 'Vor allem der äußere schräge Bauchmuskel arbeitet, auf den Füßen mehr als auf den Knien.', src: ['E1', 'D1'],
+        explain: 'Escamilla et al. 2016 (Volltext): äußerer schräger Bauchmuskel 62 % der maximalen Anspannung auf den Füßen, 37 % auf den Knien. Devorski et al. 2021 (Abstract): 78 % im Seitstütz gegenüber 55 % im Plank.' },
+      { short: 'Gesäß', anchor: 'hip', side: 'r', status: 'single', text: 'Der mittlere Gesäßmuskel arbeitet stark mit, vor allem auf der aufliegenden Seite.', src: ['Y1'],
+        explain: 'Youdas et al. 2014: Gluteus medius über 69 % der maximalen Anspannung; fast alle gemessenen Muskeln der aufliegenden Seite waren aktiver als die der oberen Seite.' },
+      { short: 'Schulter', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Die Stützschulter arbeitet deutlich mit; bei Schmerz die Übung beenden.', src: ['D1'],
+        explain: 'Devorski et al. 2021 (17 Personen bis zum Abbruch, Abstract): mittlerer Deltamuskel 56 % der maximalen Anspannung; 41 % hörten wegen Schulterermüdung auf, 17 % wegen Schmerz.' }
+    ],
+    sources: {
+      Y1: { label: 'Youdas et al. 2014, Sports Health', url: 'https://doi.org/10.1177/1941738114539266', read: 'fulltext' },
+      E1: { label: 'Escamilla et al. 2016, Sports Health', url: 'https://doi.org/10.1177/1941738116653931', read: 'fulltext' },
+      D1: { label: 'Devorski et al. 2021, J Sport Rehabil', url: 'https://doi.org/10.1123/jsr.2020-0485', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 11: Copenhagen Plank ----------
+  {
+    ref: 'copenhagen-plank', checkedAt: '2026-10-21', view: 'front', basis: 'protocol', layout: 'cols',
+    basisNote: 'Frontansicht wie beim Seitstütz. Ablauf nach Serner et al. 2013 (Volltext): auf dem Unterarm, oberes Bein an Knie und Knöchel gestützt, Körper heben und das untere Bein heranziehen, bis die Füße sich berühren und der Körper gerade ist, dann halb absenken, bis der untere Fuß den Boden gerade berührt. Im Protokoll hält ein Partner das Bein; hier ersetzt eine Bank (≈ 44 cm) den Partner – Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: 'Serner et al. 2013: je Wiederholung 3 s heben und 3 s senken. Gezeichnet: 3 s heben, 2 s halten (Konvention), 3 s halb absenken.' },
+    frames: [
+      { label: 'Halb unten', pose: { rotate: C(COPEN.start.rotate, 'gelöst: Hüfte halb abgesenkt'), trunk: C(COPEN.start.trunk, 'seitlich geknickt (Konvention)'), root: 'ankleR', rootPos: COPEN.AR, legs: { stance: -9, abdL: C(COPEN.start.abdL, 'unterer Fuß berührt den Boden') }, arm: { abd: COPEN.start.armR }, armL: { points: COPEN.start.armL }, props: copenProps } },
+      { label: 'Oben', pose: { rotate: K(COPEN.hold.rotate, 'S1', 'gelöst: Oberarm senkrecht, Körper gerade, Schienbein auf der Bank'), trunk: V(0, 'S1', 'protocol', 'Körper in einer Linie'), root: 'ankleR', rootPos: COPEN.AR, legs: { stance: -9, abdL: V(COPEN.hold.abdL, 'S1', 'protocol', 'Füße berühren sich') }, arm: { abd: COPEN.hold.armR }, armL: { points: COPEN.hold.armL }, props: copenProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Halb unten', kp: [0] }, { a: 0, b: 1, dur: 3.0, label: 'Heben', kp: [1] }, { a: 1, b: 1, dur: 2.0, label: 'Halten', kp: [1, 2] }, { a: 1, b: 0, dur: 3.0, label: 'Absenken', kp: [3] }],
+    keyPoints: [
+      { short: 'Bein', anchor: 'shinR', side: 'r', status: 'single', text: 'Oberes Bein liegt an Knie und Knöchel auf, etwa auf Hüfthöhe.', src: ['S1'],
+        explain: 'Im Protokoll hält ein Partner das obere Bein an Knöchel und Knie, etwa auf Höhe seiner eigenen Hüfte (Serner et al. 2013, Volltext). Die Bank hier ist Zeichenkonvention; mit nur dem Knie aufgelegt ist der Hebel kürzer (leichter).' },
+      { short: 'Linie', anchor: 'hipL', side: 'l', status: 'single', text: 'Körper heben, bis er gerade ist; das untere Bein zum oberen ziehen.', src: ['S1'],
+        explain: 'Serner et al. 2013: Körper vom Boden heben und das untere Bein heranziehen, bis die Füße sich berühren und der Körper eine Linie bildet; dann halb absenken, bis der untere Fuß den Boden berührt, ohne sich abzustützen.' },
+      { short: 'Adduktor', anchor: 'thighR', side: 'r', status: 'single', text: 'Höchste Adduktoren-Aktivität unter acht Adduktionsübungen.', src: ['S1'],
+        explain: 'Serner et al. 2013 (40 Fußballspieler, Volltext): Adductor longus des oberen Beins 108 % der maximalen Anspannung, gleichauf mit dem Ball zwischen den Knien; Bauchmuskeln bis 36–40 %. EMG zeigt Aktivierung, nicht Wachstum.' },
+      { short: 'Kraft', anchor: 'kneeR', side: 'r', status: 'single', text: '8 Wochen mit der Übung steigerten die exzentrische Adduktionskraft um ≈ 9 %.', src: ['H1'],
+        explain: 'Harøy et al. 2017 (randomisiert, 45 U19-Fußballer, Abstract): +0,29 Nm/kg (8,9 %) gegenüber dem Aufwärmprogramm FIFA 11+ ohne die Übung. Muskelwachstum wurde nicht gemessen.' }
+    ],
+    sources: {
+      S1: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'fulltext' },
+      H1: { label: 'Harøy et al. 2017, Am J Sports Med', url: 'https://doi.org/10.1177/0363546517720194', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 11: L-Sitz ----------
+  {
+    ref: 'l-sit', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Keine Bewegungs- oder EMG-Studie zum L-Sitz gefunden (PubMed-Suche 2026-10-21). Gezeichnet nach der üblichen Definition: Hände auf niedrigen Griffen (≈ 12 cm) neben der Hüfte, Arme gestreckt, Beine gestreckt und waagerecht (Rumpf leicht vorgeneigt, Hüfte ≈ 95°). Muskelangaben stammen vom V-Sit, der nächsten untersuchten Form.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s hochdrücken, 3 s halten, 1 s ablegen (Konvention).' },
+    frames: [
+      { label: 'Sitzen', pose: { ...LSIT.base, foot: C(90), hip: C(LSIT.start.hip, 'Fersen auf dem Boden'), rootPos: [-6, LSIT.start.y], props: lsitProps } },
+      { label: 'Halten', pose: { ...LSIT.base, hip: C(LSIT.hold.hip, 'Beine waagerecht (Definition), Rumpf 5° vor'), rootPos: [-6, LSIT.hold.y], props: lsitProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.6, label: 'Sitzen', kp: [] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [2] }, { a: 1, b: 1, dur: 3.0, label: 'Halten', kp: [0, 1] }, { a: 1, b: 0, dur: 1.0, label: 'Ablegen', kp: [] }],
+    keyPoints: [
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'V-Sit und Beinheben im Hang aktivierten den unteren geraden Bauchmuskel am stärksten.', src: ['G1'],
+        explain: 'Guimaraes et al. 1991 (20 Sportstudierende, zwölf Bauchübungen, Abstract). Der L-Sitz selbst wurde nicht gemessen; der V-Sit ist die nächste untersuchte Form.' },
+      { short: 'Isoliert', anchor: 'chest', side: 'l', status: 'single', text: 'Im V-Sit arbeiteten vor allem die Bauchmuskeln, kaum Schulter oder Rücken.', src: ['D1'],
+        explain: 'Devorski et al. 2021 (Abstract): mittlerer Deltamuskel 2 % der maximalen Anspannung im V-Sit gegenüber 43–56 % in Plank und Seitstütz. Beim L-Sitz tragen die Arme das Körpergewicht – das ist ein Unterschied, gemessen wurde er nicht.' },
+      { short: 'Beine', anchor: 'knee', side: 'r', status: 'single', text: 'Gestreckte oder gebeugte Knie änderten die Bauch-Aktivität kaum.', src: ['G1'],
+        explain: 'Guimaraes et al. 1991: gestreckte oder gebeugte Knie, mit oder ohne gestützte Füße, änderten den geraden Bauchmuskel nicht (Abstract). Leichter ist der L-Sitz mit angezogenen Knien; die waagerechten Beine hier sind Zeichenkonvention.' }
+    ],
+    sources: {
+      G1: { label: 'Guimaraes et al. 1991, J Sports Med Phys Fitness', url: 'https://pubmed.ncbi.nlm.nih.gov/1836517/', read: 'abstract' },
+      D1: { label: 'Devorski et al. 2021, J Sport Rehabil', url: 'https://doi.org/10.1123/jsr.2020-0485', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 11: Liegestütz mit erhöhten Füßen ----------
+  {
+    ref: 'feet-elevated-push-up', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Armwinkel vom Liegestütz übertragen (Suprak et al. 2013, Volltext; gemeinsamer Bereich 105° → 35°). Füße auf einer Stufe von ≈ 40 cm (Konvention, üblich 30–50 cm); der Körper liegt damit oben etwa waagerecht. Unten so tief gezeichnet, dass Kinn und Brust ≈ 4 cm über dem Boden bleiben. Wu et al. 2025 (Volltext) definierten die Erhöhung als Neigung der Linie Schulter–großer Rollhügel (10°, 20°, 30°).',
+    tempo: { basis: 'protocol', note: 'Übertragen vom Liegestütz: 2 s ab, 2 s auf (Suprak et al. 2013). Wu et al. 2025 testeten drei Metronom-Tempi (4–7 Wiederholungen je 10 s).' },
+    frames: [
+      { label: 'Oben', pose: { ...FEPU.base, armPoints: FEPU.top, solve: { param: 'trunk', joint: 'toe', y: -FEPU.BOX, range: [60, 150] }, props: feProps }, facts: [C(40, 'Stufe ≈ 40 cm (Konvention)')] },
+      { label: 'Unten', pose: { ...FEPU.base, armPoints: FEPU.bottom, solve: { param: 'trunk', joint: 'toe', y: -FEPU.BOX, range: [60, 150] }, props: feProps }, facts: [V(105, 'P1', 'fulltext', 'Ellbogen unten beim Liegestütz ≥ 105° (übertragen)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [2] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Hochdrücken', kp: [3] }],
+    keyPoints: [
+      { short: 'Füße', anchor: 'toe', side: 'l', status: 'single', text: 'Füße auf Bank oder Stufe; je höher, desto steiler zeigt der Körper nach unten.', src: ['W1'],
+        explain: 'Wu et al. 2025 (27 Männer, Volltext): Fußhöhe je Person so berechnet, dass die Linie Schulter–großer Rollhügel 10°, 20° oder 30° geneigt war. Die Stufe von ≈ 40 cm hier ist Konvention.' },
+      { short: 'Linie', anchor: 'hip', side: 'l', status: 'consensus', text: 'Körper gerade von Kopf bis Ferse, wie beim normalen Liegestütz.', src: ['P1', 'P2'],
+        explain: 'Anweisung in den Liegestütz-Protokollen (Suprak et al. 2013, San Juan et al. 2015, beide Volltext), hier übertragen; mit erhöhten Füßen nicht eigens gemessen.' },
+      { short: 'Kraft', anchor: 'wrist', side: 'r', status: 'single', text: 'Bei 30° war die Kraft unter den Händen kleiner als bei 10° und 20°.', src: ['W1'],
+        explain: 'Mittlere Maximalkraft 667 N (10°), 663 N (20°), 596 N (30°) (Wu et al. 2025). Die Autoren halten 20° für den besten Kompromiss – das ist ihre Deutung, nicht gemessen.' },
+      { short: 'Vergleich', anchor: 'chest', side: 'l', status: 'single', text: 'Mit erhöhten Händen sank die Muskelaktivität; erhöhte Füße kamen dort nicht vor.', src: ['K1'],
+        explain: 'Kowalski et al. 2021 (Übersicht über 30 Studien, Volltext): globale EMG beim Liegestütz mit erhöhten Händen 15,8 % gegenüber 38,2 % der maximalen Anspannung beim normalen Liegestütz. Die Variante mit erhöhten Füßen war nicht unter den ausgewerteten.' }
+    ],
+    sources: {
+      W1: { label: 'Wu et al. 2025, Sci Rep', url: 'https://doi.org/10.1038/s41598-025-28012-7', read: 'fulltext' },
+      K1: { label: 'Kowalski et al. 2021, Shoulder & Elbow (Scoping Review)', url: 'https://doi.org/10.1177/17585732211019373', read: 'fulltext' },
+      P1: { label: 'Suprak et al. 2013, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-48.5.08', read: 'fulltext' },
+      P2: { label: 'San Juan et al. 2015, BMC Musculoskelet Disord', url: 'https://doi.org/10.1186/s12891-015-0486-5', read: 'fulltext' }
+    }
   }
 
 ];
@@ -3018,6 +3227,23 @@ function pecDeckProps(P) {
 }
 
 export function animationFor(ref) { return ANIMATIONS.find((a) => a.ref === ref) || null; }
+
+// ---------- Szenen Runde 11 (v2.16) ----------
+function plankProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: PLANK.mat[0], y: -MAT, w: PLANK.mat[1] - PLANK.mat[0], h: MAT, rx: 3 }] }; }
+function feProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: FEPU.toeX - 34, y: -FEPU.BOX, w: 62, h: FEPU.BOX, rx: 4 }] }; }
+function sidePlankProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: SIDEP.E[0] - 60, y: -MAT, w: SIDEP.AW[0] - SIDEP.E[0] + 110, h: MAT, rx: 3, noBounds: true }] }; }
+function copenProps(P) {
+  const [kx] = COPEN.KR, [ax] = COPEN.AR, y = -COPEN.HB;
+  return { anchors: {}, scene: [
+    { type: 'rect', x: -230, y: -MAT, w: 300, h: MAT, rx: 3, noBounds: true }, // Matte unter Unterarm und Becken
+    { type: 'rect', x: kx - 30, y, w: ax - kx + 66, h: 10, rx: 3 }, { type: 'line', from: [kx - 12, y + 10], to: [kx - 12, 0], w: 5 }, { type: 'line', from: [ax + 22, y + 10], to: [ax + 22, 0], w: 5 } // Bank
+  ] };
+}
+function lsitProps(P) {
+  const [x] = LSIT.HAND, y = -LSIT.HP;
+  return { anchors: {}, scene: [{ type: 'line', from: [x - 24, y], to: [x + 24, y], w: 6, front: true }, { type: 'line', from: [x - 20, y], to: [x - 26, 0], w: 5 }, { type: 'line', from: [x + 20, y], to: [x + 26, 0], w: 5 }] };
+}
+
 export function framesOf(anim, variant) {
   const fr = Array.isArray(anim.frames) ? anim.frames : anim.frames[variant || anim.variants[0].key];
   return anim.view === 'front' ? fr.map((f) => ({ ...f, pose: { view: 'front', ...f.pose } })) : fr;

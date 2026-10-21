@@ -435,4 +435,34 @@ test('v2.15.0: Kein Sprung an Phasengrenzen (alle Animationen und Varianten)', (
   }
 });
 
+
+// ---------- v2.16.0: Runde 11 ----------
+test('v2.16.0: Halteübungen – Kontakte über den ganzen Zyklus', () => {
+  const each = (ref, fn) => { const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases); for (let i = 0; i <= 40; i++) fn(M.poseAt(fr, a.phases, (T * i) / 40 - (i === 40 ? 1e-6 : 0)).pose, i); };
+  // Plank: Ellbogen und Handgelenk 7 über der Matte (Unterarm flach), Zehen auf der Matte
+  each('plank', (P, i) => { near(P.joints.elbow[1], -13, 0.6, `Plank t=${i}: Ellbogen`); near(P.joints.wrist[1], -13, 0.6, `Plank t=${i}: Handgelenk`); assert.ok(P.joints.toe[1] <= -5 && P.joints.toe[1] >= -9, `Plank t=${i}: Zehen ${P.joints.toe[1]}`); });
+  // Liegestütz mit erhöhten Füßen: Zehen auf der Stufe, Kinn/Brust nie unter dem Boden
+  const box = D.animationFor('feet-elevated-push-up');
+  each('feet-elevated-push-up', (P, i) => { const r = P.scene.find((x) => x.type === 'rect'); near(P.joints.toe[1], r.y, 0.6, `FE t=${i}: Zehen auf der Stufe`); assert.ok(P.joints.toe[0] >= r.x && P.joints.toe[0] <= r.x + r.w, `FE t=${i}: Zehen über der Stufe`);
+    let low = -1e9; for (const sh of M.shapesFor('male')) if (sh.seg === 'trunk') for (const q of sh.pts) low = Math.max(low, M.tf(P, 'trunk', q)[1]); assert.ok(low <= -4, `FE t=${i}: Rumpf im Boden (${low.toFixed(1)})`); });
+  assert.ok(box.keyPoints.length >= 3);
+  // Seitstütz: Ellbogen und unterer Knöchel bleiben, Oberarm im Halten senkrecht
+  const e0 = []; each('side-plank', (P, i) => { if (!e0.length) e0.push(P.joints.elbowL, P.joints.ankleL); near(P.joints.elbowL[0], e0[0][0], 2.5, `Seitstütz t=${i}: Ellbogen x (Zwischenbilder linear gemischt, ≤ 1,2 cm)`); near(P.joints.elbowL[1], e0[0][1], 2.5, `Seitstütz t=${i}: Ellbogen y`); near(P.joints.ankleL[1], e0[1][1], 0.1, `Seitstütz t=${i}: Fuß`); });
+  const sp = D.animationFor('side-plank'), H = MF.solveFront(M.resolveFrames(D.framesOf(sp))[1].pose);
+  near(H.joints.shoulderL[0], H.joints.elbowL[0], 1, 'Seitstütz: Oberarm senkrecht');
+  // Copenhagen: oberer Knöchel auf der Bank, Ellbogen auf der Matte, unterer Fuß nie unter der Matte
+  each('copenhagen-plank', (P, i) => { near(P.joints.ankleR[1], -90 - 9, 0.6, `Copenhagen t=${i}: Bein auf der Bank`); assert.ok(Math.abs(P.joints.elbowL[1] - (-14)) < 1.5, `Copenhagen t=${i}: Ellbogen ${P.joints.elbowL[1]}`); assert.ok(P.joints.ankleL[1] <= -14.5, `Copenhagen t=${i}: unterer Fuß im Boden`); });
+  // L-Sitz: Handgelenk am Griff; im Halten Beine über dem Boden
+  const ls = D.animationFor('l-sit'), fls = M.resolveFrames(D.framesOf(ls));
+  each('l-sit', (P, i) => near(Math.hypot(P.joints.wrist[0] - 0, P.joints.wrist[1] + 28), 0, 1, `L-Sitz t=${i}: Hand am Griff`));
+  const PH = M.solvePose(fls[1].pose); let low = -1e9; for (const sh of M.shapesFor('male')) if (['trunk', 'thigh', 'shank', 'foot'].includes(sh.seg)) for (const q of sh.pts) low = Math.max(low, M.tf(PH, sh.seg, q)[1]);
+  assert.ok(low < -2, `L-Sitz oben: Körper hebt ab (${low.toFixed(1)})`);
+});
+
+test('v2.16.0: Frontansicht – Bein einzeln abspreizen (abdL/abdR), ohne Angabe unverändert', () => {
+  const a = MF.solveFront({}), b = MF.solveFront({ legs: { abdL: 30 } });
+  assert.deepEqual(b.joints.ankleR, a.joints.ankleR, 'rechtes Bein bleibt');
+  assert.ok(b.joints.ankleL[0] < a.joints.ankleL[0] - 30, 'linkes Bein nach außen');
+});
+
 done();

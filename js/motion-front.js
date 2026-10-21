@@ -8,7 +8,7 @@
 //   arm: { abd, elbow } – Abduktion in der Frontalebene (0° = Arm hängt, 90° = waagerecht, 180° = über Kopf),
 //        Ellbogenbeugung in der Bildebene (Unterarm dreht zur Körpermitte / nach unten);
 //   armPoints: { elbow: [dx, dy], wrist: [dx, dy] } – projizierte Armgeometrie relativ zur Schulter (dx nach außen, dy nach unten);
-//   legs: { hip, knee } – Beugung in der Sagittalebene; in der Frontansicht nur als Verkürzung sichtbar;
+//   legs: { hip, knee, abdR, abdL } – Beugung in der Sagittalebene (nur als Verkürzung sichtbar); abdR/abdL (v2.16) Abspreizen je Bein;
 //   legs: { planted: true, stance, toeOut, knee, shank } (v2.9) – Füße stehen am Boden (Knöchelmitte bei x = ±stance),
 //        das Bein liegt in einer um toeOut nach außen gedrehten Ebene (Knie folgt der Fußrichtung). knee = Kniebeugung,
 //        shank = Schienbeinneigung in dieser Ebene; Becken- und Kniehöhe folgen aus der Geometrie (räumlich gelöst, dann projiziert);
@@ -157,9 +157,12 @@ export function solveFront(spec) {
       continue;
     }
     const hip = add(pelvis, [sg * (J0F.hip[0] - J0F.pelvis[0]), 0]);
-    const dT = unit([sg * (J0F.knee[0] - J0F.hip[0]) + sg * (Number.isFinite(stance) ? stance : 0) * 0.5, J0F.knee[1] - J0F.hip[1]]);
+    let dT = unit([sg * (J0F.knee[0] - J0F.hip[0]) + sg * (Number.isFinite(stance) ? stance : 0) * 0.5, J0F.knee[1] - J0F.hip[1]]);
+    let dS = unit([sg * (Number.isFinite(stance) ? stance : 0) * 0.5, J0F.ankle[1] - J0F.knee[1]]);
+    // v2.16.0: legs.abdR / legs.abdL – Abspreizen eines Beins in der Frontalebene (Grad, nach außen positiv), z. B. unteres Bein beim Copenhagen Plank
+    const abdLeg = num(legs['abd' + s]) || 0;
+    if (abdLeg) { const a = -sg * abdLeg * DEG, c = Math.cos(a), si = Math.sin(a), rt = (v) => [v[0] * c - v[1] * si, v[0] * si + v[1] * c]; dT = rt(dT); dS = rt(dS); }
     const knee = add(hip, mul(dT, LEN.thigh * thighScale));
-    const dS = unit([sg * (Number.isFinite(stance) ? stance : 0) * 0.5, J0F.ankle[1] - J0F.knee[1]]);
     const ankle = add(knee, mul(dS, LEN.shank * shankScale));
     J['hip' + s] = hip; J['knee' + s] = knee; J['ankle' + s] = ankle;
     F['thigh' + s] = fr(hip, dT, thighScale); F['shank' + s] = fr(knee, dS, shankScale); F['foot' + s] = fr(ankle, [0, 1], shankScale);
