@@ -34,6 +34,7 @@ export const SHAPES = [
   { seg: 'trunk', id: 'abs', pts: [[14, -176], [21, -186], [26, -200], [27, -214], [25, -230], [26, -246], [17, -246], [16, -225], [15, -200], [10, -182]] },
   { seg: 'thigh', id: 'body', pts: [[10, -172], [17, -160], [19, -140], [17, -120], [13, -104], [12, -96], [-12, -92], [-14, -104], [-17, -122], [-20, -145], [-22, -165], [-18, -175]] },
   { seg: 'thigh', id: 'quads', pts: [[6, -168], [16, -160], [18.5, -140], [16.5, -120], [12, -104], [6, -100], [4, -125], [3, -150]] },
+  { seg: 'thigh', id: 'hip-flexors', pts: [[4, -177], [11, -175], [15.5, -167], [13, -159], [7, -161], [3.5, -169]] }, // v2.18.0: Hüftbeuger (Iliopsoas/Leiste) vorn am Hüftgelenk – Zeichenkonvention
   { seg: 'thigh', id: 'hamstrings', pts: [[-4, -170], [-20, -163], [-19, -140], [-16, -118], [-12, -98], [-5, -100], [-5, -130], [-4, -155]] },
   { seg: 'shank', id: 'body', pts: [[11, -92], [10, -80], [9, -60], [7, -40], [6, -22], [7, -15], [-7, -15], [-7, -22], [-8, -38], [-13, -55], [-16, -70], [-15, -82], [-12, -92]] },
   { seg: 'shank', id: 'calves', pts: [[-4, -90], [-12, -91], [-15.5, -75], [-15, -62], [-10, -50], [-5, -58], [-3, -75]] },
@@ -46,13 +47,13 @@ export const SHAPES = [
   { seg: 'farm', id: 'body', pts: [[8, -217], [10, -205], [9, -190], [7, -175], [6, -166], [7, -158], [8, -145], [6, -130], [3, -125], [0, -128], [-2, -140], [-3, -155], [-3, -166], [-4, -178], [-6, -195], [-7, -210], [-5, -220]] },
   { seg: 'farm', id: 'forearms', pts: [[-5, -216], [7, -216], [9.5, -203], [8, -185], [2, -180], [-4, -182], [-6, -198]] }
 ];
-// Pool-Muskel → Form der Figur. Adduktoren, Abduktoren und Hüftbeuger sind in der Seitenansicht nicht als Fläche sichtbar.
+// Pool-Muskel → Form der Figur. Adduktoren und Abduktoren sind in der Seitenansicht nicht als Fläche sichtbar; Hüftbeuger seit v2.18.0 als kleine Fläche vorn an der Leiste.
 export const MUSCLE_SHAPE = {
   chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back',
   'lower-back': 'lower-back', biceps: 'biceps', triceps: 'triceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques',
-  glutes: 'glutes', quads: 'quads', hamstrings: 'hamstrings', calves: 'calves'
+  glutes: 'glutes', quads: 'quads', hamstrings: 'hamstrings', calves: 'calves', 'hip-flexors': 'hip-flexors'
 };
-export const HIDDEN_MUSCLES = ['adductors', 'abductors', 'hip-flexors'];
+export const HIDDEN_MUSCLES = ['adductors', 'abductors'];
 
 // Ankerpunkte für Kernpunkte (Standkoordinaten je Segment).
 export const ANCHORS = {

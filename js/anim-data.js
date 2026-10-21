@@ -424,9 +424,9 @@ const MCR = (() => {
 })();
 // Frontansicht, beide Hände an einem Griff: Arme fast gestreckt und projiziert (Ellbogen auf der Linie Schulter–Hand, 8 Einheiten nach außen und 6 nach unten
 // versetzt; liegt die Hand dicht vor der Schulter, rückt der Ellbogen nach außen unten – der Oberarm zeigt dann nach vorn und verschwindet nie ganz), W ist die Griffmitte. armPoints gelten für die rechte Seite (dx nach außen), armL für die linke (gespiegelt).
-const handsTo = (spec, W) => {
+const handsTo = (spec, W, rest = [10, 16]) => { // rest: Ellbogen (nach außen, nach unten) für eine Hand dicht vor der Schulter
   const P = solveFront({ ...spec, armPoints: { elbow: [6, 60], wrist: [8, 110] } });
-  const one = (S, sg) => { const g = [W[0] - S[0], W[1] - S[1]], l = Math.hypot(g[0], g[1]), v = [g[0] * (1 - 7 / l), g[1] * (1 - 7 / l)], k = LEN.uarm / ARM_REACH; const wv = Math.max(0, Math.min(1, 1 - Math.hypot(v[0], v[1]) / 80)), e = [(sg * v[0] * k + 8) * (1 - wv) + 10 * wv, (v[1] * k + 6) * (1 - wv) + 16 * wv]; return { elbow: [r1(e[0]), r1(e[1])], wrist: [r1(sg * v[0]), r1(v[1])], len: l }; }; // Griff 7 vor dem Handgelenk (Handmitte)
+  const one = (S, sg) => { const g = [W[0] - S[0], W[1] - S[1]], l = Math.hypot(g[0], g[1]), v = [g[0] * (1 - 7 / l), g[1] * (1 - 7 / l)], k = LEN.uarm / ARM_REACH; const wv = Math.max(0, Math.min(1, 1 - Math.hypot(v[0], v[1]) / 80)), e = [(sg * v[0] * k + 8) * (1 - wv) + rest[0] * wv, (v[1] * k + 6) * (1 - wv) + rest[1] * wv]; return { elbow: [r1(e[0]), r1(e[1])], wrist: [r1(sg * v[0]), r1(v[1])], len: l }; }; // Griff 7 vor dem Handgelenk (Handmitte)
   const R = one(P.joints.shoulderR, 1), L = one(P.joints.shoulderL, -1);
   return { armPoints: { elbow: R.elbow, wrist: R.wrist }, armL: { points: { elbow: L.elbow, wrist: L.wrist } }, reach: r1(Math.max(R.len, L.len)) };
 };
@@ -446,6 +446,64 @@ const PAL = (() => {
   const legs = { planted: true, stance: 18, toeOut: 8, knee: 10, shank: 5 };
   const P = solveFront({ legs, armPoints: { elbow: [-16, 4], wrist: [-31, 8] } });
   return { legs, chest: { elbow: [6, 60], wrist: [-27, 30] }, out: { elbow: [-16, 4], wrist: [-31, 8] }, tower: 170, pulleyY: r1(P.joints.wristR[1] + 2) };
+})();
+
+// ---------- Runde 13 (v2.18): Bauch am Boden, Drehung, Seitbeugen, Hüftbeugen ----------
+// Ab-Wheel-Rollout (Seitenansicht): kniend, Schienbein und Fußrücken am Boden (Kniehöhe gelöst wie beim Kabel-Crunch). Rad Ø ≈ 18 cm
+// (Achse 18 über dem Boden, Konvention), Arme gestreckt: Schulter–Griff = 141 (Arm bis Handgelenk 121, knapp unter der vollen Länge, + Handfläche 20). Start im Vierfüßlerstand (Hüfte 90°,
+// Arm senkrecht zum Rumpf; Escamilla et al. 2006), Ende gestreckt mit Brust ≈ 4 cm über dem Boden (Youdas et al. 2008: Unterarme fast am Boden).
+// Neun Bilder: Hüfte 90° → 0°, Schulterhöhe linear dazwischen; die Radachse folgt aus der Armlänge.
+const ROLL = (() => {
+  const AX = -18, REACH = 141, base = { root: 'knee', shank: 90, foot: 262, elbow: 0 };
+  const y = r1(bisect((yy) => lowSeg(solvePose({ ...base, trunk: 80, knee: 100, rootPos: [0, yy] }), ['shank', 'foot']), -40, 20));
+  const at = (t, h) => solvePose({ ...base, rootPos: [0, y], trunk: t, knee: 90 - t + h, shoulder: 90 });
+  const H0 = 90; // Vierfüßlerstand: Hüfte und Schulter je ≈ 90° (Escamilla et al. 2006) – der Arm steht senkrecht zum Rumpf, das Rad liegt etwas vor der Schulter
+  const tS = bisect((t) => at(t, H0).joints.shoulder[1] + REACH * Math.sin(t * Math.PI / 180) - AX, 45, 95);
+  const tE = bisect((t) => lowSeg(at(t, 0), ['trunk']) + 8, 40, 95);
+  const s0 = at(tS, H0).joints.shoulder[1], s1 = at(tE, 0).joints.shoulder[1];
+  const frame = (u) => {
+    const h = H0 * (1 - u), t = bisect((tt) => at(tt, h).joints.shoulder[1] - (s0 + (s1 - s0) * u), 45, 100), P = at(t, h), sh = P.joints.shoulder;
+    const ax = [r1(sh[0] + Math.sqrt(Math.max(REACH * REACH - (AX - sh[1]) ** 2, 0))), AX]; // Radachse vor der Schulter auf Achshöhe
+    const d = [ax[0] - sh[0], ax[1] - sh[1]], l = Math.hypot(d[0], d[1]), w = [r1(ax[0] - d[0] / l * 20), r1(ax[1] - d[1] / l * 20)]; // Handgelenk 20 vor der Achse: die Handfläche liegt am Griff
+    return { trunk: r1(t), knee: r1(90 - t + h), hip: r1(h), axle: ax, wrist: w };
+  };
+  const frames = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => frame(i / 8));
+  // Dauer je Abschnitt nach dem Weg des Rads (gesamt 1 s), damit das Rad gleichmäßig rollt
+  const seg = frames.slice(1).map((f, i) => f.axle[0] - frames[i].axle[0]), tot = seg.reduce((a, b) => a + b, 0);
+  return { AX, y, base, frames, durs: seg.map((d) => Math.round((d / tot) * 1000) / 1000) };
+})();
+// Fahrrad-Crunch (Seitenansicht, Rückenlage auf der Matte wie Runde 10): Oberkörper bleibt eingerollt (Schulterblätter abgehoben),
+// ein Knie zur Brust (Hüfte 110°, Knie 100°, Konvention), das andere Bein gestreckt bis 30° Hüftbeugung (Pereira et al. 2017).
+const BIKE = (() => {
+  const bent = { hip: 110, knee: 100 }, straight = { hip: 30, knee: 0 };
+  // Hüfthöhe je Bild so gelöst, dass das Gesäß auf der Matte bleibt (bei angezogenem nahem Bein hebt die Gesäßkontur sonst ≈ 3 cm ab)
+  const pose = (near, far) => ({ root: 'hip', trunk: FLOOR.lie, curl: FLOOR.crunchCurl, hip: near.hip, knee: near.knee, ankle: -10, leg2: { hip: far.hip, knee: far.knee, ankle: -10 } });
+  const yFor = (near, far) => r1(bisect((y) => lowSeg(solvePose({ ...pose(near, far), rootPos: [0, y] }), ['trunk']) + MAT, -80, 20));
+  return { bent, straight, yR: yFor(bent, straight), yL: yFor(straight, bent) };
+})();
+// Hüftbeugen am Kabel (Seitenansicht): aufrecht, Standbein fest (zweites Bein per IK), Manschette am arbeitenden (nahen) Bein, Kabel von
+// der unteren Rolle hinter der Figur. Knie bis Hüfthöhe (Oberschenkel waagerecht, Knie 90°), Hände an den Hüften – alles Konvention.
+const HFX = { tower: -150, pulley: -20, pose: { root: 'hip', rootPos: [-0.6, -182.6], trunk: 0, leg2: { ankle: [0, -15], foot: 90, kneeSide: 1 }, armTargetTrunk: [-6, -78], elbowSide: 1, armScale: [0.9, 0.9] } };
+// Seitbeugen mit Kurzhantel (Frontansicht): Hantel in der rechten Hand, Arm hängt senkrecht; linke Hand an der Hüfte. Seitneigung des Rumpfs
+// bis 25° zur Hantelseite und 6° zurück über die Mitte (bequemer Endbereich im Protokoll von Kang & Park 2026; Gradzahl Konvention).
+const SBD = (() => {
+  const legs = { planted: true, stance: 18, toeOut: 6, knee: 4, shank: 2 };
+  // linke Hand bleibt an der Hüfte: Handgelenk auf einem Punkt seitlich am Becken, Ellbogen nach außen (je Neigung gelöst)
+  const handL = (lean) => {
+    const P = solveFront({ trunk: lean, legs }), S = P.joints.shoulderL, hp = P.joints.hipL, W = [hp[0] - 30, hp[1] - 16], v = [W[0] - S[0], W[1] - S[1]], l = Math.hypot(v[0], v[1]);
+    let n = [v[1] / l, -v[0] / l]; if (n[0] > 0) n = [-n[0], -n[1]]; // senkrecht zur Linie Schulter–Hand, nach außen (links)
+    const e = [v[0] / 2 + n[0] * 26, v[1] / 2 + n[1] * 26];
+    return { elbow: [r1(-e[0]), r1(e[1])], wrist: [r1(-v[0]), r1(v[1])] };
+  };
+  return { legs, down: 25, up: -6, handUp: handL(-6), handDown: handL(25) };
+})();
+// Russian Twist (Frontansicht): Sitz auf der Matte, Rumpf ≈ 40° zurückgelehnt (als Verkürzung), Knie hoch vor dem Rumpf, Füße angehoben
+// (Oberschenkel nach oben, Schienbein nach unten gezeichnet, Beine vor dem Rumpf). Hände zusammen, von tief neben der einen Hüfte über die
+// Mitte (vor dem Bauch) zur anderen, Rumpf neigt sich leicht mit. Die Drehung um die Längsachse zeigt die Frontfigur nicht. Alles Konvention.
+const RTW = (() => {
+  const legs = { hip: 0, knee: 0, thighDir: 156, thighF: 0.75, shankDir: -24, shankF: 0.45 }, PEL = [0, -34], A = 70;
+  const at = (u) => { const x = A * Math.cos(Math.PI * u), sp = { root: 'pelvis', rootPos: PEL, trunkFlex: 40, trunk: r1(8 * Math.cos(Math.PI * u)), legs, legsFront: true }; return { ...sp, ...handsTo(sp, [x, -58 - 34 * Math.sin(Math.PI * u)], [24, 4]) }; }; // seitlich tief neben der Hüfte, in der Mitte vor dem Bauch (über den Knien)
+  return { PEL, legs, path: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => at(i / 8)) };
 })();
 
 export const ANIMATIONS = [
@@ -2938,6 +2996,130 @@ export const ANIMATIONS = [
       J1: { label: 'Juan-Recio et al. 2025, Medicina (Kaunas)', url: 'https://doi.org/10.3390/medicina61020312', read: 'fulltext' },
       F1: { label: 'Franco-López et al. 2024, Sensors', url: 'https://doi.org/10.3390/s24134131', read: 'abstract' }
     }
+  },
+  // ---------- Runde 13 (v2.18): Ab-Wheel-Rollout ----------
+  {
+    ref: 'ab-wheel-rollout', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Ablauf nach Escamilla et al. 2006 (Power Wheel, Volltext) und Youdas et al. 2008 (Ab-Slide, Volltext): Start im Vierfüßlerstand mit etwa 90° in Hüfte und Schulter, Arme gestreckt, Wirbelsäule und Becken neutral; geradeaus nach vorn rollen, bis der Körper gestreckt ist bzw. die Unterarme fast den Boden berühren, dann zurück. Gemessen wurden keine Winkel: Das Ende ist so gelöst, dass die Brust ≈ 4 cm über dem Boden bleibt, die Zwischenbilder halten die Arme gestreckt und das Rad am Boden (Raddurchmesser ≈ 18 cm, Konvention).',
+    tempo: { basis: 'protocol', note: '1 s hinaus, 1 s halten, 1 s zurück, 1 s Pause (Metronom; Escamilla et al. 2006 und Youdas et al. 2008).' },
+    frames: ROLL.frames.map((q, i) => ({ label: i === 0 ? 'Vierfüßler' : i === 8 ? 'Gestreckt' : 'Rollen ' + i, pose: { ...ROLL.base, rootPos: [0, ROLL.y], trunk: i === 0 ? K(q.trunk, 'E1', 'gelöst: Hüfte und Schulter 90°, Rad am Boden') : i === 8 ? K(q.trunk, 'Y1', 'gelöst: Brust ≈ 4 cm über dem Boden') : C(q.trunk), knee: C(q.knee), armWorld: q.wrist, elbowSide: 1, props: rollProps },
+      facts: i === 0 ? [V(90, 'E1', 'fulltext', 'Hüfte und Schulter ≈ 90° im Vierfüßlerstand')] : i === 8 ? [V(0, 'E1', 'fulltext', 'Körper gestreckt, Wirbelsäule und Becken neutral')] : [] })), // Bilder 1–7: Zwischenbilder (Arme gestreckt, Rad am Boden)
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Vierfüßler', kp: [0] }, ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ a: i, b: i + 1, dur: ROLL.durs[i], label: 'Hinaus', kp: [1, 4] })), { a: 8, b: 8, dur: 1.0, label: 'Gestreckt', kp: [1, 2] },
+      ...[8, 7, 6, 5, 4, 3, 2, 1].map((i) => ({ a: i, b: i - 1, dur: ROLL.durs[i - 1], label: 'Zurück', kp: [3] }))],
+    keyPoints: [
+      { short: 'Start', anchor: 'hand', side: 'r', status: 'consensus', text: 'Aus dem Vierfüßlerstand mit gestreckten Armen geradeaus nach vorn rollen.', src: ['E1', 'Y1'],
+        explain: 'Beide Protokolle (Volltext): Hände am Rad, Knie am Boden, Hüfte und Schulter etwa 90°; die Ellbogen bleiben gestreckt, das Rad läuft in einer geraden Linie.' },
+      { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'consensus', text: 'Wirbelsäule und Becken bleiben neutral – nicht durchhängen.', src: ['E1', 'Y1'],
+        explain: 'Anweisung in beiden Studien. Escamilla et al. 2006 erklären, dass die Bauchmuskeln dabei vor allem halten (isometrisch) und gegen das Durchhängen arbeiten; gemessen wurde die Haltung nicht.' },
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'consensus', text: 'Hohe Bauch-Aktivität bei wenig Arbeit der Hüftbeuger.', src: ['Y1', 'E1'],
+        explain: 'Youdas et al. 2008 (22 Personen): gerader Bauchmuskel 79 %, innerer schräger 70 %, äußerer schräger 63 %, gerader Oberschenkelmuskel 28 % der maximalen Anspannung. Escamilla et al. 2006 (21 Personen): Rollout unter den höchsten Bauch- und Latissimus-Werten, wenig Hüftbeuger und Rückenstrecker.' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Schultern und Rücken werden stark gefordert; bei Beschwerden dort vorsichtig sein.', src: ['Y1'],
+        explain: 'Die Teilnehmenden berichteten von hoher Belastung in Schultern und Rücken; die Autoren halten die Übung bei Problemen an Wirbelsäule oder Armen für womöglich ungeeignet (Youdas et al. 2008). Das ist ihre Einschätzung, Beschwerden wurden nicht erfasst.' },
+      { short: 'Bremsen', anchor: 'back', side: 'l', status: 'single', text: 'Beim Hinausrollen bremst der breite Rückenmuskel die Arme.', src: ['E1'],
+        explain: 'Escamilla et al. 2006 deuten die hohe Latissimus-Aktivität so: Er arbeitet beim Hinausrollen bremsend gegen die Schulterbeugung und beim Zurückrollen ziehend.' }
+    ],
+    sources: {
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' },
+      Y1: { label: 'Youdas et al. 2008, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31818745bf', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 13: Fahrrad-Crunch ----------
+  {
+    ref: 'bicycle-crunch', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Nach dem Criss-Cross bei Pereira et al. 2017 (Volltext), der dem Fahrrad-Crunch weitgehend entspricht: Rückenlage, Kopf und oberer Rücken angehoben, Becken neutral, Lendenwirbelsäule auf der Matte; das gestreckte Bein wurde mit einer Kiste bei 30° Hüftbeugung begrenzt. Die Drehung des Oberkörpers zum Knie zeigt die Seitenansicht nicht; das Einrollen ist wie beim Crunch gelöst (Schulterblätter ≈ 4 cm angehoben). Hüfte und Knie des angezogenen Beins sind Konvention.',
+    tempo: { basis: 'protocol', note: 'Metronom 40 Schläge je Minute (Pereira et al. 2017); wie die Schläge auf die Bewegung verteilt waren, steht nicht im Text. Gezeichnet je Seitenwechsel 1,5 s.' },
+    frames: [
+      { label: 'Rechts', pose: { root: 'hip', rootPos: [0, BIKE.yR], trunk: C(FLOOR.lie), curl: K(FLOOR.crunchCurl, 'P1', 'Kopf und oberer Rücken angehoben (wie Crunch gelöst)'), headTilt: C(10), hip: C(BIKE.bent.hip, 'Knie zur Brust'), knee: C(BIKE.bent.knee), ankle: C(-10), leg2: { hip: V(BIKE.straight.hip, 'P1', 'protocol', 'gestrecktes Bein bis 30° Hüftbeugung (Kiste)'), knee: V(0, 'P1', 'protocol', 'Knie gestreckt'), ankle: -10 }, armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: matProps } },
+      { label: 'Links', pose: { root: 'hip', rootPos: [0, BIKE.yL], trunk: C(FLOOR.lie), curl: K(FLOOR.crunchCurl, 'P1'), headTilt: C(10), hip: V(BIKE.straight.hip, 'P1', 'protocol', 'gestrecktes Bein bis 30° Hüftbeugung'), knee: V(0, 'P1', 'protocol'), ankle: C(-10), leg2: { hip: BIKE.bent.hip, knee: BIKE.bent.knee, ankle: -10 }, armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: matProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Rechts', kp: [1] }, { a: 0, b: 1, dur: 1.2, label: 'Wechseln', kp: [0, 4] }, { a: 1, b: 1, dur: 0.3, label: 'Links', kp: [1] }, { a: 1, b: 0, dur: 1.2, label: 'Wechseln', kp: [2, 3] }],
+    keyPoints: [
+      { short: 'Bein', anchor: 'knee', side: 'r', status: 'single', text: 'Das gestreckte Bein nicht tiefer als etwa 30° über dem Boden führen.', src: ['P1'],
+        explain: 'Pereira et al. 2017 (32 Pilates-Anfänger, Volltext) begrenzten die Hüftstreckung mit einer Kiste auf 30° Beugung bei gestrecktem Knie, damit alle die Übung sauber ausführen konnten.' },
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Mit Drehung waren gerader und schräge Bauchmuskeln am stärksten aktiv.', src: ['P1'],
+        explain: 'Criss-Cross gegenüber Single Leg Stretch und Dead Bug (Gesunde): gerader Bauchmuskel 86 %, äußerer schräger 94 %, innerer schräger 108 % der maximalen Anspannung (Pereira et al. 2017).' },
+      { short: 'Lende', anchor: 'lowBack', side: 'l', status: 'single', text: 'Lendenwirbelsäule auf der Matte, Becken neutral halten.', src: ['P1'],
+        explain: 'Eine Physiotherapeutin prüfte und korrigierte das während der Messung (Pereira et al. 2017). Gemessen wurde die Beckenstellung nicht.' },
+      { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Auch mit chronischen Rückenschmerzen wurde eine ähnliche Bauch-Aktivität erreicht.', src: ['P1'],
+        explain: '13 Personen mit chronischen Rückenschmerzen erreichten ähnliche Werte wie die Gesunden (Pereira et al. 2017). Die Autoren empfehlen den Criss-Cross erst nach Dead Bug und Single Leg Stretch – eine Reihenfolge nach Muskelaktivität, kein Trainingsversuch.' },
+      { short: 'Tempo', anchor: 'foot', side: 'r', status: 'single', text: 'Ruhig im Takt, nicht schwingen.', src: ['P1'],
+        explain: 'Takt per Metronom (40/min) und Ansage (Pereira et al. 2017). Gezeichnet 1,5 s je Seitenwechsel.' }
+    ],
+    sources: {
+      P1: { label: 'Pereira et al. 2017, J Manipulative Physiol Ther', url: 'https://doi.org/10.1016/j.jmpt.2017.02.010', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 13: Hüftbeugen am Kabel (stehend) ----------
+  {
+    ref: 'standing-cable-hip-flexion', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Keine Studie zum Hüftbeugen am Kabel gefunden (PubMed-Suche 2026-10-21). Gezeichnet ist ein üblicher Aufbau: Manschette am Knöchel des arbeitenden (nahen) Beins, Kabel von der unteren Rolle hinter der Figur, aufrecht, Knie bis Hüfthöhe. Die Muskelangaben stammen aus der Hüftbeugung gegen Widerstand (Juker et al. 1998, Abstract) und dem gestreckten Beinheben in Rückenlage (Hu et al. 2010, Volltext).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s heben, kurz halten, 2 s senken (Konvention).' },
+    frames: [
+      { label: 'Unten', pose: { ...HFX.pose, hip: C(0, 'Bein neben dem Standbein, Kabel gespannt'), knee: C(0), ankle: C(0), props: hfxProps } },
+      { label: 'Oben', pose: { ...HFX.pose, hip: C(90, 'Oberschenkel waagerecht (Knie auf Hüfthöhe)'), knee: C(90), ankle: C(0), props: hfxProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [1] }],
+    keyPoints: [
+      { short: 'Heben', anchor: 'thigh', side: 'r', status: 'single', text: 'Knie gegen den Zug bis etwa Hüfthöhe heben.', src: ['J1'],
+        explain: 'Der Lendenteil des großen Lendenmuskels war bei maximaler Hüftbeugung gegen Widerstand am stärksten aktiv (Juker et al. 1998, Feindraht-EMG, 8 Personen, Abstract). Die Höhe hier ist Zeichenkonvention; eine Kabelübung wurde nicht getestet.' },
+      { short: 'Becken', anchor: 'belly', side: 'r', status: 'single', text: 'Becken ruhig halten – die Bauchmuskeln halten dagegen.', src: ['H1'],
+        explain: 'Beim gestreckten Beinheben arbeiteten schräge und quere Bauchmuskeln mit; die Autoren deuten das so, dass sie das Becken gegen den Zug der Hüftbeuger festhalten (Hu et al. 2010, 17 Frauen, Volltext, Rückenlage – hier übertragen).' },
+      { short: 'Muskeln', anchor: 'hip', side: 'r', status: 'single', text: 'Hauptbeweger sind Darmbeinmuskel und gerader Oberschenkelmuskel.', src: ['H1'],
+        explain: 'Beim gestreckten Beinheben war der Darmbeinmuskel (Feindraht) auf der hebenden Seite am stärksten aktiv, an der Oberfläche der gerade Oberschenkelmuskel (Hu et al. 2010). Im Stand am Kabel nicht gemessen.' }
+    ],
+    sources: {
+      J1: { label: 'Juker et al. 1998, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-199802000-00020', read: 'abstract' },
+      H1: { label: 'Hu et al. 2010, J Biomech', url: 'https://doi.org/10.1016/j.jbiomech.2009.09.035', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 13: Seitbeugen mit Kurzhantel (Frontansicht) ----------
+  {
+    ref: 'dumbbell-side-bend', checkedAt: '2026-10-21', view: 'front', basis: 'transfer',
+    basisNote: 'Frontansicht. Übertragen vom Seitbeugen mit Wasserweste (Kang & Park 2026, Volltext): hüftbreiter Stand, Seitneigung bis zum bequemen Endbereich im Takt, ohne Beckendrehung und ohne Vor- oder Rückneigung. Mit Kurzhantel wurde nicht gemessen. Gezeichnet 25° zur Hantelseite und 6° zurück über die Mitte (Gradzahlen Konvention); die freie Hand liegt an der Hüfte (in der Studie Arme vor der Brust gekreuzt).',
+    tempo: { basis: 'protocol', note: 'Metronom 60/min (Kang & Park 2026); gezeichnet 1,5 s hinunter, 1,5 s zurück.' },
+    frames: [
+      { label: 'Aufrecht', pose: { trunk: C(SBD.up, 'leicht zur Gegenseite'), legs: SBD.legs, arm: { abd: C(0, 'Arm hängt mit der Hantel'), elbow: C(4) }, armL: { points: SBD.handUp }, props: sbdProps } },
+      { label: 'Seitlich', pose: { trunk: C(SBD.down, 'zur Hantelseite geneigt (bequemer Endbereich)'), legs: SBD.legs, arm: { abd: C(0), elbow: C(4) }, armL: { points: SBD.handDown }, props: sbdProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Aufrecht', kp: [1] }, { a: 0, b: 1, dur: 1.5, label: 'Neigen', kp: [1, 3] }, { a: 1, b: 1, dur: 0.2, label: 'Seitlich', kp: [0] }, { a: 1, b: 0, dur: 1.5, label: 'Aufrichten', kp: [0, 2] }],
+    keyPoints: [
+      { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Mehr Last ließ vor allem die schrägen Bauchmuskeln deutlich mehr arbeiten.', src: ['K1'],
+        explain: 'Kang & Park 2026 (17 Aktive, Wasserweste 8–16 kg, Volltext): äußerer schräger Bauchmuskel 104 → 158 %, innerer 97 → 156 % der maximalen Anspannung. Eine Wasserweste schwappt; mit einer Hantel ist es nicht gemessen.' },
+      { short: 'Becken', anchor: 'hipL', side: 'l', status: 'single', text: 'Becken und Beine bleiben ruhig; nicht nach vorn oder hinten drehen.', src: ['K1'],
+        explain: 'Durchgänge mit deutlicher Beckendrehung, Vor- oder Rückneigung des Rumpfs oder veränderter Beinstellung wurden wiederholt (Kang & Park 2026).' },
+      { short: 'Stufen', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Erst ab etwa 4 kg mehr änderte sich die Muskelaktivität messbar.', src: ['K1'],
+        explain: 'Zwischen benachbarten Stufen (2 kg) gab es kaum Unterschiede, meist erst bei 4–6 kg Abstand (Kang & Park 2026). Mit Hanteln nicht geprüft.' },
+      { short: 'Weg', anchor: 'handR', side: 'r', status: 'single', text: 'Im ruhigen Takt bis zum bequemen Endpunkt neigen.', src: ['K1'],
+        explain: 'Seitneigung bis zum bequemen Endbereich, im Takt eines Metronoms (60/min), je Seite 4 Wiederholungen (Kang & Park 2026). Den Winkel haben sie nicht gemessen.' }
+    ],
+    sources: {
+      K1: { label: 'Kang & Park 2026, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010089', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 13: Russian Twist (Frontansicht) ----------
+  {
+    ref: 'russian-twist', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht. Keine Studie zum Russian Twist gefunden (PubMed-Suche 2026-10-21). Gezeichnet: Sitz auf der Matte, Rumpf zurückgelehnt, Knie hoch, Füße angehoben, die Hände schwenken zusammen von einer Seite zur anderen. Die Drehung um die Längsachse zeigt die Frontfigur nicht – sichtbar sind der Weg der Hände und eine leichte Seitneigung. Muskelangaben aus der isometrischen Rumpfdrehung im Sitz (Kumar et al. 2001, Volltext) und dem Criss-Cross (Pereira et al. 2017, Volltext).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 2 s je Seite (Konvention).' },
+    frames: RTW.path.map((q, i) => ({ label: i === 0 ? 'Rechts' : i === 8 ? 'Links' : i === 4 ? 'Mitte' : 'Drehen ' + i, pose: { root: 'pelvis', rootPos: RTW.PEL, trunkFlex: C(40, 'zurückgelehnt (Konvention)'), trunk: C(q.trunk), legs: RTW.legs, legsFront: true, armPoints: q.armPoints, armL: q.armL, props: rtwProps } })), // Bilder 1–5: Zwischenbilder auf dem Weg der Hände
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Rechts', kp: [0] }, ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ a: i, b: i + 1, dur: 0.25, label: 'Nach links', kp: [0, 1] })), { a: 8, b: 8, dur: 0.3, label: 'Links', kp: [0] },
+      ...[8, 7, 6, 5, 4, 3, 2, 1].map((i) => ({ a: i, b: i - 1, dur: 0.25, label: 'Nach rechts', kp: [1, 2] }))],
+    keyPoints: [
+      { short: 'Drehen', anchor: 'belly', side: 'r', status: 'single', text: 'Die Drehung kommt vor allem aus den schrägen Bauchmuskeln.', src: ['K1'],
+        explain: 'Bei der Rumpfdrehung im Sitz starteten und trugen der äußere schräge Bauchmuskel der Gegenseite und der innere der Drehseite die Bewegung mit (Kumar et al. 2001, 50 Personen, isometrisch, Volltext). Beim Russian Twist selbst nicht gemessen.' },
+      { short: 'Rücken', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Breiter Rückenmuskel und Rückenstrecker der Drehseite arbeiten mit.', src: ['K1'],
+        explain: 'Bei Männern war der breite Rückenmuskel der Drehseite am stärksten aktiv, der Rückenstrecker der gleichen Seite ebenfalls hoch; bei Frauen der große Brustmuskel der Gegenseite (Kumar et al. 2001). Die Autoren vermuten, dass der Schultergurt des Geräts das mitbestimmte.' },
+      { short: 'Vergleich', anchor: 'chest', side: 'r', status: 'single', text: 'Übungen mit Drehung aktivierten die schrägen Bauchmuskeln stärker als ohne.', src: ['P1'],
+        explain: 'Der Criss-Cross mit Drehung lag bei den schrägen und dem geraden Bauchmuskel über Single Leg Stretch und Dead Bug (Pereira et al. 2017); die Autoren verweisen auf weitere Studien mit demselben Befund. Übertragen auf den Russian Twist.' }
+    ],
+    sources: {
+      K1: { label: 'Kumar et al. 2001, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s004210100510', read: 'fulltext' },
+      P1: { label: 'Pereira et al. 2017, J Manipulative Physiol Ther', url: 'https://doi.org/10.1016/j.jmpt.2017.02.010', read: 'fulltext' }
+    }
   }
 
 ];
@@ -3524,6 +3706,25 @@ function palProps(P) {
     { type: 'rect', x: g[0] - 6, y: g[1] - 8, w: 12, h: 16, rx: 3, front: true } // Griff (beide Hände)
   ] };
 }
+
+// ---------- Szenen Runde 13 (v2.18) ----------
+function rollProps(P) {
+  const w = P.joints.wrist, sh = P.joints.shoulder, d = [w[0] - sh[0], w[1] - sh[1]], l = Math.hypot(d[0], d[1]) || 1, ax = [w[0] + d[0] / l * 20, w[1] + d[1] / l * 20]; // Achse auf der Linie Schulter–Handgelenk
+  return { anchors: { wheel: ax }, scene: [
+    { type: 'bar', at: ax, r: 18, back: true }, { type: 'bar', at: ax, r: 5 }, // Rad (von der Seite, hinter der Hand), Nabe
+    { type: 'rect', x: -150, y: -MAT, w: 420, h: MAT, rx: 3, noBounds: true } // Matte unter den Knien
+  ] };
+}
+function hfxProps(P) {
+  const t = HFX.tower, cuff = P.joints.ankle;
+  return { anchors: { cuff }, scene: [
+    { type: 'line', from: [t, 0], to: [t, -420], w: 8 }, foot(t - 50, t + 40), { type: 'bar', at: [t + 8, HFX.pulley], r: 7 }, // Turm hinter der Figur, untere Rolle
+    { type: 'line', from: [t + 8, HFX.pulley], to: cuff, w: 1.5, dash: true, front: true }, // Seil zur Manschette
+    { type: 'rect', x: cuff[0] - 7, y: cuff[1] - 6, w: 14, h: 12, rx: 4, front: true } // Manschette
+  ] };
+}
+function sbdProps(P) { return { anchors: {}, scene: [db(P.joints.handR, [1, 0], true)] }; } // Kurzhantel im Neutralgriff, Achse zeigt aus dem Bild
+function rtwProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: -120, y: -MAT, w: 240, h: MAT, rx: 3 }] }; } // Matte
 
 export function framesOf(anim, variant) {
   const fr = Array.isArray(anim.frames) ? anim.frames : anim.frames[variant || anim.variants[0].key];

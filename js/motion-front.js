@@ -9,6 +9,7 @@
 //        Ellbogenbeugung in der Bildebene (Unterarm dreht zur Körpermitte / nach unten);
 //   armPoints: { elbow: [dx, dy], wrist: [dx, dy] } – projizierte Armgeometrie relativ zur Schulter (dx nach außen, dy nach unten);
 //   legs: { hip, knee, abdR, abdL } – Beugung in der Sagittalebene (nur als Verkürzung sichtbar); abdR/abdL (v2.16) Abspreizen je Bein;
+//   legs: { thighDir, shankDir, thighF, shankF } (v2.18) – Richtung und Verkürzung je Segment frei gesetzt; legsFront: Beine vor dem Rumpf zeichnen;
 //   legs: { planted: true, stance, toeOut, knee, shank } (v2.9) – Füße stehen am Boden (Knöchelmitte bei x = ±stance),
 //        das Bein liegt in einer um toeOut nach außen gedrehten Ebene (Knie folgt der Fußrichtung). knee = Kniebeugung,
 //        shank = Schienbeinneigung in dieser Ebene; Becken- und Kniehöhe folgen aus der Geometrie (räumlich gelöst, dann projiziert);
@@ -162,10 +163,16 @@ export function solveFront(spec) {
     // v2.16.0: legs.abdR / legs.abdL – Abspreizen eines Beins in der Frontalebene (Grad, nach außen positiv), z. B. unteres Bein beim Copenhagen Plank
     const abdLeg = num(legs['abd' + s]) || 0;
     if (abdLeg) { const a = -sg * abdLeg * DEG, c = Math.cos(a), si = Math.sin(a), rt = (v) => [v[0] * c - v[1] * si, v[0] * si + v[1] * c]; dT = rt(dT); dS = rt(dS); }
-    const knee = add(hip, mul(dT, LEN.thigh * thighScale));
-    const ankle = add(knee, mul(dS, LEN.shank * shankScale));
+    // v2.18.0: legs.thighDir / legs.shankDir – Richtung im Bild (Grad wie fdir: 0 = nach unten, 180 = nach oben, positiv nach außen) und
+    // legs.thighF / legs.shankF – Verkürzung (Projektionsfaktor), z. B. Sitz mit angehobenen Knien (Russian Twist). Ohne Angabe unverändert.
+    const tDir = num(legs.thighDir), sDir = num(legs.shankDir);
+    if (Number.isFinite(tDir)) dT = [sg * Math.sin(tDir * DEG), Math.cos(tDir * DEG)];
+    if (Number.isFinite(sDir)) dS = [sg * Math.sin(sDir * DEG), Math.cos(sDir * DEG)];
+    const tSc = Number.isFinite(num(legs.thighF)) ? Math.max(num(legs.thighF), MIN_SCALE) : thighScale, sSc = Number.isFinite(num(legs.shankF)) ? Math.max(num(legs.shankF), MIN_SCALE) : shankScale;
+    const knee = add(hip, mul(dT, LEN.thigh * tSc));
+    const ankle = add(knee, mul(dS, LEN.shank * sSc));
     J['hip' + s] = hip; J['knee' + s] = knee; J['ankle' + s] = ankle;
-    F['thigh' + s] = fr(hip, dT, thighScale); F['shank' + s] = fr(knee, dS, shankScale); F['foot' + s] = fr(ankle, [0, 1], shankScale);
+    F['thigh' + s] = fr(hip, dT, tSc); F['shank' + s] = fr(knee, dS, sSc); F['foot' + s] = fr(ankle, [0, 1], sSc);
   }
   // Arme (symmetrisch; rechte Seite als Vorlage, linke gespiegelt)
   const armsOf = (side) => {
@@ -215,7 +222,7 @@ export function solveFront(spec) {
   const elbowDeg = Math.acos(Math.max(-1, Math.min(1, dot(A.dU, A.dF)))) / DEG;
   const angles = { trunk: f1(lean), abd: f1(abdDeg), elbow: f1(elbowDeg), hip: f1(planted ? planted.hipFlex : hipF), knee: f1(planted ? num(legs.knee) : kneeF) };
   if (planted) { angles.hipAbd = f1(planted.hipAbd); angles.thighFront = f1(planted.thighFront); angles.trunkFlex = f1(flex); }
-  const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0 };
+  const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0, legsFront: !!spec.legsFront }; // v2.18.0: legsFront – Beine vor dem Rumpf zeichnen (Knie zeigen zum Betrachter)
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -281,13 +288,14 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
       out.push({ d, cls: 'an-m ' + (role === 'p' ? 'prim' : role === 's' ? 'sec' : 'rest') });
     }
   };
-  group(['thigh', 'shank', 'foot'], [['kneeR', 8], ['kneeL', 8]]);
+  if (!P.legsFront) group(['thigh', 'shank', 'foot'], [['kneeR', 8], ['kneeL', 8]]);
   group(['trunk'], []);
   // v2.15.0: Bei starker Vorneigung liegt der Kopf vor dem oberen Rücken – er wird nach den Rumpfmuskeln noch einmal gezeichnet (sonst verdeckt).
   if (P.F.trunk && P.F.trunk.f < 0.6) {
     const head = shapesForF(sex).find((sh) => sh.part === 'head');
     if (head) { const d = smooth(head.pts.map((q) => tfFS(P, 'trunk', 'R', q))); out.push({ d, cls: 'an-body edge' }, { d, cls: 'an-body fill' }); }
   }
+  if (P.legsFront) group(['thigh', 'shank', 'foot'], [['kneeR', 8], ['kneeL', 8]]);
   group(['uarm', 'farm'], [['shoulderR', 10], ['shoulderL', 10], ['elbowR', 6], ['elbowL', 6]]);
   return out;
 }

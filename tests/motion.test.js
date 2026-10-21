@@ -485,4 +485,29 @@ test('v2.17.0: Bauch hängend, im Stütz und am Seilzug – Kontakte über den g
   near(g.y + 8, pul[1], 3, 'Pallof gestreckt: Kabel waagerecht');
 });
 
+// ---------- v2.18.0: Runde 13 ----------
+test('v2.18.0: Bauch am Boden, Drehung, Seitbeugen, Hüftbeugen – Kontakte über den ganzen Zyklus', () => {
+  const each = (ref, fn) => { const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases); for (let i = 0; i <= 40; i++) fn(M.poseAt(fr, a.phases, (T * i) / 40 - (i === 40 ? 1e-6 : 0)).pose, i); };
+  const low = (P, segs) => { let m = -1e9; for (const sh of M.shapesFor('male')) if (sh.id === 'body' && segs.includes(sh.seg)) for (const q of sh.pts) m = Math.max(m, M.tf(P, sh.seg, q)[1]); return m; };
+  // Rollout: Rad auf dem Boden, Arme gestreckt, Unterschenkel am Boden, Rumpf nie im Boden
+  each('ab-wheel-rollout', (P, i) => { near(P.props.wheel[1], -18, 1.5, `Rollout t=${i}: Rad am Boden`); assert.ok(P.angles.elbow < 20, `Rollout t=${i}: Ellbogen ${P.angles.elbow} (fast gestreckt; Keyframes ≈ 10°)`); const l = low(P, ['shank', 'foot']); assert.ok(l <= 0.3 && l > -2, `Rollout t=${i}: Schienbein (${l.toFixed(1)})`); assert.ok(low(P, ['trunk']) < -2, `Rollout t=${i}: Rumpf über dem Boden`); });
+  // Fahrrad-Crunch: Becken auf der Matte, beide Füße in der Luft
+  each('bicycle-crunch', (P, i) => { const l = low(P, ['trunk']); assert.ok(l <= -5 && l >= -7.5, `Fahrrad t=${i}: Rumpf auf der Matte (${l.toFixed(1)})`); assert.ok(P.joints.toe[1] < -20 && P.joints.toe2[1] < -20, `Fahrrad t=${i}: Füße oben`); });
+  // Hüftbeugen am Kabel: Standfuß fest, Manschette am arbeitenden Knöchel
+  each('standing-cable-hip-flexion', (P, i) => { near(P.joints.ankle2[0], 0, 0.5, `HF t=${i}: Standfuß x`); near(P.joints.ankle2[1], -15, 0.5, `HF t=${i}: Standfuß y`); assert.ok(Math.hypot(P.props.cuff[0] - P.joints.ankle[0], P.props.cuff[1] - P.joints.ankle[1]) < 0.1, `HF t=${i}: Manschette`); });
+  // Seitbeugen: Füße am Boden, linke Hand an der Hüfte
+  each('dumbbell-side-bend', (P, i) => { near(P.joints.ankleR[1], -15, 0.5, `SB t=${i}: Fuß`); const h = P.joints.hipL; assert.ok(Math.hypot(P.joints.wristL[0] - (h[0] - 30), P.joints.wristL[1] - (h[1] - 16)) < 4, `SB t=${i}: linke Hand an der Hüfte`); });
+  // Russian Twist: Hände zusammen, Becken auf der Matte
+  each('russian-twist', (P, i) => { assert.ok(Math.hypot(P.joints.handR[0] - P.joints.handL[0], P.joints.handR[1] - P.joints.handL[1]) < 24, `RT t=${i}: Hände zusammen`); near(P.joints.pelvis[1], -34, 0.1, `RT t=${i}: Becken`); assert.ok(P.joints.kneeR[1] < P.joints.pelvis[1] - 30, `RT t=${i}: Knie oben`); });
+});
+
+test('v2.18.0: Frontansicht – Beinrichtung frei setzbar, ohne Angabe unverändert; Hüftbeuger in der Seitenansicht sichtbar', () => {
+  const a = MF.solveFront({}), b = MF.solveFront({ legs: {} });
+  assert.deepEqual(b.joints.kneeR, a.joints.kneeR, 'ohne Angabe unverändert');
+  const c = MF.solveFront({ legs: { thighDir: 180, thighF: 0.5 } });
+  assert.ok(c.joints.kneeR[1] < c.joints.hipR[1] - 40, 'Knie über der Hüfte');
+  assert.equal(M.MUSCLE_SHAPE['hip-flexors'], 'hip-flexors');
+  assert.ok(!M.HIDDEN_MUSCLES.includes('hip-flexors'));
+});
+
 done();
