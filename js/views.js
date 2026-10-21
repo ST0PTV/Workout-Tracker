@@ -1,4 +1,5 @@
 // Ansichten: Einstellungen (Backup, Standard-Pause, Info); die Tabs Training, Pläne und Übungen kommen aus eigenen Modulen.
+import { cycleSettingsCard } from './cycle-view.js';
 import { h } from './util.js';
 import { APP_NAME, APP_VERSION } from './version.js';
 import * as store from './store.js';
@@ -121,6 +122,7 @@ export function settingsView(rerender) {
           } }, label);
         }))
     ),
+    cycleSettingsCard(rerender),
     h(
       'div',
       { class: 'card' },

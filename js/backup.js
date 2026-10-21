@@ -7,6 +7,7 @@ import * as store from './store.js';
 import { nowISO } from './util.js';
 import { migrateData } from './migrate.js';
 import { validateData } from './model.js';
+import { normalizeCycle } from './cycle.js';
 
 export const BACKUP_APP = 'workout-tracker';
 
@@ -52,11 +53,14 @@ export function validateBackup(obj) {
   if (settings !== undefined && (typeof settings !== 'object' || settings === null || Array.isArray(settings))) {
     errors.push('"settings" ist kein Objekt.');
   }
+  const cycle = obj.data.cycle; // v2.24.0, optional
+  if (cycle !== undefined && (typeof cycle !== 'object' || cycle === null || Array.isArray(cycle))) errors.push('"cycle" ist kein Objekt.');
   if (errors.length) return { ok: false, errors };
 
   const migrated = migrateData(obj.data, obj.schemaVersion);
   if (!migrated.ok) return { ok: false, errors: migrated.errors };
   migrated.data.routines = Array.isArray(obj.data.routines) ? migrated.data.routines || obj.data.routines : [];
+  if (cycle !== undefined) migrated.data.cycle = normalizeCycle(cycle);
 
   const contentErrors = validateData(migrated.data);
   if (contentErrors.length) return { ok: false, errors: contentErrors };

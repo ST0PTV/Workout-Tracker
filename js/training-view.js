@@ -22,6 +22,7 @@ import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } f
 import { swapOptions, candidateLine } from './group-view.js';
 import { miniFigure } from './figure.js';
 import { askWarmup, startRun, cooldownOffer } from './routine-view.js';
+import { cycleStartCards } from './cycle-view.js';
 import * as RT from './routines.js';
 import * as PR from './progression.js';
 import { askRating, needsRating, ratingLine, suggestionCard, askBreak } from './progression-view.js';
@@ -429,6 +430,7 @@ function startView(rerender) {
   return h('section', {},
     h('h1', {}, 'Training'),
     h('p', { class: 'sub' }, 'Plan wählen und loslegen. Alle Daten bleiben auf diesem Gerät.'),
+    ...cycleStartCards(rerender),
     plans.length
       ? plans.map((p) => {
         const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);

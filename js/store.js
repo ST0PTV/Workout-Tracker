@@ -3,6 +3,7 @@
 import { clone } from './util.js';
 import { SCHEMA_VERSION, DEFAULT_SETTINGS } from './model.js';
 import { migrateData } from './migrate.js';
+import { DEFAULT_CYCLE } from './cycle.js';
 
 export { SCHEMA_VERSION };
 const PREFIX = 'wt_';
@@ -13,7 +14,8 @@ const DEFAULTS = {
   plans: [],
   sessions: [],
   routines: [], // v2.3.0: eigene Aufwärm-/Cool-down-Routinen (Vorlagen stehen im Code)
-  settings: DEFAULT_SETTINGS
+  settings: DEFAULT_SETTINGS,
+  cycle: DEFAULT_CYCLE // v2.24.0: optionale Zyklusdaten (nur lokal, im Backup enthalten)
 };
 export const COLLECTIONS = ['exercises', 'groups', 'plans', 'sessions', 'routines'];
 export const KEYS = Object.keys(DEFAULTS);

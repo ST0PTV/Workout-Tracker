@@ -52,7 +52,7 @@ function sampleData() {
       sets: [M.createSet({ weightKg: 100, reps: 10, completedAt: '2026-01-01T10:05:00.000Z' })]
     })]
   });
-  return { exercises: [a, b], groups: [g], plans: [p], sessions: [s], routines: [], settings: { ...M.DEFAULT_SETTINGS, restSeconds: 90 } };
+  return { exercises: [a, b], groups: [g], plans: [p], sessions: [s], routines: [], settings: { ...M.DEFAULT_SETTINGS, restSeconds: 90 }, cycle: { enabled: true, avgLength: 30, bleedDays: 4, contraception: 'none', periods: [{ start: '2026-09-01', end: '2026-09-04' }], symptoms: [{ date: '2026-09-02', tags: ['cramps'] }], checkedAt: '2026-09-01' } };
 }
 
 test('Backup-Roundtrip: Export → leeren → Import ergibt identische Daten', () => {
