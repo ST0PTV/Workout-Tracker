@@ -3,7 +3,7 @@
 // Winkelkonvention siehe js/motion.js. Alle Werte sind Gruppenmittel kleiner Studien, keine Vorgabe für die eigene Technik.
 // Recherche: Drive „Research - Animations“ (2026-10-14), Rohdaten im claude.ai-Projekt (claude/v2-animation-research/).
 import { LEN, ARM_REACH, solvePose, anchor, shapesFor, tf } from './motion.js';
-import { solveFront } from './motion-front.js';
+import { solveFront, layersFront } from './motion-front.js';
 
 export const ANIM_CHECKED_AT = '2026-10-14';
 
@@ -504,6 +504,89 @@ const RTW = (() => {
   const legs = { hip: 0, knee: 0, thighDir: 156, thighF: 0.75, shankDir: -24, shankF: 0.45 }, PEL = [0, -34], A = 70;
   const at = (u) => { const x = A * Math.cos(Math.PI * u), sp = { root: 'pelvis', rootPos: PEL, trunkFlex: 40, trunk: r1(8 * Math.cos(Math.PI * u)), legs, legsFront: true }; return { ...sp, ...handsTo(sp, [x, -58 - 34 * Math.sin(Math.PI * u)], [24, 4]) }; }; // seitlich tief neben der Hüfte, in der Mitte vor dem Bauch (über den Knien)
   return { PEL, legs, path: [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => at(i / 8)) };
+})();
+
+// ---------- Runde 14 (v2.19): Waden, Hüftmaschinen, Hüfte am Kabel und in Seitlage ----------
+const DG = Math.PI / 180;
+// Wadenheben sitzend (Seitenansicht): Gesäß auf dem Sitz (Hüftgelenk fest), Fußballen auf dem Block (fest), Knie ≈ 90° (Kinoshita et al. 2023),
+// Polster auf den Oberschenkeln knapp hinter den Knien. Je Sprunggelenkwinkel Schienbein und Knie so gelöst, dass Hüfte und Ballen am Platz bleiben –
+// das Knie hebt sich mit der Ferse, der Oberschenkel kippt leicht. Block ≈ 13 cm, Sitz und Polster Konvention.
+const SCR = (() => {
+  const BLK = 26, P0 = solvePose({ root: 'hip', rootPos: [0, 0], trunk: 0, hip: 90, knee: 90, ankle: 25 });
+  const hip = [0, r1(-BLK - 2 - P0.joints.toe[1])], toe = [r1(P0.joints.toe[0]), -BLK - 2];
+  const at = (a) => {
+    const kOf = (sh) => solvePose({ root: 'toe', rootPos: toe, shank: sh, knee: 0, trunk: 0, ankle: a }).joints.knee;
+    const sh = bisect((x) => { const K = kOf(x); return Math.hypot(K[0] - hip[0], K[1] - hip[1]) - LEN.thigh; }, -30, 30), K = kOf(sh);
+    const aThigh = Math.atan2(K[0] - hip[0], -(K[1] - hip[1])) / DG;
+    return { shank: r1(sh), knee: r1(180 + sh - aThigh), ankle: a };
+  };
+  const withHand = (o) => { const P = solvePose({ root: 'toe', rootPos: toe, trunk: 0, ...o }), K = P.joints.knee, d = [K[0] - P.joints.hip[0], K[1] - P.joints.hip[1]], l = Math.hypot(d[0], d[1]);
+    const u = [d[0] / l, d[1] / l], n = [u[1], -u[0]], pad = [K[0] - u[0] * 16 + n[0] * 24, K[1] - u[1] * 16 + n[1] * 24];
+    return { ...o, hand: [r1(pad[0] - 4), r1(pad[1] - 8)] }; }; // Hände an den Griffen des Polsters
+  return { BLK, hip, toe, down: withHand(at(25)), mid: withHand(at(-2.5)), up: withHand(at(-30)) };
+})();
+// Wadenheben an der Beinpresse (Seitenansicht): Sitz, Lehne und Beine wie oben an der Beinpresse, Knie fast gestreckt; nur die Fußballen
+// stehen an der unteren Kante der Platte, die Ferse hängt frei. Das Bein bleibt starr, nur das Sprunggelenk bewegt sich – die Platte folgt
+// den Ballen entlang der Schienen. Alles Konvention.
+const LPC = { pose: { root: 'hip', rootPos: [0, -70], trunk: -70, hip: 70, knee: 4, shoulder: 5, elbow: 25, armScale: [1, 0.9] } };
+// Wadenheben einbeinig (Seitenansicht): auf der Stufe wie beim Wadenheben stehend, das hintere Bein angewinkelt, eine Hand an der Wand vor der Figur.
+const SLC = { wall: 104, hand: [94, -262] };
+// Hüftmaschinen (Frontansicht, sitzend): Oberschenkel waagerecht zum Betrachter (stark verkürzt, Knie leicht unter der Hüfte gezeichnet),
+// Unterschenkel senkrecht, Füße auf den Fußstützen. Abspreizen je Bein in der Waagerechten: das Knie wandert seitlich um L · sin(Winkel).
+// Polster außen (Abduktion) oder innen (Adduktion) an den Knien. Winkel und Sitzhöhe Konvention.
+const HIPM = (() => {
+  const PEL = [0, -132], DROP = 0.45; // Knie ≈ 40 Einheiten unter der Hüfte (Projektion des leicht abfallenden Oberschenkels)
+  const legs = (a) => { const lat = LEN.thigh * Math.sin(a * DG), dn = LEN.thigh * DROP; return { thighDir: r1(Math.atan2(lat, dn) / DG), thighF: Math.round(Math.hypot(lat, dn) / LEN.thigh * 1000) / 1000, shankDir: 0, shankF: 0.85 }; };
+  const arms = { elbow: [12, 58], wrist: [26, 106] }; // Hände an den Griffen neben dem Sitz
+  return { PEL, legs, arms, open: 38, closed: 2 };
+})();
+// Hand an der Hüfte (Frontansicht): Handgelenk seitlich am Becken, Ellbogen nach außen – wie beim Seitbeugen, für beide Seiten.
+const hipHand = (spec, side) => {
+  const P = solveFront(spec), sg = side === 'R' ? 1 : -1, S = P.joints['shoulder' + side], hp = P.joints['hip' + side];
+  const W = [hp[0] + sg * 30, hp[1] - 16], v = [W[0] - S[0], W[1] - S[1]], l = Math.hypot(v[0], v[1]);
+  let n = [v[1] / l, -v[0] / l]; if (n[0] * sg < 0) n = [-n[0], -n[1]];
+  const e = [v[0] / 2 + n[0] * 26, v[1] / 2 + n[1] * 26];
+  return { elbow: [r1(sg * e[0]), r1(e[1])], wrist: [r1(sg * v[0]), r1(v[1])] };
+};
+// Abduktion am Kabel stehend (Frontansicht): Stand auf dem linken Bein, Manschette am rechten Knöchel, Kabel von der unteren Rolle des
+// Turms links (Standbeinseite) vor dem Standbein vorbei. Linke Hand am Turm, rechte an der Hüfte. Bein bis 35° seitlich (Konvention), Rumpf neigt leicht zum Standbein.
+// Adduktion am Kabel (Frontansicht): Turm rechts, Manschette am rechten (nahen) Knöchel; das Bein startet abgespreizt und zieht bis knapp vor das Standbein.
+const CHIP = (() => {
+  const AL = [-13, -15], legs = (abd) => ({ abdR: abd });
+  const spec = (abd, lean) => ({ root: 'ankleL', rootPos: AL, trunk: lean, legs: legs(abd) });
+  const towerHand = (abd, lean, side) => { const P = solveFront(spec(abd, lean)), S = P.joints['shoulder' + side], sg = side === 'R' ? 1 : -1, T = [sg * 112, -276];
+    const v = [T[0] - S[0], T[1] - S[1]], k = LEN.uarm / ARM_REACH; return { elbow: [r1(sg * v[0] * k + 2), r1(v[1] * k + 10)], wrist: [r1(sg * v[0] - 8), r1(v[1])] }; };
+  const abdF = (abd, lean) => ({ armL: { points: towerHand(abd, lean, 'L') }, armPoints: hipHand(spec(abd, lean), 'R') });
+  const addF = (abd, lean) => ({ armPoints: towerHand(abd, lean, 'R'), armL: { points: hipHand(spec(abd, lean), 'L') } });
+  return { AL, spec, abd: { down: { abd: 0, lean: 0, ...abdF(0, 0) }, up: { abd: 35, lean: -4, ...abdF(35, -4) } }, add: { out: { abd: 28, lean: 3, ...addF(28, 3) }, in: { abd: -9, lean: 0, ...addF(-9, 0) } } };
+})();
+// Seitlage (Frontansicht, um −90° gedreht wie beim Seitstütz: Kopf links, linke Körperseite unten auf der Matte). Unterer Arm über dem Kopf
+// (Kopf liegt darauf), oberer Arm am Körper. Beckenhöhe so gelöst, dass der tiefste Umrisspunkt auf der Matte liegt.
+const lowF = (P) => { let m = -1e9; for (const l of layersFront(P, () => '', 'male')) { if (!l.cls.includes('fill') || l.d.includes(' a')) continue; const n = l.d.replace(/[MCZ]/g, ' ').trim().split(/\s+/).map(Number); for (let i = 1; i < n.length; i += 2) m = Math.max(m, n[i]); } return m; };
+const SIDEL = (() => {
+  const base = { rotate: -90, root: 'pelvis', armL: { abd: 186, elbow: 0 }, arm: { abd: 6, elbow: 6 } };
+  const y = (extra) => r1(bisect((yy) => lowF(solveFront({ ...base, ...extra, rootPos: [0, yy] })) + MAT, -200, 100));
+  return { base, y };
+})();
+// Seitliches Beinheben: unteres Bein gestreckt, oberes bis 40° abgespreizt (Konvention).
+const SLA = { y: SIDEL.y({ legs: { abdR: 0 } }), up: 40 };
+// Clamshell: Hüfte 60° gebeugt (Variante mit der höchsten Aktivität des mittleren Gesäßmuskels bei Willcox & Burden 2013), Knie 90°, Fersen zusammen.
+// Das obere Knie öffnet sich um die Achse Hüfte–Knöchel bis 40° (Konvention). Bein räumlich gelöst und in die Frontalebene projiziert
+// (x seitlich, y abwärts, z zum Betrachter).
+const CLAM = (() => {
+  const HF = 60, K = 90;
+  const kn = [0, LEN.thigh * Math.cos(HF * DG), LEN.thigh * Math.sin(HF * DG)], sa = (HF - K) * DG;
+  const an = [0, kn[1] + LEN.shank * Math.cos(sa), kn[2] + LEN.shank * Math.sin(sa)];
+  const ax = (() => { const l = Math.hypot(...an); return an.map((c) => c / l); })(), d = kn[1] * ax[1] + kn[2] * ax[2];
+  const perp = [0, kn[1] - d * ax[1], kn[2] - d * ax[2]], cr = [ax[1] * perp[2] - ax[2] * perp[1], 0, 0]; // ax × perp zeigt seitlich
+  const legs = (phi) => {
+    const c = Math.cos(phi * DG), sn = Math.sin(phi * DG), k = [Math.abs(cr[0]) * sn, d * ax[1] + perp[1] * c, 0];
+    return { thighDir: r1(Math.atan2(k[0], k[1]) / DG), thighF: Math.round(Math.hypot(k[0], k[1]) / LEN.thigh * 1000) / 1000, shankDir: r1(Math.atan2(-k[0], an[1] - k[1]) / DG), shankF: Math.round(Math.hypot(k[0], an[1] - k[1]) / LEN.shank * 1000) / 1000 };
+  };
+  const closed = legs(0), open = legs(40);
+  const L = { thighDirL: closed.thighDir, thighFL: closed.thighF, shankDirL: closed.shankDir, shankFL: closed.shankF };
+  const mk = (o) => ({ ...o, ...L });
+  return { HF, closed: mk(closed), open: mk(open), y: SIDEL.y({ legs: mk(closed), legsFront: true }) };
 })();
 
 export const ANIMATIONS = [
@@ -3120,6 +3203,232 @@ export const ANIMATIONS = [
       K1: { label: 'Kumar et al. 2001, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s004210100510', read: 'fulltext' },
       P1: { label: 'Pereira et al. 2017, J Manipulative Physiol Ther', url: 'https://doi.org/10.1016/j.jmpt.2017.02.010', read: 'fulltext' }
     }
+  },
+  // ---------- Runde 14 (v2.19): Wadenheben sitzend ----------
+  {
+    ref: 'seated-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
+    basisNote: 'Kniewinkel 90° aus dem Trainingsprotokoll von Kinoshita et al. 2023 (Abstract). Sprunggelenk 25° Dorsalflexion bis 30° Plantarflexion, Blockhöhe, Sitz und Polster sind Konvention. Hüfte und Fußballen bleiben am Platz; Schienbein und Knie sind je Bild so gelöst, dass das Knie mit der Ferse steigt.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s hoch, kurz halten, 2 s runter (Konvention; das Abstract nennt kein Tempo).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0, 'aufrecht'), shank: C(SCR.down.shank, 'gelöst: Hüfte und Ballen bleiben am Platz'), knee: V(SCR.down.knee, 'K2', 'protocol', 'Knie ≈ 90° gebeugt'), ankle: C(25, 'Ferse unter Blockhöhe'), armWorld: SCR.down.hand, elbowSide: -1, props: scrProps } },
+      { label: 'Mitte', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0), shank: C(SCR.mid.shank, 'gelöst'), knee: C(SCR.mid.knee, 'gelöst'), ankle: C(-2.5, 'Zwischenbild, damit die Hüfte auf dem Sitz bleibt'), armWorld: SCR.mid.hand, elbowSide: -1, props: scrProps } },
+      { label: 'Oben', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0), shank: C(SCR.up.shank, 'gelöst'), knee: C(SCR.up.knee, 'gelöst: Knie hebt sich mit der Ferse'), ankle: C(-30, 'hoch auf den Ballen'), armWorld: SCR.up.hand, elbowSide: -1, props: scrProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [2] }, { a: 0, b: 1, dur: 0.5, label: 'Hochdrücken', kp: [0, 1] }, { a: 1, b: 2, dur: 0.5, label: 'Hochdrücken', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Oben', kp: [2] }, { a: 2, b: 1, dur: 1.0, label: 'Absenken', kp: [0] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [0] }],
+    keyPoints: [
+      { short: 'Soleus', anchor: 'shin', side: 'l', status: 'single', text: 'Mit 90° gebeugtem Knie trainiert vor allem der Schollenmuskel (Soleus).', src: ['K2'],
+        explain: '12 Wochen, 14 Untrainierte, 70 % 1RM: Der Soleus wuchs sitzend ähnlich wie stehend (2,9 % vs. 2,1 %), der Zwillingswadenmuskel sitzend kaum (0,6–1,7 % vs. 9,2–12,4 %) (Kinoshita et al. 2023, Abstract).' },
+      { short: 'Zwilling', anchor: 'knee', side: 'r', status: 'consensus', text: 'Den Zwillingswadenmuskel lieber mit gestrecktem Knie trainieren (stehend).', src: ['A2', 'K2'],
+        explain: 'Bei 90° Kniebeugung war das Oberflächen-EMG des inneren Zwillingswadenmuskels im Mittel etwa fünfmal kleiner als bei gestrecktem Knie (Avancini et al. 2015, isometrisch, 22 Personen, Abstract); im Training wuchs er sitzend kaum (Kinoshita et al. 2023).' },
+      { short: 'Weg', anchor: 'heel', side: 'l', status: 'single', text: 'Ganzen Weg nutzen: Ferse unter Blockhöhe, oben hoch auf die Ballen.', src: ['S1'],
+        explain: 'Gemessen nur im Stand: Dorsalflexion −31 ± 6,8° bis Plantarflexion 33,6 ± 7,8° beim einbeinigen Wadenheben (Larsen et al. 2025, Volltext). Sitzend ist der gezeichnete Weg Konvention.' }
+    ],
+    sources: {
+      K2: { label: 'Kinoshita et al. 2023, Front Physiol', url: 'https://doi.org/10.3389/fphys.2023.1272106', read: 'abstract' },
+      A2: { label: 'Avancini et al. 2015, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0126888', read: 'abstract' },
+      S1: { label: 'Larsen et al. 2025, Eur J Sport Sci', url: 'https://doi.org/10.1002/ejsc.70030', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 14: Wadenheben an der Beinpresse ----------
+  {
+    ref: 'leg-press-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Gezeichnet an der 45°-Beinpresse der App: Knie fast gestreckt, nur die Fußballen an der unteren Plattenkante, die Ferse hängt frei; die Platte folgt den Ballen entlang der Schienen. Winkel Konvention. Die Trainingsstudie (Nunes et al. 2020, Abstract) nutzte eine sitzende waagerechte Beinpresse und trainierte jedes Bein einzeln.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s drücken, kurz halten, 2 s zurück (Konvention).' },
+    frames: [
+      { label: 'Gedehnt', pose: { ...LPC.pose, ankle: C(25, 'Ferse sinkt unter die Plattenkante'), props: lpcProps } },
+      { label: 'Gestreckt', pose: { ...LPC.pose, ankle: C(-30, 'Ballen drücken die Platte weg'), props: lpcProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Gedehnt', kp: [1] }, { a: 0, b: 1, dur: 1.0, label: 'Drücken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Gestreckt', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [2] }],
+    keyPoints: [
+      { short: 'Füße', anchor: 'toe', side: 'r', status: 'single', text: 'Fußspitzen außen betonen eher den inneren, innen eher den äußeren Wadenkopf.', src: ['N1'],
+        explain: '9 Wochen, 22 junge Männer, je Bein eine Fußstellung: innerer Kopf +8,4 % (außen) vs. +3,8 % (innen), äußerer Kopf +9,1 % (innen) vs. +5,5 % (außen); gerade lag dazwischen (Nunes et al. 2020, Ultraschall, Abstract).' },
+      { short: 'Knie', anchor: 'knee', side: 'l', status: 'single', text: 'Knie fast gestreckt lassen – so arbeitet auch der Zwillingswadenmuskel voll mit.', src: ['A2'],
+        explain: 'Mit gestrecktem Knie war das EMG des inneren Zwillingswadenmuskels im Mittel etwa fünfmal größer als bei 90° Kniebeugung (Avancini et al. 2015, isometrisch, Abstract).' },
+      { short: 'Einbeinig', anchor: 'plate', side: 'r', status: 'single', text: 'Einbeinig geht auch – so wurde in der Studie jedes Bein getrennt trainiert.', src: ['N1'],
+        explain: 'Nunes et al. 2020: einbeinig an einer sitzenden waagerechten Beinpresse, 3–4 Sätze mit 20–25 Wiederholungen, dreimal pro Woche (Abstract).' }
+    ],
+    sources: {
+      N1: { label: 'Nunes et al. 2020, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003674', read: 'abstract', note: 'Waagerechte Beinpresse, nicht 45°-Schlitten' },
+      A2: { label: 'Avancini et al. 2015, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0126888', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Wadenheben einbeinig ----------
+  {
+    ref: 'single-leg-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'measured',
+    basisNote: 'Sprunggelenkwinkel aus Larsen et al. 2025 (Volltext; einbeiniges Wadenheben, Bewegungsumfang je Person per Goniometer eingestellt). Hier ohne Zusatzlast auf einer Stufe (≈ 14 cm), eine Hand an der Wand, das freie Bein angewinkelt – Konvention.',
+    tempo: { basis: 'protocol', note: 'Gezeichnet 1 s hoch, 2 s runter, unten kurz halten (wie im Protokoll von Larsen et al. 2025 beim Wadenheben stehend).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(31, 'S1', 'fulltext', '−31 ± 6,8° (Dorsalflexion)'), leg2: { hip: C(8, 'freies Bein hinten angewinkelt'), knee: C(80), ankle: C(-25) }, armWorld: SLC.hand, elbowSide: -1, props: slcProps } },
+      { label: 'Oben', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(-33.6, 'S1', 'fulltext', '+33,6 ± 7,8° Plantarflexion'), leg2: { hip: C(8), knee: C(80), ankle: C(-25) }, armWorld: SLC.hand, elbowSide: -1, props: slcProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [0, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [1] }],
+    keyPoints: [
+      { short: 'Weg', anchor: 'heel', side: 'l', status: 'single', text: 'Ferse tief unter Stufenhöhe senken, oben hoch auf den Ballen.', src: ['S1'],
+        explain: 'Gemessener Bewegungsumfang beim einbeinigen Wadenheben: Dorsalflexion −31 ± 6,8°, Plantarflexion 33,6 ± 7,8° (Larsen et al. 2025). Ob die gedehnte Position mehr bringt, ist offen (siehe Wadenheben stehend).' },
+      { short: 'Ermüdung', anchor: 'shin', side: 'l', status: 'single', text: 'Bis zur Erschöpfung sinkt die Kraft der Wade deutlich – Pausen einplanen.', src: ['SA'],
+        explain: '28 junge Erwachsene, einbeiniges Fersenheben bis zum Abbruch: maximale isometrische Kraft danach 20,5 % niedriger, vor allem durch geringere Ansteuerung; die Zahl der Wiederholungen sagte die Maximalkraft nicht voraus (Sara et al. 2021, Abstract).' },
+      { short: 'Knie', anchor: 'knee', side: 'r', status: 'single', text: 'Knie gestreckt halten – so arbeitet der Zwillingswadenmuskel stärker.', src: ['A2'],
+        explain: 'Mit gestrecktem Knie war das EMG des inneren Zwillingswadenmuskels im Mittel etwa fünfmal größer als bei 90° Kniebeugung (Avancini et al. 2015, isometrisch, Abstract).' }
+    ],
+    sources: {
+      S1: { label: 'Larsen et al. 2025, Eur J Sport Sci', url: 'https://doi.org/10.1002/ejsc.70030', read: 'fulltext' },
+      SA: { label: 'Sara et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0253276', read: 'abstract' },
+      A2: { label: 'Avancini et al. 2015, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0126888', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Abduktoren-Maschine (Frontansicht) ----------
+  {
+    ref: 'hip-abduction-machine', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht, sitzend. Keine Bewegungsmessung an der Abduktorenmaschine gefunden (PubMed-Suche 2026-10-21). Die Oberschenkel zeigen zum Betrachter und erscheinen stark verkürzt; die Knie wandern je Bein bis 38° nach außen. Sitz, Polster und Winkel sind Zeichenkonvention. Muskelangaben aus EMG-Studien (de Almeida Paz et al. 2022, Brandt et al. 2013; Abstracts).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s öffnen, kurz halten, 2 s schließen (Konvention).' },
+    frames: [
+      { label: 'Geschlossen', pose: { root: 'pelvis', rootPos: HIPM.PEL, legs: HIPM.legs(HIPM.closed), legsFront: true, armPoints: HIPM.arms, props: hipmProps(false) } },
+      { label: 'Geöffnet', pose: { root: 'pelvis', rootPos: HIPM.PEL, legs: HIPM.legs(HIPM.open), legsFront: true, armPoints: HIPM.arms, props: hipmProps(false) } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Geschlossen', kp: [2] }, { a: 0, b: 1, dur: 1.5, label: 'Öffnen', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Geöffnet', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Schließen', kp: [1] }],
+    keyPoints: [
+      { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'single', text: 'Der mittlere Gesäßmuskel arbeitet hier im Verhältnis am stärksten.', src: ['P1'],
+        explain: '11 Männer, je 10 maximale Wiederholungen: Das Verhältnis mittlerer Gesäßmuskel zu Spanner der Oberschenkelfaszie war an der Maschine größer als beim seitlichen Beinheben und beim Clamshell; die Aktivität des Gesäßmuskels selbst unterschied sich nicht (de Almeida Paz et al. 2022, Abstract).' },
+      { short: 'Band', anchor: 'kneeL', side: 'l', status: 'single', text: 'Mit Gummiband war der mittlere Gesäßmuskel stärker aktiv als an der Maschine.', src: ['B1'],
+        explain: '16 untrainierte Frauen, vier Laststufen nach der Borg-Skala: Abduktion mit elastischem Widerstand rekrutierte den mittleren Gesäßmuskel stärker als die Maschine (Brandt et al. 2013, Abstract).' },
+      { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um die Last zu wählen.', src: ['B1'],
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG an der Abduktionsmaschine r = 0,62 ± 0,54 (Brandt et al. 2013, Abstract).' }
+    ],
+    sources: {
+      P1: { label: 'de Almeida Paz et al. 2022, J Bodyw Mov Ther', url: 'https://doi.org/10.1016/j.jbmt.2022.01.001', read: 'abstract' },
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Adduktoren-Maschine (Frontansicht) ----------
+  {
+    ref: 'hip-adduction-machine', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht, sitzend, wie die Abduktorenmaschine; die Polster liegen innen an den Knien. Die Knie starten je Bein 38° außen und schließen bis fast zusammen. Keine Bewegungsmessung an der Maschine gefunden (PubMed-Suche 2026-10-21); Winkel Konvention. Muskelangaben aus EMG-Studien (Brandt et al. 2013, Serner et al. 2013; Abstracts).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s schließen, kurz halten, 2 s öffnen (Konvention).' },
+    frames: [
+      { label: 'Geöffnet', pose: { root: 'pelvis', rootPos: HIPM.PEL, legs: HIPM.legs(HIPM.open), legsFront: true, armPoints: HIPM.arms, props: hipmProps(true) } },
+      { label: 'Geschlossen', pose: { root: 'pelvis', rootPos: HIPM.PEL, legs: HIPM.legs(HIPM.closed), legsFront: true, armPoints: HIPM.arms, props: hipmProps(true) } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Geöffnet', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Schließen', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Geschlossen', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Öffnen', kp: [2] }],
+    keyPoints: [
+      { short: 'Gleich', anchor: 'thighR', side: 'r', status: 'single', text: 'Maschine und Gummiband aktivierten die Adduktoren etwa gleich stark.', src: ['B1'],
+        explain: '16 untrainierte Frauen, vier Laststufen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Abstract).' },
+      { short: 'Band', anchor: 'kneeL', side: 'l', status: 'single', text: 'Adduktion gegen Gummiband zählt zu den intensiven Adduktionsübungen.', src: ['SE'],
+        explain: '40 Elitefußballer, 8 Adduktionsübungen: Spitzen-EMG des langen Adduktors 14–108 %; Copenhagen-Adduktion und Adduktion mit Gummiband nennen die Autoren als dynamische Übungen mit hoher Intensität (Serner et al. 2013, Abstract). Ob eine Maschine dabei war, geht aus dem Abstract nicht hervor.' },
+      { short: 'Last', anchor: 'belly', side: 'r', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um die Last zu wählen.', src: ['B1'],
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG an der Adduktionsmaschine r = 0,69 ± 0,55 (Brandt et al. 2013, Abstract).' }
+    ],
+    sources: {
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract' },
+      SE: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Abduktion am Kabel stehend (Frontansicht) ----------
+  {
+    ref: 'cable-hip-abduction-standing', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht. Keine Studie zur Abduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Abduktion gegen elastischen Widerstand im Stand (Brandt et al. 2013, Abstract). Gezeichnet: Stand auf dem linken Bein, Manschette am rechten Knöchel, Kabel von der unteren Rolle des Turms auf der Standbeinseite vor dem Standbein vorbei, Bein bis 35° seitlich, Rumpf neigt sich leicht zum Standbein. Winkel Konvention.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s heben, kurz halten, 2 s senken (Konvention).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.abd.down.lean), legs: { abdR: C(CHIP.abd.down.abd, 'Bein neben dem Standbein, Kabel gespannt') }, armPoints: CHIP.abd.down.armPoints, armL: CHIP.abd.down.armL, props: chipProps('L') } },
+      { label: 'Oben', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.abd.up.lean, 'leicht zum Standbein'), legs: { abdR: C(CHIP.abd.up.abd, 'Bein seitlich gehoben') }, armPoints: CHIP.abd.up.armPoints, armL: CHIP.abd.up.armL, props: chipProps('L') } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [2] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [0, 1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'single', text: 'Gegen Zug im Stand war der mittlere Gesäßmuskel stärker aktiv als an der Maschine.', src: ['B1'],
+        explain: '16 untrainierte Frauen: Abduktion mit elastischem Widerstand im Stand rekrutierte den mittleren Gesäßmuskel stärker als die Abduktionsmaschine (Brandt et al. 2013, Abstract). Am Kabel nicht gemessen – übertragen.' },
+      { short: 'Liegend', anchor: 'hipL', side: 'l', status: 'single', text: 'Ohne Gerät aktivierte seitliches Beinheben im Liegen den Muskel am stärksten.', src: ['D1'],
+        explain: 'Unter 12 Übungen lag seitliches Beinheben im Liegen beim mittleren Gesäßmuskel vorn (81 ± 42 % der Maximalkraft) (Distefano et al. 2009, Abstract). Das Kabel wurde dort nicht getestet.' },
+      { short: 'Last', anchor: 'belly', side: 'r', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um den Zug zu wählen.', src: ['B1'],
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG bei der Abduktion mit elastischem Widerstand r = 0,66 ± 0,29 (Brandt et al. 2013, Abstract).' }
+    ],
+    sources: {
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract', note: 'Elastischer Widerstand, nicht Kabel' },
+      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Adduktion am Kabel (Frontansicht) ----------
+  {
+    ref: 'cable-hip-adduction', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht. Keine Studie zur Adduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Adduktion gegen elastischen Widerstand im Stand (Serner et al. 2013, Brandt et al. 2013; Abstracts). Gezeichnet: Turm rechts, Manschette am rechten (nahen) Knöchel, Stand auf dem linken Bein; das Bein startet 28° außen und zieht bis knapp vor das Standbein (9° über die Mitte). Winkel Konvention.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s heranziehen, kurz halten, 2 s zurück (Konvention).' },
+    frames: [
+      { label: 'Außen', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.add.out.lean), legs: { abdR: C(CHIP.add.out.abd, 'vom Kabel nach außen gezogen') }, armPoints: CHIP.add.out.armPoints, armL: CHIP.add.out.armL, frontLeg: 'R', props: chipProps('R') } },
+      { label: 'Innen', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.add.in.lean), legs: { abdR: C(CHIP.add.in.abd, 'knapp vor dem Standbein vorbei') }, armPoints: CHIP.add.in.armPoints, armL: CHIP.add.in.armL, frontLeg: 'R', props: chipProps('R') } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Außen', kp: [3] }, { a: 0, b: 1, dur: 1.0, label: 'Heranziehen', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Innen', kp: [0, 1] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [2] }],
+    keyPoints: [
+      { short: 'Intensiv', anchor: 'thighR', side: 'r', status: 'single', text: 'Adduktion gegen Zug im Stand zählt zu den intensiven Adduktionsübungen.', src: ['SE'],
+        explain: '40 Elitefußballer, 8 Adduktionsübungen: Spitzen-EMG des langen Adduktors 14–108 %; die Adduktion mit Gummiband nennen die Autoren als dynamische Übung mit hoher Intensität (Serner et al. 2013, Abstract). Am Kabel nicht gemessen.' },
+      { short: 'Gleich', anchor: 'kneeR', side: 'r', status: 'single', text: 'Gummiband und Maschine aktivierten die Adduktoren etwa gleich stark.', src: ['B1'],
+        explain: '16 untrainierte Frauen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Abstract).' },
+      { short: 'Seiten', anchor: 'kneeL', side: 'l', status: 'single', text: 'Beide Seiten trainieren – Standbein und Zugbein arbeiten verschieden.', src: ['SE'],
+        explain: 'Bei 3 der 8 Übungen unterschied sich die Aktivität des langen Adduktors zwischen den Beinen deutlich (35–48 %) (Serner et al. 2013, Abstract); welche Übungen, nennt das Abstract nicht.' },
+      { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um den Zug zu wählen.', src: ['B1'],
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG bei der Adduktion mit elastischem Widerstand r = 0,8 ± 0,3 (Brandt et al. 2013, Abstract).' }
+    ],
+    sources: {
+      SE: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'abstract', note: 'Elastischer Widerstand, nicht Kabel' },
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Seitliches Beinheben liegend (Frontansicht, Seitlage) ----------
+  {
+    ref: 'side-lying-hip-abduction', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht in Seitlage (Figur gedreht, Kopf links, linke Seite auf der Matte). Unteres Bein gestreckt, oberes bis 40° abgespreizt; Kopf auf dem unteren Arm. Winkel Konvention – die EMG-Studien (Distefano et al. 2009, McBeth et al. 2012; Abstracts) nennen im Abstract keinen Bewegungsumfang. Dass das Bein leicht hinter der Körperlinie geführt wird, zeigt die Frontansicht nicht.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s heben, kurz halten, 2 s senken (Konvention).' },
+    frames: [
+      { label: 'Unten', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: C(0, 'Beine übereinander') }, props: sideMatProps } },
+      { label: 'Oben', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: C(SLA.up, 'oberes Bein abgespreizt') }, props: sideMatProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [0] }],
+    keyPoints: [
+      { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'consensus', text: 'Aktiviert den mittleren Gesäßmuskel stark – mehr als der Clamshell.', src: ['D1', 'MB'],
+        explain: 'Distefano et al. 2009 (21 Aktive, 12 Übungen): 81 ± 42 % der Maximalkraft, deutlich vor beiden Clamshell-Varianten (40 und 38 %). McBeth et al. 2012 (20 Läufer): 70 ± 30 % gegenüber 33 ± 17 % beim Clamshell (Abstracts).' },
+      { short: 'Muskeln', anchor: 'hipR', side: 'r', status: 'single', text: 'Mittlerer Gesäßmuskel vor Spanner der Oberschenkelfaszie und großem Gesäßmuskel.', src: ['MB'],
+        explain: 'Mit 5 % der Körpermasse am Knöchel: mittlerer Gesäßmuskel 70 ± 30 %, Spanner 54 ± 19 %, vordere Hüftbeuger 28 ± 22 %, großer Gesäßmuskel 25 ± 25 % (McBeth et al. 2012, Abstract).' },
+      { short: 'Drehung', anchor: 'footR', side: 'r', status: 'single', text: 'Bein nicht nach außen drehen – sonst übernimmt der Spanner.', src: ['MB'],
+        explain: 'Mit Außenrotation war der Spanner der Oberschenkelfaszie (71 ± 17 %) aktiver als der mittlere Gesäßmuskel (53 ± 28 %) (McBeth et al. 2012, Abstract).' },
+      { short: 'Gerät', anchor: 'kneeL', side: 'l', status: 'single', text: 'Mehr Spanner-Aktivität als an der Abduktorenmaschine.', src: ['P1'],
+        explain: 'Beim seitlichen Beinheben war der Spanner der Oberschenkelfaszie aktiver als an der Maschine und beim Clamshell; der mittlere Gesäßmuskel war in allen drei gleich (de Almeida Paz et al. 2022, 11 Männer, Abstract).' }
+    ],
+    sources: {
+      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' },
+      MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'abstract' },
+      P1: { label: 'de Almeida Paz et al. 2022, J Bodyw Mov Ther', url: 'https://doi.org/10.1016/j.jbmt.2022.01.001', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 14: Clamshell mit Band (Frontansicht, Seitlage) ----------
+  {
+    ref: 'clamshell-band', checkedAt: '2026-10-21', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht in Seitlage (Kopf links). Hüfte 60° gebeugt: bei Willcox & Burden 2013 (Abstract) die Variante mit der höchsten Aktivität des mittleren Gesäßmuskels. Knie 90°, Fersen zusammen, Öffnung bis 40° und das Mini-Band über den Knien sind Konvention. Das obere Knie dreht um die Achse Hüfte–Knöchel; das Bein ist räumlich gelöst und projiziert – von vorn wandert das Knie nach oben.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s öffnen, kurz halten, 1,5 s schließen (Konvention).' },
+    frames: [
+      { label: 'Geschlossen', pose: { ...SIDEL.base, rootPos: [0, CLAM.y], legs: CLAM.closed, legsFront: true, props: clamProps } },
+      { label: 'Geöffnet', pose: { ...SIDEL.base, rootPos: [0, CLAM.y], legs: CLAM.open, legsFront: true, props: clamProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Geschlossen', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Öffnen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Geöffnet', kp: [2] }, { a: 1, b: 0, dur: 1.5, label: 'Schließen', kp: [3] }],
+    keyPoints: [
+      { short: 'Becken', anchor: 'hipR', side: 'r', status: 'single', text: 'Becken gerade halten, nicht nach hinten kippen.', src: ['W1'],
+        explain: '17 Gesunde, 6 Varianten: Mit neutralem statt zurückgekipptem Becken waren großer und mittlerer Gesäßmuskel stärker aktiv (Willcox & Burden 2013, Abstract).' },
+      { short: 'Hüfte', anchor: 'thighR', side: 'r', status: 'single', text: 'Hüfte etwa 60° beugen – so arbeitete der mittlere Gesäßmuskel am meisten.', src: ['W1'],
+        explain: 'Von den getesteten Hüftwinkeln brachte 60° Beugung die höchste Aktivität des mittleren Gesäßmuskels; der Spanner der Oberschenkelfaszie blieb niedrig und änderte sich kaum (Willcox & Burden 2013, Abstract).' },
+      { short: 'Hüftbeuger', anchor: 'band', side: 'r', status: 'single', text: 'Die vorderen Hüftbeuger arbeiten am stärksten mit – eher eine Aufwärmübung.', src: ['MB'],
+        explain: 'Clamshell mit Last: vordere Hüftbeuger 54 ± 25 %, Spanner 34 ± 20 %, großer Gesäßmuskel 34 ± 25 %, mittlerer 33 ± 17 % der Maximalkraft (McBeth et al. 2012, Abstract).' },
+      { short: 'Vergleich', anchor: 'kneeL', side: 'l', status: 'single', text: 'Etwa halb so viel Gesäßaktivität wie seitliches Beinheben im Liegen.', src: ['D1'],
+        explain: 'Mittlerer Gesäßmuskel: Clamshell-Varianten 40 ± 38 % und 38 ± 29 %, seitliches Beinheben 81 ± 42 % der Maximalkraft (Distefano et al. 2009, Abstract).' }
+    ],
+    sources: {
+      W1: { label: 'Willcox & Burden 2013, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2013.4004', read: 'abstract' },
+      MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'abstract' },
+      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' }
+    }
   }
 
 ];
@@ -3725,6 +4034,56 @@ function hfxProps(P) {
 }
 function sbdProps(P) { return { anchors: {}, scene: [db(P.joints.handR, [1, 0], true)] }; } // Kurzhantel im Neutralgriff, Achse zeigt aus dem Bild
 function rtwProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: -120, y: -MAT, w: 240, h: MAT, rx: 3 }] }; } // Matte
+
+// ---------- Szenen Runde 14 (v2.19) ----------
+function scrProps(P) {
+  const h = SCR.hip, t = SCR.toe, K = P.joints.knee, d = segDir(P, 'thigh'), n = segNrm(P, 'thigh'), pad = along(along(K, d, -16), n, 24), col = t[0] + 50;
+  return { anchors: { pad }, scene: [
+    { type: 'rect', x: t[0] - 24, y: -SCR.BLK, w: 36, h: SCR.BLK, rx: 2 }, // Block unter dem Vorfuß
+    { type: 'rect', x: h[0] - 42, y: h[1] + 15, w: 80, h: 10, rx: 3 }, { type: 'line', from: [h[0] - 4, h[1] + 25], to: [h[0] - 4, 0], w: 6 }, foot(h[0] - 50, col + 30), // Sitz, Stütze, Standfuß
+    { type: 'line', from: [col, 0], to: [col, pad[1] - 4], w: 7 }, { type: 'line', from: [col, pad[1] - 4], to: pad, w: 5 }, // Säule vor den Füßen, Hebelarm zum Polster
+    { type: 'rect', x: pad[0] - 18, y: pad[1] - 6, w: 36, h: 12, rx: 5, front: true } // Polster auf den Oberschenkeln
+  ] };
+}
+function lpcProps(P) {
+  const t = P.joints.toe, rail = [Math.SQRT1_2, -Math.SQRT1_2], pd = [-Math.SQRT1_2, -Math.SQRT1_2]; // Schienen 45° nach vorn-oben, Platte senkrecht dazu
+  const pc = along(along(t, pd, 30), rail, 5); // Ballen an der unteren Plattenkante
+  return { anchors: { plate: along(pc, rail, 10) }, scene: [
+    { type: 'line', from: along(pc, rail, -150), to: along(pc, rail, 90), w: 5 }, // Schiene
+    { type: 'line', from: [pc[0] + 60, 0], to: along(pc, rail, 60), w: 5 }, // Stütze
+    benchLine(P, 30, 150, 4), { type: 'line', from: along(along(P.joints.hip, segDir(P, 'trunk'), 16), segNrm(P, 'trunk'), -30), to: along(along(P.joints.hip, segDir(P, 'trunk'), 16), segNrm(P, 'trunk'), 44), w: 14 }, // Lehne, Sitz
+    { type: 'line', from: [P.joints.hip[0] + 20, P.joints.hip[1] + 20], to: [P.joints.hip[0] + 20, 0], w: 5 }, foot(P.joints.hip[0] - 30, pc[0] + 80), // Standfuß
+    { type: 'line', from: along(pc, pd, -34), to: along(pc, pd, 46), w: 8, front: true } // Fußplatte
+  ] };
+}
+function slcProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: 16, y: -STEP, w: 22, h: STEP, rx: 2, step: true }, { type: 'rect', x: SLC.wall, y: -430, w: 12, h: 430, rx: 1, noBounds: true }] }; } // Stufe, Wand
+function hipmProps(inner) { return (P) => {
+  const J = P.joints, py = J.pelvis[1], sc = [
+    { type: 'rect', x: -50, y: py - 118, w: 100, h: 112, rx: 8 }, // Rückenpolster
+    { type: 'rect', x: -62, y: py + 2, w: 124, h: 12, rx: 4 }, { type: 'line', from: [0, py + 14], to: [0, 0], w: 8 }, foot(-70, 70) // Sitz, Säule
+  ];
+  for (const [s, sg] of [['R', 1], ['L', -1]]) {
+    const k = J['knee' + s], a = J['ankle' + s], px = k[0] + sg * (inner ? -19 : 19);
+    sc.push({ type: 'line', from: [px, k[1] + 10], to: [a[0] + sg * (inner ? -6 : 6), a[1] + 18], w: 5 }); // Hebel vom Polster zur Fußstütze
+    sc.push({ type: 'line', from: [a[0] - 16, a[1] + 18], to: [a[0] + 16, a[1] + 18], w: 5 }); // Fußstütze
+    sc.push({ type: 'rect', x: px - 6, y: k[1] - 26, w: 12, h: 44, rx: 5, front: true }); // Polster an der Knie-Außenseite (Abduktion) bzw. -Innenseite (Adduktion)
+  }
+  return { anchors: {}, scene: sc };
+}; }
+function chipProps(side) { return (P) => {
+  const J = P.joints, sg = side === 'R' ? 1 : -1, t = sg * 120, pu = [t - sg * 8, -20], cuff = J.ankleR, hand = J['wrist' + side];
+  return { anchors: { cuff }, scene: [
+    { type: 'line', from: [t, 0], to: [t, -420], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: pu, r: 7 }, // Turm, untere Rolle
+    { type: 'line', from: [t, hand[1]], to: [hand[0] + sg * 4, hand[1]], w: 4 }, // Haltegriff am Turm
+    { type: 'line', from: pu, to: cuff, w: 1.5, dash: true, front: true }, // Seil zur Manschette (bei der Abduktion vor dem Standbein vorbei)
+    { type: 'rect', x: cuff[0] - 9, y: cuff[1] - 6, w: 18, h: 12, rx: 4, front: true } // Manschette am rechten Knöchel
+  ] };
+}; }
+function sideMatProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: -300, y: -MAT, w: 540, h: MAT, rx: 3, noBounds: true }] }; }
+function clamProps(P) {
+  const J = P.joints, at = (s) => [J['hip' + s][0] + (J['knee' + s][0] - J['hip' + s][0]) * 0.8, J['hip' + s][1] + (J['knee' + s][1] - J['hip' + s][1]) * 0.8];
+  return { anchors: { band: at('R') }, scene: [{ type: 'rect', x: -300, y: -MAT, w: 540, h: MAT, rx: 3, noBounds: true }, { type: 'line', from: at('R'), to: at('L'), w: 4, front: true }] }; // Matte, Mini-Band über den Knien
+}
 
 export function framesOf(anim, variant) {
   const fr = Array.isArray(anim.frames) ? anim.frames : anim.frames[variant || anim.variants[0].key];

@@ -10,6 +10,8 @@
 //   armPoints: { elbow: [dx, dy], wrist: [dx, dy] } – projizierte Armgeometrie relativ zur Schulter (dx nach außen, dy nach unten);
 //   legs: { hip, knee, abdR, abdL } – Beugung in der Sagittalebene (nur als Verkürzung sichtbar); abdR/abdL (v2.16) Abspreizen je Bein;
 //   legs: { thighDir, shankDir, thighF, shankF } (v2.18) – Richtung und Verkürzung je Segment frei gesetzt; legsFront: Beine vor dem Rumpf zeichnen;
+//   legs: { thighDirL, shankDirL, thighFL, shankFL } (v2.19) – dasselbe nur für das linke Bein (überschreibt die gemeinsamen Werte);
+//   frontLeg: 'R' (v2.19) – rechtes Bein über dem linken zeichnen (Bein kreuzt vor dem Standbein);
 //   legs: { planted: true, stance, toeOut, knee, shank } (v2.9) – Füße stehen am Boden (Knöchelmitte bei x = ±stance),
 //        das Bein liegt in einer um toeOut nach außen gedrehten Ebene (Knie folgt der Fußrichtung). knee = Kniebeugung,
 //        shank = Schienbeinneigung in dieser Ebene; Becken- und Kniehöhe folgen aus der Geometrie (räumlich gelöst, dann projiziert);
@@ -59,6 +61,7 @@ export const SHAPES_F = [
   { seg: 'thigh', id: 'body', both: true, pts: [[4, -181], [28, -183], [32, -160], [28, -130], [24, -105], [20, -92], [8, -92], [6, -110], [5, -140], [4, -165]] },
   { seg: 'thigh', id: 'quads', both: true, pts: [[10, -176], [26, -176], [30, -150], [26, -120], [22, -100], [12, -100], [9, -125], [8, -150]] },
   { seg: 'thigh', id: 'adductors', both: true, pts: [[5, -177], [12, -173], [14, -152], [11, -128], [7, -117], [5, -138], [4, -160]] }, // v2.9: Innenseite, Zeichenkonvention
+  { seg: 'thigh', id: 'abductors', both: true, pts: [[23, -183], [28, -184], [32, -168], [31.5, -152], [29, -146], [27, -158], [24.5, -172]] }, // v2.19.0: Außenseite oben (mittlerer Gesäßmuskel/Spanner der Oberschenkelfaszie), Zeichenkonvention
   { seg: 'shank', id: 'body', both: true, pts: [[6, -96], [21, -96], [22, -80], [19, -50], [18, -25], [17, -14], [9, -14], [8, -28], [6, -55], [5, -78]] },
   { seg: 'foot', id: 'body', both: true, pts: [[6, -16], [21, -16], [23, -6], [20, 0], [8, 0], [5, -8]] },
   { seg: 'uarm', id: 'body', both: true, pts: [[28, -296], [38, -300], [48, -294], [52, -282], [50, -262], [49, -240], [48, -222], [43, -212], [37, -220], [35, -240], [31, -262], [28, -280]] },
@@ -74,8 +77,8 @@ for (const sh of SHAPES_F) { const w = LEG_WIDEN[sh.seg]; if (w) sh.pts = sh.pts
 // v2.5.0: weibliche Formen (js/motion-female.js); Gelenke wie oben.
 let SHAPES_F_FEMALE = null;
 export const shapesForF = (sex) => (sex === 'female' ? (SHAPES_F_FEMALE ??= femaleFront(SHAPES_F)) : SHAPES_F);
-export const MUSCLE_SHAPE_F = { chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', biceps: 'biceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques', quads: 'quads', adductors: 'adductors' };
-export const HIDDEN_MUSCLES_F = ['triceps', 'lower-back', 'glutes', 'hamstrings', 'calves', 'abductors', 'hip-flexors'];
+export const MUSCLE_SHAPE_F = { chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', biceps: 'biceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques', quads: 'quads', adductors: 'adductors', abductors: 'abductors' };
+export const HIDDEN_MUSCLES_F = ['triceps', 'lower-back', 'glutes', 'hamstrings', 'calves', 'hip-flexors'];
 export const ANCHORS_F = {
   head: { seg: 'trunk', p: [0, -358] }, chin: { seg: 'trunk', p: [0, -313] }, neck: { seg: 'trunk', p: [9, -312] }, chest: { seg: 'trunk', p: [0, -268] },
   belly: { seg: 'trunk', p: [0, -210] }, hip: { seg: 'trunk', p: [30, -186] }, shoulder: { seg: 'uarm', p: [48, -294] }, uarm: { seg: 'uarm', p: [50, -250] },
@@ -165,10 +168,11 @@ export function solveFront(spec) {
     if (abdLeg) { const a = -sg * abdLeg * DEG, c = Math.cos(a), si = Math.sin(a), rt = (v) => [v[0] * c - v[1] * si, v[0] * si + v[1] * c]; dT = rt(dT); dS = rt(dS); }
     // v2.18.0: legs.thighDir / legs.shankDir – Richtung im Bild (Grad wie fdir: 0 = nach unten, 180 = nach oben, positiv nach außen) und
     // legs.thighF / legs.shankF – Verkürzung (Projektionsfaktor), z. B. Sitz mit angehobenen Knien (Russian Twist). Ohne Angabe unverändert.
-    const tDir = num(legs.thighDir), sDir = num(legs.shankDir);
+    const own = (k) => (s === 'L' && Number.isFinite(num(legs[k + 'L'])) ? num(legs[k + 'L']) : num(legs[k])); // v2.19.0: eigene Werte fürs linke Bein
+    const tDir = own('thighDir'), sDir = own('shankDir'), tF = own('thighF'), sF = own('shankF');
     if (Number.isFinite(tDir)) dT = [sg * Math.sin(tDir * DEG), Math.cos(tDir * DEG)];
     if (Number.isFinite(sDir)) dS = [sg * Math.sin(sDir * DEG), Math.cos(sDir * DEG)];
-    const tSc = Number.isFinite(num(legs.thighF)) ? Math.max(num(legs.thighF), MIN_SCALE) : thighScale, sSc = Number.isFinite(num(legs.shankF)) ? Math.max(num(legs.shankF), MIN_SCALE) : shankScale;
+    const tSc = Number.isFinite(tF) ? Math.max(tF, MIN_SCALE) : thighScale, sSc = Number.isFinite(sF) ? Math.max(sF, MIN_SCALE) : shankScale;
     const knee = add(hip, mul(dT, LEN.thigh * tSc));
     const ankle = add(knee, mul(dS, LEN.shank * sSc));
     J['hip' + s] = hip; J['knee' + s] = knee; J['ankle' + s] = ankle;
@@ -222,7 +226,7 @@ export function solveFront(spec) {
   const elbowDeg = Math.acos(Math.max(-1, Math.min(1, dot(A.dU, A.dF)))) / DEG;
   const angles = { trunk: f1(lean), abd: f1(abdDeg), elbow: f1(elbowDeg), hip: f1(planted ? planted.hipFlex : hipF), knee: f1(planted ? num(legs.knee) : kneeF) };
   if (planted) { angles.hipAbd = f1(planted.hipAbd); angles.thighFront = f1(planted.thighFront); angles.trunkFlex = f1(flex); }
-  const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0, legsFront: !!spec.legsFront }; // v2.18.0: legsFront – Beine vor dem Rumpf zeichnen (Knie zeigen zum Betrachter)
+  const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0, legsFront: !!spec.legsFront, frontLeg: spec.frontLeg || null }; // v2.18.0: legsFront – Beine vor dem Rumpf zeichnen (Knie zeigen zum Betrachter)
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -267,7 +271,7 @@ export function anchorFront(P, key, sex = 'male') {
 export function layersFront(P, roleOf = () => '', sex = 'male') {
   const out = [];
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
-  const group = (segs, joints) => {
+  const group = (segs, joints, order = ['R', 'L']) => {
     const shapes = [];
     for (const sh of shapesForF(sex)) {
       if (!segs.includes(sh.seg)) continue;
@@ -275,7 +279,7 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
         const right = sh.pts.map((q) => tfFS(P, sh.seg, 'R', q)), left = sh.pts.slice().reverse().map((q) => tfFS(P, sh.seg, 'L', q));
         shapes.push({ sh, d: smooth(right.concat(left)) });
       } else if (sh.both) {
-        for (const side of ['R', 'L']) shapes.push({ sh, d: smooth(sh.pts.map((q) => tfFS(P, sh.seg, side, q))) });
+        for (const side of order) shapes.push({ sh, d: smooth(sh.pts.map((q) => tfFS(P, sh.seg, side, q))) });
       } else shapes.push({ sh, d: smooth(sh.pts.map((q) => tfFS(P, sh.seg, 'R', q))) });
     }
     const body = shapes.filter((x) => x.sh.id === 'body').map((x) => x.d).concat(joints.filter((j) => P.joints[j[0]]).map((j) => disc(P.joints[j[0]], j[1])));
@@ -288,14 +292,19 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
       out.push({ d, cls: 'an-m ' + (role === 'p' ? 'prim' : role === 's' ? 'sec' : 'rest') });
     }
   };
-  if (!P.legsFront) group(['thigh', 'shank', 'foot'], [['kneeR', 8], ['kneeL', 8]]);
+  // v2.19.0: frontLeg 'R' – erst das linke Bein ganz (Umriss und Muskeln), dann das rechte darüber (Bein kreuzt vor dem Standbein)
+  const legGroups = () => {
+    const LS = ['thigh', 'shank', 'foot'];
+    if (P.frontLeg === 'R') { group(LS, [['kneeL', 8]], ['L']); group(LS, [['kneeR', 8]], ['R']); } else group(LS, [['kneeR', 8], ['kneeL', 8]]);
+  };
+  if (!P.legsFront) legGroups();
   group(['trunk'], []);
   // v2.15.0: Bei starker Vorneigung liegt der Kopf vor dem oberen Rücken – er wird nach den Rumpfmuskeln noch einmal gezeichnet (sonst verdeckt).
   if (P.F.trunk && P.F.trunk.f < 0.6) {
     const head = shapesForF(sex).find((sh) => sh.part === 'head');
     if (head) { const d = smooth(head.pts.map((q) => tfFS(P, 'trunk', 'R', q))); out.push({ d, cls: 'an-body edge' }, { d, cls: 'an-body fill' }); }
   }
-  if (P.legsFront) group(['thigh', 'shank', 'foot'], [['kneeR', 8], ['kneeL', 8]]);
+  if (P.legsFront) legGroups();
   group(['uarm', 'farm'], [['shoulderR', 10], ['shoulderL', 10], ['elbowR', 6], ['elbowL', 6]]);
   return out;
 }

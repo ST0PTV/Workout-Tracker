@@ -510,4 +510,34 @@ test('v2.18.0: Frontansicht – Beinrichtung frei setzbar, ohne Angabe unveränd
   assert.ok(!M.HIDDEN_MUSCLES.includes('hip-flexors'));
 });
 
+test('v2.19.0: Waden, Hüftmaschinen, Kabel und Seitlage – Kontakte über den ganzen Zyklus', () => {
+  const each = (ref, fn) => { const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases); for (let i = 0; i <= 40; i++) fn(M.poseAt(fr, a.phases, (T * i) / 40 - (i === 40 ? 1e-6 : 0)).pose, i); };
+  // Wadenheben sitzend: Ballen auf dem Block, Gesäß bleibt auf dem Sitz (Hüftgelenk ±1,5 bei gemischten Zwischenbildern)
+  let h0 = null; each('seated-calf-raise', (P, i) => { h0 = h0 || P.joints.hip; near(P.joints.toe[1], -28, 0.1, `WS t=${i}: Ballen auf dem Block`); assert.ok(dist(P.joints.hip, h0) < 1.5, `WS t=${i}: Hüfte bleibt (${dist(P.joints.hip, h0).toFixed(2)})`); assert.ok(dist(P.joints.wrist, P.props.pad) < 30, `WS t=${i}: Hände am Polster`); });
+  // Beinpresse: Hüfte fest, Ballen an der Platte (Plattenanker liegt 10 hinter der Plattenmitte, Platte 5 hinter dem Ballen)
+  each('leg-press-calf-raise', (P, i) => { near(P.joints.hip[0], 0, 0.1, `WB t=${i}: Hüfte x`); near(P.joints.hip[1], -70, 0.1, `WB t=${i}: Hüfte y`); const rail = [Math.SQRT1_2, -Math.SQRT1_2], v = [P.props.plate[0] - P.joints.toe[0], P.props.plate[1] - P.joints.toe[1]]; near(v[0] * rail[0] + v[1] * rail[1], 15, 0.5, `WB t=${i}: Platte am Ballen`); });
+  // Einbeinig: Ballen auf der Stufe, Hand an der Wand
+  each('single-leg-calf-raise', (P, i) => { near(P.joints.toe[1], -30, 0.1, `WE t=${i}: Ballen`); assert.ok(dist(P.joints.wrist, [94, -262]) < 1, `WE t=${i}: Hand an der Wand`); assert.ok(P.joints.toe2[1] < -40, `WE t=${i}: freier Fuß in der Luft`); });
+  // Hüftmaschinen: Becken auf dem Sitz, Füße über dem Boden, Knie öffnen sich gleich weit
+  for (const ref of ['hip-abduction-machine', 'hip-adduction-machine']) each(ref, (P, i) => { near(P.joints.pelvis[1], -132, 0.1, `${ref} t=${i}: Becken`); assert.ok(P.joints.ankleR[1] < -15 && P.joints.ankleL[1] < -15, `${ref} t=${i}: Füße auf der Stütze`); near(P.joints.kneeR[0], -P.joints.kneeL[0], 0.1, `${ref} t=${i}: symmetrisch`); });
+  // Kabel: Standfuß fest, Manschette am rechten Knöchel, Fuß des Zugbeins nie im Boden
+  for (const ref of ['cable-hip-abduction-standing', 'cable-hip-adduction']) each(ref, (P, i) => { near(P.joints.ankleL[0], -13, 0.1, `${ref} t=${i}: Standfuß x`); near(P.joints.ankleL[1], -15, 0.1, `${ref} t=${i}: Standfuß y`); assert.ok(dist(P.props.cuff, P.joints.ankleR) < 0.1, `${ref} t=${i}: Manschette`); assert.ok(P.joints.ankleR[1] <= -14.9, `${ref} t=${i}: Zugbein über dem Boden`); });
+  // Seitlage: tiefster Umrisspunkt auf der Matte, unteres Bein bleibt liegen
+  const lowF = (P) => { let m = -1e9; for (const l of MF.layersFront(P, () => '', 'male')) { if (!l.cls.includes('fill') || l.d.includes(' a')) continue; const n = l.d.replace(/[MCZ]/g, ' ').trim().split(/\s+/).map(Number); for (let k = 1; k < n.length; k += 2) m = Math.max(m, n[k]); } return m; };
+  for (const ref of ['side-lying-hip-abduction', 'clamshell-band']) { let a0 = null; each(ref, (P, i) => { a0 = a0 || P.joints.ankleL; near(lowF(P), -6, 0.6, `${ref} t=${i}: auf der Matte`); assert.ok(dist(P.joints.ankleL, a0) < 0.1, `${ref} t=${i}: unteres Bein liegt`); assert.ok(P.joints.kneeR[1] <= P.joints.kneeL[1] + 0.1, `${ref} t=${i}: oberes Knie oben`); }); }
+});
+
+test('v2.19.0: Frontansicht – Abduktoren sichtbar, linkes Bein eigene Richtung, rechtes Bein vorn', () => {
+  assert.equal(MF.MUSCLE_SHAPE_F.abductors, 'abductors');
+  assert.ok(!MF.HIDDEN_MUSCLES_F.includes('abductors'));
+  const a = MF.solveFront({ legs: { thighDir: 30, thighF: 0.5 } }), b = MF.solveFront({ legs: { thighDir: 30, thighF: 0.5, thighDirL: 0, thighFL: 1 } });
+  assert.deepEqual(b.joints.kneeR, a.joints.kneeR, 'rechtes Bein unverändert');
+  near(b.joints.kneeL[0], b.joints.hipL[0], 0.01, 'linker Oberschenkel senkrecht');
+  const disc = (c) => 'M' + (Math.round((c[0] - 8) * 10) / 10) + ' ' + (Math.round(c[1] * 10) / 10);
+  const order = (spec) => { const P = MF.solveFront(spec), L = MF.layersFront(P).filter((l) => l.cls.includes('fill')).map((l) => l.d); return [L.findIndex((d) => d.startsWith(disc(P.joints.kneeR))), L.findIndex((d) => d.startsWith(disc(P.joints.kneeL)))]; };
+  const [r0, l0] = order({ legs: { abdR: -9 } }), [r1, l1] = order({ legs: { abdR: -9 }, frontLeg: 'R' });
+  assert.ok(r0 >= 0 && l0 >= 0 && r0 < l0, 'Standard: linkes Knie zuletzt');
+  assert.ok(r1 > l1, 'frontLeg R: rechtes Bein über dem linken');
+});
+
 done();
