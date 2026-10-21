@@ -465,4 +465,24 @@ test('v2.16.0: Frontansicht – Bein einzeln abspreizen (abdL/abdR), ohne Angabe
   assert.ok(b.joints.ankleL[0] < a.joints.ankleL[0] - 30, 'linkes Bein nach außen');
 });
 
+// ---------- v2.17.0: Runde 12 ----------
+test('v2.17.0: Bauch hängend, im Stütz und am Seilzug – Kontakte über den ganzen Zyklus', () => {
+  const each = (ref, fn) => { const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases); for (let i = 0; i <= 40; i++) fn(M.poseAt(fr, a.phases, (T * i) / 40 - (i === 40 ? 1e-6 : 0)).pose, i); };
+  const low = (P, segs) => { let m = -1e9; for (const sh of M.shapesFor('male')) if (sh.id === 'body' && segs.includes(sh.seg)) for (const q of sh.pts) m = Math.max(m, M.tf(P, sh.seg, q)[1]); return m; };
+  // Hängendes Beinheben: Hand an der Stange, Füße frei über dem Boden; oben Beine waagerecht
+  each('hanging-leg-raise', (P, i) => { const bar = P.scene.find((x) => x.type === 'bar').at; assert.ok(Math.hypot(P.joints.wrist[0] - bar[0], P.joints.wrist[1] - bar[1] - 7) < 0.6, `HLR t=${i}: Hand an der Stange`); assert.ok(low(P, ['foot', 'shank']) < -10, `HLR t=${i}: Füße frei`); });
+  const hl = M.solvePose(M.resolveFrames(D.framesOf(D.animationFor('hanging-leg-raise')))[1].pose);
+  near(hl.joints.knee[1], hl.joints.hip[1], 2, 'HLR oben: Oberschenkel waagerecht');
+  // Captain's Chair: Ellbogen bleibt auf dem Polster, Schulter bleibt am Rückenpolster, Füße frei
+  let s0 = null; each('captains-chair-knee-raise', (P, i) => { s0 ??= P.joints.shoulder; near(P.joints.elbow[0], 0, 0.3, `CC t=${i}: Ellbogen x`); near(P.joints.elbow[1], -300, 0.3, `CC t=${i}: Ellbogen y`); near(P.joints.shoulder[0], s0[0], 0.5, `CC t=${i}: Schulter am Polster`); assert.ok(low(P, ['foot']) < -40, `CC t=${i}: Füße frei`); });
+  // Crunch am Kabel: Schienbein und Fußrücken liegen auf dem Boden (nicht darunter), Knie bleibt
+  each('cable-crunch', (P, i) => { const l = low(P, ['shank', 'foot']); assert.ok(l <= 0.3 && l > -2, `Kabelcrunch t=${i}: Unterschenkel auf dem Boden (${l.toFixed(1)})`); });
+  // Crunch-Maschine: Hüfte auf dem Sitz, Knöchel unter der Rolle
+  each('machine-crunch', (P, i) => { near(P.joints.hip[0], 0, 0.1, `MC t=${i}: Hüfte x`); near(P.joints.hip[1], -100, 0.1, `MC t=${i}: Hüfte y`); const roll = P.scene.find((x) => x.type === 'bar' && !x.back); assert.ok(roll.at[1] < P.joints.ankle[1] + 1, `MC t=${i}: Rolle über dem Knöchel`); });
+  // Frontansicht: beide Hände am selben Griff, Füße am Boden; Pallof gestreckt: Kabel waagerecht
+  for (const ref of ['cable-woodchop', 'pallof-press']) each(ref, (P, i) => { assert.ok(Math.hypot(P.joints.handR[0] - P.joints.handL[0], P.joints.handR[1] - P.joints.handL[1]) < 24, `${ref} t=${i}: Hände zusammen`); near(P.joints.ankleR[1], -15, 0.5, `${ref} t=${i}: Fuß am Boden`); });
+  const pa = MF.solveFront(M.resolveFrames(D.framesOf(D.animationFor('pallof-press')))[1].pose), g = pa.scene.find((x) => x.type === 'rect'), pul = pa.scene.find((x) => x.type === 'bar').at;
+  near(g.y + 8, pul[1], 3, 'Pallof gestreckt: Kabel waagerecht');
+});
+
 done();

@@ -385,6 +385,69 @@ const LSIT = (() => {
   return { HP, HAND, base, hold: { hip: 95, y: r1(yH) }, start: { hip: r1(hipS), y: r1(yS) } };
 })();
 
+// ---------- Runde 12 (v2.17): Bauch hängend, im Stütz und am Seilzug ----------
+// Körperschwerpunkt für hängende Posen: Segmentmassen nach Dempster (Kopf+Rumpf 0,578, Arme 0,1, Oberschenkel 0,2, Unterschenkel 0,093,
+// Füße 0,029; Lehrbuchwerte aus dem Trainingswissen, nicht nachgeschlagen), je Segment in der Mitte – grobes Zeichenmodell.
+const comX = (P) => { const J = P.joints, m = (a, b) => (a[0] + b[0]) / 2; return 0.578 * m(J.shoulder, J.hip) + 0.1 * m(J.shoulder, J.wrist) + 0.2 * m(J.hip, J.knee) + 0.093 * m(J.knee, J.ankle) + 0.029 * J.toe[0]; };
+// Hängendes Beinheben (Seitenansicht): Obergriff an einer hohen Stange (≈ 2,2 m, damit die gestreckten Beine frei hängen), Arme lang.
+// Oben Beine gestreckt und waagerecht, Becken nach hinten gekippt (curl, Konvention). Rumpfneigung je Bild so, dass der Schwerpunkt unter den Händen liegt.
+const HLR = (() => {
+  const BAR = -452, grip = [0, BAR + 7], base = { root: 'wrist', rootPos: grip, armTarget: [4, -121], elbowSide: 1, knee: 0, ankle: -20 };
+  const at = (curl, legUp) => { const ps = (t) => solvePose({ ...base, trunk: t, curl, hip: legUp ? t + 90 : 0 }); return r1(bisect((t) => comX(ps(t)) - grip[0], -60, 40)); };
+  return { BAR, grip, base, curlTop: 20, tHang: at(0, false), tTop: at(20, true) };
+})();
+// Captain's Chair (Seitenansicht): Unterarme auf den Polstern (Ellbogen fest, Oberarm senkrecht, Unterarm waagerecht), Rücken am Polster.
+// Aufbau und Winkel vom hängenden Knieheben in Armschlaufen übertragen (Escamilla et al. 2006): Schulter und Ellbogen ≈ 90°, oben Hüfte und Knie
+// 125–135° gebeugt und das Becken nach hinten gekippt. Der obere Rumpf bleibt am Polster (senkrecht), das Becken rollt mit curl ein.
+const CAPT = (() => {
+  const E = [0, -300], arm = { elbow: [0, 68], wrist: [54, 68] }, base = { root: 'elbow', rootPos: E, armPoints: arm, ankle: -20 };
+  const P0 = solvePose({ ...base, trunk: 0, hip: 0, knee: 0 });
+  let back = 1e9; for (const sh of shapesFor('male')) if (sh.seg === 'trunk' && sh.id === 'body' && !sh.part) for (const q of sh.pts) if (q[1] < -230) back = Math.min(back, tf(P0, 'trunk', q)[0]);
+  return { E, arm, base, curlTop: 20, padX: r1(back), sh: P0.joints.shoulder.map(r1) };
+})();
+// Crunch am Kabel (Seitenansicht): kniend vor dem Turm, Seil von der oberen Rolle, Hände seitlich am Kopf. Schienbein und Fußrücken liegen
+// auf dem Boden (Kniehöhe gelöst). Der Rumpf rollt ein (curl), die Hüfte beugt nur wenig mit – Zeichenkonvention, keine Messung.
+const CCR = (() => {
+  const base = { root: 'knee', shank: 90, knee: 90, foot: 262, armTargetTrunk: [8, 32], elbowSide: 1, armScale: [0.8, 0.9] };
+  const y = r1(bisect((yy) => lowSeg(solvePose({ ...base, trunk: 20, rootPos: [0, yy] }), ['shank', 'foot']), -40, 20));
+  const start = { trunk: 20, curl: 0 }, end = { trunk: 28, curl: 48 };
+  const h0 = solvePose({ ...base, ...start, rootPos: [0, y] }).joints.hand;
+  return { base, y, start, end, pulley: [Math.round(h0[0] + 96), -452] };
+})();
+// Crunch an der Maschine (Seitenansicht): sitzend, Oberschenkel waagerecht, Füße unter der Rolle, Brust am Polster, Hände an den Griffen.
+// Das Polster dreht um eine Achse seitlich auf Höhe der Lendenwirbelsäule (Mitte der Biegezone, Konvention).
+const MCR = (() => {
+  const hip = [0, -100], base = { root: 'hip', rootPos: hip, knee: 90, foot: 90, armTargetTrunk: [40, -40], elbowSide: 1, armScale: [0.85, 0.9] };
+  const start = { trunk: -4, curl: 0 }, end = { trunk: 6, curl: 42 };
+  const pivot = [r1(hip[0] + 57 * Math.sin(start.trunk * Math.PI / 180)), r1(hip[1] - 57 * Math.cos(start.trunk * Math.PI / 180))];
+  return { hip, base, start, end, pivot };
+})();
+// Frontansicht, beide Hände an einem Griff: Arme fast gestreckt und projiziert (Ellbogen auf der Linie Schulter–Hand, 8 Einheiten nach außen und 6 nach unten
+// versetzt; liegt die Hand dicht vor der Schulter, rückt der Ellbogen nach außen unten – der Oberarm zeigt dann nach vorn und verschwindet nie ganz), W ist die Griffmitte. armPoints gelten für die rechte Seite (dx nach außen), armL für die linke (gespiegelt).
+const handsTo = (spec, W) => {
+  const P = solveFront({ ...spec, armPoints: { elbow: [6, 60], wrist: [8, 110] } });
+  const one = (S, sg) => { const g = [W[0] - S[0], W[1] - S[1]], l = Math.hypot(g[0], g[1]), v = [g[0] * (1 - 7 / l), g[1] * (1 - 7 / l)], k = LEN.uarm / ARM_REACH; const wv = Math.max(0, Math.min(1, 1 - Math.hypot(v[0], v[1]) / 80)), e = [(sg * v[0] * k + 8) * (1 - wv) + 10 * wv, (v[1] * k + 6) * (1 - wv) + 16 * wv]; return { elbow: [r1(e[0]), r1(e[1])], wrist: [r1(sg * v[0]), r1(v[1])], len: l }; }; // Griff 7 vor dem Handgelenk (Handmitte)
+  const R = one(P.joints.shoulderR, 1), L = one(P.joints.shoulderL, -1);
+  return { armPoints: { elbow: R.elbow, wrist: R.wrist }, armL: { points: { elbow: L.elbow, wrist: L.wrist } }, reach: r1(Math.max(R.len, L.len)) };
+};
+// Holzhacker (Frontansicht): von der oberen Rolle rechts diagonal nach links unten. Die Rumpfdrehung zeigt die Frontfigur nicht – sichtbar sind
+// Armdiagonale, Seitneigung und die tiefer werdenden Knie. Griffpunkte und Kniebeugung sind Zeichenkonvention.
+const WCH = (() => {
+  const legs = (k, s) => ({ planted: true, stance: 34, toeOut: 12, knee: k, shank: s });
+  const wStart = [78, -372], wEnd = [-58, -178];
+  // Sieben Bilder auf der geraden Griffbahn: linear gemischte Armpunkte ließen die Hände sonst auseinanderlaufen (Schultern wandern mit),
+  // und dicht vor der rechten Schulter dreht der kurze projizierte Arm schnell.
+  const at = (u) => { const sp = { trunk: r1(6 - 16 * u), legs: legs(r1(6 + 20 * u), r1(3 + 9 * u)) }; return { ...sp, ...handsTo(sp, [wStart[0] + (wEnd[0] - wStart[0]) * u, wStart[1] + (wEnd[1] - wStart[1]) * u]) }; };
+  return { tower: 168, pulleyY: -440, path: [0, 1, 2, 3, 4, 5, 6].map((i) => at(i / 6)) };
+})();
+// Pallof Press (Frontansicht): Kabel von rechts auf Höhe der gestreckten Hände (waagerecht, Juan-Recio et al. 2025); Start Hände an der Brust,
+// Ende Arme gerade nach vorn auf Schulterhöhe – von vorn stark verkürzt, die Hände bleiben vor der Körpermitte.
+const PAL = (() => {
+  const legs = { planted: true, stance: 18, toeOut: 8, knee: 10, shank: 5 };
+  const P = solveFront({ legs, armPoints: { elbow: [-16, 4], wrist: [-31, 8] } });
+  return { legs, chest: { elbow: [6, 60], wrist: [-27, 30] }, out: { elbow: [-16, 4], wrist: [-31, 8] }, tower: 170, pulleyY: r1(P.joints.wristR[1] + 2) };
+})();
+
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
@@ -2712,6 +2775,169 @@ export const ANIMATIONS = [
       P1: { label: 'Suprak et al. 2013, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-48.5.08', read: 'fulltext' },
       P2: { label: 'San Juan et al. 2015, BMC Musculoskelet Disord', url: 'https://doi.org/10.1186/s12891-015-0486-5', read: 'fulltext' }
     }
+  },
+
+  // ---------- Runde 12 (v2.17): Hängendes Beinheben ----------
+  {
+    ref: 'hanging-leg-raise', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Keine gelesene Studie nennt Winkel für das Beinheben mit gestreckten Beinen an der Stange. McGill et al. 2014 maßen es mit 3D-Bewegungsanalyse, im Abstract stehen aber nur Muskelaktivität und Wirbelsäulenlast. Gezeichnet: Obergriff, Arme lang, Beine gestreckt bis waagerecht. Becken nach hinten gekippt und Takt sind vom hängenden Knieheben in Armschlaufen übertragen (Escamilla et al. 2006, Volltext). Rumpfneigung aus einem groben Schwerpunktmodell (Schwerpunkt unter den Händen); Stangenhöhe ≈ 2,2 m, damit die Füße frei hängen.',
+    tempo: { basis: 'protocol', note: 'Übertragen vom hängenden Knieheben: 1 s hoch, 1 s halten, 1 s ab, 1 s Pause (Metronom; Escamilla et al. 2006).' },
+    frames: [
+      { label: 'Hang', pose: { ...HLR.base, trunk: K(HLR.tHang, [], 'Schwerpunktmodell: Schwerpunkt unter den Händen'), curl: C(0), hip: V(0, 'E1', 'protocol', 'Start im senkrechten Hang, Hüfte und Knie gestreckt'), props: hlrProps } },
+      { label: 'Oben', pose: { ...HLR.base, trunk: K(HLR.tTop, [], 'Schwerpunktmodell: Schwerpunkt unter den Händen'), curl: C(HLR.curlTop, 'Becken nach hinten gekippt (Escamilla et al. 2006 beschreiben es, ohne Winkel)'), hip: C(r1(HLR.tTop + 90), 'Beine waagerecht'), props: hlrProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Hang', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [1, 2] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [1, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [4] }],
+    keyPoints: [
+      { short: 'Hang', anchor: 'hand', side: 'r', status: 'single', text: 'Aus dem ruhigen Hang mit langen Armen starten, nicht vor und zurück schwingen.', src: ['E1'],
+        explain: 'Escamilla et al. 2006 (21 Personen, Volltext): Start im senkrechten Hang, ein Untersucher hielt eine Hand am unteren Rücken, damit der Körper nicht schwang. Dort hingen die Arme in Schlaufen, nicht an der Stange.' },
+      { short: 'Becken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Oben das Becken nach hinten kippen, nicht nur die Beine hochschwingen.', src: ['E1'],
+        explain: 'Beim hängenden Knieheben endeten alle mit maximal gebeugter Hüfte und nach hinten gekipptem Becken (Escamilla et al. 2006). Wie weit das Becken kippte, wurde nicht gemessen; 20° hier sind Zeichenkonvention.' },
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Mit gestreckten Beinen war die Bauch-Aktivität sehr hoch.', src: ['M1'],
+        explain: 'McGill et al. 2014 (14 Männer, Abstract): gerader Bauchmuskel über 130 %, äußerer schräger 88 % der maximalen willkürlichen Anspannung – die höchsten Werte der untersuchten Ganzkörperübungen.' },
+      { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Gestreckte Beine belasten die Lendenwirbelsäule stark.', src: ['M1'],
+        explain: 'Modellrechnung aus Muskelaktivität und Bewegung: ≈ 3000 N Druck auf die Wirbelsäule beim Beinheben mit gestreckten Beinen, unter 2500 N beim Body Saw (McGill et al. 2014, Abstract). Dass gebeugte Knie die Last senken, folgt aus dem kürzeren Hebel und ist nicht gemessen.' },
+      { short: 'Tempo', anchor: 'knee', side: 'r', status: 'single', text: 'Gleichmäßig: etwa 1 s hoch, 1 s halten, 1 s ab.', src: ['E1'],
+        explain: 'Takt aller Übungen bei Escamilla et al. 2006 (Metronom, 1 s Pause zwischen den Wiederholungen), hier vom Knieheben übertragen.' }
+    ],
+    sources: {
+      M1: { label: 'McGill, Andersen & Cannon 2014, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2014.946437', read: 'abstract' },
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 12: Knieheben im Stütz (Captain's Chair) ----------
+  {
+    ref: 'captains-chair-knee-raise', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Den Captain\'s Chair hat keine gelesene Studie gemessen. Übertragen vom hängenden Knieheben in Armschlaufen (Escamilla et al. 2006, Volltext): Schulter und Ellbogen ≈ 90° gebeugt, Start im senkrechten Hang mit gestreckten Beinen, oben Hüfte und Knie 125–135° gebeugt und das Becken nach hinten gekippt. Gezeichnet 130°. Rückenpolster, Polsterhöhe und der senkrecht bleibende obere Rücken sind Zeichenkonvention; das Kippen des Beckens (20°) ist nicht gemessen.',
+    tempo: { basis: 'protocol', note: 'Übertragen: 1 s hoch, 1 s halten, 1 s ab, 1 s Pause (Metronom; Escamilla et al. 2006).' },
+    frames: [
+      { label: 'Unten', pose: { ...CAPT.base, trunk: C(0, 'Rücken am Polster'), curl: C(0), hip: V(0, 'E1', 'fulltext', 'Rumpf, Hüfte und Knie gestreckt'), knee: V(0, 'E1', 'fulltext'), props: captProps },
+        facts: [V(90, 'E1', 'fulltext', 'Schulter und Ellbogen ≈ 90° gebeugt (Armschlaufen)')] },
+      { label: 'Oben', pose: { ...CAPT.base, trunk: C(-CAPT.curlTop, 'oberer Rücken bleibt am Polster, das Becken rollt ein'), curl: C(CAPT.curlTop, 'Becken nach hinten gekippt (ohne Winkel beschrieben)'), hip: V(130, 'E1', 'fulltext', '125–135° Hüft- und Kniebeugung'), knee: V(130, 'E1', 'fulltext', '125–135°'), props: captProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 1.0, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Knie heben', kp: [1, 2] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [2, 3] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [4] }],
+    keyPoints: [
+      { short: 'Stütz', anchor: 'elbow', side: 'r', status: 'single', text: 'Unterarme auf den Polstern, Schulter und Ellbogen etwa 90° gebeugt.', src: ['E1'],
+        explain: 'So begann das hängende Knieheben in Armschlaufen bei Escamilla et al. 2006 (Volltext). Der Captain\'s Chair stützt die Unterarme ähnlich und hat zusätzlich ein Rückenpolster.' },
+      { short: 'Knie', anchor: 'knee', side: 'r', status: 'single', text: 'Knie so weit wie möglich anziehen; Hüfte und Knie etwa 125–135° gebeugt.', src: ['E1'],
+        explain: 'Maximale Hüftbeugung mit 125–135° Hüft- und Kniebeugung (Escamilla et al. 2006). Gezeichnet ist 130°.' },
+      { short: 'Becken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Oben das Becken einrollen, ohne Schwung aus den Beinen.', src: ['E1'],
+        explain: 'Das Becken war am Ende nach hinten gekippt; ein Untersucher verhinderte das Schwingen (Escamilla et al. 2006). Der Winkel wurde nicht gemessen.' },
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Die Variante in Armschlaufen gehörte zu den stärksten Bauchübungen der Studie.', src: ['E1'],
+        explain: 'Gerader Bauchmuskel oben und unten sowie beide schrägen Bauchmuskeln lagen beim hängenden Knieheben unter den höchsten Werten von zwölf Übungen; der gerade Oberschenkelmuskel (Hüftbeuger) arbeitete mit (Escamilla et al. 2006). Den Captain\'s Chair selbst hat keine gelesene Studie gemessen.' },
+      { short: 'Tempo', anchor: 'foot', side: 'r', status: 'single', text: 'Gleichmäßig: etwa 1 s hoch, 1 s halten, 1 s ab.', src: ['E1'],
+        explain: 'Takt aller Übungen bei Escamilla et al. 2006 (Metronom, 1 s Pause zwischen den Wiederholungen).' }
+    ],
+    sources: {
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 12: Crunch am Kabel ----------
+  {
+    ref: 'cable-crunch', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Keine Bewegungs- oder EMG-Studie zum knienden Crunch am Kabel gefunden (PubMed-Suche 2026-10-21). Gezeichnet nach dem üblichen Aufbau: kniend vor dem Turm, Seil von der oberen Rolle, Hände seitlich am Kopf; der Rumpf rollt ein (≈ 48°, verteilt auf Lenden- und untere Brustwirbelsäule), die Hüfte beugt nur 8° mit. Alle Winkel sind Zeichenkonvention. Die Muskelangaben stammen vom Crunch mit Zusatzlast (Moraes et al. 2009, Abstract) und vom Crunch am Boden (Escamilla et al. 2006, Volltext).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s einrollen, 1 s halten, 2 s zurück (Konvention). Die gelesenen Studien zum Crunch mit Last nennen im Abstract kein Tempo.' },
+    frames: [
+      { label: 'Oben', pose: { ...CCR.base, rootPos: [0, CCR.y], trunk: C(CCR.start.trunk, 'leicht vorgeneigt'), curl: C(0), headTilt: C(0), props: ccrProps } },
+      { label: 'Eingerollt', pose: { ...CCR.base, rootPos: [0, CCR.y], trunk: C(CCR.end.trunk, 'Hüfte beugt nur wenig mit'), curl: C(CCR.end.curl, 'Rumpf eingerollt'), headTilt: C(12, 'Kinn zur Brust'), props: ccrProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Einrollen', kp: [1] }, { a: 1, b: 1, dur: 1.0, label: 'Unten', kp: [1, 2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [3] }],
+    keyPoints: [
+      { short: 'Aufbau', anchor: 'knee', side: 'r', status: 'single', text: 'Kniend vor dem Turm, Seil an den Kopfseiten; die Hüfte bleibt fast ruhig.', src: ['E1'],
+        explain: 'Der Aufbau ist übliche Praxis, keine gelesene Studie hat ihn gemessen. Dass die Bewegung aus dem Rumpf kommt, ist vom Crunch am Boden übertragen: Dort arbeitete der gerade Oberschenkelmuskel (Hüftbeuger) am wenigsten von zwölf Übungen (Escamilla et al. 2006, Volltext).' },
+      { short: 'Rumpf', anchor: 'belly', side: 'r', status: 'single', text: 'Brustkorb zum Becken einrollen, nicht nur aus der Hüfte nach vorn kippen.', src: ['E1'],
+        explain: 'Beim Crunch beugt sich die Wirbelsäule, bei Übungen mit viel Hüftbeugung (Sit-up mit gebeugten Knien) arbeiteten die Hüftbeuger deutlich mehr (Escamilla et al. 2006). Am Kabel gemessen ist das nicht.' },
+      { short: 'Last', anchor: 'chest', side: 'l', status: 'single', text: 'Mit mehr Last stieg die Bauch-Aktivität; am höchsten bei der Maximallast.', src: ['M1'],
+        explain: 'Moraes et al. 2009 (13 Personen, Crunch mit 20–100 % der Maximallast, Abstract): Die Bauchmuskeln waren bei 100 % deutlich am stärksten aktiv; wie die Last angebracht war, steht im Abstract nicht.' },
+      { short: 'Steigern', anchor: 'hand', side: 'r', status: 'single', text: 'Kleine Laststufen änderten die Aktivität kaum; größere Sprünge schon.', src: ['M1'],
+        explain: '20 % und 40 % der Maximallast unterschieden sich nicht; die Autoren empfehlen deshalb Steigerungen über 20 % der Maximallast (Moraes et al. 2009, Abstract) – das ist ihre Schlussfolgerung aus der Muskelaktivität, nicht aus einem Trainingsversuch.' }
+    ],
+    sources: {
+      M1: { label: 'Moraes et al. 2009, Phys Ther Sport', url: 'https://doi.org/10.1016/j.ptsp.2009.01.001', read: 'abstract' },
+      E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 12: Crunch an der Maschine ----------
+  {
+    ref: 'machine-crunch', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Sundstrup et al. 2012 maßen die Muskelaktivität an einer sitzenden Crunch-Maschine (Technogym), den Aufbau beschreibt das Abstract aber nicht; den Volltext konnte ich nicht öffnen. Gezeichnet ist ein üblicher Aufbau: Sitz, Füße unter der Rolle, Brust am Polster, Hände an den Griffen; das Polster dreht um eine Achse seitlich auf Höhe der Lendenwirbelsäule. Rumpfbeugung (≈ 42°) und die 10° Hüftbeugung sind Zeichenkonvention.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s einrollen, 1 s halten, 2 s zurück (Konvention; das Abstract nennt kein Tempo).' },
+    frames: [
+      { label: 'Aufrecht', pose: { ...MCR.base, trunk: C(MCR.start.trunk, 'aufrecht, leicht zurückgelehnt'), curl: C(0), hip: C(MCR.start.trunk + 90, 'Oberschenkel waagerecht'), headTilt: C(0), props: mcrProps } },
+      { label: 'Eingerollt', pose: { ...MCR.base, trunk: C(MCR.end.trunk), curl: C(MCR.end.curl, 'Brustkorb zum Becken eingerollt'), hip: C(MCR.end.trunk + 90, 'Oberschenkel waagerecht'), headTilt: C(10), props: mcrProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Aufrecht', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Einrollen', kp: [0, 1] }, { a: 1, b: 1, dur: 1.0, label: 'Unten', kp: [1, 2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [3] }],
+    keyPoints: [
+      { short: 'Einrollen', anchor: 'belly', side: 'r', status: 'single', text: 'Brust zum Becken einrollen, statt aus der Hüfte nach vorn zu ziehen.', src: ['S1'],
+        explain: 'An der Maschine arbeitete neben dem geraden Bauchmuskel (84 % der maximalen Anspannung) auch der gerade Oberschenkelmuskel stark mit (65 %), ein Hüftbeuger (Sundstrup et al. 2012, 42 Untrainierte, 10RM, Abstract). Wie stark die Hüfte dabei gebeugt war, steht im Abstract nicht.' },
+      { short: 'Muskeln', anchor: 'chest', side: 'l', status: 'single', text: 'Gerader und äußerer schräger Bauchmuskel waren am stärksten aktiv.', src: ['S1'],
+        explain: 'Von 13 gemessenen Muskeln (Sundstrup et al. 2012, Abstract). Geschlecht, Alter und Schmerzen änderten die Ergebnisse nicht.' },
+      { short: 'Vergleich', anchor: 'thigh', side: 'r', status: 'single', text: 'Crunch auf dem Ball mit Band: mehr gerader Bauchmuskel, weniger Hüftbeuger.', src: ['S1'],
+        explain: '104 % gegenüber 84 % im geraden Bauchmuskel und 27 % gegenüber 65 % im geraden Oberschenkelmuskel (Sundstrup et al. 2012). Die Autoren raten Menschen mit Rückenschmerzen deshalb eher zum Ball – das ist ihre Deutung, Beschwerden wurden nicht verglichen.' },
+      { short: 'Last', anchor: 'hand', side: 'r', status: 'single', text: 'Laststufen lieber deutlich als in kleinen Schritten steigern.', src: ['M1'],
+        explain: 'Beim Crunch mit Zusatzlast unterschieden sich 20 % und 40 % der Maximallast in der Muskelaktivität nicht (Moraes et al. 2009, Abstract); die Autoren empfehlen Sprünge über 20 % der Maximallast. Eine Maschine wird im Abstract nicht genannt.' }
+    ],
+    sources: {
+      S1: { label: 'Sundstrup et al. 2012, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/22893857/', read: 'abstract' },
+      M1: { label: 'Moraes et al. 2009, Phys Ther Sport', url: 'https://doi.org/10.1016/j.ptsp.2009.01.001', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 12: Holzhacker am Kabel (Frontansicht) ----------
+  {
+    ref: 'cable-woodchop', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht. Keine gelesene Studie nennt Winkel oder Wege für den Holzhacker. Gezeichnet ist die Variante von der oberen Rolle diagonal nach unten zur anderen Hüfte; Rodríguez-Perea et al. 2023 (Volltext) nutzten eine waagerechte und eine von unten kommende Variante, Zemková et al. 2017 (Abstract) eine stehende Variante am Kabelturm. Die Rumpfdrehung kann die Frontfigur nicht zeigen: Sichtbar sind Armdiagonale, Seitneigung und die tiefer werdenden Knie (alles Zeichenkonvention).',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s ziehen, 2 s zurück (Konvention). In den Studien wurde mit Höchstleistung bzw. gerätegesteuerter Geschwindigkeit (0,4–0,7 m/s) gezogen.' },
+    frames: [
+      ...WCH.path.map((q, i) => ({ label: i === 0 ? 'Oben' : i === 6 ? 'Unten' : 'Zug ' + i, pose: { trunk: C(q.trunk, i === 0 ? 'Seitneigung zur Rolle' : i === 6 ? 'Seitneigung zur Gegenseite' : undefined), legs: q.legs, armPoints: q.armPoints, armL: q.armL, props: wchProps } })) // Bilder 1–5: Zwischenbilder auf der Griffbahn
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, ...[0, 1, 2, 3, 4, 5].map((i) => ({ a: i, b: i + 1, dur: 0.25, label: 'Ziehen', kp: [0, 1] })), { a: 6, b: 6, dur: 0.3, label: 'Unten', kp: [1, 2] },
+      ...[6, 5, 4, 3, 2, 1].map((i) => ({ a: i, b: i - 1, dur: 2 / 6, label: 'Zurück', kp: [3] }))],
+    keyPoints: [
+      { short: 'Weg', anchor: 'handR', side: 'r', status: 'single', text: 'Varianten: von oben schräg nach unten, waagerecht oder von unten nach oben.', src: ['R1'],
+        explain: 'Rodríguez-Perea et al. 2023 (51 Aktive, Volltext) testeten den waagerechten und den von unten kommenden Holzhacker. Die hier gezeichnete Bahn von oben nach unten ist eine verbreitete Variante, nicht aus dieser Studie.' },
+      { short: 'Rumpf', anchor: 'belly', side: 'l', status: 'single', text: 'Der Holzhacker gilt als Übung für die Rumpfdreher; Muskeldaten fehlen.', src: ['R1'],
+        explain: 'Rodríguez-Perea et al. 2023 nutzten ihn als Krafttest der Rumpfdreher (waagerechte Variante am zuverlässigsten). Eine EMG-Messung zum Holzhacker haben wir nicht gefunden.' },
+      { short: 'Leistung', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Die höchste Leistung lag meist bei zwei Dritteln bis vier Fünfteln der Maximallast.', src: ['Z1'],
+        explain: 'Zemková et al. 2017 (23 Männer, stehend am Kabelturm, Abstract): maximale Leistung je nach Person bei ≈ 67 %, 75 % oder 83 % der Maximallast; die mittlere Leistung ließ sich zuverlässig messen.' },
+      { short: 'Ermüdung', anchor: 'knee', side: 'r', status: 'single', text: 'Über 20 Wiederholungen sank die Leistung um etwa 10–14 %.', src: ['Z1'],
+        explain: 'Erste gegenüber letzten Wiederholungen bei der Last mit der höchsten Leistung (Zemková et al. 2017, Abstract).' }
+    ],
+    sources: {
+      R1: { label: 'Rodríguez-Perea et al. 2023, Healthcare', url: 'https://doi.org/10.3390/healthcare11162331', read: 'fulltext' },
+      Z1: { label: 'Zemková et al. 2017, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001692', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 12: Pallof Press (Frontansicht) ----------
+  {
+    ref: 'pallof-press', checkedAt: '2026-10-21', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht, Kabel von rechts. Endstellung nach Juan-Recio et al. 2025 (Volltext): beide Hände am Griff, Arme gestreckt senkrecht zum Körper auf Schulterhöhe, Kabel waagerecht. Die übliche Form streckt und beugt dabei die Ellbogen (dort beschrieben, aber nur gestreckt gehalten gemessen). Von vorn sind die nach vorn gestreckten Arme stark verkürzt; die Hände bleiben vor der Körpermitte. Stand und leicht gebeugte Knie sind Zeichenkonvention.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s strecken, 2 s halten, 1,5 s zurück (Konvention). Juan-Recio et al. 2025 hielten die gestreckte Stellung 15 s.' },
+    frames: [
+      { label: 'An der Brust', pose: { trunk: C(0, 'Rumpf ruhig'), legs: PAL.legs, armPoints: PAL.chest, props: palProps } },
+      { label: 'Gestreckt', pose: { trunk: C(0, 'Rumpf dreht nicht mit'), legs: PAL.legs, armPoints: PAL.out, props: palProps },
+        facts: [V(90, 'J1', 'fulltext', 'Arme gestreckt, senkrecht zum Körper auf Schulterhöhe')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'An der Brust', kp: [1] }, { a: 0, b: 1, dur: 1.5, label: 'Strecken', kp: [0] }, { a: 1, b: 1, dur: 2.0, label: 'Halten', kp: [0, 4] }, { a: 1, b: 0, dur: 1.5, label: 'Zurück', kp: [2] }],
+    keyPoints: [
+      { short: 'Rumpf', anchor: 'belly', side: 'l', status: 'single', text: 'Arme nach vorn strecken, ohne dass Rumpf und Becken zum Kabel drehen.', src: ['J1'],
+        explain: 'So definieren Juan-Recio et al. 2025 die Übung (Volltext): Wirbelsäule und Becken bleiben neutral gegen das Drehmoment des seitlichen Zugs; gestreckte Arme verlängern den Hebel und machen es schwerer.' },
+      { short: 'Kabel', anchor: 'handR', side: 'r', status: 'single', text: 'Kabel waagerecht auf Höhe der gestreckten Hände.', src: ['J1'],
+        explain: 'Im Protokoll war der Zug über eine Rolle so eingestellt, dass er waagerecht und in Linie mit den Händen lief (Juan-Recio et al. 2025).' },
+      { short: 'Stand', anchor: 'knee', side: 'r', status: 'single', text: 'Kniend ist es leichter, im schmalen Stand oder auf weicher Unterlage schwerer.', src: ['J1'],
+        explain: 'Beckenbewegung (Beschleunigung) bei 12 Aktiven: kniend 0,17, Füße zusammen 0,22, Füße hintereinander 0,31, auf einem Halbball 0,55–0,61 m/s² (Juan-Recio et al. 2025).' },
+      { short: 'Rücken', anchor: 'hipL', side: 'l', status: 'single', text: 'Als Krafttest auch bei chronischen Rückenschmerzen zuverlässig.', src: ['F1'],
+        explain: 'Franco-López et al. 2024 (35 Personen um 48 Jahre, mit und ohne chronische Rückenschmerzen, Abstract): Pallof Press mit Band als Test sehr zuverlässig; Beschwerden während oder nach dem Test wurden nicht berichtet.' },
+      { short: 'Lehnen', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Seitlich vom Kabel wegzulehnen ist Ausgleich; der Körper bleibt aufrecht.', src: ['J1'],
+        explain: 'Im Stand lehnten sich viele Teilnehmende vom Zug weg, vor allem mit kleiner Standfläche (Juan-Recio et al. 2025, Beobachtung an den Bildern, nicht gemessen).' }
+    ],
+    sources: {
+      J1: { label: 'Juan-Recio et al. 2025, Medicina (Kaunas)', url: 'https://doi.org/10.3390/medicina61020312', read: 'fulltext' },
+      F1: { label: 'Franco-López et al. 2024, Sensors', url: 'https://doi.org/10.3390/s24134131', read: 'abstract' }
+    }
   }
 
 ];
@@ -3242,6 +3468,61 @@ function copenProps(P) {
 function lsitProps(P) {
   const [x] = LSIT.HAND, y = -LSIT.HP;
   return { anchors: {}, scene: [{ type: 'line', from: [x - 24, y], to: [x + 24, y], w: 6, front: true }, { type: 'line', from: [x - 20, y], to: [x - 26, 0], w: 5 }, { type: 'line', from: [x + 20, y], to: [x + 26, 0], w: 5 }] };
+}
+
+// ---------- Szenen Runde 12 (v2.17) ----------
+function hlrProps(P) {
+  const b = [0, HLR.BAR];
+  return { anchors: { bar: b, uarm: uarmMid(P) }, scene: [
+    { type: 'line', from: [b[0], b[1]], to: [b[0] - 120, b[1]], w: 5 }, { type: 'line', from: [b[0] - 120, b[1] - 30], to: [b[0] - 120, 0], w: 7 }, foot(-170, -70), // Ausleger, Säule hinter der Figur
+    { type: 'bar', at: b, r: 5 }
+  ] };
+}
+function captProps(P) {
+  const E = CAPT.E, px = CAPT.padX, py = E[1] + 9, post = px - 22;
+  return { anchors: { pad: [E[0] + 24, py] }, scene: [
+    { type: 'line', from: [post, E[1] - 110], to: [post, 0], w: 8 }, foot(post - 40, E[0] + 90), // Rahmen hinter dem Rücken
+    { type: 'rect', x: px - 12, y: E[1] - 90, w: 12, h: 115, rx: 4 }, // Rückenpolster (endet über dem Gesäß)
+    { type: 'line', from: [post, py + 6], to: [E[0] + 66, py + 6], w: 5 }, // Armstütze
+    { type: 'rect', x: E[0] - 12, y: py - 4, w: 74, h: 9, rx: 4 }, // Unterarmpolster
+    { type: 'line', from: [E[0] + 66, py + 6], to: [E[0] + 66, py - 14], w: 5, front: true } // Griff
+  ] };
+}
+function ccrProps(P) {
+  const p = CCR.pulley, col = p[0] + 34, hand = P.joints.hand;
+  return { anchors: { hand }, scene: [
+    { type: 'line', from: [col, 0], to: [col, p[1] - 12], w: 8 }, { type: 'line', from: [col, p[1] - 12], to: [p[0], p[1] - 12], w: 6 }, foot(col - 40, col + 40), // Turm, Ausleger
+    { type: 'bar', at: p, r: 8 }, { type: 'line', from: p, to: hand, w: 1.5, dash: true }, // obere Rolle, Seil
+    { type: 'line', from: [hand[0] - 2, hand[1] - 10], to: [hand[0] + 2, hand[1] + 8], w: 4, front: true } // Seilende in der Hand
+  ] };
+}
+function mcrProps(P) {
+  const h = MCR.hip, an = P.joints.ankle, pv = MCR.pivot, pad = trunkPoint(P, 36, -34);
+  const up = [Math.sin((P.angles.upper ?? P.angles.trunk) * Math.PI / 180), -Math.cos((P.angles.upper ?? P.angles.trunk) * Math.PI / 180)];
+  return { anchors: { pad }, scene: [
+    { type: 'rect', x: h[0] - 34, y: h[1] + 6, w: 72, h: 10, rx: 3 }, { type: 'line', from: [h[0], h[1] + 16], to: [h[0], 0], w: 6 }, foot(h[0] - 50, an[0] + 40), // Sitz
+    { type: 'line', from: [h[0] + 8, -40], to: [an[0] - 4, -40], w: 4 }, { type: 'bar', at: [an[0] + 13, an[1] - 4], r: 8 }, { type: 'line', from: [an[0] - 4, -40], to: [an[0] + 13, an[1] - 4], w: 4 }, // Fußrolle
+    { type: 'line', from: [pv[0] - 26, pv[1] - 30], to: [pv[0] - 26, 0], w: 8, back: true }, { type: 'line', from: [pv[0] - 26, pv[1]], to: pv, w: 6, back: true }, { type: 'bar', at: pv, r: 7, back: true }, // Säule mit Drehachse (seitlich neben dem Rumpf, daher hinter der Figur)
+    { type: 'line', from: pv, to: pad, w: 5, back: true }, // Hebelarm seitlich neben dem Rumpf
+    { type: 'line', from: along(pad, up, -24), to: along(pad, up, 22), w: 12 } // Brustpolster
+  ] };
+}
+const gripFront = (P) => { const J = P.joints; return [(J.handR[0] + J.wristR[0] + J.handL[0] + J.wristL[0]) / 4, (J.handR[1] + J.wristR[1] + J.handL[1] + J.wristL[1]) / 4]; }; // Mitte beider Hände
+function wchProps(P) {
+  const g = gripFront(P), t = WCH.tower, p = [t - 10, WCH.pulleyY];
+  return { anchors: {}, scene: [
+    { type: 'line', from: [t, 0], to: [t, WCH.pulleyY - 20], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm, obere Rolle
+    { type: 'line', from: p, to: g, w: 1.5, dash: true, front: true }, // Seil
+    { type: 'rect', x: g[0] - 6, y: g[1] - 8, w: 12, h: 16, rx: 3, front: true } // Griff (beide Hände)
+  ] };
+}
+function palProps(P) {
+  const g = gripFront(P), t = PAL.tower, p = [t - 10, PAL.pulleyY];
+  return { anchors: {}, scene: [
+    { type: 'line', from: [t, 0], to: [t, -380], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm, Rolle auf Höhe der gestreckten Hände
+    { type: 'line', from: p, to: g, w: 1.5, dash: true, front: true }, // Seil von der Seite
+    { type: 'rect', x: g[0] - 6, y: g[1] - 8, w: 12, h: 16, rx: 3, front: true } // Griff (beide Hände)
+  ] };
 }
 
 export function framesOf(anim, variant) {
