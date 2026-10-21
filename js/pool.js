@@ -822,7 +822,7 @@ export const POOL = [
       S('Reeves et al. 2026, StatPearls (Wrist Extensors)', 'https://www.ncbi.nlm.nih.gov/books/NBK534805/', 'Anatomie: ECRL und ECRB strecken das Handgelenk und neigen es zur Daumenseite, der ECU streckt es und neigt es zur Kleinfingerseite.')
     ]
   }),
-  P('farmers-walk', 'Farmer\'s Walk', 'dumbbell', ['forearms'], ['upper-back', 'abductors', 'obliques', 'abs', 'lower-back', 'quads', 'glutes', 'calves'], {
+  P('farmers-walk', 'Farmer\'s Walk', 'dumbbell', ['forearms'], ['upper-back', 'abductors', 'obliques', 'abs', 'lower-back', 'glutes', 'calves'], {
     confidence: 'low', basis: 'EMG (Bein/Rumpf) + Anatomie',
     note: 'Schwere Hanteln oder Farmer-Griffe, aufrecht in kurzen, zügigen Schritten gehen. Einarmig (Suitcase) vs. beidseitig: nicht verglichen.',
     others: ['Fingerbeuger (FDS/FDP)', 'Handgelenkstrecker als Stabilisatoren', 'Quadratus lumborum'],
