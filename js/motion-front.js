@@ -345,7 +345,8 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
   if (!P.legsFront) legGroups();
   group(['trunk'], []);
   // v2.15.0: Bei starker Vorneigung liegt der Kopf vor dem oberen Rücken – er wird nach den Rumpfmuskeln noch einmal gezeichnet (sonst verdeckt).
-  if (P.F.trunk && P.F.trunk.f < 0.6) {
+  // v2.22.0: In der Rückansicht liegt der Kopf bei Vorneigung hinter dem oberen Rücken – kein zweites Zeichnen.
+  if (!P.back && P.F.trunk && P.F.trunk.f < 0.6) {
     const head = shapesForF(sex).find((sh) => sh.part === 'head');
     if (head) { const d = smooth(head.pts.map((q) => tfFS(P, 'trunk', 'R', q))); out.push({ d, cls: 'an-body edge' }, { d, cls: 'an-body fill' }); }
   }

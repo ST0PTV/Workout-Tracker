@@ -801,7 +801,7 @@ export const POOL = [
     others: ['Brachioradialis', 'Brachialis', 'Handgelenkstrecker (ECRL/ECRB) als Stabilisatoren'],
     sources: [
       S('Coratella et al. 2023, Sports (Basel)', '10.3390/sports11030064', 'EMG: Im Obergriff sind Bizeps und auch Brachioradialis weniger aktiv als im Untergriff, der vordere Deltamuskel arbeitet mehr.'),
-      S('Lung et al. 2024, StatPearls (Brachioradialis)', 'https://www.ncbi.nlm.nih.gov/books/NBK526110/', 'Anatomie: Der Brachioradialis beugt den Ellbogen in jeder Unterarmstellung und dreht den Unterarm aus der Pronation zurück Richtung Mitte.'),
+      S('Lung et al. 2024, StatPearls (Brachioradialis)', 'https://www.ncbi.nlm.nih.gov/books/NBK526110/', 'Anatomie: Der Brachioradialis beugt den Ellbogen in jeder Unterarmstellung; aus der Supination wirkt er als Pronator, aus der Pronation als Supinator.'),
       S('Reeves et al. 2026, StatPearls (Wrist Extensors)', 'https://www.ncbi.nlm.nih.gov/books/NBK534805/', 'Anatomie: ECRL, ECRB und ECU strecken das Handgelenk und stabilisieren es beim Greifen.')
     ]
   }),
@@ -824,11 +824,11 @@ export const POOL = [
   }),
   P('farmers-walk', 'Farmer\'s Walk', 'dumbbell', ['forearms'], ['upper-back', 'abductors', 'obliques', 'abs', 'lower-back', 'quads', 'glutes', 'calves'], {
     confidence: 'low', basis: 'EMG (Bein/Rumpf) + Anatomie',
-    note: 'Schwere Hanteln oder Farmer-Griffe, aufrecht in kurzen, zügigen Schritten gehen. Einarmig (Suitcase) fordert den Rumpf mehr.',
+    note: 'Schwere Hanteln oder Farmer-Griffe, aufrecht in kurzen, zügigen Schritten gehen. Einarmig (Suitcase) vs. beidseitig: nicht verglichen.',
     others: ['Fingerbeuger (FDS/FDP)', 'Handgelenkstrecker als Stabilisatoren', 'Quadratus lumborum'],
     sources: [
-      S('Stastny et al. 2015, J Hum Kinet', '10.1515/hukin-2015-0016', 'EMG beim Farmer\'s Walk mit 75 % 6RM: Vastus medialis, Vastus lateralis, Biceps femoris und Gluteus medius arbeiten deutlich mit, der Gluteus medius besonders.'),
-      S('McGill et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e318198f8f7', 'EMG plus Modell bei Strongman-Übungen: Farmer\'s Walk und Suitcase-Carry fordern Rumpf, Hüfte und Wirbelsäulenstabilität stark.'),
+      S('Stastny et al. 2015, J Hum Kinet', '10.1515/hukin-2015-0016', 'EMG (16 trainierte Männer, 75 % 6RM): Gluteus medius mäßig bis stark aktiv (26–47 % MVIC, mehr bei schwachen Abduktoren), Oberschenkelmuskeln nur gering.'),
+      S('McGill et al. 2009, J Strength Cond Res', '10.1519/JSC.0b013e318198f8f7', 'EMG plus Modell, 7 Strongman-Übungen inkl. Farmer\'s Walk und Suitcase-Carry: Tragen fordert Rumpf und Hüfte anders als Heben.'),
       S('Reeves et al. 2026, StatPearls (Wrist Extensors)', 'https://www.ncbi.nlm.nih.gov/books/NBK534805/', 'Anatomie: Die Handgelenkstrecker stabilisieren das Handgelenk beim kräftigen Greifen, ein leicht gestrecktes Handgelenk hilft der Griffkraft.')
     ]
   }),

@@ -620,4 +620,20 @@ test('v2.21.0: Hand – Faust umschließt Griffe (unter der Hand gezeichnet), fl
   assert.equal(MF.layersFront(MF.solveFront({ back: true }), () => '', 'male').filter((l) => / hand /.test(' ' + l.cls + ' ')).length, 0, 'Rückansicht: Hände nicht vorgezogen');
 });
 
+// ---------- v2.22.0: Rückansicht für Klimmzug und Reverse Fly am Kabel ----------
+test('v2.22.0: Klimmzug und Reverse Fly am Kabel von hinten – Szene hinter der Figur, Kopf bei Vorneigung nicht doppelt', () => {
+  for (const ref of ['pull-up', 'cable-reverse-fly']) {
+    const a = D.animationFor(ref); assert.equal(a.view, 'back', ref);
+    const fr = M.resolveFrames(D.framesOf(a)), T = M.cycleLength(a.phases);
+    for (let i = 0; i <= 20; i++) {
+      const P = M.poseAt(fr, a.phases, (T * i) / 20 - (i === 20 ? 1e-6 : 0)).pose;
+      assert.ok(P.back && P.view === 'front', `${ref} t=${i}: Rückansicht`);
+      assert.ok(P.scene.length && P.scene.every((s) => s.back && !s.front), `${ref} t=${i}: Szene hinter der Figur`);
+    }
+  }
+  const n = (back, trunkFlex) => MF.layersFront(MF.solveFront({ back, trunkFlex }), () => '', 'male').length;
+  assert.equal(n(false, 75), n(false, 0) + 2, 'Vorderansicht: Kopf bei starker Vorneigung noch einmal vorn');
+  assert.equal(n(true, 75), n(true, 0), 'Rückansicht: Kopf bleibt hinter dem Rücken');
+});
+
 done();

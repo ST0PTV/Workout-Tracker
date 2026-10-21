@@ -1133,10 +1133,10 @@ export const ANIMATIONS = [
     }
   },
 
-  // ---------- Klimmzug (Frontansicht) ----------
+  // ---------- Klimmzug (Rückansicht seit v2.22.0) ----------
   {
-    ref: 'pull-up', view: 'front', basis: 'measured', noFloor: true,
-    basisNote: 'Frontansicht. Schulterwinkel aus Prinold & Bull 2014 (3D, 11 geübte Männer, drei Griffe; humerothorakale Elevation 23–126° als gepoolter Bereich, kein Mittelwert je Position) und Ellbogen-Bewegungsumfang aus Youdas et al. 2010 (3D, n = 25, Abstract). Die Figur hängt mit den Händen an der Stange (1,5-fache Schulterbreite); Ellbogen und Handgelenke sind in die Bildebene projiziert, deshalb erscheint der Ellbogen oben stärker gebeugt als gemessen. Beine angewinkelt (Protokoll), Körperhöhe folgt aus der Armgeometrie.',
+    ref: 'pull-up', checkedAt: '2026-10-22', view: 'back', basis: 'measured', noFloor: true,
+    basisNote: 'Rückansicht (seit v2.22.0; vorher von vorn), damit Latissimus und oberer Rücken sichtbar sind; oben verschwindet die Stange hinter dem Kopf. Schulterwinkel aus Prinold & Bull 2014 (3D, 11 geübte Männer, drei Griffe; humerothorakale Elevation 23–126° als gepoolter Bereich, kein Mittelwert je Position) und Ellbogen-Bewegungsumfang aus Youdas et al. 2010 (3D, n = 25, Abstract). Die Figur hängt mit den Händen an der Stange (1,5-fache Schulterbreite); Ellbogen und Handgelenke sind in die Bildebene projiziert, deshalb erscheint der Ellbogen oben stärker gebeugt als gemessen. Beine angewinkelt (Protokoll), Körperhöhe folgt aus der Armgeometrie.',
     tempo: { basis: 'measured', note: 'Hochziehen im Mittel 1,2 s (0,8–2,2 s, maximale Absicht; Prinold & Bull 2014); Absenken dort nicht gemessen, hier 1,5 s (EMG-Protokolle: 2 s / 2 s).' },
     frames: [
       { label: 'Hang', pose: { root: 'wristR', rootPos: [PU.grip, PU.bar + 8], armPoints: { elbow: [13.4, -66.9], wrist: [24, -120] }, legs: { hip: C(0), knee: C(70, 'Beine angewinkelt, Fersen hinten (Protokoll)') }, props: pullupProps },
@@ -1148,7 +1148,7 @@ export const ANIMATIONS = [
     keyPoints: [
       { short: 'Hang', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Aus dem gestreckten Hang starten: Arme lang, Ellbogen gestreckt.', src: ['S2', 'S3', 'S4'],
         explain: 'Startdefinition aller gelesenen Studien: Hang mit gestreckten Armen. Der gemessene Ellbogen-Bewegungsumfang (93 ± 15°, Youdas et al. 2010) bezieht sich auf diesen Start.' },
-      { short: 'Kinn', anchor: 'chin', side: 'r', status: 'consensus', text: 'Hochziehen, bis das Kinn über der Stange ist.', src: ['S2', 'S4'],
+      { short: 'Kinn', anchor: 'bar', side: 'r', status: 'consensus', text: 'Hochziehen, bis das Kinn über der Stange ist.', src: ['S2', 'S4'],
         explain: 'Endkriterium in Prinold & Bull 2014 und Snarr et al. 2017 (Kinn über der Stange bzw. auf Höhe der Hände). Wiederholungen mit Schwung wurden dort verworfen.' },
       { short: 'Schwung', anchor: 'kneeR', side: 'r', status: 'single', text: 'Ohne Schwung aus Beinen oder Hüfte ziehen – Beine ruhig halten.', src: ['S4', 'S6'],
         explain: 'Strikte Ausführung als Protokoll (Snarr et al. 2017). Beim Kipping bewegen sich Hüfte (≈ 49°) und Knie (≈ 57°) deutlich mehr als beim strikten Klimmzug (Dinunzio et al. 2018, Abstract, n = 11). Ob das besser oder schlechter ist, hängt vom Ziel ab; untersucht wurde nur der Unterschied.' },
@@ -3719,14 +3719,14 @@ export const ANIMATIONS = [
     }
   },
 
-  // ---------- Runde 15: Reverse Fly am Kabel (Frontansicht) ----------
+  // ---------- Runde 15: Reverse Fly am Kabel (Rückansicht seit v2.22.0) ----------
   {
-    ref: 'cable-reverse-fly', checkedAt: '2026-10-21', view: 'front', basis: 'transfer',
-    basisNote: 'Frontansicht, stehend. Keine Studie mit gekreuzten Kabeln gefunden. Start mit den Armen vorn auf Schulterhöhe und Ende in Linie mit dem Rumpf nach Bergquist et al. 2018 (Band auf Schulterhöhe, Volltext); Ellbogen 14° nach dem Band-Reverse-Fly in Liu et al. 2024 (14,08 ± 9,14°, 13 Männer, Vicon). Dass die Hände zu Beginn etwas über die Körpermitte reichen, Türme, Rollen und Stand sind Zeichenkonvention. Die Arme vorn erscheinen von vorn verkürzt.',
+    ref: 'cable-reverse-fly', checkedAt: '2026-10-22', view: 'back', basis: 'transfer',
+    basisNote: 'Rückansicht (seit v2.22.0; vorher von vorn), damit hinterer Deltamuskel und oberer Rücken sichtbar sind; Kabel und Griffe vor dem Körper verschwinden hinter dem Rücken. Stehend. Keine Studie mit gekreuzten Kabeln gefunden. Start mit den Armen vorn auf Schulterhöhe und Ende in Linie mit dem Rumpf nach Bergquist et al. 2018 (Band auf Schulterhöhe, Volltext); Ellbogen 14° nach dem Band-Reverse-Fly in Liu et al. 2024 (14,08 ± 9,14°, 13 Männer, Vicon). Dass die Hände zu Beginn etwas über die Körpermitte reichen, Türme, Rollen und Stand sind Zeichenkonvention. Die Arme vorn erscheinen verkürzt.',
     tempo: { basis: 'protocol', note: '2 s nach außen / 2 s zurück mit Metronom (Bergquist et al. 2018, Band).' },
     frames: [
       { label: 'Vorn', pose: { legs: { planted: true, stance: C(CRF.stance, 'etwa hüftbreit'), toeOut: C(8), knee: C(6), shank: C(3) }, armPoints: armFront(CRF.lift, CRF.start, CRF.elbow), props: cableReverseFlyProps },
-        facts: [V(90, 'B1', 'protocol', 'Start: Arme vorn auf Schulterhöhe (gezeichnet 84°, damit der Arm von vorn sichtbar bleibt)'), C(-20, 'Hände etwas über der Körpermitte (gekreuzte Kabel)')] },
+        facts: [V(90, 'B1', 'protocol', 'Start: Arme vorn auf Schulterhöhe (gezeichnet 84°, damit der Arm sichtbar bleibt)'), C(-20, 'Hände etwas über der Körpermitte (gekreuzte Kabel)')] },
       { label: 'Mitte', pose: { legs: { planted: true, stance: C(CRF.stance), toeOut: C(8), knee: C(6), shank: C(3) }, armPoints: armFront(CRF.lift, CRF.mid, CRF.elbow), props: cableReverseFlyProps } },
       { label: 'Außen', pose: { legs: { planted: true, stance: C(CRF.stance), toeOut: C(8), knee: C(6), shank: C(3) }, armPoints: armFront(CRF.lift, CRF.end, CRF.elbow), props: cableReverseFlyProps },
         facts: [V(90, 'B1', 'protocol', 'Ende: Oberarme in Linie mit dem Rumpf'), V(14, 'LI', 'fulltext', 'Ellbogenbeugung 14,08 ± 9,14° (Band-Reverse-Fly)')] }
@@ -3739,7 +3739,7 @@ export const ANIMATIONS = [
         explain: 'Beide Studien gaben eine leichte Beugung vor; gemessen wurden 14 ± 9° (Liu et al. 2024). Verschiedene Ellbogenwinkel wurden nicht verglichen.' },
       { short: 'Griff', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Neutraler Griff: hinterer Delta an der Maschine etwas aktiver als im Obergriff.', src: ['SF'],
         explain: 'Reverse-Fly-Maschine, trainierte Männer: Mit neutralem Griff waren hinterer Deltamuskel und Infraspinatus aktiver als im Obergriff (Schoenfeld et al. 2013, Abstract). Am Kabel nicht geprüft.' },
-      { short: 'Tempo', anchor: 'chest', side: 'l', status: 'single', text: 'Kontrolliert öffnen und zurückführen, in der Studie je 2 s.', src: ['B1'],
+      { short: 'Tempo', anchor: 'upperBack', side: 'l', status: 'single', text: 'Kontrolliert öffnen und zurückführen, in der Studie je 2 s.', src: ['B1'],
         explain: 'Metronom 2 s / 2 s bei 10-RM-Last (Bergquist et al. 2018). Ein Messprotokoll, kein Tempovergleich.' }
     ],
     sources: {
@@ -4167,8 +4167,10 @@ function rowProps(P) {
 }
 // Frontansicht
 function pullupProps(P) {
-  return { anchors: { bar: [0, PU.bar] }, scene: [{ type: 'line', from: [-130, PU.bar], to: [130, PU.bar], w: 5 }, { type: 'bar', at: [-130, PU.bar], r: 5 }, { type: 'bar', at: [130, PU.bar], r: 5 }] };
+  return { anchors: { bar: [0, PU.bar] }, scene: behindInBack(P, [{ type: 'line', from: [-130, PU.bar], to: [130, PU.bar], w: 5 }, { type: 'bar', at: [-130, PU.bar], r: 5 }, { type: 'bar', at: [130, PU.bar], r: 5 }]) };
 }
+// v2.22.0: In der Rückansicht liegt die ganze Szene hinter der Figur (Stange, Kabel und Griffe vor dem Körper verschwinden hinter dem Rücken).
+function behindInBack(P, sc) { return P.back ? sc.map((x) => ({ ...x, front: false, back: true })) : sc; }
 function pulldownProps(P) {
   const hr = P.joints.handR, hl = P.joints.handL, y = (hr[1] + hl[1]) / 2;
   const sc = pulldownScene(hr, hl, y);
@@ -4670,12 +4672,12 @@ function machineLateralProps(straight) {
 function cableReverseFlyProps(P) {
   const J = P.joints, y = (J.shoulderR[1] + J.shoulderL[1]) / 2, t = XOV.tower, g = (h, w) => [(h[0] + w[0]) / 2, (h[1] + w[1]) / 2];
   const gR = g(J.handR, J.wristR), gL = g(J.handL, J.wristL), pR = [t - 10, y], pL = [-t + 10, y];
-  return { anchors: { cable: midpoint(gR, pL) }, scene: [
+  return { anchors: { cable: midpoint(gR, pL) }, scene: behindInBack(P, [
     { type: 'line', from: [t, 0], to: [t, -360], w: 8 }, foot(t - 40, t + 40), { type: 'line', from: [-t, 0], to: [-t, -360], w: 8 }, foot(-t - 40, -t + 40), // Türme
     { type: 'bar', at: pR, r: 7 }, { type: 'bar', at: pL, r: 7 }, // Rollen auf Schulterhöhe
     { type: 'line', from: pL, to: gR, w: 1.5, dash: true, front: true }, { type: 'line', from: pR, to: gL, w: 1.5, dash: true, front: true }, // Kabel über Kreuz
     { type: 'rect', x: gR[0] - 5, y: gR[1] - 8, w: 10, h: 16, rx: 3, front: true }, { type: 'rect', x: gL[0] - 5, y: gL[1] - 8, w: 10, h: 16, rx: 3, front: true } // Einhandgriffe
-  ] };
+  ]) };
 }
 // Y-Raise: Schrägbank mit Brustauflage vor dem Rumpf (parallel zum Rumpf), Stütze zum Boden; Kurzhantel in der Hand, Achse aus dem Bild (Daumen oben).
 function yRaiseProps(P) {
