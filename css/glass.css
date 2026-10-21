@@ -686,3 +686,27 @@ body { overflow-wrap: anywhere; }
 .confirm-all .stack-btns { display: flex; flex-direction: column; gap: 10px; }
 .confirm-all .stack-btns .btn { width: 100%; min-height: 52px; }
 .box.on svg { stroke: #06101f; }
+
+/* v2.23.0: Fortschritt → 4 Wochen (Heatmap Muskeln × Kalenderwochen, Ø/Woche, e1RM-Trend) */
+.a4-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 4px 0 12px; }
+.a4-head .wk { display: flex; flex-direction: column; }
+.a4-head .wk small { color: var(--muted); font-size: 13px; }
+.a4-card .sub { margin: 0 0 10px; }
+.a4-grid { display: grid; grid-template-columns: minmax(0, 1fr) repeat(4, 34px) 38px 44px; gap: 5px; align-items: center; font-size: 14px; }
+.a4h { font-size: 11px; color: var(--muted); text-align: center; white-space: nowrap; }
+.a4n { min-width: 0; font-size: 13px; line-height: 1.2; hyphens: auto; -webkit-hyphens: auto; overflow-wrap: break-word; }
+.a4c { height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.a4c.lv0 { background: rgba(255, 255, 255, 0.05); color: #6b7499; }
+.a4c.lv1 { background: #3f63c4; }
+.a4c.lv2 { background: #6e93f2; color: #06101f; }
+.a4c.lv3 { background: #b9d0ff; color: #06101f; }
+.a4avg { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.a4t { text-align: right; font-size: 12px; color: var(--accent); white-space: nowrap; }
+.a4t.noise, .a4t.none { color: var(--muted); }
+.a4zero { margin: 10px 0 0; }
+.a4-hint { border-color: rgba(122, 162, 255, 0.5); background: linear-gradient(135deg, rgba(122, 162, 255, 0.18), rgba(110, 231, 216, 0.10)); }
+.a4-hint h3 { margin: 0 0 4px; font-size: 16px; }
+.a4-hint .sub { margin: 0 0 8px; }
+.a4-hrow { padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.a4-hrow:last-of-type { border-bottom: 0; }
+.chips.wrap { flex-wrap: wrap; overflow: visible; padding-top: 6px; }

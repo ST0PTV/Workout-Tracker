@@ -10,6 +10,7 @@ import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
 import { diaryList, setText } from './diary-view.js';
 import { musclesPanel } from './muscle-view.js';
+import { analysisPanel } from './analysis-view.js';
 import { fmtDuration, fmtKm, fmtPace } from './input.js';
 import { formatSet } from './sets.js';
 
@@ -237,7 +238,7 @@ function exerciseList() {
 
 export function progressView(rerender = () => {}) {
   const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },
-    [['exercises', 'Übungen'], ['sessions', 'Trainings'], ['muscles', 'Muskeln']].map(([k, label]) =>
+    [['exercises', 'Übungen'], ['sessions', 'Trainings'], ['muscles', 'Muskeln'], ['analysis', '4 Wochen']].map(([k, label]) =>
       h('button', { type: 'button', role: 'tab', class: tabState.mode === k ? 'on' : '', 'aria-selected': String(tabState.mode === k),
         onclick: () => { if (tabState.mode !== k) { tabState.mode = k; rerender(); } } }, label)));
   return h('section', { class: 'progress' },
@@ -246,5 +247,5 @@ export function progressView(rerender = () => {}) {
         ? h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So wird Fortschritt berechnet', onclick: openProgressInfo }, icon('info', { size: 20 }))
         : null),
     seg,
-    tabState.mode === 'exercises' ? exerciseList() : tabState.mode === 'muscles' ? musclesPanel(rerender) : diaryList(rerender));
+    tabState.mode === 'exercises' ? exerciseList() : tabState.mode === 'muscles' ? musclesPanel(rerender) : tabState.mode === 'analysis' ? analysisPanel(rerender) : diaryList(rerender));
 }
