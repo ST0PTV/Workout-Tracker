@@ -203,7 +203,9 @@ const CHIN = (() => {
   return { grip, hang, top, tHang: r1(solveT(hang).t), tTop: r1(solveT(top).t), elbowTop: r1(solveT(top).P.angles.elbow) };
 })();
 // Latzug eng/neutral (Seitenansicht): sitzend, Oberschenkel unter dem Polster; Umlenkrolle über dem Griff in Startstellung.
-const CGP = { hip: [0, -100], start: [18, -121], end: [38, 12], lean: -10 }; // v2.15.0: lean = leichte Rücklage an der Brust (Konvention)
+const CGP = { hip: [0, -100], start: [18, -121], mid: [50, -56], end: [38, 12], lean: -10, leanMid: -5 }; // v2.15.0: lean = leichte Rücklage an der Brust (Konvention)
+// v2.20.0: Mittelbild – die Hände laufen in einem Bogen vor dem Gesicht vorbei (Griff ≈ 12 cm vor der Nase). Vorher fuhren sie senkrecht nach unten
+// und glitten auf Gesichtshöhe nur ≈ 2 cm vor der Nase durch das Gesicht. Die Oberarme zeigen dabei fast waagerecht nach vorn (aus der Geometrie).
 const CGP_PULLEY_X = Math.round(solvePose({ root: 'hip', rootPos: CGP.hip, trunk: 0, hip: 90, knee: 90, foot: 90 }).joints.shoulder[0] + CGP.start[0] + 8);
 // Überzüge am Kabel (Seitenansicht): Turm vor der Figur, obere Rolle auf ≈ 2,05 m.
 const SAP = { tower: 240, pulley: [228, -420] };
@@ -589,6 +591,109 @@ const CLAM = (() => {
   return { HF, closed: mk(closed), open: mk(open), y: SIDEL.y({ legs: mk(closed), legsFront: true }) };
 })();
 
+// ---------- v2.20.0: Ausfallschritt neu aufgebaut ----------
+// Bis v2.19 klappte das hintere Knie unten vor die Hüfte (fast bis zum vorderen Fuß): Mit 70 % Beinlänge Schritt und den gemessenen Winkeln des
+// vorderen Beins liegt der hintere Fuß so nah unter der Hüfte, dass die Zwei-Glieder-IK nur diese Lösung hat. Außerdem schob sich die Hüfte
+// beim Ausfallschritt vorwärts beim Aufsetzen ≈ 15 cm über das Ziel hinaus und rutschte beim Absenken zurück, und rückwärts setzte der hintere
+// Fuß erst unten auf. Jetzt: Unten liegt das hintere Knie knapp über dem Boden (Kniemitte 15 über dem Boden, Konvention) und der hintere Fußballen
+// am Boden; daraus folgt die Schrittlänge. Die Zwischenbilder geben die Hüftbahn vor (vorn/hinten und abwärts, ohne Rücklauf); die Beine folgen per IK.
+const footAnkle = (ball, phi) => { const d = [Math.sin(phi * DG), -Math.cos(phi * DG)]; return [r1(ball[0] - d[0] * 30 + d[1] * 13), r1(ball[1] - d[1] * 30 - d[0] * 13)]; }; // Knöchel bei festem Ballen und Fußwinkel phi
+function legTo(hip, ankle) { // Beinwinkel (Schienbeinneigung, Kniebeugung) für Hüfte → Knöchel, Knie vorn
+  const ang = (w) => ((Math.atan2(w[0], -w[1]) / DG) % 360 + 360) % 360, v = [ankle[0] - hip[0], ankle[1] - hip[1]];
+  const d = Math.min(Math.hypot(v[0], v[1]), LEN.thigh + LEN.shank - 0.5), g = Math.acos((LEN.thigh ** 2 + d * d - LEN.shank ** 2) / (2 * LEN.thigh * d)) / DG;
+  const aT = ang(v) - g, K = [hip[0] + LEN.thigh * Math.sin(aT * DG), hip[1] - LEN.thigh * Math.cos(aT * DG)], aS = ang([ankle[0] - K[0], ankle[1] - K[1]]);
+  return { shank: r1(aS - 180), knee: r1(aS - aT) };
+}
+const LUNGE = (() => {
+  const bottom = { shank: 11.4, knee: 96.4, hip: 84.3, ankle: 11.4 }; // gemessene Winkel des vorderen Beins (Riemann et al. 2012)
+  const P = solvePose({ ...bottom, rootPos: [0, -15] }), H = P.joints.hip, trunk = P.angles.trunk; // Hüfte relativ zum vorderen Knöchel
+  const KY = -15, ballY = -2, phiB = 140; // Kniemitte, Ballen, Fußwinkel unten
+  const knee = [H[0] - Math.sqrt(LEN.thigh ** 2 - (KY - H[1]) ** 2), KY];
+  const a0 = footAnkle([0, ballY], phiB), ankY = a0[1], ankle = [knee[0] - Math.sqrt(LEN.shank ** 2 - (ankY - KY) ** 2), ankY];
+  const ballX = ankle[0] - a0[0]; // Ballen relativ zum vorderen Knöchel
+  return { bottom, H, trunk, ballX, ballY, phiB, step: r1(-ballX) };
+})();
+// Ausfallschritt vorwärts: hinterer Ballen bleibt bei x = 30 (Stand), der vordere Fuß setzt bei F auf.
+const FWL = (() => {
+  const ball = [30, LUNGE.ballY], F = [r1(30 - LUNGE.ballX), -15], Hb = [F[0] + LUNGE.H[0], LUNGE.H[1]];
+  const back = (phi) => ({ ankle: footAnkle(ball, phi), foot: phi });
+  const swing = { hip: [r1(0.3 * Hb[0]), -180], ankle: [r1(0.5 * F[0]), -34] };
+  const touchX = r1(0.82 * Hb[0]), touch = { hip: [touchX, r1(F[1] - Math.sqrt(164 ** 2 - (F[0] - touchX) ** 2))], ankle: F };
+  return { F, Hb, back, swing: { ...swing, leg: legTo(swing.hip, swing.ankle) }, touch: { ...touch, leg: legTo(touch.hip, touch.ankle) } };
+})();
+// Ausfallschritt rückwärts: der vordere Fuß bleibt bei x = 0, der hintere Ballen setzt bei LUNGE.ballX auf.
+const RVL = (() => {
+  const ball = [r1(LUNGE.ballX), LUNGE.ballY], Hb = LUNGE.H;
+  const back = (phi) => ({ ankle: footAnkle(ball, phi), foot: phi });
+  const swing = { hip: [r1(0.3 * Hb[0]), -180], ankle: [r1(0.5 * ball[0] - 10), -36], foot: 125 };
+  const aT = footAnkle(ball, 125), tx = r1(0.83 * Hb[0]), touch = { hip: [tx, r1(aT[1] - Math.sqrt(164 ** 2 - (aT[0] - tx) ** 2))] }; // Hüfte so tief, dass der Ballen den Boden erreicht
+  const back2 = (phi) => (phi === 125 ? { ankle: aT, foot: phi } : back(phi));
+  return { ball, Hb, back: back2, swing: { ...swing, leg: legTo(swing.hip, [0, -15]) }, touch: { ...touch, leg: legTo(touch.hip, [0, -15]) } };
+})();
+// ---------- Runde 15 (v2.20): Drücken und Heben ----------
+// Schrägbankdrücken an der Multipresse (Seitenansicht): Bank 30° und Körper wie beim Schrägbankdrücken mit der Langhantel (Rodríguez-Ridao et al. 2020).
+// Die Stange läuft senkrecht über dem Punkt, an dem sie unten die obere Brust erreicht (x der Hand unten). Oben ist der Arm fast gestreckt
+// (Abstand Schulter–Handgelenk 95 % der Armlänge, Konvention); das Handgelenk ist so gesetzt, dass die Hand über demselben x liegt (geführte Bahn).
+const SMI = (() => {
+  const base = { root: 'hip', rootPos: [0, -100], trunk: -60, hip: 30, knee: 90, foot: 90 };
+  const bottom = { elbow: [16, 30], wrist: [30, -14] };
+  const xb = solvePose({ ...base, armPoints: bottom }).joints.hand[0], sh = solvePose(base).joints.shoulder;
+  const reach = 0.95 * (LEN.uarm + LEN.farm);
+  const arm = (dx) => { // Zwei-Glieder-IK in der Bildebene, Ellbogen unter der Linie Schulter–Handgelenk
+    const dy = -Math.sqrt(reach * reach - dx * dx), l = reach, a = LEN.uarm, b = LEN.farm;
+    const g = Math.acos((a * a + l * l - b * b) / (2 * a * l)), base0 = Math.atan2(dy, dx), e = base0 - g;
+    return { elbow: [r1(a * Math.cos(e)), r1(a * Math.sin(e))], wrist: [r1(dx), r1(dy)] };
+  };
+  let dx = xb - sh[0];
+  for (let i = 0; i < 4; i++) { const h = solvePose({ ...base, armPoints: arm(dx) }).joints.hand[0]; dx += xb - h; }
+  return { base, bottom, top: arm(dx), x: r1(xb) };
+})();
+// Schräge Brustpresse (Seitenansicht): Lehne 20° zurück, Griffe unten auf Höhe der oberen Brust, Druck schräg nach oben-vorn bis ≈ 115°
+// Schulterbeugung zum Rumpf (übertragen von der 30°-Schrägbank: senkrechter Druck = 120°). Hebel mit Drehpunkt hinter dem Kopf auf der
+// Hebel mit Drehpunkt tief hinter dem Sitz. Alles außer der Druckrichtung Konvention.
+const IMP = (() => {
+  const base = { root: 'hip', rootPos: [0, -100], trunk: -20, hip: 75, knee: 85, foot: 90 };
+  const back = { elbow: [-20, 34], wrist: [26, 6] }, mid = { elbow: [40, 26], wrist: [64, -22] }; // Mitte: Ellbogen kommt vor den Körper (sonst springt der Oberarm beim Überblenden)
+  const up = (180 + base.trunk - 115) * DG, el = 8; // Oberarm aus der Senkrechten nach vorn: 180° + Rumpf (−20°) − Beugung 115° = 45°
+  const E = [LEN.uarm * Math.sin(up), -LEN.uarm * Math.cos(up)], fa = up - el * DG; // Unterarm 8° steiler (Ellbogen leicht gebeugt)
+  const front = { elbow: [r1(E[0]), r1(E[1])], wrist: [r1(E[0] + LEN.farm * Math.sin(fa)), r1(E[1] - LEN.farm * Math.cos(fa))] };
+  // Drehpunkt tief hinter dem Sitz (Konvention); der Hebel läuft hinter dem Körper zum Griff. Er ist nicht starr gezeichnet:
+  // ein Drehpunkt, von dem beide Griffpositionen gleich weit entfernt sind, läge vor der Figur oder über dem Kopf.
+  return { base, back, mid, front, pivot: [-62, -64] };
+})();
+// Seitheben an der Maschine (Frontansicht, sitzend): Arm in der Frontalebene von 0° auf 90° Abduktion (Protokolle Larsen et al. 2025,
+// Coratella et al. 2020, Campos et al. 2020). Variante „gebeugt“: Ellbogen 90°, Unterarm zeigt nach vorn und leicht nach unten (20°, Konvention),
+// in der Projektion kurz unter dem Ellbogen; Polster außen am Oberarm über dem Ellbogen. Variante „gestreckt“: Ellbogen fast gestreckt,
+// Polster am Unterarm. Drehachse der Hebel hinter dem Schultergelenk (Konvention, wie in der Beschreibung im Übungspool).
+const MLR = (() => {
+  const seat = -105;
+  const bent = (abd) => { const e = [LEN.uarm * Math.sin(abd * DG), LEN.uarm * Math.cos(abd * DG)]; return { elbow: [r1(e[0]), r1(e[1])], wrist: [r1(e[0]), r1(e[1] + LEN.farm * Math.sin(20 * DG))] }; };
+  return { seat, bent, legs: { hip: 85, knee: 85 } };
+})();
+// Reverse Fly am Kabel (Frontansicht, stehend): Kabel über Kreuz von zwei Rollen auf Schulterhöhe (Türme wie XOV). Start mit den Armen vorn
+// und leicht über der Körpermitte (−20°, Konvention für gekreuzte Kabel), Ende in Linie mit dem Rumpf (Bergquist et al. 2018); Ellbogen 14°
+// gebeugt (Band-Reverse-Fly, 14,08 ± 9,14°, Liu et al. 2024). Armgeometrie mit armFront.
+const CRF = { stance: 14, lift: 84, start: -20, mid: 0, end: 90, elbow: 14 }; // lift: Armhebung 84° (fast waagerecht), damit der Oberarm von vorn nie auf einen Punkt schrumpft; Mittelbild bei 0° (Arme zeigen nach vorn)
+// Y-Raise auf der Schrägbank (Seitenansicht): Brust auf dem Polster einer 45°-Bank (Konvention; keine Studie mit Brustauflage gefunden),
+// Füße am Boden. Start mit senkrecht hängenden Armen; oben 135° Armhebung in der Schulterblattebene (Song et al. 2026), projiziert auf die
+// Seitenansicht (Ebene 30° vor der Frontalebene): Beugung 153°, sichtbare Armlänge 79 % (berechnet).
+const YR = (() => {
+  const e = 135 * DG, pl = 30 * DG, up = -Math.cos(e), fw = Math.sin(e) * Math.sin(pl);
+  return { trunk: 45, flex: r1(180 - Math.atan2(fw, up) / DG), scale: Math.round(Math.hypot(up, fw) * 100) / 100 };
+})();
+// Face Pull (Seitenansicht, stehend): Turm vor der Figur, Rolle auf Kopfhöhe (Konvention; keine Studie zur Kabelhöhe gefunden).
+// Start: Arme gestreckt zur Rolle. Ende: Hände neben den Ohren, Oberarme seitlich auf Schulterhöhe – in der Seitenansicht zeigen sie zum Betrachter
+// und erscheinen sehr kurz, die Unterarme stehen nach oben (Außenrotation). Endstellung Trainingswissen, nicht gemessen.
+const FP = (() => {
+  const base = { shank: 0, knee: 4, hip: 4, ankle: 0 }, pulley = [200, -335], sh = solvePose(base).joints.shoulder;
+  const v = [pulley[0] - sh[0], pulley[1] - sh[1]], l = Math.hypot(v[0], v[1]), u = [v[0] / l, v[1] / l];
+  const start = { elbow: [r1(u[0] * LEN.uarm), r1(u[1] * LEN.uarm)], wrist: [r1(u[0] * (LEN.uarm + LEN.farm)), r1(u[1] * (LEN.uarm + LEN.farm))] }; // Arm gestreckt zur Rolle
+  return { base, tower: 210, pulley, start, end: { elbow: [-4, -5], wrist: [2, -40] } };
+})();
+// Shrugs (Frontansicht): Arme hängen mit den Kurzhanteln seitlich, Schultern heben sich um 12 Einheiten (≈ 6 cm). Berechnet aus 25° Hebung des
+// Schlüsselbeins (Peeters et al. 2023, passiv an Körperspenden) und ≈ 15 cm Schlüsselbeinlänge (Trainingswissen, nicht nachgeprüft).
+const SHR = { up: 12 };
+
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
@@ -760,15 +865,16 @@ export const ANIMATIONS = [
   // ---------- Ausfallschritt vorwärts ----------
   {
     ref: 'dumbbell-forward-lunge', view: 'side', basis: 'measured',
-    basisNote: 'Spitzenwinkel des vorderen Beins aus Riemann et al. 2012 (elektromagnetische Bewegungsmessung, 16 Personen, barfuß; Tabelle 1 am PDF geprüft). Rumpf daraus berechnet (≈ 0°, passt zur Anweisung „aufrecht“). Schrittlänge 70 % Beinlänge (Protokoll); hinteres Bein und Schrittphase sind Konvention.',
+    basisNote: 'Spitzenwinkel des vorderen Beins aus Riemann et al. 2012 (elektromagnetische Bewegungsmessung, 16 Personen, barfuß; Tabelle 1 am PDF geprüft). Rumpf daraus berechnet (≈ 0°, passt zur Anweisung „aufrecht“). Seit v2.20.0 liegt das hintere Knie unten knapp über dem Boden unter der Hüfte (Konvention); daraus folgt die Schrittlänge (≈ 0,69 m vom hinteren Ballen zum vorderen Knöchel, berechnet). Vorher klappte das Knie bei der kürzeren Schrittlänge nach vorn. Die Hüftbahn beim Schritt (nach vorn und abwärts, ohne Zurückrutschen) und das hintere Bein sind Konvention.',
     tempo: { basis: 'protocol', note: 'Absenken in ≈ 2 s (Metronom, Riemann et al. 2012); Schritt und Rückkehr nicht gemessen.' },
     frames: [
       { label: 'Stand', pose: { rootPos: [0, -15], shank: C(0), knee: C(0), hip: C(0), ankle: C(0), leg2: { hip: C(0), knee: C(0), ankle: C(0) }, armPlumb: true, elbow: C(0), props: lungeProps } },
-      { label: 'Schritt', pose: { rootPos: [70, -30], shank: C(0), knee: C(35), hip: C(40), ankle: C(10), leg2: { ankle: [0, -15], foot: C(90) }, armPlumb: true, elbow: C(0), props: lungeProps } },
-      { label: 'Aufsetzen', pose: { rootPos: [118, -15], shank: C(5), knee: C(38), hip: C(40), ankle: C(5), leg2: { ankle: [21, -33], foot: C(140) }, armPlumb: true, elbow: C(0), props: lungeProps } },
-      { label: 'Unten', pose: { rootPos: [118, -15], shank: V(11.4, 'L1', 'computed', 'gleich der Dorsalflexion'), knee: V(96.4, 'L1', 'fulltext', '−96,4 ± 10,7°'), hip: V(84.3, 'L1', 'fulltext', '−84,3 ± 14,9°'), ankle: V(11.4, 'L1', 'fulltext', '−11,4 ± 8,1°'), leg2: { ankle: [21, -33], foot: C(140) }, armPlumb: true, elbow: C(0), props: lungeProps } }
+      { label: 'Schritt', pose: { rootPos: FWL.swing.ankle, shank: C(FWL.swing.leg.shank, 'aus der Hüftbahn gelöst'), knee: C(FWL.swing.leg.knee), trunk: C(3), ankle: C(10), leg2: FWL.back(90), armPlumb: true, elbow: C(0), props: lungeProps } },
+      { label: 'Aufsetzen', pose: { rootPos: FWL.F, shank: C(FWL.touch.leg.shank, 'aus der Hüftbahn gelöst'), knee: C(FWL.touch.leg.knee), trunk: C(4), ankle: C(FWL.touch.leg.shank, 'Fuß flach'), leg2: FWL.back(110), armPlumb: true, elbow: C(0), props: lungeProps } },
+      { label: 'Unten', pose: { rootPos: FWL.F, shank: V(11.4, 'L1', 'computed', 'gleich der Dorsalflexion'), knee: V(96.4, 'L1', 'fulltext', '−96,4 ± 10,7°'), hip: V(84.3, 'L1', 'fulltext', '−84,3 ± 14,9°'), ankle: V(11.4, 'L1', 'fulltext', '−11,4 ± 8,1°'), leg2: FWL.back(LUNGE.phiB), armPlumb: true, elbow: C(0), props: lungeProps },
+        facts: [K(LUNGE.step, 'L1', 'Schrittlänge Ballen hinten – Knöchel vorn (Einheiten; ≈ 77 % der Hüfthöhe): folgt aus den gemessenen Winkeln vorn und dem hinteren Knie knapp über dem Boden')] }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [4] }, { a: 0, b: 1, dur: 0.4, label: 'Schritt', kp: [0] }, { a: 1, b: 2, dur: 0.3, label: 'Aufsetzen', kp: [0] }, { a: 2, b: 3, dur: 1.0, label: 'Absenken', kp: [1, 2] }, { a: 3, b: 3, dur: 0.3, label: 'Unten', kp: [2] }, { a: 3, b: 2, dur: 0.8, label: 'Abdrücken', kp: [3] }, { a: 2, b: 1, dur: 0.3, label: 'Zurück', kp: [3] }, { a: 1, b: 0, dur: 0.4, label: 'Stand', kp: [] }],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [4] }, { a: 0, b: 1, dur: 0.45, label: 'Schritt', kp: [0] }, { a: 1, b: 2, dur: 0.4, label: 'Aufsetzen', kp: [0] }, { a: 2, b: 3, dur: 1.0, label: 'Absenken', kp: [1, 2] }, { a: 3, b: 3, dur: 0.3, label: 'Unten', kp: [2] }, { a: 3, b: 2, dur: 0.8, label: 'Abdrücken', kp: [3] }, { a: 2, b: 1, dur: 0.4, label: 'Zurück', kp: [3] }, { a: 1, b: 0, dur: 0.45, label: 'Stand', kp: [] }],
     keyPoints: [
       { short: 'Schritt', anchor: 'foot', side: 'r', status: 'contested', text: 'Mit einem großen Schritt nach vorn treten, etwa 70–100 % der Beinlänge.', src: ['L1', 'L3', 'L4'],
         explain: 'Umstritten. 70 % Beinlänge (Riemann et al. 2012) bis 100 % (Stastny et al. 2015). Ein kurzer Schritt erhöht die Last im Kniescheibengelenk bei 70–90° Kniebeugung (Escamilla et al. 2008).' },
@@ -979,8 +1085,8 @@ export const ANIMATIONS = [
 
   // ---------- Latzug (Frontansicht) ----------
   {
-    ref: 'lat-pulldown', view: 'front', basis: 'transfer',
-    basisNote: 'Frontansicht. Keine gelesene Studie berichtet Gelenkwinkel für den Latzug an Gesunden; Schulter- und Ellbogenbereich sind vom Klimmzug übertragen (Prinold & Bull 2014, Youdas et al. 2010). Griffbreite, Start mit gestreckten Armen und Endpunkt an der oberen Brust sind Studienprotokolle (Padovan et al. 2024). Sitzend, Oberschenkel unter dem Polster; Arme in die Bildebene projiziert.',
+    ref: 'lat-pulldown', checkedAt: '2026-10-21', view: 'back', basis: 'transfer',
+    basisNote: 'Rückansicht (seit v2.20.0; vorher von vorn, die Stange lief dann vor dem Gesicht): Stange, Hände und Unterarme verschwinden hinter Kopf und Rücken, sobald sie vor dem Körper liegen. Keine gelesene Studie berichtet Gelenkwinkel für den Latzug an Gesunden; Schulter- und Ellbogenbereich sind vom Klimmzug übertragen (Prinold & Bull 2014, Youdas et al. 2010). Griffbreite, Start mit gestreckten Armen und Endpunkt an der oberen Brust sind Studienprotokolle (Padovan et al. 2024). Sitzend, Oberschenkel unter dem Polster; Arme in die Bildebene projiziert.',
     tempo: { basis: 'protocol', note: '2 s ziehen, 0,5 s halten, 2 s zurück (Metronom, Padovan et al. 2024).' },
     frames: [
       { label: 'Start', pose: { rootPos: [0, -108], armPoints: { elbow: [13.4, -66.9], wrist: [24, -120] }, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: pulldownProps },
@@ -994,9 +1100,9 @@ export const ANIMATIONS = [
         explain: 'Protokoll der gelesenen Studien (1,5-fache Biakromialbreite). Enger, mittlerer und weiter Griff (1–2-fach) ergaben ähnliche Latissimus-Aktivität; mit dem weiten Griff war das 6RM etwas niedriger (Andersen et al. 2014, n = 15). Griffbreite und Unterarmdrehung änderten die Aktivität kaum (Lusk et al. 2010).' },
       { short: 'Polster', anchor: 'thighR', side: 'r', status: 'single', text: 'Oberschenkel unter dem Polster fixieren, Becken bleibt auf dem Sitz.', src: ['L1'],
         explain: 'Aufbau in Padovan et al. 2024 (Becken durch das Oberschenkelpolster fixiert). Ob das die Ausführung verbessert, wurde nicht untersucht.' },
-      { short: 'Ziehen', anchor: 'chest', side: 'r', status: 'consensus', text: 'Aus gestreckten Armen die Stange vor dem Kopf zur oberen Brust ziehen.', src: ['L1', 'L8'],
+      { short: 'Ziehen', anchor: 'upperBack', side: 'r', status: 'consensus', text: 'Aus gestreckten Armen die Stange vor dem Kopf zur oberen Brust ziehen.', src: ['L1', 'L8'],
         explain: 'Zur Brustmitte (Padovan et al. 2024). Vor dem Kopf erlaubte mehr Last als hinter dem Nacken (8RM 70,0 vs. 59,3 kg) bei gleicher Latissimus-Aktivität; Sperandei et al. 2009 fanden vor dem Kopf die höchste Brust- und ähnliche Latissimus-Aktivität.' },
-      { short: 'Rumpf', anchor: 'belly', side: 'l', status: 'contested', text: 'Oberkörper ruhig und fast aufrecht halten, nur leichte Rücklage.', src: ['L1', 'L4'],
+      { short: 'Rumpf', anchor: 'midBack', side: 'l', status: 'contested', text: 'Oberkörper ruhig und fast aufrecht halten, nur leichte Rücklage.', src: ['L1', 'L4'],
         explain: 'Umstritten. Padovan et al. 2024 ließen eine leichte Rücklage zu, andere Protokolle verlangen einen senkrechten Rumpf; Buonsenso et al. 2025 testeten eine Variante mit 30° Rücklage als eigene Übungsform. Ein gemessener Rumpfwinkel liegt nicht vor.' },
       { short: 'Zurück', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Kontrolliert nach oben zurückführen, bis die Arme gestreckt sind.', src: ['L1', 'L7'],
         explain: 'Start und Ende mit gestreckten Ellbogen in allen Protokollen; Tempo 2 s / 2 s.' }
@@ -1477,15 +1583,16 @@ export const ANIMATIONS = [
   // ---------- Ausfallschritte rückwärts (v2.9) ----------
   {
     ref: 'dumbbell-reverse-lunge', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
-    basisNote: 'Winkel des vorderen Beins unten vom Ausfallschritt vorwärts übertragen (Riemann et al. 2012, Tabelle 1 am PDF geprüft). Comfort et al. 2015 (9 Männer, 3D, Volltext) fanden zwischen vorwärts und rückwärts keine Unterschiede in Hüft- und Kniewinkel; ihr Kniewert ist im Text (114,9°) und in der Tabelle (63,7–66,6°) widersprüchlich und wird deshalb nicht übernommen. Schrittlänge wie vorwärts (70 % Beinlänge); hinteres Bein und Schrittphase sind Konvention.',
+    basisNote: 'Winkel des vorderen Beins unten vom Ausfallschritt vorwärts übertragen (Riemann et al. 2012, Tabelle 1 am PDF geprüft). Comfort et al. 2015 (9 Männer, 3D, Volltext) fanden zwischen vorwärts und rückwärts keine Unterschiede in Hüft- und Kniewinkel; ihr Kniewert ist im Text (114,9°) und in der Tabelle (63,7–66,6°) widersprüchlich und wird deshalb nicht übernommen. Seit v2.20.0 setzt der hintere Fußballen auf, bevor die Figur absenkt, und das hintere Knie liegt unten knapp über dem Boden unter der Hüfte (Konvention); daraus folgt die Schrittlänge (≈ 0,69 m, berechnet). Hüftbahn und hinteres Bein sind Konvention.',
     tempo: { basis: 'protocol', note: '3 s ab / 2 s auf mit Metronom (Comfort et al. 2015); hier kürzer mit Schrittphase (Konvention).' },
     frames: [
       { label: 'Stand', pose: { shank: C(0), knee: C(0), hip: C(0), ankle: C(0), leg2: { ankle: [-4, -15], foot: C(90) }, armPlumb: true, elbow: C(0), props: revLungeProps } },
-      { label: 'Schritt', pose: { shank: C(4), knee: C(30), hip: C(32), ankle: C(4), leg2: { ankle: [-60, -40], foot: C(130) }, armPlumb: true, elbow: C(0), props: revLungeProps } },
-      { label: 'Unten', pose: { shank: V(11.4, 'L1', 'computed', 'übertragen: gleich der Dorsalflexion'), knee: V(96.4, 'L1', 'fulltext', 'übertragen: 96,4 ± 10,7° (vorwärts)'), hip: V(84.3, 'L1', 'fulltext', 'übertragen: 84,3 ± 14,9° (vorwärts)'), ankle: V(11.4, 'L1', 'fulltext', 'übertragen: 11,4 ± 8,1°'), leg2: { ankle: [-97, -37], foot: C(145) }, armPlumb: true, elbow: C(0), props: revLungeProps },
+      { label: 'Schritt', pose: { shank: C(RVL.swing.leg.shank, 'aus der Hüftbahn gelöst'), knee: C(RVL.swing.leg.knee), trunk: C(2), ankle: C(RVL.swing.leg.shank, 'Fuß flach'), leg2: { ankle: RVL.swing.ankle, foot: C(RVL.swing.foot) }, armPlumb: true, elbow: C(0), props: revLungeProps } },
+      { label: 'Aufsetzen', pose: { shank: C(RVL.touch.leg.shank, 'aus der Hüftbahn gelöst'), knee: C(RVL.touch.leg.knee), trunk: C(4), ankle: C(RVL.touch.leg.shank, 'Fuß flach'), leg2: RVL.back(125), armPlumb: true, elbow: C(0), props: revLungeProps } },
+      { label: 'Unten', pose: { shank: V(11.4, 'L1', 'computed', 'übertragen: gleich der Dorsalflexion'), knee: V(96.4, 'L1', 'fulltext', 'übertragen: 96,4 ± 10,7° (vorwärts)'), hip: V(84.3, 'L1', 'fulltext', 'übertragen: 84,3 ± 14,9° (vorwärts)'), ankle: V(11.4, 'L1', 'fulltext', 'übertragen: 11,4 ± 8,1°'), leg2: RVL.back(LUNGE.phiB), armPlumb: true, elbow: C(0), props: revLungeProps },
         facts: [V(99.3, 'C2', 'fulltext', 'Comfort et al. 2015 rückwärts: Hüftbeugung 99,3 ± 6,7° (vorwärts 93,2°, kein signifikanter Unterschied)'), V(22.2, 'C2', 'fulltext', 'Comfort et al. 2015 rückwärts: Dorsalflexion 22,2 ± 4,8°')] }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [0] }, { a: 0, b: 1, dur: 0.6, label: 'Schritt zurück', kp: [0] }, { a: 1, b: 2, dur: 1.0, label: 'Absenken', kp: [1, 2] }, { a: 2, b: 2, dur: 0.3, label: 'Unten', kp: [2] }, { a: 2, b: 1, dur: 0.8, label: 'Hochdrücken', kp: [3] }, { a: 1, b: 0, dur: 0.5, label: 'Stand', kp: [4] }],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [0] }, { a: 0, b: 1, dur: 0.45, label: 'Schritt zurück', kp: [0] }, { a: 1, b: 2, dur: 0.4, label: 'Aufsetzen', kp: [0] }, { a: 2, b: 3, dur: 1.0, label: 'Absenken', kp: [1, 2] }, { a: 3, b: 3, dur: 0.3, label: 'Unten', kp: [2] }, { a: 3, b: 2, dur: 0.8, label: 'Hochdrücken', kp: [3] }, { a: 2, b: 1, dur: 0.4, label: 'Hochdrücken', kp: [3] }, { a: 1, b: 0, dur: 0.45, label: 'Stand', kp: [4] }],
     keyPoints: [
       { short: 'Schritt', anchor: 'foot2', side: 'l', status: 'single', text: 'Mit einem Bein weit nach hinten treten, der vordere Fuß bleibt stehen.', src: ['C2'],
         explain: 'Protokoll in Comfort et al. 2015: Stand auf einer Kraftmessplatte, Schritt zurück auf die zweite, der vordere Fuß bleibt die ganze Zeit am Boden.' },
@@ -1971,10 +2078,11 @@ export const ANIMATIONS = [
     frames: [
       { label: 'Oben', pose: { root: 'hip', rootPos: CGP.hip, trunk: V(0, 'L2', 'protocol', 'aufrecht (enger Neutralgriff ohne Rumpfneigung)'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.start, elbowSide: 1, props: cgpProps },
         facts: [V(0, 'L4', 'protocol', 'Start mit gestreckten Armen')] },
+      { label: 'Gesicht', pose: { root: 'hip', rootPos: CGP.hip, trunk: C(CGP.leanMid, 'Rücklage halb (Zeichenkonvention)'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.mid, elbowSide: 1, props: cgpProps } },
       { label: 'Brust', pose: { root: 'hip', rootPos: CGP.hip, trunk: C(CGP.lean, 'leichte Rücklage beim Ziehen (Zeichenkonvention; im Protokoll aufrecht)'), hip: C(90), knee: C(90), foot: C(90), armTarget: CGP.end, elbowSide: 1, props: cgpProps },
         facts: [V(1, 'L1', 'protocol', 'Griff bis zur Brust')] }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 1, dur: 0.5, label: 'Brust', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Ziehen', kp: [2] }, { a: 1, b: 2, dur: 1.0, label: 'Ziehen', kp: [2] }, { a: 2, b: 2, dur: 0.5, label: 'Brust', kp: [2, 3] }, { a: 2, b: 1, dur: 1.0, label: 'Zurück', kp: [4] }, { a: 1, b: 0, dur: 1.0, label: 'Zurück', kp: [4] }],
     keyPoints: [
       { short: 'Sitz', anchor: 'thigh', side: 'r', status: 'consensus', text: 'Oberschenkel unter dem Polster fixieren, Rumpf fast aufrecht halten.', src: ['L1', 'L2'],
         explain: 'Oberschenkelpolster fixiert das Becken (Padovan et al. 2024); aufrechter Rumpf beim engen Neutralgriff (Buonsenso et al. 2025, 40 trainierte Männer). Eine Variante mit 30° Neigung wurde dort nur mit weitem Griff getestet. Gezeichnet ist beim Ziehen eine leichte Rücklage von etwa 10°, wie sie im Training häufig zu sehen ist – Zeichenkonvention, nicht gemessen.' },
@@ -3429,7 +3537,221 @@ export const ANIMATIONS = [
       MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'abstract' },
       D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' }
     }
+  },
+
+  // ---------- Runde 15 (v2.20): Schrägbankdrücken an der Multipresse ----------
+  {
+    ref: 'smith-machine-incline-bench-press', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Studie misst Gelenkwinkel beim Schrägbankdrücken, weder frei noch an der Multipresse. Aufbau übertragen vom Schrägbankdrücken mit der Langhantel nach Rodríguez-Ridao et al. 2020 (Volltext): Bank 30°, Griff 150 % der Schulterbreite, Stange bis 1 cm über das Brustbein auf Höhe der Brustwarzen, Schulter etwa 45° abgespreizt, 2 s ab / 2 s auf. Die Schiene führt die Stange senkrecht über dem Punkt, an dem sie die Brust erreicht; das ist aus der Geometrie gelöst. Schiene, Schlitten und Bank sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: '2 s ab / 2 s auf mit Metronom (Rodríguez-Ridao et al. 2020, freie Langhantel).' },
+    frames: [
+      { label: 'Oben', pose: { ...SMI.base, trunk: V(-60, 'R1', 'protocol', 'Bank 30° (Studie: 0, 15, 30, 45, 60°)'), hip: C(30), knee: C(90), foot: C(90, 'Fuß flach'), armPoints: SMI.top, props: smithInclineProps },
+        facts: [K(0, 'R1', 'Stange senkrecht über dem Auflagepunkt an der Brust (geführte Bahn, aus der Geometrie gelöst)')] },
+      { label: 'Unten', pose: { ...SMI.base, trunk: V(-60, 'R1', 'protocol', 'Bank 30°'), hip: C(30), knee: C(90), foot: C(90, 'Fuß flach'), armPoints: SMI.bottom, props: smithInclineProps },
+        facts: [V(45, 'R1', 'protocol', 'Schulter etwa 45° abgespreizt, Stange 1 cm über dem Brustbein'), V(150, 'R1', 'protocol', 'Griff 150 % der Schulterbreite')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [2] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [0, 2] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Drücken', kp: [3] }],
+    keyPoints: [
+      { short: 'Bank', anchor: 'back', side: 'l', status: 'contested', text: 'Bank etwa 30° schräg: dort war der obere Brustanteil am aktivsten.', src: ['R1', 'T1'],
+        explain: 'Umstritten. Mit freier Langhantel (30 Trainierte, 60 % 1RM) war der obere Brustanteil bei 30° am aktivsten; bei 45° und 60° übernahm der vordere Deltamuskel (Rodríguez-Ridao et al. 2020). Trebs et al. 2010 (15 Männer, 70 % 1RM) fanden den oberen Brustanteil bei 44° aktiver als bei 28° und flach. Eigene Daten zur Multipresse auf der Schrägbank gibt es nicht.' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'consensus', text: 'Je steiler die Bank, desto mehr arbeitet die vordere Schulter.', src: ['R1', 'T1'],
+        explain: 'Bei 45° und 60° war der vordere Deltamuskel stärker aktiv als die Brustanteile (Rodríguez-Ridao et al. 2020); bei 28°, 44° und 56° war er aktiver als flach (Trebs et al. 2010, Abstract).' },
+      { short: 'Bahn', anchor: 'bar', side: 'r', status: 'single', text: 'Bank so stellen, dass die Stange senkrecht auf die obere Brust trifft.', src: ['S24'],
+        explain: 'Mit freier Stange auf der 25°-Schrägbank lag der Auftreffpunkt höher am Brustbein und die Bahn war senkrechter als flach (Saeterbakken et al. 2017, 12 Wettkampf-Bankdrücker). An der Multipresse ist die Bahn fest; die Bankposition bestimmt deshalb, wo die Stange auftrifft (Konvention).' },
+      { short: 'Gerät', anchor: 'chest', side: 'r', status: 'single', text: 'Frei schaffte man etwa 3 % mehr; die seitliche Schulter war frei aktiver.', src: ['SA', 'SC'],
+        explain: 'Flachbank-Daten: Die Langhantel-1RM lag ≈ 3 % über der an der Multipresse, Brust und vordere Schulter waren gleich aktiv (Saeterbakken et al. 2011, 12 trainierte Männer). Mit freier Stange war der mittlere Deltamuskel stärker aktiv (Schick et al. 2010). Für die Schrägbank fehlen eigene Daten.' }
+    ],
+    sources: {
+      R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
+      T1: { label: 'Trebs et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddfae7', read: 'abstract' },
+      S24: { label: 'Saeterbakken et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0047', read: 'fulltext' },
+      SA: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'abstract' },
+      SC: { label: 'Schick et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181cc2237', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 15: Brustpresse schräg ----------
+  {
+    ref: 'incline-machine-chest-press', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Studie zur schrägen Brustpresse an der Maschine gefunden. Übertragen ist nur die Druckrichtung: Auf der 30°-Schrägbank drückt man senkrecht, das sind etwa 120° Schulterbeugung zum Rumpf (berechnet, Rodríguez-Ridao et al. 2020). Hier drückt man bis ≈ 115° schräg nach oben-vorn. Lehne (20° zurück), Griffhöhe, Hebel und Drehpunkt sind Zeichenkonvention.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 2 s drücken / 2 s zurück (Konvention, wie an der Brustpresse).' },
+    frames: [
+      { label: 'Unten', pose: { ...IMP.base, trunk: C(-20, 'Lehne 20° zurück'), hip: C(75), knee: C(85), foot: C(90), armPoints: IMP.back, props: inclinePressProps } },
+      { label: 'Mitte', pose: { ...IMP.base, trunk: C(-20), hip: C(75), knee: C(85), foot: C(90), armPoints: IMP.mid, props: inclinePressProps } },
+      { label: 'Oben', pose: { ...IMP.base, trunk: C(-20), hip: C(75), knee: C(85), foot: C(90), armPoints: IMP.front, props: inclinePressProps },
+        facts: [K(115, 'R1', 'Schulterbeugung zum Rumpf am Ende; übertragen vom senkrechten Druck auf der 30°-Bank (≈ 120°)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 1.0, label: 'Drücken', kp: [0, 2] }, { a: 1, b: 2, dur: 1.0, label: 'Drücken', kp: [0, 2] }, { a: 2, b: 2, dur: 0.2, label: 'Oben', kp: [3] }, { a: 2, b: 1, dur: 1.0, label: 'Zurück', kp: [1] }, { a: 1, b: 0, dur: 1.0, label: 'Zurück', kp: [1] }],
+    keyPoints: [
+      { short: 'Richtung', anchor: 'hand', side: 'r', status: 'contested', text: 'Schräg nach oben drücken spricht eher den oberen Brustanteil an.', src: ['R1', 'T1'],
+        explain: 'Umstritten und übertragen von der Langhantel: Auf der 30°-Schrägbank war der obere Brustanteil am aktivsten (Rodríguez-Ridao et al. 2020, 30 Trainierte); Trebs et al. 2010 fanden das erst bei 44°. An der schrägen Brustpresse selbst wurde nichts gemessen.' },
+      { short: 'Griffe', anchor: 'chest', side: 'r', status: 'single', text: 'Sitz so einstellen, dass die Griffe unten etwa auf Höhe der oberen Brust sind.', src: ['S24'],
+        explain: 'Abgeleitet: Auf der Schrägbank traf die Stange höher am Brustbein auf als flach (Saeterbakken et al. 2017). Eine Maschinenstudie dazu gibt es nicht; die Sitzhöhe ist Konvention.' },
+      { short: 'Maschine', anchor: 'shoulder', side: 'l', status: 'single', text: 'An der (flachen) Brustpresse war der obere Brustanteil weniger aktiv als frei.', src: ['C1'],
+        explain: '10 Wettkampf-Bodybuilder, 80 % 1RM: Der obere (klavikuläre) Brustanteil war an der Brustpresse weniger erregt als bei allen Bankdrück-Varianten, am stärksten auf der 45°-Schrägbank (Coratella et al. 2019). Eine schräge Maschine wurde nicht getestet.' },
+      { short: 'Oben', anchor: 'elbow', side: 'l', status: 'single', text: 'Bis knapp vor die volle Streckung drücken, dann kontrolliert zurück.', src: ['R1'],
+        explain: 'In Rodríguez-Ridao et al. 2020 wurde bis zur Ellbogenstreckung ohne Überstreckung gedrückt. Wie weit zurück, ist für die Maschine nicht untersucht.' }
+    ],
+    sources: {
+      R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
+      T1: { label: 'Trebs et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddfae7', read: 'abstract' },
+      S24: { label: 'Saeterbakken et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0047', read: 'fulltext' },
+      C1: { label: 'Coratella et al. 2019, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2019.1655101', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 15: Seitheben an der Maschine (Frontansicht) ----------
+  {
+    ref: 'machine-lateral-raise', checkedAt: '2026-10-21', view: 'front', basis: 'protocol',
+    variants: [{ key: 'bent', label: 'Ellbogen gebeugt' }, { key: 'straight', label: 'Arm gestreckt' }],
+    basisNote: 'Frontansicht, sitzend. Keine Studie an einer Seithebe-Maschine gefunden. Bewegungsumfang 0° → 90° Abduktion in der Frontalebene nach den Protokollen von Larsen et al. 2025, Coratella et al. 2020 und Campos et al. 2020 (alle Volltext, mit Kabel oder Kurzhantel). „Gebeugt“: Ellbogen 90°, Unterarm zeigt nach vorn und erscheint von vorn kurz; „Gestreckt“: Arm fast gestreckt. Polster, Hebel und Sitz sind Zeichenkonvention; die Drehachse liegt hinter dem Schultergelenk.',
+    tempo: { basis: 'protocol', note: '2 s heben / 2 s senken mit Metronom (Coratella et al. 2020); Larsen et al. 2025 etwa 1 s je Richtung.' },
+    frames: {
+      bent: [
+        { label: 'Unten', pose: { rootPos: [0, MLR.seat], armPoints: MLR.bent(0), legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: machineLateralProps(false) },
+          facts: [V(0, 'L1', 'protocol', 'Oberarm parallel zum Rumpf')] },
+        { label: 'Oben', pose: { rootPos: [0, MLR.seat], armPoints: MLR.bent(90), legs: { hip: C(85), knee: C(85) }, props: machineLateralProps(false) },
+          facts: [V(90, 'L1', 'protocol', 'bis 90° Abduktion'), V(90, 'C2', 'protocol', 'Ellbogen 90° gebeugt (Variante mit gebeugtem Arm)')] }
+      ],
+      straight: [
+        { label: 'Unten', pose: { rootPos: [0, MLR.seat], arm: { abd: V(0, 'L1', 'protocol', 'Oberarm parallel zum Rumpf'), elbow: C(10, 'fast gestreckt') }, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: machineLateralProps(true) } },
+        { label: 'Oben', pose: { rootPos: [0, MLR.seat], arm: { abd: V(90, 'L1', 'protocol', 'bis 90° Abduktion'), elbow: C(10) }, legs: { hip: C(85), knee: C(85) }, props: machineLateralProps(true) } }
+      ]
+    },
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.5, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Weg', anchor: 'elbowR', side: 'r', status: 'consensus', text: 'Arme seitlich bis etwa Schulterhöhe (90°) heben.', src: ['L1', 'C2', 'CA'],
+        explain: 'Alle drei Protokolle endeten bei 90° Abduktion (Larsen et al. 2025, 24 Trainierte; Coratella et al. 2020, 10 Bodybuilder; Campos et al. 2020, 13 trainierte Männer). Das ist eine Vorgabe, kein Vergleich mit höheren Endstellungen.' },
+      { short: 'Ellbogen', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Mit gestrecktem Arm war der mittlere Delta etwas aktiver als mit gebeugtem.', src: ['C2'],
+        explain: 'Kurzhanteln, 10 Bodybuilder: Mit 90° gebeugtem Ellbogen war die EMG-Aktivität des mittleren Deltamuskels niedriger als mit fast gestrecktem Arm (Coratella et al. 2020). An der Maschine wurde das nicht geprüft.' },
+      { short: 'Gerät', anchor: 'uarmL', side: 'l', status: 'single', text: 'Kabel und Kurzhantel ließen den seitlichen Delta gleich wachsen.', src: ['L1'],
+        explain: '8 Wochen, ein Arm am Kabel, einer mit Kurzhantel: Die Muskeldicke nahm in beiden Armen ähnlich zu (Larsen et al. 2025). Eine Maschine wurde nicht getestet; das Gerät scheint zweitrangig.' },
+      { short: 'Sitz', anchor: 'chest', side: 'l', status: 'single', text: 'Aufrecht sitzen, Rücken an der Lehne, Schultern unten lassen.', src: ['CA'],
+        explain: 'Campos et al. 2020 ließen sitzend mit 90°-Lehne heben. Dass die Schultern unten bleiben, ist Konvention aus dem Übungspool, nicht gemessen.' }
+    ],
+    sources: {
+      L1: { label: 'Larsen et al. 2025, Front Physiol', url: 'https://doi.org/10.3389/fphys.2025.1611468', read: 'fulltext' },
+      C2: { label: 'Coratella et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17176015', read: 'fulltext' },
+      CA: { label: 'Campos et al. 2020, J Hum Kinet', url: 'https://doi.org/10.2478/hukin-2020-0033', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 15: Reverse Fly am Kabel (Frontansicht) ----------
+  {
+    ref: 'cable-reverse-fly', checkedAt: '2026-10-21', view: 'front', basis: 'transfer',
+    basisNote: 'Frontansicht, stehend. Keine Studie mit gekreuzten Kabeln gefunden. Start mit den Armen vorn auf Schulterhöhe und Ende in Linie mit dem Rumpf nach Bergquist et al. 2018 (Band auf Schulterhöhe, Volltext); Ellbogen 14° nach dem Band-Reverse-Fly in Liu et al. 2024 (14,08 ± 9,14°, 13 Männer, Vicon). Dass die Hände zu Beginn etwas über die Körpermitte reichen, Türme, Rollen und Stand sind Zeichenkonvention. Die Arme vorn erscheinen von vorn verkürzt.',
+    tempo: { basis: 'protocol', note: '2 s nach außen / 2 s zurück mit Metronom (Bergquist et al. 2018, Band).' },
+    frames: [
+      { label: 'Vorn', pose: { legs: { planted: true, stance: C(CRF.stance, 'etwa hüftbreit'), toeOut: C(8), knee: C(6), shank: C(3) }, armPoints: armFront(CRF.lift, CRF.start, CRF.elbow), props: cableReverseFlyProps },
+        facts: [V(90, 'B1', 'protocol', 'Start: Arme vorn auf Schulterhöhe (gezeichnet 84°, damit der Arm von vorn sichtbar bleibt)'), C(-20, 'Hände etwas über der Körpermitte (gekreuzte Kabel)')] },
+      { label: 'Mitte', pose: { legs: { planted: true, stance: C(CRF.stance), toeOut: C(8), knee: C(6), shank: C(3) }, armPoints: armFront(CRF.lift, CRF.mid, CRF.elbow), props: cableReverseFlyProps } },
+      { label: 'Außen', pose: { legs: { planted: true, stance: C(CRF.stance), toeOut: C(8), knee: C(6), shank: C(3) }, armPoints: armFront(CRF.lift, CRF.end, CRF.elbow), props: cableReverseFlyProps },
+        facts: [V(90, 'B1', 'protocol', 'Ende: Oberarme in Linie mit dem Rumpf'), V(14, 'LI', 'fulltext', 'Ellbogenbeugung 14,08 ± 9,14° (Band-Reverse-Fly)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Vorn', kp: [0] }, { a: 0, b: 1, dur: 0.5, label: 'Öffnen', kp: [0, 1] }, { a: 1, b: 2, dur: 1.5, label: 'Öffnen', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Außen', kp: [2] }, { a: 2, b: 1, dur: 1.5, label: 'Zurück', kp: [3] }, { a: 1, b: 0, dur: 0.5, label: 'Zurück', kp: [3] }],
+    keyPoints: [
+      { short: 'Weg', anchor: 'handR', side: 'r', status: 'consensus', text: 'Arme auf Schulterhöhe von vorn nach außen führen, bis in Linie mit dem Rumpf.', src: ['B1', 'LI'],
+        explain: 'So war der Reverse Fly mit Band definiert (Bergquist et al. 2018, 29 Personen). Mit Band wurden am Ende im Mittel 95 ± 13° horizontale Abduktion und 94 ± 14° Schulterbeugung gemessen (Liu et al. 2024, 13 Männer).' },
+      { short: 'Ellbogen', anchor: 'elbowR', side: 'r', status: 'single', text: 'Ellbogen leicht gebeugt und gleich halten (gemessen etwa 14°).', src: ['LI', 'B1'],
+        explain: 'Beide Studien gaben eine leichte Beugung vor; gemessen wurden 14 ± 9° (Liu et al. 2024). Verschiedene Ellbogenwinkel wurden nicht verglichen.' },
+      { short: 'Griff', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Neutraler Griff: hinterer Delta an der Maschine etwas aktiver als im Obergriff.', src: ['SF'],
+        explain: 'Reverse-Fly-Maschine, trainierte Männer: Mit neutralem Griff waren hinterer Deltamuskel und Infraspinatus aktiver als im Obergriff (Schoenfeld et al. 2013, Abstract). Am Kabel nicht geprüft.' },
+      { short: 'Tempo', anchor: 'chest', side: 'l', status: 'single', text: 'Kontrolliert öffnen und zurückführen, in der Studie je 2 s.', src: ['B1'],
+        explain: 'Metronom 2 s / 2 s bei 10-RM-Last (Bergquist et al. 2018). Ein Messprotokoll, kein Tempovergleich.' }
+    ],
+    sources: {
+      B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' },
+      LI: { label: 'Liu et al. 2024, PeerJ', url: 'https://doi.org/10.7717/peerj.17839', read: 'fulltext' },
+      SF: { label: 'Schoenfeld et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318281e1e9', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 15: Y-Raise auf der Schrägbank (Seitenansicht) ----------
+  {
+    ref: 'incline-prone-y-raise', checkedAt: '2026-10-21', view: 'side', basis: 'transfer',
+    basisNote: 'Keine Studie mit Brustauflage auf der Schrägbank gefunden. Endstellung übertragen vom Y-Raise im Stand: Arme bis ≈ 135° in der Schulterblattebene (Song et al. 2026, Volltext). In der Seitenansicht erscheint das als 153° Schulterbeugung bei 79 % der Armlänge (berechnet, Ebene 30° vor der Frontalebene). Bank 45°, gestreckte Arme und Stand sind Zeichenkonvention.',
+    tempo: { basis: 'protocol', note: 'Je Wiederholung 3 s mit Metronom (Adachi et al. 2022); hier 1,5 s heben / 1,5 s senken.' },
+    frames: [
+      { label: 'Unten', pose: { shank: C(12), knee: C(15), ankle: C(12, 'Fuß flach'), trunk: C(YR.trunk, 'Brust auf der 45°-Bank'), shoulder: K(YR.trunk, 'SO', 'Arme hängen senkrecht'), armScale: [1, 1], elbow: C(0), props: yRaiseProps } },
+      { label: 'Oben', pose: { shank: C(12), knee: C(15), ankle: C(12), trunk: C(YR.trunk), shoulder: K(YR.flex, 'SO', '135° in der Schulterblattebene, auf die Seitenansicht projiziert'), armScale: [YR.scale, YR.scale], elbow: C(0) , props: yRaiseProps },
+        facts: [V(135, 'SO', 'fulltext', 'Armhebung ≈ 135° in der Schulterblattebene (Y-Form)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 1.5, label: 'Heben', kp: [0, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 1.5, label: 'Senken', kp: [0] }],
+    keyPoints: [
+      { short: 'Y', anchor: 'hand', side: 'r', status: 'single', text: 'Arme gestreckt schräg nach vorn-oben in Y-Form heben, etwa 135°.', src: ['SO', 'EK'],
+        explain: 'Im Stand mit Band wurden die Arme bis ≈ 135° in der Schulterblattebene gehoben (Song et al. 2026, 36 Personen). Das Armheben über Kopf in Bauchlage, in Linie mit dem unteren Trapez, brachte von 10 Übungen die höchste Aktivität dieses Muskels (Ekstrom et al. 2003, 30 Gesunde, Abstract).' },
+      { short: 'Trapez', anchor: 'upperBack', side: 'l', status: 'contested', text: 'Der untere Trapez arbeitet stark – der obere aber ähnlich mit.', src: ['AD', 'EK'],
+        explain: 'Umstritten, wie gezielt die Übung ist. Bei der Y-Übung ohne Gewicht: unterer Trapez 63 ± 40 %, oberer 54 ± 31 % der Maximalkraft (Adachi et al. 2022, 16 Männer; Körperlage nur in einer Abbildung). Ekstrom et al. 2003 nennen das Armheben in Bauchlage die beste Übung für den unteren Trapez.' },
+      { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Oberkörper nicht zusätzlich überstrecken – sonst arbeitet mehr der obere Trapez.', src: ['BO'],
+        explain: '31 Gesunde, Armheben in Bauchlage: Zusätzliche Rumpfstreckung steigerte den oberen Trapez; unterer (42–48 %) und mittlerer Trapez blieben gleich (Borms et al. 2022, Abstract).' },
+      { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Bauch fest anspannen: Der untere Trapez war so aktiver.', src: ['SO'],
+        explain: 'Y-Raise im Stand, 36 Personen mit runden Schultern: Mit Bauchanspannung („Bracing“) war der untere Trapez aktiver als bei normaler Atmung, der obere unverändert (Song et al. 2026). Auf der Bank nicht geprüft.' }
+    ],
+    sources: {
+      SO: { label: 'Song et al. 2026, J Clin Med', url: 'https://doi.org/10.3390/jcm15187282', read: 'fulltext' },
+      EK: { label: 'Ekstrom et al. 2003, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2003.33.5.247', read: 'abstract' },
+      AD: { label: 'Adachi et al. 2022, Orthop J Sports Med', url: 'https://doi.org/10.1177/23259671221132194', read: 'fulltext' },
+      BO: { label: 'Borms et al. 2022, Braz J Phys Ther', url: 'https://doi.org/10.1016/j.bjpt.2022.100420', read: 'abstract' }
+    }
+  },
+
+  // ---------- Runde 15: Face Pull (Seitenansicht) ----------
+  {
+    ref: 'face-pull', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
+    basisNote: 'Keine Studie nennt Gelenkwinkel, Kabelhöhe oder Last beim Face Pull. Die einzige Studie zur Übung selbst (Zhu et al. 2026, 10 untrainierte Männer, 3D-Messung mit Muskelmodell) beschreibt nur, dass die Hand zum Gesicht gezogen wird. Start (Arme gestreckt zur Rolle) und Ende (Hände neben den Ohren, Oberarme seitlich auf Schulterhöhe, Unterarme nach oben gedreht) sind Trainingswissen und Zeichenkonvention. Von der Seite zeigen die Oberarme am Ende zum Betrachter und erscheinen sehr kurz.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s ziehen / 2 s zurück (Konvention). Im verwandten Band Pull-Apart je 3 s (Fukunaga et al. 2022).' },
+    frames: [
+      { label: 'Start', pose: { ...FP.base, armPoints: FP.start, props: facePullProps } },
+      { label: 'Ende', pose: { ...FP.base, armPoints: FP.end, props: facePullProps },
+        facts: [C(90, 'Oberarme seitlich auf Schulterhöhe, Unterarme nach oben (Trainingswissen, nicht gemessen)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Start', kp: [3] }, { a: 0, b: 1, dur: 1.5, label: 'Ziehen', kp: [0, 1] }, { a: 1, b: 1, dur: 0.4, label: 'Ende', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [1] }],
+    keyPoints: [
+      { short: 'Ziel', anchor: 'hand', side: 'l', status: 'single', text: 'Seil zum Gesicht ziehen, Hände Richtung Ohren, Ellbogen hoch.', src: ['Z1'],
+        explain: 'Zhu et al. 2026 beschreiben nur den Zug der Hand zum Gesicht. Ellbogen auf Schulterhöhe und Hände neben den Ohren sind die übliche Ausführung, nicht gemessen.' },
+      { short: 'Hinten', anchor: 'shoulder', side: 'l', status: 'single', text: 'Modell: hintere Schulter so stark gefordert wie beim vorgebeugten Seitheben.', src: ['Z1'],
+        explain: 'Muskelmodell (OpenSim) bei 10 untrainierten Männern: hinterer Deltamuskel beim Face Pull 58,2 N, beim vorgebeugten Seitheben 58,6 N (kein Unterschied), beim vorgebeugten Rudern 47,9 N (Zhu et al. 2026, Abstract). Eine Modellschätzung, keine EMG-Messung.' },
+      { short: 'Drehen', anchor: 'elbow', side: 'r', status: 'single', text: 'Übertragen: Handflächen nach oben drehen – mehr Infraspinatus, weniger oberer Trapez.', src: ['F1'],
+        explain: 'Band Pull-Apart, 10 Männer: Mit den Handflächen nach oben (Außenrotation) waren Infraspinatus und unterer Trapez am aktivsten, mit den Handflächen nach unten oberer Trapez und hinterer Delta (Fukunaga et al. 2022). Für den Face Pull selbst nicht gemessen.' },
+      { short: 'Richtung', anchor: 'rope', side: 'r', status: 'single', text: 'Übertragen: Schräg nach oben ziehen fordert den Trapez stärker als waagerecht.', src: ['F1'],
+        explain: 'Im Band Pull-Apart war der Zug schräg nach oben für Infraspinatus, oberen und unteren Trapez und hinteren Delta am stärksten (Fukunaga et al. 2022). Die Kabelhöhe beim Face Pull wurde nie verglichen.' }
+    ],
+    sources: {
+      Z1: { label: 'Zhu et al. 2026, Acta Bioeng Biomech', url: 'https://doi.org/10.37190/abb/217836', read: 'abstract' },
+      F1: { label: 'Fukunaga et al. 2022, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.33026', read: 'fulltext' }
+    }
+  },
+
+  // ---------- Runde 15: Shrugs (Frontansicht) ----------
+  {
+    ref: 'dumbbell-shrug', checkedAt: '2026-10-21', view: 'front', basis: 'transfer',
+    basisNote: 'Frontansicht. Keine Bewegungsmessung beim Shrug mit Gewicht gefunden. Hubhöhe übertragen von einer passiven Messung an 14 Leichenschultern: Schlüsselbein 25 ± 5° gehoben (Peeters et al. 2022, Volltext); mit ≈ 15 cm Schlüsselbeinlänge ergibt das ≈ 6 cm Hub an der Schulter (berechnet, Länge Trainingswissen). Lebende Personen erreichten im Mittel 38° Schulterhebung (Goniometer, Hallaçeli & Günal 2001, Abstract). Gezeichnet heben sich Schultergelenke und Arme, die Schulterkontur folgt; das Mitdrehen des Schulterblatts ist nicht dargestellt.',
+    tempo: { basis: 'convention', note: 'Gezeichnet 1 s heben, kurz halten, 2 s senken (Konvention).' },
+    frames: [
+      { label: 'Unten', pose: { legs: { planted: true, stance: C(14, 'etwa hüftbreit'), toeOut: C(8), knee: C(4), shank: C(2) }, arm: { abd: C(4, 'Arme hängen'), elbow: C(4) }, shrug: C(0), props: raiseProps } },
+      { label: 'Oben', pose: { legs: { planted: true, stance: C(14), toeOut: C(8), knee: C(4), shank: C(2) }, arm: { abd: C(4), elbow: C(4) }, shrug: K(SHR.up, 'PE', '≈ 6 cm aus 25° Schlüsselbeinhebung (passiv gemessen) und ≈ 15 cm Schlüsselbeinlänge'), props: raiseProps },
+        facts: [V(25, 'PE', 'fulltext', 'Schlüsselbein 25 ± 5° gehoben (passiver Shrug, Leichenschultern)'), V(37.7, 'HA', 'abstract', 'aktive Schulterhebung 37,7° (Goniometer, 30 Gesunde)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0, 3] }, { a: 1, b: 1, dur: 0.6, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
+    keyPoints: [
+      { short: 'Gerade', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Schultern gerade nach oben ziehen, die Arme hängen seitlich.', src: ['PI'],
+        explain: 'Der Standard-Shrug wird mit den Armen an der Seite (0° Abduktion) ausgeführt (Pizzari et al. 2014, Abstract). Nicht kreisen ist Konvention, nicht untersucht.' },
+      { short: 'Trapez', anchor: 'neck', side: 'l', status: 'consensus', text: 'Shrugs zählen zu den Übungen mit der höchsten Aktivität im oberen Trapez.', src: ['EK', 'AN'],
+        explain: 'Von 10 Übungen erzeugte der einarmige Shrug die höchste Aktivität im oberen Trapez (Ekstrom et al. 2003, 30 Gesunde). Bei 12 Frauen mit Nackenschmerzen 102 ± 11 % der Maximalkraft, mit 20–30 kg (Andersen et al. 2008). Beides Abstracts.' },
+      { short: 'Variante', anchor: 'handL', side: 'l', status: 'single', text: 'Variante: Arme etwa 30° abspreizen – oberer und unterer Trapez arbeiten mehr.', src: ['PI'],
+        explain: 'Shrug mit 30° Abduktion in der Frontalebene: oberer und unterer Trapez signifikant aktiver als beim Standard-Shrug, bei 23 Gesunden und 14 Personen mit Schulterinstabilität (Pizzari et al. 2014, Abstract).' },
+      { short: 'Hub', anchor: 'chest', side: 'r', status: 'single', text: 'Das Schlüsselbein hebt sich etwa 25°, das Schulterblatt dreht mit.', src: ['PE', 'HA'],
+        explain: 'Passiv an 14 Leichenschultern: Schlüsselbein 25 ± 5° gehoben, Schulterblatt 26 ± 4° nach außen gedreht (Peeters et al. 2022). Lebende: im Mittel 37,7° Schulterhebung mit dem Goniometer (Hallaçeli & Günal 2001). Eine Messung mit Gewicht fehlt.' }
+    ],
+    sources: {
+      PI: { label: 'Pizzari et al. 2014, Clin Biomech', url: 'https://doi.org/10.1016/j.clinbiomech.2013.11.011', read: 'abstract' },
+      EK: { label: 'Ekstrom et al. 2003, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2003.33.5.247', read: 'abstract' },
+      AN: { label: 'Andersen et al. 2008, Phys Ther', url: 'https://doi.org/10.2522/ptj.20070304', read: 'abstract' },
+      PE: { label: 'Peeters et al. 2022, JSES Int', url: 'https://doi.org/10.1016/j.jseint.2022.09.014', read: 'fulltext' },
+      HA: { label: 'Hallaçeli & Günal 2001, Arch Orthop Trauma Surg', url: 'https://doi.org/10.1007/s004020100339', read: 'abstract' }
+    }
   }
+
 
 ];
 
@@ -3492,7 +3814,11 @@ function pullupProps(P) {
 }
 function pulldownProps(P) {
   const hr = P.joints.handR, hl = P.joints.handL, y = (hr[1] + hl[1]) / 2;
-  return { anchors: { bar: [0, y] }, scene: [
+  const sc = pulldownScene(hr, hl, y);
+  return { anchors: { bar: [0, y] }, scene: P.back ? sc.map((x) => ({ ...x, front: false, back: true })) : sc }; // v2.20.0: von hinten liegt alles hinter der Figur
+}
+function pulldownScene(hr, hl, y) {
+  return [
     { type: 'rect', x: -36, y: -100, w: 72, h: 10, rx: 3 }, { type: 'line', from: [0, -90], to: [0, 0], w: 5 }, foot(-64, 64), // Sitz, Standfuß
     { type: 'line', from: [-32, -376], to: [32, -376], w: 6 }, { type: 'bar', at: [0, -370], r: 6 }, // Träger und Umlenkrolle oben
     { type: 'line', from: [0, -370], to: [0, y - 4], w: 1.5, dash: true, front: true }, // Seilzug (v2.15.0: vor dem Gesicht, wie die Stange)
@@ -3500,7 +3826,7 @@ function pulldownProps(P) {
     { type: 'rect', x: -34, y: -130, w: 28, h: 10, rx: 4, front: true }, { type: 'rect', x: 6, y: -130, w: 28, h: 10, rx: 4, front: true },
     { type: 'line', from: [-34, -125], to: [-34, -100], w: 4 }, { type: 'line', from: [34, -125], to: [34, -100], w: 4 },
     { type: 'line', from: [hl[0] - 14, y], to: [hr[0] + 14, y], w: 5, front: true }, { type: 'bar', at: [hr[0] + 14, y], r: 4 }, { type: 'bar', at: [hl[0] - 14, y], r: 4 }
-  ] };
+  ];
 }
 function raiseProps(P) {
   return { anchors: {}, scene: [db(P.joints.handR, [1, 0], true), db(P.joints.handL, [1, 0], true)] }; // v2.14.1: echte Kurzhantel, Achse zeigt aus dem Bild (Daumen vorn / Neutralgriff)
@@ -3943,6 +4269,77 @@ function pecDeckProps(P) {
   ] };
 }
 
+// ---------- Szenen Runde 15 (v2.20) ----------
+// Multipresse auf der Schrägbank: Schräglehne und Sitz wie beim Schrägbankdrücken, Führungsschiene senkrecht durch die Stange (SMI.x).
+function smithInclineProps(P) {
+  const h = P.joints.hip, top = along(along(h, segNrm(P, 'trunk'), -24), segDir(P, 'trunk'), -165), bar = P.joints.hand, x = SMI.x;
+  return { anchors: { bar }, scene: [
+    benchLine(P, 24, 170, -6), { type: 'line', from: [h[0] - 20, h[1] + 24], to: [h[0] + 50, h[1] + 24], w: 14 }, // Lehne 30°, Sitz
+    { type: 'line', from: [h[0] + 10, h[1] + 30], to: [h[0] + 10, 0], w: 6 }, { type: 'line', from: top, to: [top[0], 0], w: 6 }, foot(h[0] - 20, h[0] + 40), foot(top[0] - 30, top[0] + 30),
+    { type: 'line', from: [x, 0], to: [x, -460], w: 6, back: true }, foot(x - 70, x + 70), { type: 'line', from: [x - 70, -460], to: [x + 70, -460], w: 6, back: true }, // Führungsschiene, Querträger
+    { type: 'rect', x: x - 9, y: bar[1] - 14, w: 18, h: 28, rx: 3, back: true }, // Schlitten
+    plate([x, bar[1]])
+  ] };
+}
+// Schräge Brustpresse: Sitz und Lehne wie an der Brustpresse; Hebelarm vom Drehpunkt (IMP.pivot) hinter dem Sitz zum Griff, hinter dem Körper.
+function inclinePressProps(P) {
+  const h = P.joints.hip, hand = P.joints.hand, pv = IMP.pivot;
+  return { anchors: { hand }, scene: [
+    { type: 'rect', x: h[0] - 30, y: h[1] + 2, w: 70, h: 12, rx: 4 }, benchLine(P, 26, 150, -8), // Sitz, Lehne
+    { type: 'line', from: [h[0] - 10, h[1] + 14], to: [h[0] - 10, 0], w: 6 }, foot(h[0] - 70, h[0] + 30),
+    { type: 'line', from: pv, to: [pv[0], 0], w: 8, back: true }, foot(pv[0] - 40, pv[0] + 40), { type: 'bar', at: pv, r: 7, back: true }, // Fuß mit Drehachse
+    { type: 'line', from: pv, to: hand, w: 5, back: true }, // Hebelarm hinter dem Körper
+    { type: 'line', from: along(hand, segNrm(P, 'farm'), -10), to: along(hand, segNrm(P, 'farm'), 10), w: 5, front: true } // Griff quer zum Unterarm
+  ] };
+}
+// Seitheben an der Maschine (Frontansicht): Sitz, Drehachsen hinter den Schultern, Hebel außen am Arm, Polster am Oberarm (gebeugt) oder Unterarm (gestreckt).
+function machineLateralProps(straight) {
+  return (P) => {
+    const J = P.joints, pel = J.pelvis, sc = [];
+    sc.push({ type: 'rect', x: -38, y: pel[1] + 6, w: 76, h: 10, rx: 3 }, { type: 'line', from: [0, pel[1] + 16], to: [0, 0], w: 6 }, foot(-70, 70)); // Sitz, Stütze
+    for (const s of ['R', 'L']) {
+      const sh = J['shoulder' + s], el = J['elbow' + s], wr = J['wrist' + s], sg = s === 'R' ? 1 : -1;
+      const u = [el[0] - sh[0], el[1] - sh[1]], l = Math.hypot(u[0], u[1]), d = [u[0] / l, u[1] / l];
+      let n = [d[1], -d[0]]; if (n[1] > 0 || (Math.abs(n[1]) < 1e-6 && n[0] * sg < 0)) n = [-n[0], -n[1]]; // Außenseite des Arms (oben/außen)
+      const padAt = straight ? along(along(el, d, 30), n, 12) : along(along(sh, d, l - 14), n, 12);
+      sc.push({ type: 'bar', at: sh, r: 6, back: true }, { type: 'line', from: along(sh, n, 12), to: padAt, w: 4, back: true }); // Drehachse, Hebel außen am Arm
+      sc.push({ type: 'line', from: along(padAt, d, -14), to: along(padAt, d, 14), w: 11, front: true }); // Polster
+      if (!straight) sc.push({ type: 'rect', x: wr[0] - 5, y: wr[1] - 2, w: 10, h: 14, rx: 3, front: true }); // Griff vor dem Körper
+    }
+    return { anchors: { pad: J.elbowR }, scene: sc };
+  };
+}
+// Reverse Fly am Kabel: Türme links und rechts, Rollen auf Schulterhöhe; das Kabel des rechten Arms kommt vom linken Turm (über Kreuz vor dem Körper).
+function cableReverseFlyProps(P) {
+  const J = P.joints, y = (J.shoulderR[1] + J.shoulderL[1]) / 2, t = XOV.tower, g = (h, w) => [(h[0] + w[0]) / 2, (h[1] + w[1]) / 2];
+  const gR = g(J.handR, J.wristR), gL = g(J.handL, J.wristL), pR = [t - 10, y], pL = [-t + 10, y];
+  return { anchors: { cable: midpoint(gR, pL) }, scene: [
+    { type: 'line', from: [t, 0], to: [t, -360], w: 8 }, foot(t - 40, t + 40), { type: 'line', from: [-t, 0], to: [-t, -360], w: 8 }, foot(-t - 40, -t + 40), // Türme
+    { type: 'bar', at: pR, r: 7 }, { type: 'bar', at: pL, r: 7 }, // Rollen auf Schulterhöhe
+    { type: 'line', from: pL, to: gR, w: 1.5, dash: true, front: true }, { type: 'line', from: pR, to: gL, w: 1.5, dash: true, front: true }, // Kabel über Kreuz
+    { type: 'rect', x: gR[0] - 5, y: gR[1] - 8, w: 10, h: 16, rx: 3, front: true }, { type: 'rect', x: gL[0] - 5, y: gL[1] - 8, w: 10, h: 16, rx: 3, front: true } // Einhandgriffe
+  ] };
+}
+// Y-Raise: Schrägbank mit Brustauflage vor dem Rumpf (parallel zum Rumpf), Stütze zum Boden; Kurzhantel in der Hand, Achse aus dem Bild (Daumen oben).
+function yRaiseProps(P) {
+  const h = P.joints.hip, n = segNrm(P, 'trunk'), d = segDir(P, 'trunk'); // d: Schulter → Hüfte
+  const lo = along(along(h, n, 30), d, 12), hi = along(along(h, n, 30), d, -96); // Polster vor Brust und Bauch, oberes Ende unter der Achsel
+  const g = gripOf(P);
+  return { anchors: { pad: midpoint(lo, hi), hand: g }, scene: [
+    { type: 'line', from: lo, to: hi, w: 14 }, // Polster
+    { type: 'line', from: along(lo, n, 8), to: [along(lo, n, 8)[0], 0], w: 6 }, foot(along(lo, n, 8)[0] - 40, along(lo, n, 8)[0] + 40), // Stütze
+    db(g, [1, 0], true)
+  ] };
+}
+// Face Pull: Turm vor der Figur, Rolle auf Kopfhöhe, Seil zu den Händen (Seilgriff mit Endstück).
+function facePullProps(P) {
+  const g = gripOf(P), t = FP.tower, p = FP.pulley;
+  return { anchors: { hand: g, rope: midpoint(g, p) }, scene: [
+    { type: 'line', from: [t, 0], to: [t, -420], w: 8 }, foot(t - 40, t + 40), { type: 'bar', at: p, r: 7 }, // Turm, Rolle
+    { type: 'line', from: p, to: g, w: 3, front: true }, { type: 'bar', at: g, r: 4 } // Seil, Endstück in der Hand
+  ] };
+}
+
 export function animationFor(ref) { return ANIMATIONS.find((a) => a.ref === ref) || null; }
 
 // ---------- Szenen Runde 11 (v2.16) ----------
@@ -4087,6 +4484,7 @@ function clamProps(P) {
 
 export function framesOf(anim, variant) {
   const fr = Array.isArray(anim.frames) ? anim.frames : anim.frames[variant || anim.variants[0].key];
+  if (anim.view === 'back') return fr.map((f) => ({ ...f, pose: { view: 'front', back: true, ...f.pose } })); // v2.20.0: Rückansicht = Frontfigur, von hinten gezeichnet
   return anim.view === 'front' ? fr.map((f) => ({ ...f, pose: { view: 'front', ...f.pose } })) : fr;
 }
 export { LEN };

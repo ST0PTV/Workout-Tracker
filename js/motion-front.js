@@ -15,6 +15,8 @@
 //   legs: { planted: true, stance, toeOut, knee, shank } (v2.9) – Füße stehen am Boden (Knöchelmitte bei x = ±stance),
 //        das Bein liegt in einer um toeOut nach außen gedrehten Ebene (Knie folgt der Fußrichtung). knee = Kniebeugung,
 //        shank = Schienbeinneigung in dieser Ebene; Becken- und Kniehöhe folgen aus der Geometrie (räumlich gelöst, dann projiziert);
+//   shrug (v2.20) – Hebung des Schultergürtels (Einheiten nach oben): Schultergelenke und Arme steigen, die Rumpfkontur an den Schultern
+//        (Trapez, Schulterlinie) folgt mit einem Übergang zum Hals und zur Brust; Kopf und Hals bleiben. 0 = unverändert;
 //   trunkFlex – Vorneigung des Rumpfs in der Sagittalebene (v2.9); in der Frontansicht als Verkürzung bis zur Schulter, Kopf bleibt unverzerrt;
 //   props(P, spec) → { anchors, scene } wie in der Seitenansicht.
 import { LEN, smooth, num, f1 } from './motion.js';
@@ -70,19 +72,45 @@ export const SHAPES_F = [
   { seg: 'farm', id: 'body', both: true, pts: [[36, -222], [50, -222], [53, -205], [52, -185], [50, -168], [51, -158], [50, -146], [45, -141], [40, -144], [39, -156], [40, -168], [40, -180], [37, -200]] },
   { seg: 'farm', id: 'forearms', both: true, pts: [[37, -220], [49, -220], [52, -204], [48, -190], [40, -192], [37, -206]] }
 ];
+// v2.20.0: Rückansicht (spec.back): gleiche Gelenke und Umrisse wie vorn, Muskeln der Rückseite; Arme werden hinter dem Rumpf gezeichnet
+// (was vor dem Körper liegt, verdeckt der Rücken). Formen in Standkoordinaten der rechten Seite (von hinten gesehen gespiegelt, die Figur ist
+// symmetrisch). Zeichenkonvention.
+const BACK_MUSCLES = [
+  { seg: 'trunk', id: 'upper-back', mid: true, pts: [[0, -316], [9, -314], [22, -303], [37, -293], [24, -281], [12, -263], [4, -238], [0, -230]] },
+  { seg: 'trunk', id: 'lats', both: true, pts: [[13, -266], [27, -276], [39, -268], [39, -248], [33, -229], [23, -213], [11, -207], [6, -223], [9, -246]] },
+  { seg: 'trunk', id: 'lower-back', mid: true, pts: [[4, -224], [11, -212], [12, -196], [8, -186], [0, -184]] },
+  { seg: 'thigh', id: 'glutes', both: true, pts: [[4, -181], [28, -183], [33, -168], [29, -154], [15, -150], [5, -158]] },
+  { seg: 'thigh', id: 'hamstrings', both: true, pts: [[8, -148], [27, -148], [27, -122], [21, -102], [12, -102], [8, -124]] },
+  { seg: 'shank', id: 'calves', both: true, pts: [[6, -92], [21, -92], [22, -75], [18, -55], [11, -52], [7, -70]] }
+];
 // v2.10: Beine in der Frontansicht breiter (vorher wirkten sie neben dem Rumpf zu schmal, v. a. bei weitem Stand).
 // Oberschenkel oben ≈ 41 Einheiten (≈ 20 cm), Unterschenkel ≈ 24 (≈ 12 cm) statt 28 und 16 – Zeichenkonvention, keine Messung.
 const LEG_WIDEN = { thigh: [17, 1.45], shank: [13.5, 1.5], foot: [14, 1.2] }; // [Mittellinie x, Faktor]
 for (const sh of SHAPES_F) { const w = LEG_WIDEN[sh.seg]; if (w) sh.pts = sh.pts.map(([x, y]) => [w[0] + (x - w[0]) * w[1], y]); }
+for (const sh of BACK_MUSCLES) { const w = LEG_WIDEN[sh.seg]; if (w) sh.pts = sh.pts.map(([x, y]) => [w[0] + (x - w[0]) * w[1], y]); }
 // v2.5.0: weibliche Formen (js/motion-female.js); Gelenke wie oben.
 let SHAPES_F_FEMALE = null;
 export const shapesForF = (sex) => (sex === 'female' ? (SHAPES_F_FEMALE ??= femaleFront(SHAPES_F)) : SHAPES_F);
+// Rückansicht: Umriss, Kopf, Schulter und Unterarm wie vorn (je Geschlecht), Bizeps-Fläche wird zum Trizeps, dazu die Rückenmuskeln.
+// Weibliche Figur: Rumpfmuskeln auf die schmalere Kontur gestaucht (Faktor 0,88).
+const SHAPES_B = {};
+export function shapesForB(sex) {
+  if (SHAPES_B[sex]) return SHAPES_B[sex];
+  const F = shapesForF(sex), k = sex === 'female' ? 0.88 : 1;
+  const own = F.filter((sh) => sh.id === 'body' || sh.id === 'delts' || sh.id === 'forearms');
+  const tri = F.filter((sh) => sh.id === 'biceps').map((sh) => ({ ...sh, id: 'triceps' }));
+  const back = BACK_MUSCLES.map((sh) => (sh.seg === 'trunk' && k !== 1 ? { ...sh, pts: sh.pts.map(([x, y]) => [x * k, y]) } : sh));
+  return (SHAPES_B[sex] = [...own, ...back, ...tri]);
+}
+export const MUSCLE_SHAPE_B = { 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', 'lower-back': 'lower-back', triceps: 'triceps', forearms: 'forearms', glutes: 'glutes', hamstrings: 'hamstrings', calves: 'calves' };
+export const HIDDEN_MUSCLES_B = ['chest', 'biceps', 'abs', 'obliques', 'quads', 'adductors', 'abductors', 'hip-flexors'];
 export const MUSCLE_SHAPE_F = { chest: 'chest', 'front-delts': 'delts', 'side-delts': 'delts', 'rear-delts': 'delts', lats: 'lats', 'upper-back': 'upper-back', biceps: 'biceps', forearms: 'forearms', abs: 'abs', obliques: 'obliques', quads: 'quads', adductors: 'adductors', abductors: 'abductors' };
 export const HIDDEN_MUSCLES_F = ['triceps', 'lower-back', 'glutes', 'hamstrings', 'calves', 'hip-flexors'];
 export const ANCHORS_F = {
   head: { seg: 'trunk', p: [0, -358] }, chin: { seg: 'trunk', p: [0, -313] }, neck: { seg: 'trunk', p: [9, -312] }, chest: { seg: 'trunk', p: [0, -268] },
   belly: { seg: 'trunk', p: [0, -210] }, hip: { seg: 'trunk', p: [30, -186] }, shoulder: { seg: 'uarm', p: [48, -294] }, uarm: { seg: 'uarm', p: [50, -250] },
   elbow: { seg: 'farm', p: [52, -215] }, farm: { seg: 'farm', p: [52, -190] }, wrist: { seg: 'farm', p: [50, -166] }, hand: { seg: 'farm', p: [49, -150] },
+  upperBack: { seg: 'trunk', p: [0, -280] }, midBack: { seg: 'trunk', p: [0, -235] }, lats: { seg: 'trunk', p: [34, -248] }, // v2.20.0: Rückansicht
   thigh: { seg: 'thigh', p: [30, -150] }, knee: { seg: 'shank', p: [22, -94] }, shin: { seg: 'shank', p: [19, -55] }, foot: { seg: 'foot', p: [22, -4] }, heel: { seg: 'foot', p: [13, -2] }
 };
 
@@ -134,6 +162,7 @@ export function solveFront(spec) {
   const g = (k, d = 0) => { const x = num(spec[k]); return Number.isFinite(x) ? x : d; };
   const lean = g('trunk'); // Rumpfneigung in der Frontalebene (nach rechts positiv), meist 0
   const tUp = fdir(180 + lean);
+  const shrug = g('shrug'); // v2.20.0: Schulterhebung (Einheiten)
   const flex = g('trunkFlex'), tScale = Math.max(Math.cos(flex * DEG), MIN_SCALE);
   // Rumpf relativ zum Beckenmittelpunkt
   const pelvis = [0, 0];
@@ -181,7 +210,7 @@ export function solveFront(spec) {
   // Arme (symmetrisch; rechte Seite als Vorlage, linke gespiegelt)
   const armsOf = (side) => {
     const sg = sides[side];
-    const sh = add(shC, [sg * J0F.shoulder[0], 0]);
+    const sh = add(shC, [sg * J0F.shoulder[0], -shrug]);
     let E, W, sU = 1, sF = 1;
     const own = side === 'L' && spec.armL ? spec.armL : null; // v2.11: linker Arm getrennt (einarmige Übungen); gleiche Form wie arm / armPoints
     const pts = own ? own.points : spec.armPoints;
@@ -225,8 +254,9 @@ export function solveFront(spec) {
   const abdDeg = Math.atan2(A.dU[0], A.dU[1]) / DEG; // 0 = hängend, 90 = waagerecht, 180 = oben
   const elbowDeg = Math.acos(Math.max(-1, Math.min(1, dot(A.dU, A.dF)))) / DEG;
   const angles = { trunk: f1(lean), abd: f1(abdDeg), elbow: f1(elbowDeg), hip: f1(planted ? planted.hipFlex : hipF), knee: f1(planted ? num(legs.knee) : kneeF) };
+  if (shrug) angles.shrug = f1(shrug);
   if (planted) { angles.hipAbd = f1(planted.hipAbd); angles.thighFront = f1(planted.thighFront); angles.trunkFlex = f1(flex); }
-  const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0, legsFront: !!spec.legsFront, frontLeg: spec.frontLeg || null }; // v2.18.0: legsFront – Beine vor dem Rumpf zeichnen (Knie zeigen zum Betrachter)
+  const P = { view: 'front', joints: J, F, angles, segAngles: {}, solved: null, props: {}, scene: [], handFlat: 0, legsFront: !!spec.legsFront, frontLeg: spec.frontLeg || null, shrug, back: !!spec.back }; // v2.18.0: legsFront – Beine vor dem Rumpf zeichnen (Knie zeigen zum Betrachter)
   if (typeof spec.props === 'function') {
     const pr = spec.props(P, spec) || {};
     P.props = pr.anchors || {};
@@ -236,8 +266,17 @@ export function solveFront(spec) {
 }
 
 // Punkt eines Segments (Standkoordinaten der rechten Seite) in die Pose abbilden; side 'L' spiegelt die Ruhelage.
-function tfF(P, seg, side, pt) {
+// v2.20.0: Gewicht der Schulterhebung für einen Rumpfpunkt (Standkoordinaten, rechte Seite): außen an der Schulterlinie 1, zum Hals (|x| < 10),
+// zur Brust (y > −255) und zum Kopf (y < −318) auf 0. Zeichenkonvention.
+export function shrugWeight(pt) {
+  const x = Math.abs(pt[0]), y = pt[1];
+  const wx = Math.max(0, Math.min(1, (x - 10) / 20));
+  const wy = y >= -255 ? 0 : y > -285 ? (-255 - y) / 30 : y >= -305 ? 1 : y > -318 ? (y + 318) / 13 : 0;
+  return wx * wy;
+}
+function tfF(P, seg, side, pt0) {
   const R = RESTF[seg], A = P.F[seg + (seg === 'trunk' ? '' : side)];
+  const pt = P.shrug && seg === 'trunk' ? [pt0[0], pt0[1] - P.shrug * shrugWeight(pt0)] : pt0;
   const pRest = side === 'L' ? mirror(pt) : pt;
   const JRest = side === 'L' ? mirror(R.J) : R.J, dRest = side === 'L' ? [-R.d[0], R.d[1]] : R.d;
   const nRest = nrm(dRest);
@@ -273,7 +312,7 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
   const disc = (c, r) => 'M' + f1(c[0] - r) + ' ' + f1(c[1]) + ' a' + r + ' ' + r + ' 0 1 0 ' + 2 * r + ' 0 a' + r + ' ' + r + ' 0 1 0 ' + -2 * r + ' 0 Z';
   const group = (segs, joints, order = ['R', 'L']) => {
     const shapes = [];
-    for (const sh of shapesForF(sex)) {
+    for (const sh of P.back ? shapesForB(sex) : shapesForF(sex)) {
       if (!segs.includes(sh.seg)) continue;
       if (sh.mid) { // symmetrische Form: rechte Hälfte plus gespiegelte linke Hälfte als ein Pfad
         const right = sh.pts.map((q) => tfFS(P, sh.seg, 'R', q)), left = sh.pts.slice().reverse().map((q) => tfFS(P, sh.seg, 'L', q));
@@ -297,6 +336,7 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
     const LS = ['thigh', 'shank', 'foot'];
     if (P.frontLeg === 'R') { group(LS, [['kneeL', 8]], ['L']); group(LS, [['kneeR', 8]], ['R']); } else group(LS, [['kneeR', 8], ['kneeL', 8]]);
   };
+  if (P.back) group(['uarm', 'farm'], [['shoulderR', 10], ['shoulderL', 10], ['elbowR', 6], ['elbowL', 6]]); // Rückansicht: Arme vor dem Körper liegen hinter dem Rumpf
   if (!P.legsFront) legGroups();
   group(['trunk'], []);
   // v2.15.0: Bei starker Vorneigung liegt der Kopf vor dem oberen Rücken – er wird nach den Rumpfmuskeln noch einmal gezeichnet (sonst verdeckt).
@@ -305,6 +345,6 @@ export function layersFront(P, roleOf = () => '', sex = 'male') {
     if (head) { const d = smooth(head.pts.map((q) => tfFS(P, 'trunk', 'R', q))); out.push({ d, cls: 'an-body edge' }, { d, cls: 'an-body fill' }); }
   }
   if (P.legsFront) legGroups();
-  group(['uarm', 'farm'], [['shoulderR', 10], ['shoulderL', 10], ['elbowR', 6], ['elbowL', 6]]);
+  if (!P.back) group(['uarm', 'farm'], [['shoulderR', 10], ['shoulderL', 10], ['elbowR', 6], ['elbowL', 6]]);
   return out;
 }

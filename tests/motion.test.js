@@ -200,9 +200,10 @@ test('Gezeichnete Muskeln: jede Pool-Muskelgruppe ist zugeordnet oder als nicht 
   const ids = new Set(M.SHAPES.map((s) => s.id)), idsF = new Set(MF.SHAPES_F.map((s) => s.id));
   for (const [m, shape] of Object.entries(M.MUSCLE_SHAPE)) assert.ok(ids.has(shape), `${m} → ${shape}`);
   for (const [m, shape] of Object.entries(MF.MUSCLE_SHAPE_F)) assert.ok(idsF.has(shape), `front ${m} → ${shape}`);
+  for (const sex of ['male', 'female']) { const idsB = new Set(MF.shapesForB(sex).map((s) => s.id)); for (const [m, shape] of Object.entries(MF.MUSCLE_SHAPE_B)) assert.ok(idsB.has(shape), `back ${sex} ${m} → ${shape}`); }
   for (const a of D.ANIMATIONS) {
     const p = POOL.find((x) => x.ref === a.ref);
-    const map = a.view === 'front' ? MF.MUSCLE_SHAPE_F : M.MUSCLE_SHAPE, hidden = a.view === 'front' ? MF.HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
+    const map = a.view === 'back' ? MF.MUSCLE_SHAPE_B : a.view === 'front' ? MF.MUSCLE_SHAPE_F : M.MUSCLE_SHAPE, hidden = a.view === 'back' ? MF.HIDDEN_MUSCLES_B : a.view === 'front' ? MF.HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
     for (const m of [...p.muscles.primary, ...p.muscles.secondary]) assert.ok(map[m] || hidden.includes(m), `${a.ref}: ${m}`);
     const prim = p.muscles.primary.filter((m) => map[m]);
     assert.ok(prim.length, `${a.ref}: mindestens ein primärer Muskel ist sichtbar`);
@@ -411,7 +412,7 @@ test('v2.15.0: Geräte – Hebel hinter dem Bein, Sitzstütze unter dem Sitz, T-
   const cg = D.animationFor('close-grip-lat-pulldown'), fcg = M.resolveFrames(D.framesOf(cg));
   const rolls = fcg.map((f) => M.solvePose(f.pose).scene.find((s) => s.type === 'bar' && s.r === 8).at[0]);
   near(rolls[0], rolls[1], 0.01, 'Rolle bleibt bei Rücklage stehen');
-  assert.ok(M.solvePose(fcg[1].pose).angles.trunk < -5, 'Rücklage an der Brust');
+  assert.ok(M.solvePose(fcg[fcg.length - 1].pose).angles.trunk < -5, 'Rücklage an der Brust');
 });
 
 test('v2.15.0: Frontansicht – Kopf bei starker Vorneigung vor dem Rumpf, aufrecht unverändert', () => {
@@ -538,6 +539,53 @@ test('v2.19.0: Frontansicht – Abduktoren sichtbar, linkes Bein eigene Richtung
   const [r0, l0] = order({ legs: { abdR: -9 } }), [r1, l1] = order({ legs: { abdR: -9 }, frontLeg: 'R' });
   assert.ok(r0 >= 0 && l0 >= 0 && r0 < l0, 'Standard: linkes Knie zuletzt');
   assert.ok(r1 > l1, 'frontLeg R: rechtes Bein über dem linken');
+});
+
+// ---------- v2.20.0: Runde 15 ----------
+test('v2.20.0: Drücken und Heben – Kontakte über den ganzen Zyklus', () => {
+  const each = (ref, fn, variant) => { const a = D.animationFor(ref), fr = M.resolveFrames(D.framesOf(a, variant)), T = M.cycleLength(a.phases); for (let i = 0; i <= 40; i++) fn(M.poseAt(fr, a.phases, (T * i) / 40 - (i === 40 ? 1e-6 : 0)).pose, i); };
+  // Multipresse: Stange an der Hand und an der senkrechten Schiene, Hüfte fest auf der Bank
+  const rail = D.animationFor('smith-machine-incline-bench-press').frames[0].pose.props(M.solvePose(D.animationFor('smith-machine-incline-bench-press').frames[0].pose)).scene.find((x) => x.type === 'plate').at[0];
+  each('smith-machine-incline-bench-press', (P, i) => { assert.ok(Math.abs(P.props.bar[0] - rail) < 3, `SM t=${i}: Stange an der Schiene (${(P.props.bar[0] - rail).toFixed(1)})`); near(P.joints.hip[1], -100, 0.1, `SM t=${i}: Hüfte`); });
+  // Schräge Brustpresse: Hüfte auf dem Sitz, Hand hält den Griff, Hand am Ende über der Schulter
+  each('incline-machine-chest-press', (P, i) => { near(P.joints.hip[1], -100, 0.1, `IP t=${i}: Hüfte`); assert.ok(P.props.hand[1] < P.joints.hip[1], `IP t=${i}: Griff über der Hüfte`); });
+  // Seitheben an der Maschine: Becken auf dem Sitz, symmetrisch, Arm bis 90°
+  for (const v of ['bent', 'straight']) each('machine-lateral-raise', (P, i) => { near(P.joints.pelvis[1], -105, 0.1, `ML ${v} t=${i}: Becken`); near(P.joints.elbowR[0], -P.joints.elbowL[0], 0.1, `ML ${v} t=${i}: symmetrisch`); assert.ok(P.angles.abd <= 90.5, `ML ${v} t=${i}: höchstens 90°`); }, v);
+  // Reverse Fly am Kabel: Füße am Boden, Hände etwa auf Schulterhöhe (±20; Arm 84° gehoben)
+  each('cable-reverse-fly', (P, i) => { near(P.joints.ankleR[1], -15, 0.5, `RF t=${i}: Fuß`); assert.ok(Math.abs(P.joints.wristR[1] - P.joints.shoulderR[1]) < 20, `RF t=${i}: Hand auf Schulterhöhe`); });
+  // Y-Raise: Füße am Boden, Hand nie im Boden, Polster vor dem Rumpf
+  each('incline-prone-y-raise', (P, i) => { near(P.joints.ankle[1], -15, 0.1, `YR t=${i}: Fuß`); assert.ok(P.joints.hand[1] < -10, `YR t=${i}: Hand über dem Boden`); assert.ok(P.props.pad[0] > P.joints.hip[0], `YR t=${i}: Polster vor dem Rumpf`); });
+  // Face Pull: Füße am Boden, Seil zur Rolle, Hand am Ende auf Kopfhöhe
+  each('face-pull', (P, i) => { near(P.joints.ankle[1], -15, 0.1, `FP t=${i}: Fuß`); assert.ok(P.props.hand[0] < 200, `FP t=${i}: Hand vor der Rolle`); });
+  // Shrugs: Füße fest, Schultern steigen um höchstens 12, Hanteln folgen den Händen
+  each('dumbbell-shrug', (P, i) => { near(P.joints.ankleR[1], -15, 0.5, `SH t=${i}: Fuß`); assert.ok(P.shrug >= 0 && P.shrug <= 12.01, `SH t=${i}: Hub ${P.shrug}`); const d = P.scene.find((x) => x.type === 'db'); assert.ok(dist(d.at, P.joints.handR) < 0.1, `SH t=${i}: Hantel in der Hand`); });
+});
+
+test('v2.20.0: Frontansicht – Schulterhebung (shrug) hebt Schultern und Schulterkontur, Kopf bleibt; ohne Angabe unverändert', () => {
+  const a = MF.solveFront({}), b = MF.solveFront({ shrug: 0 }), c = MF.solveFront({ shrug: 12 });
+  assert.deepEqual(b.joints, a.joints, 'shrug 0 ändert nichts');
+  near(c.joints.shoulderR[1], a.joints.shoulderR[1] - 12, 0.01, 'Schulter 12 höher');
+  near(c.joints.head[1], a.joints.head[1], 0.01, 'Kopf bleibt');
+  assert.equal(MF.shrugWeight([38, -292]), 1, 'Schulterlinie voll');
+  assert.equal(MF.shrugWeight([0, -300]), 0, 'Hals bleibt');
+  assert.equal(MF.shrugWeight([30, -240]), 0, 'Brust bleibt');
+  assert.equal(MF.shrugWeight([10, -336]), 0, 'Kopf bleibt');
+  const L0 = MF.layersFront(a).map((l) => l.d), L1 = MF.layersFront(b).map((l) => l.d);
+  assert.deepEqual(L1, L0, 'Zeichnung unverändert ohne Hub');
+});
+
+test('v2.20.0: Rückansicht (Latzug) – Arme hinter dem Rumpf, Szene hinter der Figur, Rückenmuskeln statt Brust', () => {
+  const a = D.animationFor('lat-pulldown'); assert.equal(a.view, 'back');
+  const fr = D.framesOf(a); assert.ok(fr.every((f) => f.pose.back === true && f.pose.view === 'front'));
+  const P = M.solvePose(fr[1].pose); assert.ok(P.back);
+  assert.ok(P.scene.every((s) => s.back && !s.front), 'Stange, Seil und Polster hinter der Figur');
+  const L = MF.layersFront(P, () => '', 'male');
+  const disc = (c, r) => 'M' + (Math.round((c[0] - r) * 10) / 10) + ' ' + (Math.round(c[1] * 10) / 10);
+  const iElbow = L.findIndex((l) => l.d.startsWith(disc(P.joints.elbowR, 6))), iTrunk = L.findIndex((l) => l.cls === 'an-m rest' && l.d === L.find((x) => x.cls === 'an-m rest').d);
+  assert.ok(iElbow >= 0 && iElbow < iTrunk, 'Arme vor dem Rumpf gezeichnet (also dahinter)');
+  for (const sex of ['male', 'female']) { const ids = new Set(MF.shapesForB(sex).map((s) => s.id)); assert.ok(ids.has('lats') && ids.has('triceps') && !ids.has('chest') && !ids.has('abs'), sex); }
+  const F = MF.layersFront(MF.solveFront({}), () => '', 'male'), B = MF.layersFront(MF.solveFront({ back: false }), () => '', 'male');
+  assert.deepEqual(B.map((l) => l.d), F.map((l) => l.d), 'Vorderansicht unverändert');
 });
 
 done();

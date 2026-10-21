@@ -5,7 +5,7 @@ import { h } from './util.js';
 import { icon } from './icons.js';
 import { openSheet } from './sheet.js';
 import * as M from './motion.js';
-import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F } from './motion-front.js';
+import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F, MUSCLE_SHAPE_B, HIDDEN_MUSCLES_B } from './motion-front.js';
 import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT, dumbbellPath, dumbbellBox } from './anim-data.js';
 import { poolEntry } from './pool.js';
 import { segmentsOf, segmentIndexAt, jumpTime, labelPlan } from './anim-bar.js';
@@ -32,7 +32,7 @@ const nums = (d) => (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
 
 // Rolle je Form aus den Pool-Muskeln (primär/sekundär).
 function roleFn(pool, view) {
-  const map = view === 'front' ? MUSCLE_SHAPE_F : M.MUSCLE_SHAPE;
+  const map = view === 'back' ? MUSCLE_SHAPE_B : view === 'front' ? MUSCLE_SHAPE_F : M.MUSCLE_SHAPE;
   const prim = new Set((pool?.muscles.primary || []).map((m) => map[m]).filter(Boolean));
   const sec = new Set((pool?.muscles.secondary || []).map((m) => map[m]).filter(Boolean));
   return (id) => (prim.has(id) ? 'p' : sec.has(id) ? 's' : '');
@@ -270,17 +270,17 @@ export function openDataSheet(anim, frames, pool) {
     for (const v of f.facts || []) items.push(h('li', {}, h('b', {}, v.raw || fmtDeg(v.v)), ` – ${READ[v.read] || v.read}`, v.src?.length ? ` (${srcLabel(anim, v.src)})` : ''));
     return h('div', {}, h('h4', {}, f.label), h('ul', { class: 'small' }, items));
   });
-  const hiddenList = anim.view === 'front' ? HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
+  const hiddenList = anim.view === 'back' ? HIDDEN_MUSCLES_B : anim.view === 'front' ? HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
   const hidden = [...(pool.muscles.primary || []), ...(pool.muscles.secondary || [])].filter((m) => hiddenList.includes(m));
   openSheet(h('div', { class: 'info' },
     h('p', {}, h('span', { class: `anim-badge ${anim.basis}` }, basis.label), ' ', basis.text),
     h('p', {}, anim.basisNote),
     h('h3', {}, 'Werte je Position'),
     ...frameBlocks,
-    h('p', { class: 'muted small' }, anim.view === 'front' ? 'Frontansicht: Schulter seitlich 0° = Arm hängt, 90° = waagerecht; Ellbogen als Beugung ab gestreckt. Arme und Beine, die aus der Bildebene zeigen, sind verkürzt dargestellt; Beugungen in der Sagittalebene (z. B. angewinkelte Beine) erscheinen nur als Verkürzung.' : 'Winkel: Knie, Hüfte und Ellbogen als Beugung ab gestreckt (0°); Rumpf- und Schienbeinneigung aus der Senkrechten; Schulter 0° = Arm hängt. Arme außerhalb der Bildebene sind in der Seitenansicht verkürzt dargestellt.'),
+    h('p', { class: 'muted small' }, anim.view === 'back' ? 'Rückansicht: Schulter seitlich 0° = Arm hängt, 90° = waagerecht; Ellbogen als Beugung ab gestreckt. Was vor dem Körper liegt (Stange, Hände), verdecken Kopf und Rücken; Arme, die aus der Bildebene zeigen, sind verkürzt dargestellt.' : anim.view === 'front' ? 'Frontansicht: Schulter seitlich 0° = Arm hängt, 90° = waagerecht; Ellbogen als Beugung ab gestreckt. Arme und Beine, die aus der Bildebene zeigen, sind verkürzt dargestellt; Beugungen in der Sagittalebene (z. B. angewinkelte Beine) erscheinen nur als Verkürzung.' : 'Winkel: Knie, Hüfte und Ellbogen als Beugung ab gestreckt (0°); Rumpf- und Schienbeinneigung aus der Senkrechten; Schulter 0° = Arm hängt. Arme außerhalb der Bildebene sind in der Seitenansicht verkürzt dargestellt.'),
     h('h3', {}, 'Tempo'),
     h('p', {}, h('b', {}, TEMPO_BASIS[anim.tempo.basis]), ` – ${anim.tempo.note}`),
-    hidden.length ? h('p', { class: 'muted small' }, `Nicht als Fläche sichtbar (${anim.view === 'front' ? 'Frontansicht' : 'Seitenansicht'}): ${hidden.map((m) => MUSCLES[m]).join(', ')}.`) : null,
+    hidden.length ? h('p', { class: 'muted small' }, `Nicht als Fläche sichtbar (${anim.view === 'back' ? 'Rückansicht' : anim.view === 'front' ? 'Frontansicht' : 'Seitenansicht'}): ${hidden.map((m) => MUSCLES[m]).join(', ')}.`) : null,
     h('h3', {}, 'Quellen'),
     h('ul', { class: 'small' }, Object.entries(anim.sources).map(([id, s]) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), ` – ${READ[s.read] || s.read}`, s.note ? h('small', { class: 'muted' }, ` · ${s.note}`) : null))),
     h('p', { class: 'muted small' }, `Recherche vom ${fmtDate(anim.checkedAt || ANIM_CHECKED_AT)}. Werte mit „automatische Seitenzusammenfassung“ sind noch nicht am PDF geprüft.`)
