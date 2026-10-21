@@ -22,6 +22,9 @@ npm test         # Node-Tests (Datenmodell, Speicher, Backup, Logik)
 npm run privacy  # Scan nach persönlichen Strings
 ```
 
+Prüfwerkzeuge für die Animationen liegen in `tests/browser/` (Kopfkommentar jeder Datei nennt den Aufruf; Playwright wird außerhalb des Repos gesucht):
+`check-tabs` (Tabs ohne Fehler), `check-anim` (Animationen im Browser), `strip` und `svg2png` (Bildstreifen), `zoom` (Einzelbilder), `pose` (freie Posen), `snap` (Regressionsvergleich), `proto`.
+
 ## Datenschutz
 
 Persönliche Daten (Trainingslogs, Gewichte, Körpermaße, Backups) gehören nie in dieses Repo. Backups sind per `.gitignore` ausgeschlossen.

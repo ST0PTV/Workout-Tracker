@@ -2,12 +2,21 @@
 // Vorher/Nachher bei Änderungen an motion*.js / anim-data.js: bestehende Animationen dürfen sich nicht ändern.
 // Aufruf: node tests/browser/snap.mjs save <datei.json>
 //         node tests/browser/snap.mjs diff <vorher.json> <nachher.json>
+// Option bei save: --without-shape=<id>  entfernt diese Muskelfläche in der Seitenansicht (nur im Speicher), damit sich prüfen lässt,
+//         dass eine neu hinzugefügte Fläche sonst nichts verändert (z. B. --without-shape=hip-flexors).
 import fs from 'node:fs';
 import * as M from '../../js/motion.js';
 import * as D from '../../js/anim-data.js';
 
-const [mode, a, b] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const wo = argv.find((x) => x.startsWith('--without-shape='));
+const [mode, a, b] = argv.filter((x) => x !== wo);
 if (mode === 'save' && a) {
+  if (wo) {
+    const id = wo.split('=')[1]; let n = 0;
+    for (const arr of [M.SHAPES, M.SHAPES_FEMALE]) { const i = arr.findIndex((s) => s.id === id); if (i >= 0) { arr.splice(i, 1); n++; } }
+    if (!n) { console.error(`Fläche "${id}" nicht gefunden`); process.exit(2); }
+  }
   const out = {};
   for (const an of D.ANIMATIONS) {
     const vs = an.variants ? an.variants.map((v) => v.key) : [null];
@@ -31,5 +40,5 @@ if (mode === 'save' && a) {
   console.log('entfernt:', [...removed].join(', ') || '–');
   if (changed.size || removed.size) process.exitCode = 1;
 } else {
-  console.error('Aufruf: snap.mjs save <datei> | snap.mjs diff <vorher> <nachher>'); process.exit(2);
+  console.error('Aufruf: snap.mjs save <datei> [--without-shape=<id>] | snap.mjs diff <vorher> <nachher>'); process.exit(2);
 }
