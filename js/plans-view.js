@@ -11,6 +11,29 @@ import { stepper } from './controls.js';
 import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import { miniFigure } from './figure.js';
 import { routinesPanel, planSlots, openNewRoutine } from './routine-view.js';
+import { DAY_LABELS, formatDays, isWeekSkipped } from './schedule.js';
+
+// v2.29.0 (Feature-To-Do A): Trainingstage als Chips. Optional – ohne Tage gibt es keinen Hinweis.
+function daysBlock(plan, onChange) {
+  const days = plan.days || [];
+  const skipped = days.length && isWeekSkipped(plan);
+  return h('div', { class: 'ctl col plan-days' },
+    h('span', { class: 'ctl-label' }, 'Trainingstage (optional)'),
+    h('div', { class: 'chips wrap' }, DAY_LABELS.map((label, d) => {
+      const on = days.includes(d);
+      return h('button', { type: 'button', class: `chip${on ? ' on' : ''}`, 'aria-pressed': String(on), 'aria-label': `${label} ${on ? 'abwählen' : 'wählen'}`, onclick: () => {
+        const r = P.setPlanDays(plan.id, on ? days.filter((x) => x !== d) : [...days, d]);
+        if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+        onChange();
+      } }, label);
+    })),
+    h('p', { class: 'muted small' }, days.length
+      ? 'Fand an einem dieser Tage gar kein Training statt, erwähnt die App das am nächsten Tag einmal. Es wird nichts gezählt.'
+      : 'Ohne Tage gibt es keine Hinweise.'),
+    days.length ? (skipped
+      ? h('p', { class: 'muted small' }, 'Diese Woche ausgesetzt · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.unskipWeek(plan.id); onChange(); } }, 'rückgängig'))
+      : h('button', { class: 'btn block subtle', type: 'button', onclick: () => { P.skipWeek(plan.id); toast('Diese Woche ausgesetzt.'); onChange(); } }, 'Diese Woche aussetzen')) : null);
+}
 
 // v2.3.0: Umschalter „Pläne | Routinen“ (Variante C); bleibt beim Neu-Rendern erhalten.
 const tab = { mode: 'plans' };
@@ -111,7 +134,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
           const r = P.renamePlan(planId, e.target.value);
           if (!r.ok) { toast(r.errors[0], { error: true }); e.target.value = P.getPlan(planId).name; } else { draw(); rerender(); }
         } })
-        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Arbeitssätze` : 'Noch keine Übungen im Plan.'),
+        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Arbeitssätze` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
       h('button', { class: `pill${mode.edit ? ' on' : ''}`, type: 'button', onclick: () => { mode.edit = !mode.edit; draw(); } },
         mode.edit ? 'Fertig' : h('span', { class: 'pill-in' }, icon('edit', { size: 16 }), 'Bearbeiten')));
 
@@ -178,6 +201,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
     const slots = planSlots(plan, () => { draw(); rerender(); });
     body.replaceChildren(...[
       head,
+      mode.edit ? daysBlock(plan, () => { draw(); rerender(); }) : null,
       slots.before,
       ...steps,
       mode.edit || !details.length ? h('button', { class: 'addline', type: 'button', onclick: () => openExercisePicker(P.getPlan(planId), (ids) => {
@@ -216,7 +240,7 @@ export function plansView(rerender) {
     const s = planSummary(plan, ctx);
     return h('button', { class: `pcard${dim ? ' dim-list' : ''}`, type: 'button', onclick: () => openPlan(plan.id, rerender) },
       h('span', { class: 'pc-top' }, h('b', {}, plan.name), icon('chevron', { size: 18 })),
-      h('small', {}, `${s.count} ${s.count === 1 ? 'Übung' : 'Übungen'} · ${s.sets} Arbeitssätze`),
+      h('small', {}, `${s.count} ${s.count === 1 ? 'Übung' : 'Übungen'} · ${s.sets} Arbeitssätze${formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''}`),
       s.count ? h('span', { class: 'ex' }, s.names.join(' · ')) : h('span', { class: 'ex muted' }, 'Noch leer – tippen zum Befüllen'));
   };
   const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },
