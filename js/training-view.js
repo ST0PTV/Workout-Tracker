@@ -300,7 +300,7 @@ function planSyncCard(session, rerender) {
 function missedCards(rerender) {
   return missedHints(P.listPlans(), store.get('sessions')).map(({ plan, date, day }) =>
     h('div', { class: 'card hint-box', role: 'note' },
-      h('p', {}, `Gestern (${day}) war „${plan.name}“ eingeplant, eingetragen ist kein Training. Das wird nirgends gezählt – Pausen gehören zum Training.`),
+      h('p', {}, `Gestern (${day}) war „${plan.name}“ eingeplant, eingetragen ist kein Training.`),
       h('div', { class: 'row-btns' },
         h('button', { class: 'btn', type: 'button', onclick: () => { P.ackMissed(plan.id, date); rerender(); } }, 'OK'),
         h('button', { class: 'btn', type: 'button', onclick: () => { P.skipWeek(plan.id, new Date(), date); toast(`„${plan.name}“: diese Woche ausgesetzt.`); rerender(); } }, 'Diese Woche aussetzen'))));
