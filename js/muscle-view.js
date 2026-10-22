@@ -26,7 +26,7 @@ export const WEEK_INFO = {
     'Die Farben sind nur Darstellungsstufen, keine Empfehlung. Die App gibt bewusst keine Zielwerte vor.'
   ],
   sources: [
-    { label: 'Pelland et al. 2026, Sports Medicine 56:481–505', url: 'https://doi.org/10.1007/s40279-025-02344-w', note: 'Meta-Regression Volumen/Frequenz; fraktionale Zählung am besten (per Websuche geprüft)' },
+    { label: 'Pelland et al. 2026, Sports Medicine 56:481–505', url: 'https://doi.org/10.1007/s40279-025-02344-w', note: 'Meta-Regression Volumen/Frequenz: Hilfssätze zählen halb (Volltext). Grobe Schätzung fürs Muskelwachstum: ab etwa 4 solcher Sätze pro Woche messbar; danach braucht jeder weitere Zuwachs mehr Sätze.' },
     { label: 'Remmert et al. 2025, SportRxiv (Preprint)', url: 'https://sportrxiv.org/index.php/server/preprint/download/537/1148/1071', note: 'Volumen pro Einheit; indirekte Sätze explorativ ca. 16–32 %; nicht begutachtet' }
   ]
 };

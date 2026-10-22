@@ -809,7 +809,7 @@ export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
   {
     ref: 'back-squat', view: 'side', basis: 'measured',
-    basisNote: 'Winkel aus Glassbrook et al. 2019 (3D, je 6 Gewichtheber hochstabig und 6 Kraftdreikämpfer tiefstabig, 74–83 % 1RM; Tabelle 4 am PDF geprüft). Rumpf- und Schienbeinneigung daraus berechnet.',
+    basisNote: 'Winkel aus Glassbrook et al. 2019 (3D, je 6 Gewichtheber hochstabig und 6 Kraftdreikämpfer tiefstabig, 74–83 % 1RM; Tabelle 4 am PDF geprüft). Rumpf- und Schienbeinneigung daraus berechnet. Startwinkel sind geschätzt (Tiefpunkt plus Bewegungsumfang). Nur Männer, Gewichtheberschuhe.',
     tempo: { basis: 'protocol', note: '1,5 s ab / 1,5 s auf (Metronom in Yavuz & Erdag 2017); natürliches Tempo nicht gemessen.' },
     variants: [{ key: 'high', label: 'Hochstabig' }, { key: 'low', label: 'Tiefstabig' }],
     frames: {
@@ -825,26 +825,26 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 4] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.4, label: 'Unten', kp: [3] }, { a: 1, b: 0, dur: 1.5, label: 'Aufstehen', kp: [2] }],
     keyPoints: [
       { short: 'Stange', anchor: 'bar', side: 'l', status: 'consensus', text: 'Hochstabig: Oberkörper aufrechter. Tiefstabig: mehr Vorlage. Beides ist korrekt.', src: ['S1', 'S2', 'S3'],
-        explain: 'Die hochstabige Variante (Stange auf dem Trapezmuskel) läuft mit aufrechterem Rumpf und mehr Knie- und Sprunggelenkbeugung, die tiefstabige (Stange über der hinteren Schulter) mit mehr Vorlage. In Murawa et al. 2020 unterschied sich der Hüftwinkel zwischen beiden nicht signifikant. Keine Variante ist „richtiger“; sie verteilen die Last anders.' },
+        explain: 'Die hochstabige Variante (Stange oben auf dem Trapezmuskel) läuft mit aufrechterem Rumpf und etwas mehr Kniebeugung, meist auch tiefer. Die tiefstabige (Stange über der hinteren Schulter) läuft mit mehr Vorlage und mehr Hüftbeugung. Bei erfahrenen Hebern waren die Unterschiede klein und nicht signifikant (Glassbrook et al. 2019). Für das Sprunggelenk sind die Daten uneinheitlich. In Murawa et al. 2020 (12 Kraftdreikämpfer, 60–70 % 1RM) unterschied sich der Hüftwinkel am Tiefpunkt nicht signifikant (≈ 102° vs. 106°); das Becken kippte tiefstabig stärker nach vorn. Keine Variante ist „richtiger“; sie verteilen die Last anders.' },
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'contested', text: 'Knie dürfen über die Zehen wandern; das verteilt die Last zwischen Knie und Hüfte.', src: ['S5', 'S4', 'S6'],
-        explain: 'Umstritten. Wird das Knie am Vorwandern gehindert, sinkt das Kniedrehmoment (117 statt 150 N·m), aber das Hüftdrehmoment steigt stark (303 statt 28 N·m) und der Rumpf neigt sich weiter vor (Fry et al. 2003, n = 7). Bei der Kraftdreikampf-Kniebeuge im breiten Stand wurde ein möglichst senkrechtes Schienbein angewiesen; der Körperschwerpunkt wanderte dadurch nach hinten (Swinton et al. 2012, n = 12 Kraftdreikämpfer). Die Regel „Knie nicht über die Zehen“ gilt in der Übersicht von Straub & Powers 2024 als Lastverteilung, nicht als Fehler.' },
+        explain: 'Umstritten. Wird das Knie am Vorwandern gehindert, sinkt das Kniedrehmoment (117 statt 150 N·m), aber das Hüftdrehmoment steigt stark (303 statt 28 N·m) und der Rumpf neigt sich weiter vor (Fry et al. 2003, n = 7). Bei der Kraftdreikampf-Kniebeuge im breiten Stand wurde ein möglichst senkrechtes Schienbein angewiesen; der Körperschwerpunkt wanderte dadurch nach hinten. Der Rumpf neigte sich dabei nicht stärker vor, das Kniedrehmoment blieb gleich, das Hüftdrehmoment stieg (Swinton et al. 2012, n = 12 Kraftdreikämpfer). Die Regel „Knie nicht über die Zehen“ gilt in der Übersicht von Straub & Powers 2024 als Lastverteilung, nicht als Fehler.' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Vorlage aus der Hüfte, Rücken neutral halten statt rund werden lassen.', src: ['S6'],
         explain: 'Empfehlung aus einem klinischen Kommentar (Evidenzstufe 5) zur Belastbarkeit der Wirbelsäule. Daten, dass eine bestimmte Rückenhaltung Verletzungen verhindert, gibt es dazu nicht.' },
       { short: 'Tiefe', anchor: 'hip', side: 'l', status: 'contested', text: 'Tiefe nach Beweglichkeit: so tief, wie Becken und Rücken stabil bleiben.', src: ['S10', 'S11', 'S6'],
-        explain: 'Umstritten. Für die tiefe Kniebeuge: mehr Zuwachs an Adduktoren, Gesäß und tiefer 1RM nach 10 Wochen (Kubo et al. 2019, n = 17); eine Übersicht fand keine Belege für ein höheres Risiko passiver Strukturen (Hartmann et al. 2013). Dagegen: Straub & Powers 2024 raten, die Tiefe dort zu begrenzen, wo die Hüftbeugung ausgeschöpft ist und das Becken nach hinten kippt. Einteilung: teilweise 0–90°, parallel 90–110°, tief 110–135° Kniebeugung.' },
+        explain: 'Umstritten. Für die tiefe Kniebeuge (≈ 140° Kniebeugung): mehr Zuwachs an Adduktoren und Gesäß nach 10 Wochen; der vordere Oberschenkel wuchs bei halber Tiefe (90°) gleich stark (Kubo et al. 2019, 17 untrainierte Männer); eine erzählende Übersicht fand keine Belege für ein höheres Risiko für Knie und Wirbelsäule, wenn die Technik sauber gelernt und die Last langsam gesteigert wird; sie warnt aber vor einem Rundrücken am tiefsten Punkt (Hartmann et al. 2013). Dagegen: Straub & Powers 2024 raten, die Tiefe dort zu begrenzen, wo die Hüftbeugung ausgeschöpft ist und das Becken nach hinten kippt. Einteilung: teilweise 0–90°, parallel 90–110°, tief 110–135° Kniebeugung.' },
       { short: 'Stand', anchor: 'foot', side: 'r', status: 'single', text: 'Füße etwa schulterbreit, Zehen leicht nach außen; Knie folgen der Fußrichtung.', src: ['S7', 'S6'],
         explain: 'Lorenzetti et al. 2018 (n = 42, 0 und 50 % Körpergewicht) empfehlen etwa 20° Fußöffnung bei schulterbreitem Stand und raten von Extremen ab. Eine Fußöffnung von 30° änderte die Aktivität von Quadrizeps und Beinbeuger nicht (Übersicht Straub & Powers 2024). Einzelstudie, kein Beweis für ein Optimum.' }
     ],
     sources: {
       S1: { label: 'Glassbrook et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001836', read: 'fulltext', note: 'Akzeptiertes Manuskript; Tabelle 4, Block 74–83 % 1RM' },
-      S2: { label: 'Glassbrook et al. 2017, J Strength Cond Res (Review)', url: 'https://doi.org/10.1519/JSC.0000000000002007', read: 'abstract' },
+      S2: { label: 'Glassbrook et al. 2017, J Strength Cond Res (Review)', url: 'https://doi.org/10.1519/JSC.0000000000002007', read: 'fulltext' },
       S3: { label: 'Murawa et al. 2020, PeerJ', url: 'https://doi.org/10.7717/peerj.9256', read: 'fulltext' },
       S4: { label: 'Swinton et al. 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3182577067', read: 'fulltext' },
       S5: { label: 'Fry et al. 2003, J Strength Cond Res', url: 'https://doi.org/10.1519/1533-4287(2003)017<0629:eokpoh>2.0.co;2', read: 'abstract' },
       S6: { label: 'Straub & Powers 2024, Int J Sports Phys Ther (klinischer Kommentar)', url: 'https://doi.org/10.26603/001c.94600', read: 'fulltext' },
       S7: { label: 'Lorenzetti et al. 2018, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-018-0103-7', read: 'fulltext' },
-      S10: { label: 'Kubo et al. 2019, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s00421-019-04181-y', read: 'abstract' },
-      S11: { label: 'Hartmann et al. 2013, Sports Med (Review)', url: 'https://doi.org/10.1007/s40279-013-0073-6', read: 'abstract' }
+      S10: { label: 'Kubo et al. 2019, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s00421-019-04181-y', read: 'fulltext' },
+      S11: { label: 'Hartmann et al. 2013, Sports Med (Review)', url: 'https://doi.org/10.1007/s40279-013-0073-6', read: 'fulltext' }
     }
   },
 
@@ -852,7 +852,7 @@ export const ANIMATIONS = [
   {
     ref: 'deadlift', view: 'side', basis: 'measured',
     basisNote: 'Knie- und Sprunggelenkwinkel aus Hanen et al. 2025 (3D, 30 trainierte Männer, 85 % 1RM, Volltext). Der Hüftwinkel der Studie ist ein Becken–Oberschenkel-Winkel; die Rumpfneigung ist deshalb aus der Geometrie gelöst: Die Stange liegt am Start über dem Mittelfuß am Schienbein und auf Kniehöhe vor der Kniescheibe, die gestreckten Arme (Armlänge nach ANSUR II) reichen von der Schulter zur Stange. Oben zeigt der Arm leicht nach vorn zur Stange am Oberschenkel.',
-    tempo: { basis: 'computed', note: 'Konzentrisch ≈ 1,3 s aus 0,40 m/s mittlerer Geschwindigkeit bei 80–89 % 1RM (Kasovic et al. 2019) und ≈ 0,5 m Hubweg; Absenken nicht gemessen (Konvention).' },
+    tempo: { basis: 'computed', note: 'Konzentrisch ≈ 1,4 s (berechnet): bei 80–89 % 1RM betrug die mittlere Hebegeschwindigkeit ≈ 0,40 m/s und der Hubweg ≈ 0,55 m (Kasovic et al. 2019, Volltext; Einzelwiederholungen, so schnell wie möglich gehoben). Absenken nicht gemessen (Konvention).' },
     frames: [
       { label: 'Start', pose: { shank: V(11.7, 'S1', 'computed', 'gleich der Dorsalflexion (Fuß flach)'), knee: V(58.6, 'S1', 'fulltext'), ankle: V(11.7, 'S1', 'fulltext'), solve: { param: 'trunk', joint: 'shoulder', at: DL_BAR.start, dist: ARM_REACH, range: [-10, 95] }, trunk: null, armAt: DL_BAR.start, elbow: C(0), props: handPlate } },
       { label: 'Knie', pose: { shank: V(0, 'S1', 'fulltext', 'Sprunggelenk ≈ 0°'), knee: V(25.2, 'S1', 'fulltext'), ankle: V(0, 'S1', 'fulltext'), solve: { param: 'trunk', joint: 'shoulder', at: DL_BAR.knee, dist: ARM_REACH, range: [-10, 95] }, trunk: null, armAt: DL_BAR.knee, elbow: C(0), props: handPlate } },
@@ -864,10 +864,10 @@ export const ANIMATIONS = [
         explain: 'Hüfte unter Schulterhöhe und gestreckte Arme sind die Startdefinitionen der Messstudien. „Stange über dem Mittelfuß“ stützt sich auf eine kleine Studie (n = 6): Start über dem Kahnbein ergab weniger horizontale Stangenbewegung als über den Zehengrundgelenken (37,5 statt 66,7 mm bei 90 % 1RM; Hancock et al. 2012). Schwach: 1RM nur selbst angegeben, 4 von 6 Teilnehmern rundeten unter der Last den Rücken.' },
       { short: 'Nah', anchor: 'shin', side: 'r', status: 'consensus', text: 'Stange während des ganzen Zugs nah an Schienbeinen und Oberschenkeln führen.', src: ['S2', 'S3', 'S6'],
         explain: 'Der horizontale Abstand Hüfte–Stange bestimmt das Hüftdrehmoment; er sank in Shoji et al. 2025 von ≈ 30 cm am Start auf ≈ 14 cm am Ende, bei schwererer Last kürzer. Geübte Heber halten die Stange beim Knie näher am Körper (Schellenberg et al. 2013, Einleitung).' },
-      { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Knie und Hüfte strecken; ab Kniehöhe schiebt vor allem die Hüfte nach vorn.', src: ['S1', 'S5'],
+      { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Knie und Hüfte strecken; ab Kniehöhe schiebt vor allem die Hüfte, am Ende beide zusammen.', src: ['S1', 'S5'],
         explain: 'Bis zum Knie bewegen sich Knie (33°) und Hüfte (38°) ähnlich viel, danach vor allem die Hüfte (49° gegenüber 19° Knie; Hanen et al. 2025). Hales et al. 2009 beschreiben das Kreuzheben als sequenziell.' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'contested', text: 'Rücken möglichst neutral halten – leichte Rundung unter hoher Last ist häufig.', src: ['S2', 'S6', 'S7'],
-        explain: 'Umstritten, was „neutral“ bedeutet. Gemessen: Elite-Heber blieben 1,5–13° unter ihrer vollen Lendenbeugung (Cholewicki & McGill 1992, n = 4); trotz Anweisung „keine Lendenbeugung“ traten ≈ 26° auf (Schellenberg et al. 2013); die Beugung nimmt mit der Last zu und verkürzt den Hebelarm (Shoji et al. 2025). Keine gelesene Studie verbindet ein bestimmtes Maß an Rundung mit Verletzungen.' },
+        explain: 'Umstritten, was „neutral“ bedeutet. Gemessen: Elite-Heber blieben je Lendenwirbel-Gelenk 1,5–13° unter ihrer vollen Beugung; in einem Versuch wurde sie kurz überschritten, mit kurzem Unbehagen (Cholewicki & McGill 1992, n = 4); trotz Anweisung „keine Lendenbeugung“ traten ≈ 26° auf (Schellenberg et al. 2013); die Beugung nimmt mit der Last zu und verkürzt den Hebelarm (Shoji et al. 2025). Keine gelesene Studie verbindet ein bestimmtes Maß an Rundung mit Verletzungen.' },
       { short: 'Oben', anchor: 'chest', side: 'r', status: 'consensus', text: 'Oben aufrecht stehen, Hüfte und Knie ganz gestreckt; dann kontrolliert absenken.', src: ['S1', 'S3'],
         explain: 'Lockout in Hanen et al. 2025: Hüfte 3,7°, Knie 6,5° Beugung – aufrecht, nicht überstreckt.' }
     ],
@@ -875,10 +875,10 @@ export const ANIMATIONS = [
       S1: { label: 'Hanen et al. 2025, Front Bioeng Biotechnol', url: 'https://doi.org/10.3389/fbioe.2025.1597209', read: 'fulltext' },
       S2: { label: 'Schellenberg et al. 2013, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/2052-1847-5-27', read: 'fulltext' },
       S3: { label: 'Otsuka et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0251418', read: 'fulltext' },
-      S5: { label: 'Hales et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181bc1d2a', read: 'abstract' },
+      S5: { label: 'Hales et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181bc1d2a', read: 'fulltext' },
       S6: { label: 'Shoji et al. 2025, Front Sports Act Living', url: 'https://doi.org/10.3389/fspor.2025.1682991', read: 'fulltext' },
-      S7: { label: 'Cholewicki & McGill 1992, J Biomech', url: 'https://doi.org/10.1016/0021-9290(92)90242-s', read: 'abstract' },
-      S8: { label: 'Kasovic et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003377', read: 'abstract' },
+      S7: { label: 'Cholewicki & McGill 1992, J Biomech', url: 'https://doi.org/10.1016/0021-9290(92)90242-s', read: 'fulltext' },
+      S8: { label: 'Kasovic et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003377', read: 'fulltext' },
       S9: { label: 'Hancock, Wyatt & Kilgore 2012, Int J Exerc Sci', url: 'https://digitalcommons.wku.edu/ijes/vol5/iss3/1', read: 'fulltext' }
     }
   },
@@ -925,13 +925,13 @@ export const ANIMATIONS = [
       { short: 'Aufbau', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Oberer Rücken auf der Bank, Stange über der Hüfte, Füße schulterbreit flach am Boden.', src: ['S3', 'S11', 'S13'],
         explain: 'Aufbau der Messstudien: Schulterblätter auf einer 0,36 m hohen Bank (Otsuka et al. 2021), Stange auf dem Becken bzw. oberen Oberschenkel, Füße flach und schulterbreit.' },
       { short: 'Füße', anchor: 'foot', side: 'r', status: 'contested', text: 'Füße so stellen, dass die Schienbeine oben etwa senkrecht stehen.', src: ['S3', 'S11'],
-        explain: 'Umstritten. Otsuka et al. 2021 ließen die Schienbeine senkrecht halten. In Sørensen et al. 2021 erhöhten weiter entfernte Füße (≈ 57° Kniebeugung oben) die Beinbeuger-Aktivität gegenüber ≈ 76°. Die Fußposition verschiebt den Schwerpunkt der Belastung; ein Optimum ist nicht belegt.' },
-      { short: 'Oben', anchor: 'hip', side: 'r', status: 'single', text: 'Hüfte strecken, bis Oberkörper und Oberschenkel etwa waagerecht in einer Linie sind.', src: ['S3'],
+        explain: 'Umstritten. Otsuka et al. 2021 ließen die Schienbeine senkrecht halten. In Sørensen et al. 2021 erhöhten weiter entfernte Füße (≈ 57° Kniebeugung oben) die Beinbeuger-Aktivität gegenüber ≈ 76°. Gemessen wurden nur die Beinbeuger, nicht der Gesäßmuskel. Ein Optimum ist nicht belegt.' },
+      { short: 'Oben', anchor: 'hip', side: 'r', status: 'single', text: 'Hüfte strecken, bis der Oberkörper etwa waagerecht ist.', src: ['S3'],
         explain: 'Endkriterium „Rumpf parallel zum Boden“ (Otsuka et al. 2021). Mit einer 0,36 m hohen Bank erreichten dort einige Teilnehmer die neutrale Hüfte nicht; der Hüftwinkel oben wurde in keiner gelesenen Studie berichtet.' },
       { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Bewegung aus der Hüfte; der untere Rücken bewegt sich nur wenig mit.', src: ['S13'],
         explain: 'Becken–Rumpf-Bewegung 12 ± 21° gegenüber 75 ± 19° in der Hüfte (Brazil et al. 2021); einzelne Teilnehmer streckten, andere beugten den Lenden-Becken-Bereich.' },
       { short: 'Ab', anchor: 'bar', side: 'r', status: 'consensus', text: 'Kontrolliert absenken, bis die Scheiben (fast) den Boden berühren.', src: ['S3', 'S13'],
-        explain: 'In beiden Messstudien begann jede Wiederholung aus der Ruhe mit den Scheiben am oder nahe am Boden.' }
+        explain: 'In beiden Messstudien gingen die Scheiben bis an oder nahe an den Boden. In Otsuka et al. 2021 folgte das Hochdrücken direkt auf das Absenken.' }
     ],
     sources: {
       S13: { label: 'Brazil et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0249307', read: 'fulltext' },
@@ -945,31 +945,31 @@ export const ANIMATIONS = [
   {
     ref: 'bulgarian-split-squat', view: 'side', basis: 'measured',
     basisNote: 'Rumpf-, Schienbein- und Hüftwinkel unten aus Arakawa et al. 2025 (3D, 9 trainierte Männer, Körpergewicht, breiter Stand 130 % Beinlänge, natürliche Rumpfneigung; Tabelle 1 am PDF geprüft); Kniewinkel daraus berechnet (106°; Mackey & Riemann 2021 nennen ≈ 96°). Hinteres Bein aus der Bankhöhe gelöst.',
-    tempo: { basis: 'computed', note: '2,39 ± 0,32 s je Wiederholung ohne Metronom (Mackey & Riemann 2021), hier gleichmäßig auf Ab und Auf verteilt.' },
+    tempo: { basis: 'computed', note: 'Mit Metronom 1,5 s ab und 1,5 s auf (Arakawa et al. 2025, Körpergewicht). Ohne Metronom 2,39 ± 0,32 s je Wiederholung (Mackey & Riemann 2021).' },
     frames: [
       { label: 'Oben', pose: { shank: C(8), knee: C(20), hip: C(20), ankle: C(8), leg2: { ankle: [-122, -104], foot: C(200) }, armPlumb: true, elbow: C(0), props: bssProps } },
-      { label: 'Unten', pose: { shank: V(28.6, 'S2', 'fulltext', 'Schienbein 28,6 ± 6,7°'), knee: K(106, 'S2', 'aus Rumpf 13,4°, Schienbein 28,6° und Hüfte 90,8°'), hip: V(90.8, 'S2', 'fulltext', '89,2 ± 8,8° (180° = Stand)'), ankle: V(28.6, 'S2', 'computed', 'gleich der Schienbeinneigung'), leg2: { ankle: [-122, -104], foot: C(200) }, armPlumb: true, elbow: C(0), props: bssProps } }
+      { label: 'Unten', pose: { shank: V(28.6, 'S2', 'fulltext', 'Schienbein 28,6 ± 6,7°'), knee: K(106, 'S2', 'aus Rumpf 13,4°, Schienbein 28,6° und Hüfte 90,8°'), hip: V(90.8, 'S2', 'fulltext', 'Hüftwinkel 89,2 ± 8,8° (180° = Stand); in der App als Beugung 90,8° gespeichert'), ankle: V(28.6, 'S2', 'computed', 'gleich der Schienbeinneigung'), leg2: { ankle: [-122, -104], foot: C(200) }, armPlumb: true, elbow: C(0), props: bssProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 1.2, label: 'Absenken', kp: [2, 3] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 4] }, { a: 1, b: 0, dur: 1.2, label: 'Aufstehen', kp: [4] }],
     keyPoints: [
       { short: 'Hinten', anchor: 'ankle2', side: 'l', status: 'consensus', text: 'Hinteren Fuß mit dem Spann auf eine Bank legen, etwa auf Kniehöhe.', src: ['S1', 'S2', 'S3', 'S8'],
-        explain: 'Bankhöhe in den Studien 0,40–0,41 m bzw. Kniescheiben- oder Schienbeinhöhe.' },
+        explain: 'Bankhöhe in den Studien 0,40–0,41 m bzw. Höhe des unteren Kniescheibenrands oder Schienbeinhöhe.' },
       { short: 'Vorne', anchor: 'foot', side: 'r', status: 'contested', text: 'Vorderen Fuß so weit vorn aufsetzen, dass das Knie unten etwa über dem Fuß steht.', src: ['S1', 'S2', 'S6'],
         explain: 'Umstritten. Abstand 100–130 % der Beinlänge (Arakawa et al. 2025) oder „Knie über den Zehen in der Parallelposition“ (Mackey & Riemann 2021). Ein längerer Schritt verlagert die Last vom Knie zur Hüfte (Song et al. 2023, normaler Split Squat).' },
       { short: 'Tiefe', anchor: 'thigh', side: 'r', status: 'consensus', text: 'Senkrecht absenken, bis der vordere Oberschenkel etwa waagerecht ist.', src: ['S1', 'S2', 'S3'],
         explain: 'Ziel ≈ 90° Knie (Mackey & Riemann 2021), Oberschenkel parallel (Arakawa et al. 2025) oder bis das hintere Knie den Boden berührt (Aygun-Polat et al. 2025).' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'contested', text: 'Oberkörper leicht nach vorn neigen; mehr Neigung betont Gesäß und Beinbeuger.', src: ['S2', 'S3'],
-        explain: 'Umstritten. Natürlich ≈ 13° Vorneigung (berechnet aus Arakawa et al. 2025); 40° Vorneigung erhöhte die EMG-Aktivität von Gesäß und Beinbeuger (Aygun-Polat et al. 2025); ein aufrechterer Rumpf erhöht das Moment am hinteren Bein (Arakawa et al. 2025).' },
+        explain: 'Umstritten. Natürlich ≈ 13° Vorneigung (berechnet aus Arakawa et al. 2025); 40° Vorneigung erhöhte die EMG-Aktivität von Gesäß und Beinbeuger (Aygun-Polat et al. 2025); Bei schmalem Stand erhöhte ein aufrechterer Rumpf das Moment am hinteren Bein, bei breitem Stand nicht (Arakawa et al. 2025). Mehr Vorneigung erhöhte das Hüftstreckmoment vorn.' },
       { short: 'Last', anchor: 'knee', side: 'r', status: 'single', text: 'Last liegt vor allem auf dem vorderen Bein, das hintere Bein stützt nur.', src: ['S4'],
-        explain: 'Der vordere Fuß trug 84 % der Vertikalkraft (Helme et al. 2022, n = 26, 5RM).' }
+        explain: 'Der vordere Fuß trug etwa 84 % der Vertikalkraft, bei allen Lasten bis zum 5RM (Helme et al. 2022, 26 trainierte Männer, Langhantel, hinterer Fuß auf 40 cm). Der hintere Fuß dient vor allem dem Gleichgewicht; beim Absenken bremst er vermutlich etwas mit.' }
     ],
     sources: {
       S1: { label: 'Mackey & Riemann 2021, Int J Exerc Sci', url: 'https://doi.org/10.70252/CIYT8956', read: 'fulltext' },
       S2: { label: 'Arakawa et al. 2025, Int J Exerc Sci', url: 'https://doi.org/10.70252/NEXQ5666', read: 'fulltext', note: 'Tabelle 1, breiter Stand, natürliche Rumpfneigung' },
       S3: { label: 'Aygun-Polat et al. 2025, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-025-01306-z', read: 'fulltext' },
-      S4: { label: 'Helme et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003727', read: 'abstract' },
+      S4: { label: 'Helme et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003727', read: 'fulltext' },
       S6: { label: 'Song et al. 2023, Front Bioeng Biotechnol', url: 'https://doi.org/10.3389/fbioe.2023.1277493', read: 'fulltext' },
-      S8: { label: 'Miller et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003338', read: 'abstract' }
+      S8: { label: 'Miller et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003338', read: 'fulltext' }
     }
   },
 
@@ -977,7 +977,7 @@ export const ANIMATIONS = [
   {
     ref: 'dumbbell-forward-lunge', view: 'side', basis: 'measured',
     basisNote: 'Spitzenwinkel des vorderen Beins aus Riemann et al. 2012 (elektromagnetische Bewegungsmessung, 16 Personen, barfuß; Tabelle 1 am PDF geprüft). Rumpf daraus berechnet (≈ 0°, passt zur Anweisung „aufrecht“). Seit v2.20.0 liegt das hintere Knie unten knapp über dem Boden unter der Hüfte (Konvention); daraus folgt die Schrittlänge (≈ 0,69 m vom hinteren Ballen zum vorderen Knöchel, berechnet). Vorher klappte das Knie bei der kürzeren Schrittlänge nach vorn. Die Hüftbahn beim Schritt (nach vorn und abwärts, ohne Zurückrutschen) und das hintere Bein sind Konvention.',
-    tempo: { basis: 'protocol', note: 'Absenken in ≈ 2 s (Metronom, Riemann et al. 2012); Schritt und Rückkehr nicht gemessen.' },
+    tempo: { basis: 'protocol', note: 'Ziel: Absenken in 2 s (Metronom, Riemann et al. 2012). Die Personen waren etwas schneller. Vorderer Fuß am Boden (ab und auf zusammen): ≈ 1,3 s.' },
     frames: [
       { label: 'Stand', pose: { rootPos: [0, -15], shank: C(0), knee: C(0), hip: C(0), ankle: C(0), leg2: { hip: C(0), knee: C(0), ankle: C(0) }, armPlumb: true, elbow: C(0), props: lungeProps } },
       { label: 'Schritt', pose: { rootPos: FWL.swing.ankle, shank: C(FWL.swing.leg.shank, 'aus der Hüftbahn gelöst'), knee: C(FWL.swing.leg.knee), trunk: C(3), ankle: C(10), leg2: FWL.back(90), armPlumb: true, elbow: C(0), props: lungeProps } },
@@ -988,11 +988,11 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [4] }, { a: 0, b: 1, dur: 0.45, label: 'Schritt', kp: [0] }, { a: 1, b: 2, dur: 0.4, label: 'Aufsetzen', kp: [0] }, { a: 2, b: 3, dur: 1.0, label: 'Absenken', kp: [1, 2] }, { a: 3, b: 3, dur: 0.3, label: 'Unten', kp: [2] }, { a: 3, b: 2, dur: 0.8, label: 'Abdrücken', kp: [3] }, { a: 2, b: 1, dur: 0.4, label: 'Zurück', kp: [3] }, { a: 1, b: 0, dur: 0.45, label: 'Stand', kp: [] }],
     keyPoints: [
       { short: 'Schritt', anchor: 'foot', side: 'r', status: 'contested', text: 'Mit einem großen Schritt nach vorn treten, etwa 70–100 % der Beinlänge.', src: ['L1', 'L3', 'L4'],
-        explain: 'Umstritten. 70 % Beinlänge (Riemann et al. 2012) bis 100 % (Stastny et al. 2015). Ein kurzer Schritt erhöht die Last im Kniescheibengelenk bei 70–90° Kniebeugung (Escamilla et al. 2008).' },
-      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper aufrecht halten; leichte Vorneigung verlagert Arbeit zur Hüfte.', src: ['L1', 'L5'],
+        explain: 'Umstritten. 70 % Beinlänge (Riemann et al. 2012) bis 100 % (Stastny et al. 2015). Ein kurzer Schritt erhöht die berechnete Last im Kniescheibengelenk bei 70–90° Kniebeugung. Der lange Schritt war so gewählt, dass das Schienbein unten etwa senkrecht stand (Escamilla et al. 2008).' },
+      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper aufrecht. Vorneigung gibt der Hüfte mehr Arbeit, das Knie kaum weniger.', src: ['L1', 'L5'],
         explain: 'Aufrecht in Riemann et al. 2012 und Stastny et al. 2015; ein vorgeneigter Rumpf erhöhte Hüftbeugung und Hüftstrecker-Impuls (Farrokhi et al. 2008, n = 10).' },
       { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'single', text: 'Absenken, bis das vordere Knie etwa 90° gebeugt ist.', src: ['L1'],
-        explain: 'Gemessene Spitzenbeugung 92–96° (Riemann et al. 2012), Zusatzlast änderte die Winkel nicht signifikant.' },
+        explain: 'Gemessene Spitzenbeugung 92–96° (Riemann et al. 2012). Zusatzlast änderte die Winkel nicht signifikant. Mit 50 % Körpergewicht ging der Körper aber etwa 2 cm weniger tief.' },
       { short: 'Abdruck', anchor: 'thigh', side: 'r', status: 'single', text: 'Über das vordere Bein kräftig abdrücken und zurück in den Stand gehen.', src: ['L1'],
         explain: 'Kinematisch dominiert das Knie, kinetisch die Hüftstrecker; Zusatzlast erhöhte die Arbeit von Hüfte und Sprunggelenk, nicht des Knies (Riemann et al. 2012).' },
       { short: 'Hanteln', anchor: 'hand', side: 'l', status: 'single', text: 'Hanteln locker seitlich am Körper hängen lassen.', src: ['L1'],
@@ -1001,8 +1001,8 @@ export const ANIMATIONS = [
     sources: {
       L1: { label: 'Riemann et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.4.16', read: 'fulltext' },
       L3: { label: 'Stastny et al. 2015, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000976', read: 'fulltext' },
-      L4: { label: 'Escamilla et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2694', read: 'abstract' },
-      L5: { label: 'Farrokhi et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2634', read: 'abstract' }
+      L4: { label: 'Escamilla et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2694', read: 'fulltext' },
+      L5: { label: 'Farrokhi et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2634', read: 'fulltext' }
     }
   },
 
@@ -1010,7 +1010,7 @@ export const ANIMATIONS = [
   {
     ref: 'standing-calf-raise', view: 'side', basis: 'measured',
     basisNote: 'Sprunggelenkwinkel aus Larsen et al. 2025 (23 Trainierte, Volltext): individuell per Goniometer eingestellter Bewegungsumfang, keine Bewegungsmessung unter Last. Körper über dem Fußballen senkrecht; Stufe ≈ 14 cm hoch, nur unter dem Vorfuß, die Ferse hängt frei (Konvention).',
-    tempo: { basis: 'protocol', note: '1 s hoch, 2 s runter, kurz halten unten (Trainingsprotokolle Goli et al. 2026, Larsen et al. 2025).' },
+    tempo: { basis: 'protocol', note: '1 s hoch, 2 s runter, unten kurz halten (Konvention, angelehnt an Goli et al. 2026). Larsen et al. 2025: je etwa 1 s hoch und runter, unten kurze Pause, oben keine.' },
     frames: [
       { label: 'Unten', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(31, 'S1', 'fulltext', '−31 ± 6,8° (Dorsalflexion)'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: calfProps } },
       { label: 'Oben', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(-33.6, 'S1', 'fulltext', '+33,6 ± 7,8° Plantarflexion'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: calfProps } }
@@ -1022,8 +1022,8 @@ export const ANIMATIONS = [
       { short: 'Ballen', anchor: 'toe', side: 'r', status: 'contested', text: 'Oben so hoch wie möglich auf den Fußballen drücken.', src: ['S1', 'S5'],
         explain: 'Umstritten, ob der obere Teil der Bewegung zusätzlich etwas bringt. Spitzen-Plantarflexion 33,6 ± 7,8° (Larsen et al. 2025). Training nur im oberen Bereich brachte das geringste Wachstum (Kassiano et al. 2023); ob der obere Teil zusätzlich etwas bringt, ist offen.' },
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'single', text: 'Knie gestreckt halten – so arbeitet der Wadenmuskel (Gastrocnemius) etwas stärker.', src: ['S3'],
-        explain: 'Bei 45° Kniebeugung war die Aktivität des Gastrocnemius 5 % niedriger und die des Soleus 4 % höher als bei gestrecktem Knie (Hébert-Losier et al. 2012); die Autoren halten den Unterschied für klein.' },
-      { short: 'Füße', anchor: 'foot', side: 'r', status: 'single', text: 'Fußspitzen gerade; nach außen oder innen verschiebt die Last leicht.', src: ['S4'],
+        explain: 'Bei 45° Kniebeugung lag die Aktivität des Gastrocnemius um etwa 5 Prozentpunkte niedriger (innen von 25 auf 20 % der Maximalaktivität) und die des Soleus um etwa 4 Punkte höher als mit gestrecktem Knie (Hébert-Losier et al. 2012, 48 Gesunde, Körpergewicht, einbeinig). Die Autoren halten den Unterschied für klein: beide Kniestellungen sind brauchbar.' },
+      { short: 'Füße', anchor: 'foot', side: 'r', status: 'single', text: 'Fußspitzen gerade. Gedrehte Füße betonten in einer Studie je einen Wadenkopf.', src: ['S4'],
         explain: 'Zehen nach außen begünstigten den inneren, nach innen den äußeren Wadenkopf (Nunes et al. 2020, an der Beinpresse gemessen).' },
       { short: 'Ruhig', anchor: 'shin', side: 'r', status: 'single', text: 'Ruhig bewegen: unten kurz halten, nicht federn.', src: ['S1', 'S2'],
         explain: 'Pause in der gedehnten Position (Larsen et al. 2025) und kein Federn (Goli et al. 2026) waren Protokollanweisungen, keine Messergebnisse.' }
@@ -1031,8 +1031,8 @@ export const ANIMATIONS = [
     sources: {
       S1: { label: 'Larsen et al. 2025, Eur J Sport Sci', url: 'https://doi.org/10.1002/ejsc.70030', read: 'fulltext' },
       S2: { label: 'Goli et al. 2026, Int J Exerc Sci', url: 'https://doi.org/10.70252/IJES2026403', read: 'fulltext' },
-      S3: { label: 'Hébert-Losier et al. 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31824435cf', read: 'abstract' },
-      S4: { label: 'Nunes et al. 2020, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003674', read: 'abstract' },
+      S3: { label: 'Hébert-Losier et al. 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31824435cf', read: 'fulltext' },
+      S4: { label: 'Nunes et al. 2020, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003674', read: 'fulltext' },
       S5: { label: 'Kassiano et al. 2023, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000004460', read: 'abstract' }
     }
   },
@@ -1040,8 +1040,8 @@ export const ANIMATIONS = [
   // ---------- Dips ----------
   {
     ref: 'dips', view: 'side', basis: 'measured', noFloor: true,
-    basisNote: 'Ellbogen-, Schulter- und Rumpfwinkel aus McKenzie et al. 2022 (3D, 15 geübte Männer, V-Barren, selbst gewählte Technik; Tabelle 1 am PDF geprüft). Beinhaltung Konvention.',
-    tempo: { basis: 'measured', note: '1,35 ± 0,32 s je Wiederholung, Tiefpunkt bei 53 % (McKenzie et al. 2022, nicht ermüdet).' },
+    basisNote: 'Ellbogen-, Schulter- und Rumpfwinkel aus McKenzie et al. 2022a (3D, 15 geübte Männer, V-Barren, selbst gewählte Technik; Tabelle 1 am PDF geprüft). Beinhaltung Konvention.',
+    tempo: { basis: 'measured', note: '1,35 ± 0,32 s je Wiederholung, Tiefpunkt bei 53 % (McKenzie et al. 2022a, nicht ermüdet).' },
     frames: [
       { label: 'Oben', pose: { root: 'wrist', rootPos: [0, -200], trunk: V(18.5, 'S1', 'fulltext', '18,49 ± 12,54° Vorneigung'), shoulder: V(-3, 'S1', 'fulltext', '2,99 ± 8,21° Extension'), elbow: V(18.2, 'S1', 'fulltext'), armScale: [0.9, 0.95], hip: C(25), knee: C(90), ankle: C(-20), props: dipProps } },
       { label: 'Unten', pose: { root: 'wrist', rootPos: [0, -200], trunk: V(30.3, 'S1', 'fulltext', '30,34 ± 21,06° am Tiefpunkt (Spitze 37°)'), shoulder: V(-67.7, 'S1', 'fulltext', '67,66 ± 11,34° Extension'), elbow: V(115.9, 'S1', 'fulltext'), armScale: [0.9, 0.95], hip: C(25), knee: C(90), ankle: C(-20), props: dipProps } }
@@ -1049,19 +1049,19 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [2] }, { a: 0, b: 1, dur: 0.72, label: 'Absenken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [0, 4] }, { a: 1, b: 0, dur: 0.63, label: 'Hochdrücken', kp: [3, 4] }],
     keyPoints: [
       { short: 'Tiefe', anchor: 'elbow', side: 'l', status: 'contested', text: 'Absenken, bis die Ellbogen etwa 90–115° gebeugt sind – Tiefe nicht erzwingen.', src: ['S1', 'S2', 'S4'],
-        explain: 'Umstritten. Selbst gewählte Tiefe: ≈ 115° Ellbogenbeugung und 68–78° Schulterextension, also 76 % (Ermüdungsstudie) bzw. 88 % (Vergleich Bank-, Barren-, Ringdips) des zuvor gemessenen maximalen Bereichs (McKenzie et al. 2022). Getestet wurden 75–95° (Çinarli et al. 2021). Bedenken gegen endgradige Schulterextension stützen sich auf Fallberichte, nicht auf Verlaufsdaten.' },
+        explain: 'Umstritten. Selbst gewählte Tiefe: ≈ 115° Ellbogenbeugung und 68–78° Schulterextension, also 76 % (McKenzie et al. 2022a, Ermüdung) bzw. 88 % (2022b, Vergleich Bank-, Barren-, Ringdips) des zuvor gemessenen maximalen Bereichs. Getestet wurden 75–95° (Çinarli et al. 2021). Bedenken gegen endgradige Schulterextension stützen sich auf Fallberichte, nicht auf Verlaufsdaten (2022a, 2022b).' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper leicht nach vorn neigen, unten etwa 30–40° aus der Senkrechten.', src: ['S1', 'S2'],
-        explain: 'Spitzenneigung 37 ± 10° (McKenzie et al. 2022); am Barren deutlich mehr als bei Bankdips (13°).' },
+        explain: 'Spitzenneigung 37 ± 10° (McKenzie et al. 2022a); am Barren deutlich mehr als bei Bankdips (13°, McKenzie et al. 2022b).' },
       { short: 'Oben', anchor: 'shoulder', side: 'l', status: 'single', text: 'Oben Arme weitgehend strecken, Körper ruhig über den Griffen.', src: ['S1'],
-        explain: 'Ellbogen oben ≈ 17–18° Beugung bei selbst gewählter Technik (McKenzie et al. 2022).' },
+        explain: 'Ellbogen oben ≈ 17–18° Beugung bei selbst gewählter Technik (McKenzie et al. 2022a).' },
       { short: 'Kontrolle', anchor: 'hip', side: 'r', status: 'single', text: 'Gegen Satzende auf Kontrolle achten – Fehlversuche gingen teils tiefer als üblich.', src: ['S1'],
-        explain: 'Zwei von vier gescheiterten Wiederholungen überschritten den zuvor gemessenen maximalen Bewegungsumfang (Nebenbefund, McKenzie et al. 2022).' },
+        explain: 'Zwei von vier gescheiterten Wiederholungen überschritten den zuvor gemessenen maximalen Bewegungsumfang (Nebenbefund, McKenzie et al. 2022a).' },
       { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen nah am Körper führen.', src: ['S1', 'S2', 'S4'],
-        explain: 'Anweisung in Çinarli et al. 2021. Gemessene Schulterabduktion ≈ 12° oben, ≈ 28° am Tiefpunkt, Spitze 31° kurz davor (McKenzie et al. 2022). Dass ein weiter Griff riskanter ist, wurde nur vermutet.' }
+        explain: 'Anweisung in Çinarli et al. 2021. Gemessene Schulterabduktion ≈ 12° oben, ≈ 28° am Tiefpunkt, Spitze 31° kurz davor (McKenzie et al. 2022a). Dass ein weiter Griff riskanter ist, wurde nur vermutet (McKenzie et al. 2022b).' }
     ],
     sources: {
-      S1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Ermüdung, Barrendip)', url: 'https://doi.org/10.3390/ijerph192114390', read: 'fulltext' },
-      S2: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' },
+      S1: { label: 'McKenzie et al. 2022a, Int J Environ Res Public Health (Ermüdung, Barrendip)', url: 'https://doi.org/10.3390/ijerph192114390', read: 'fulltext' },
+      S2: { label: 'McKenzie et al. 2022b, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' },
       S4: { label: 'Çinarli et al. 2021, Kinesiologia Slovenica', url: 'https://journals.uni-lj.si/kinsi/article/view/29659', read: 'fulltext' }
     }
   },
@@ -1072,30 +1072,30 @@ export const ANIMATIONS = [
     basisNote: 'Ellbogenwinkel unten aus Mausehund et al. 2022 (3D, 35 Personen, 6–8RM, mittlerer Griff; am PDF geprüft); Stangenposition aus Larsen et al. 2021/2022. Schulterwinkel in der Seitenansicht aus der Stangenposition gelöst; Arme außerhalb der Bildebene verkürzt dargestellt.',
     tempo: { basis: 'protocol', note: '2 s ab (Metronom, Bartolomei et al. 2024), Drücken ≈ 1 s (bei 1RM 1,0–1,4 s bis zur zweiten Geschwindigkeitsspitze, Larsen et al. 2021).' },
     frames: [
-      { label: 'Oben', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [4, -52], wrist: [8, -104] }, facts: [V(20, 'S1', 'computed', 'Ellbogen oben: Spitze 101,4° minus ROM 78,3° ≈ 23°; 0–20° vertretbar')], props: benchProps } },
-      { label: 'Brust', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [12, 14], wrist: [34, -36] }, facts: [V(101.4, 'S1', 'fulltext', 'Ellbogen unten 101,4 ± 8,3° (3D, mittlerer Griff); Oberarm 59,3 ± 8,2° vom Rumpf'), V(0.17, 'S3', 'fulltext', 'Stange ≈ 0,17 m fußwärts vom Schultergelenk')], props: benchProps } }
+      { label: 'Oben', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [4, -52], wrist: [8, -104] }, facts: [K(23, 'S1', 'Ellbogen oben, berechnet: 101,4° − 78,3° (Spitze minus Bewegungsumfang, mittlerer Griff)')], props: benchProps } },
+      { label: 'Brust', pose: { root: 'shoulder', rootPos: [0, -102], trunk: C(-90, 'liegend'), hip: C(-6), knee: C(99), foot: C(90, 'Fuß flach'), armPoints: { elbow: [12, 14], wrist: [34, -36] }, facts: [V(101.4, 'S1', 'fulltext', 'Ellbogen unten 101,4 ± 8,3° (3D, mittlerer Griff); Oberarm 59,3 ± 8,2° vom Rumpf'), V(0.17, 'S3', 'fulltext', 'Stange ≈ 0,17 m fußwärts vom Schultergelenk (kurz nach dem tiefsten Punkt gemessen; Schätzung)')], props: benchProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [2] }, { a: 1, b: 1, dur: 0.15, label: 'Brust', kp: [2, 4] }, { a: 1, b: 0, dur: 1.0, label: 'Drücken', kp: [3] }],
     keyPoints: [
       { short: 'Aufbau', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Schulterblätter zurückziehen, Füße fest am Boden, Gesäß bleibt auf der Bank.', src: ['S5', 'S8'],
         explain: 'Fünf Kontaktpunkte (Kopf, Schulterblätter, Rumpf, Gesäß, Füße) sind die Technikdefinition in Bartolomei et al. 2024. Zurückgezogene Schulterblätter senkten in einer Modellrechnung die Kräfte im Schultergelenk und die Aktivität der Rotatorenmanschette (Noteboom et al. 2024, n = 10, 16 kg).' },
       { short: 'Griff', anchor: 'hand', side: 'r', status: 'contested', text: 'Griff etwa 1,4- bis 2-fach schulterbreit; enger Griff fordert den Trizeps stärker.', src: ['S2', 'S1', 'S8'],
-        explain: 'Umstritten. Untersucht wurden 1,0–2,1-fache Schulterbreite. Mittlerer und weiter Griff erlaubten ein höheres 1RM als der enge (Larsen et al. 2021). Eng erhöht Ellbogenmomente und Trizepsanteil, weit die Schultermomente (Mausehund et al. 2022). Ein Griff bis 1,5-fach statt 2-fach schulterbreit senkte modellierte Schultergelenkkräfte; 1-fach erhöhte dafür die Scherkraft nach oben (Noteboom et al. 2024, n = 10, 16 kg, Modellrechnung).' },
+        explain: 'Umstritten. Untersucht wurden 1,0–2,1-fache Schulterbreite. Mittlerer und weiter Griff erlaubten ein höheres 1RM als der enge (Larsen et al. 2021). Eng erhöht die Ellbogenmomente und die Aktivität des seitlichen Trizepskopfs, weit die Schultermomente (Mausehund et al. 2022). Der Unterschied beim Trizeps war klein; der lange Kopf änderte sich nicht. Ein Griff bis 1,5-fache Schulterbreite (Abstand der Schulterecken) statt 2-fach senkte geschätzte Kräfte im Schultergelenk; 1-fach erhöhte dafür die Scherkraft nach oben (Noteboom et al. 2024, n = 10, 16 kg, Modellrechnung). Breiter Griff: mehr Last möglich, aber mehr Schulterbelastung.' },
       { short: 'Senken', anchor: 'elbow', side: 'r', status: 'contested', text: 'Stange kontrolliert zur unteren Brust senken, Oberarme ca. 45–65° vom Rumpf.', src: ['S1', 'S3', 'S8', 'S12'],
         explain: 'Umstritten. Schulterabduktion unten 38–66° je nach Griff und Anweisung (Mausehund et al. 2022); Studien geben ≈ 45° vor oder testen 45/70/90°. Berührungspunkt ≈ 16–18 cm fußwärts vom Schultergelenk (berechnet aus Larsen et al. 2022); ein „idealer“ Punkt ist nicht untersucht.' },
       { short: 'Weg', anchor: 'bar', side: 'r', status: 'consensus', text: 'Beim Drücken wandert die Stange leicht Richtung Schultern zurück.', src: ['S2', 'S3', 'S10', 'S11'],
-        explain: 'Horizontaler Weg ≈ 13 cm (Larsen et al. 2021); Abstand Stange–Schulter 17 → 7–9 cm (Larsen et al. 2022); Geübte halten die Stange näher an den Schultern (Madsen & McLaughlin 1984).' },
+        explain: 'Horizontaler Weg ≈ 13 cm (Larsen et al. 2021); Abstand Stange–Schulter 17 → 7–9 cm (Larsen et al. 2022); Wettkampf-Kraftdreikämpfer führten die Stange näher an den Schultern als Freizeitsportler und drückten sie von der Brust schräg Richtung Schultern (etwa 60° statt 80° zur Waagerechten; Madsen & McLaughlin 1984, Volltext).' },
       { short: 'Bogen', anchor: 'lowBack', side: 'l', status: 'contested', text: 'Leichtes Hohlkreuz ist möglich; ein starker Bogen verkürzt den Weg der Stange.', src: ['S5', 'S6', 'S13', 'S1'],
-        explain: 'Umstritten. Mit Bogen +4,2 kg 1RM und 28–47 mm weniger Hubweg (Bartolomei et al. 2024); kein 1RM-Unterschied bei 11 Kraftdreikämpfern (García-Ramos et al. 2018); der Bogen senkte die Schultermomente um 8 % (Cudlip et al. 2022). Mittlerer Bogenwinkel 26–32° (Mausehund et al. 2022).' }
+        explain: 'Umstritten. Mit Bogen +4,2 kg 1RM und 28–47 mm weniger Hubweg (Bartolomei et al. 2024); kein 1RM-Unterschied und kaum kürzerer Hubweg (unter 2 cm, nicht sicher) bei 11 Kraftdreikämpfern an der Multipresse (García-Ramos et al. 2018); der Bogen senkte die Schultermomente um 8 % (Cudlip et al. 2022). Das Brustbein war im Mittel 26–32° zur Waagerechten geneigt (Mausehund et al. 2022); das ist nicht dasselbe wie die Krümmung im unteren Rücken.' }
     ],
     sources: {
       S1: { label: 'Mausehund et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003948', read: 'fulltext' },
       S2: { label: 'Larsen, Gomo & van den Tillaar 2021, Front Sports Act Living', url: 'https://doi.org/10.3389/fspor.2020.637066', read: 'fulltext' },
       S3: { label: 'Larsen et al. 2022, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph192114238', read: 'fulltext' },
       S5: { label: 'Bartolomei et al. 2024, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000004778', read: 'fulltext' },
-      S6: { label: 'García-Ramos et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1544662', read: 'abstract' },
+      S6: { label: 'García-Ramos et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1544662', read: 'fulltext' },
       S8: { label: 'Noteboom et al. 2024, Front Physiol', url: 'https://doi.org/10.3389/fphys.2024.1393235', read: 'fulltext' },
-      S10: { label: 'Madsen & McLaughlin 1984, Med Sci Sports Exerc', url: 'https://pubmed.ncbi.nlm.nih.gov/6493018/', read: 'abstract' },
+      S10: { label: 'Madsen & McLaughlin 1984, Med Sci Sports Exerc', url: 'https://pubmed.ncbi.nlm.nih.gov/6493018/', read: 'fulltext' },
       S11: { label: 'Duffey & Challis 2007, J Strength Cond Res', url: 'https://doi.org/10.1519/R-19885.1', read: 'abstract' },
       S12: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
       S13: { label: 'Cudlip et al. 2022, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2022.2046937', read: 'abstract' }
@@ -1119,7 +1119,7 @@ export const ANIMATIONS = [
         explain: 'Hände auf Höhe des Schultereckgelenks (Suprak et al. 2013, San Juan et al. 2015); ≈ 150 % Schulterbreite beim Vergleich mit dem Bankdrücken (van den Tillaar 2019).' },
       { short: 'Tiefe', anchor: 'chest', side: 'l', status: 'consensus', text: 'Brust bis knapp über den Boden senken, dann Arme wieder strecken.', src: ['P1', 'P2'],
         explain: 'Tiefe in den Studien: Brust berührt einen 10 cm hohen Block; Ellbogenbeugung unten mindestens ≈ 105°.' },
-      { short: 'Oberarme', anchor: 'elbow', side: 'r', status: 'contested', text: 'Oberarme etwa 35–55° vom Rumpf; sehr weit abgespreizt hebt das die Schulter an.', src: ['P1'],
+      { short: 'Oberarme', anchor: 'elbow', side: 'r', status: 'contested', text: 'Oberarme etwa 35–55° vom Rumpf. Über 60° stand das Schulterblatt ungünstiger.', src: ['P1'],
         explain: 'Umstritten und nur eine Studie: Oberarmwinkel zum Rumpf eng 35,5°, selbst gewählt 53,6°, weit 64,8° (Suprak et al. 2013). Die Autoren verbinden die weite Position mit einer ungünstigeren Schulterblattstellung; Verletzungsdaten gibt es nicht.' }
     ],
     sources: {
@@ -1145,9 +1145,9 @@ export const ANIMATIONS = [
       { short: 'Zug', anchor: 'elbow', side: 'l', status: 'consensus', text: 'Griff zum Bauch ziehen, Oberarme nach hinten führen.', src: ['S1', 'S2', 'S3', 'S4'],
         explain: 'Endposition: Griff am Bauch; Schulter ≈ 0 bis −5° (gemessen −5,0 ± 9,7°), Ellbogen ≈ 90–105° (gemessen 105,4 ± 13,1°).' },
       { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen eng: mehr Latissimus; Ellbogen weit: mehr oberer Rücken und hintere Schulter.', src: ['S4', 'S8'],
-        explain: 'Wenig Abduktion begünstigte den unteren Latissimus, 60–90° Abduktion erhöhten Trapez- und hintere Schulteraktivität (Vasconcelos et al. 2023, n = 21; Begutachtung nicht angegeben). Enger Griff mit mehr Latissimus auch in einer HD-EMG-Studie (Übersicht Di Fonza et al. 2026).' },
+        explain: 'Mit wenig Abspreizen war der obere und untere Latissimus im EMG aktiver, bei 60–90° Trapez und hintere Schulter (Vasconcelos et al. 2023, n = 21). Breitere Arme hießen hier auch breiterer Griff. Enger Griff mit mehr Latissimus auch in einer HD-EMG-Studie (Übersicht Di Fonza et al. 2026).' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper ruhig halten; Vor- oder Rücklage verschiebt die Belastung.', src: ['S2', 'S5'],
-        explain: 'Aufrecht als Anweisung (Padovan et al. 2025). 20° Rücklage: oberer Trapezmuskel 42 statt 15 % der Maximalaktivität; 30° Vorlage: unterer Trapezmuskel 61 statt 50 % (Park & Kim 2022, n = 23). Die Diskussion der Studie widerspricht teils den eigenen Tabellen.' },
+        explain: 'Aufrecht als Anweisung (Padovan et al. 2025). 20° Rücklage: oberer Trapezmuskel 42 statt 15 % der Maximalaktivität; 30° Vorlage: unterer Trapezmuskel 61 statt 50 % (Park & Kim 2022, n = 23, gemessen im 5-s-Halten am Ende des Zugs). Die Diskussion der Studie widerspricht teils den eigenen Tabellen.' },
       { short: 'Zurück', anchor: 'hand', side: 'r', status: 'consensus', text: 'Langsam zurück, bis die Arme wieder gestreckt sind.', src: ['S1', 'S2', 'S4'],
         explain: 'Start und Ende mit gestreckten Ellbogen in allen Protokollen.' }
     ],
@@ -1164,8 +1164,8 @@ export const ANIMATIONS = [
   // ---------- Klimmzug (Rückansicht seit v2.22.0) ----------
   {
     ref: 'pull-up', checkedAt: '2026-10-22', view: 'back', basis: 'measured', noFloor: true,
-    basisNote: 'Rückansicht (seit v2.22.0; vorher von vorn), damit Latissimus und oberer Rücken sichtbar sind; oben verschwindet die Stange hinter dem Kopf. Schulterwinkel aus Prinold & Bull 2014 (3D, 11 geübte Männer, drei Griffe; humerothorakale Elevation 23–126° als gepoolter Bereich, kein Mittelwert je Position) und Ellbogen-Bewegungsumfang aus Youdas et al. 2010 (3D, n = 25, Abstract). Die Figur hängt mit den Händen an der Stange (1,5-fache Schulterbreite); Ellbogen und Handgelenke sind in die Bildebene projiziert, deshalb erscheint der Ellbogen oben stärker gebeugt als gemessen. Beine angewinkelt (Protokoll), Körperhöhe folgt aus der Armgeometrie.',
-    tempo: { basis: 'measured', note: 'Hochziehen im Mittel 1,2 s (0,8–2,2 s, maximale Absicht; Prinold & Bull 2014); Absenken dort nicht gemessen, hier 1,5 s (EMG-Protokolle: 2 s / 2 s).' },
+    basisNote: 'Rückansicht (seit v2.22.0; vorher von vorn), damit Latissimus und oberer Rücken sichtbar sind; oben verschwindet die Stange hinter dem Kopf. Schulterwinkel aus Prinold & Bull 2014 (3D, 11 Personen, drei Griffe; humerothorakale Elevation 23–126° als gepoolter Bereich, kein Mittelwert je Position) und Ellbogen-Bewegungsumfang aus Youdas et al. 2010 (3D, n = 25, Volltext). Die Figur hängt mit den Händen an der Stange (1,5-fache Schulterbreite); Ellbogen und Handgelenke sind in die Bildebene projiziert, deshalb erscheint der Ellbogen oben stärker gebeugt als gemessen. Beine angewinkelt (Protokoll), Körperhöhe folgt aus der Armgeometrie.',
+    tempo: { basis: 'measured', note: 'Hochziehen im Mittel 1,2 s (0,8–2,2 s, maximale Absicht; Prinold & Bull 2014); Absenken bei Prinold & Bull nicht gemessen, hier 1,5 s. Bei Youdas et al. 2010 dauerte eine ganze Wiederholung mit Metronom etwa 2,5 s (je etwa 1,25 s hoch und ab). (EMG-Protokolle: 2 s / 2 s).' },
     frames: [
       { label: 'Hang', pose: { root: 'wristR', rootPos: [PU.grip, PU.bar + 8], armPoints: { elbow: [13.4, -66.9], wrist: [24, -120] }, legs: { hip: C(0), knee: C(70, 'Beine angewinkelt, Fersen hinten (Protokoll)') }, props: pullupProps },
         facts: [V(0, 'S2', 'protocol', 'Ellbogen gestreckt im Hang (Protokoll)'), V(126, 'S2', 'fulltext', 'humerothorakale Elevation: oberes Ende des Bereichs 23–126° (gepoolt); in der Frontprojektion ≈ 169°')] },
@@ -1177,9 +1177,9 @@ export const ANIMATIONS = [
       { short: 'Hang', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Aus dem gestreckten Hang starten: Arme lang, Ellbogen gestreckt.', src: ['S2', 'S3', 'S4'],
         explain: 'Startdefinition aller gelesenen Studien: Hang mit gestreckten Armen. Der gemessene Ellbogen-Bewegungsumfang (93 ± 15°, Youdas et al. 2010) bezieht sich auf diesen Start.' },
       { short: 'Kinn', anchor: 'bar', side: 'r', status: 'consensus', text: 'Hochziehen, bis das Kinn über der Stange ist.', src: ['S2', 'S4'],
-        explain: 'Endkriterium in Prinold & Bull 2014 und Snarr et al. 2017 (Kinn über der Stange bzw. auf Höhe der Hände). Wiederholungen mit Schwung wurden dort verworfen.' },
+        explain: 'Endkriterium in Prinold & Bull 2014 und Snarr et al. 2017 (Kinn über der Stange bzw. auf Höhe der Hände). Wiederholungen mit Schwung wurden bei Snarr et al. 2017 verworfen.' },
       { short: 'Schwung', anchor: 'kneeR', side: 'r', status: 'single', text: 'Ohne Schwung aus Beinen oder Hüfte ziehen – Beine ruhig halten.', src: ['S4', 'S6'],
-        explain: 'Strikte Ausführung als Protokoll (Snarr et al. 2017). Beim Kipping bewegen sich Hüfte (≈ 49°) und Knie (≈ 57°) deutlich mehr als beim strikten Klimmzug (Dinunzio et al. 2018, Abstract, n = 11). Ob das besser oder schlechter ist, hängt vom Ziel ab; untersucht wurde nur der Unterschied.' },
+        explain: 'Strikte Ausführung als Protokoll (Snarr et al. 2017). Beim Kipping beugen sich Hüfte (≈ 49° mehr) und Knie (≈ 57° mehr) deutlich stärker als beim strikten Klimmzug; der Bizeps arbeitet beim Hochziehen weniger (Dinunzio et al. 2018, Volltext, 11 CrossFit-Sportler). Ob das besser oder schlechter ist, hängt vom Ziel ab; untersucht wurde nur der Unterschied.' },
       { short: 'Griff', anchor: 'handL', side: 'l', status: 'single', text: 'Griff etwa schulterbreit bis 1,5-fache Schulterbreite.', src: ['S1', 'S4'],
         explain: 'Schulterbreit („front“) bis weit (Hände am abgeschrägten Teil der Stange) in Prinold & Bull 2016; 1,5-fache Schulterbreite in EMG-Protokollen. Der weite Griff hielt den Oberarm näher an der Frontalebene (≈ 90° Abduktion mit 45° Außenrotation). Ein Optimum ist nicht belegt.' },
       { short: 'Ab', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Kontrolliert absenken, bis die Arme wieder gestreckt sind.', src: ['S4'],
@@ -1188,9 +1188,9 @@ export const ANIMATIONS = [
     sources: {
       S1: { label: 'Prinold & Bull 2016, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2015.08.002', read: 'fulltext', note: 'Schulterblatt-Kinematik; Angaben zum Schulterblatt-Kippbereich widersprechen der eigenen Diskussion' },
       S2: { label: 'Prinold & Bull 2014, J Biomech', url: 'https://doi.org/10.1016/j.jbiomech.2014.05.015', read: 'fulltext' },
-      S3: { label: 'Youdas et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'abstract' },
+      S3: { label: 'Youdas et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'fulltext' },
       S4: { label: 'Snarr et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0068', read: 'fulltext' },
-      S6: { label: 'Dinunzio et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1452971', read: 'abstract' }
+      S6: { label: 'Dinunzio et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1452971', read: 'fulltext' }
     }
   },
 
@@ -1208,24 +1208,24 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Start', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Ziehen', kp: [2, 3] }, { a: 1, b: 1, dur: 0.5, label: 'Halten', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
     keyPoints: [
       { short: 'Griff', anchor: 'handL', side: 'l', status: 'consensus', text: 'Griff etwa 1,5-fache Schulterbreite, Handflächen nach vorn.', src: ['L1', 'L3', 'L7'],
-        explain: 'Protokoll der gelesenen Studien (1,5-fache Biakromialbreite). Enger, mittlerer und weiter Griff (1–2-fach) ergaben ähnliche Latissimus-Aktivität; mit dem weiten Griff war das 6RM etwas niedriger (Andersen et al. 2014, n = 15). Griffbreite und Unterarmdrehung änderten die Aktivität kaum (Lusk et al. 2010).' },
+        explain: 'Protokoll der gelesenen Studien (1,5-fache Biakromialbreite). Enger, mittlerer und weiter Griff (1–2-fach) ergaben ähnliche Latissimus-Aktivität; mit dem weiten Griff war das 6RM etwas niedriger (Andersen et al. 2014, n = 15). Schulterbreit und doppelt so breit ergaben gleiche Latissimus-Aktivität; Obergriff lag etwas höher als Untergriff (Lusk et al. 2010).' },
       { short: 'Polster', anchor: 'thighR', side: 'r', status: 'single', text: 'Oberschenkel unter dem Polster fixieren, Becken bleibt auf dem Sitz.', src: ['L1'],
         explain: 'Aufbau in Padovan et al. 2024 (Becken durch das Oberschenkelpolster fixiert). Ob das die Ausführung verbessert, wurde nicht untersucht.' },
       { short: 'Ziehen', anchor: 'upperBack', side: 'r', status: 'consensus', text: 'Aus gestreckten Armen die Stange vor dem Kopf zur oberen Brust ziehen.', src: ['L1', 'L8'],
-        explain: 'Zur Brustmitte (Padovan et al. 2024). Vor dem Kopf erlaubte mehr Last als hinter dem Nacken (8RM 70,0 vs. 59,3 kg) bei gleicher Latissimus-Aktivität; Sperandei et al. 2009 fanden vor dem Kopf die höchste Brust- und ähnliche Latissimus-Aktivität.' },
+        explain: 'Zur Brustmitte (Padovan et al. 2024). Vor dem Kopf erlaubte mehr Last als hinter dem Nacken (8RM 70,0 vs. 59,3 kg) bei gleicher Latissimus-Aktivität; Sperandei et al. 2009 fanden vor dem Kopf beim Ziehen die höchste Aktivität des Brustmuskels und eine ähnliche Latissimus-Aktivität wie hinter dem Nacken (EMG, 24 trainierte Männer).' },
       { short: 'Rumpf', anchor: 'midBack', side: 'l', status: 'contested', text: 'Oberkörper ruhig und fast aufrecht halten, nur leichte Rücklage.', src: ['L1', 'L4'],
         explain: 'Umstritten. Padovan et al. 2024 ließen eine leichte Rücklage zu, andere Protokolle verlangen einen senkrechten Rumpf; Buonsenso et al. 2025 testeten eine Variante mit 30° Rücklage als eigene Übungsform. Ein gemessener Rumpfwinkel liegt nicht vor.' },
       { short: 'Zurück', anchor: 'elbowL', side: 'l', status: 'consensus', text: 'Kontrolliert nach oben zurückführen, bis die Arme gestreckt sind.', src: ['L1', 'L7'],
-        explain: 'Start und Ende mit gestreckten Ellbogen in allen Protokollen; Tempo 2 s / 2 s.' }
+        explain: 'Start und Ende mit fast gestreckten Ellbogen (bei Lusk et al. 2010 leicht gebeugt). Tempo 2 s / 2 s.' }
     ],
     sources: {
       L1: { label: 'Padovan et al. 2024, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/185211', read: 'fulltext' },
       L3: { label: 'Andersen et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1097/JSC.0000000000000232', read: 'abstract' },
       L4: { label: 'Buonsenso et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk10030345', read: 'abstract' },
-      L7: { label: 'Lusk et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddb0ab', read: 'abstract' },
-      L8: { label: 'Sperandei et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b8d30a', read: 'abstract' },
+      L7: { label: 'Lusk et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddb0ab', read: 'fulltext' },
+      L8: { label: 'Sperandei et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b8d30a', read: 'fulltext' },
       S2: { label: 'Prinold & Bull 2014, J Biomech (Klimmzug, übertragen)', url: 'https://doi.org/10.1016/j.jbiomech.2014.05.015', read: 'fulltext' },
-      S3: { label: 'Youdas et al. 2010, J Strength Cond Res (Klimmzug, übertragen)', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'abstract' }
+      S3: { label: 'Youdas et al. 2010, J Strength Cond Res (Klimmzug, übertragen)', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'fulltext' }
     }
   },
 
@@ -1245,7 +1245,7 @@ export const ANIMATIONS = [
       { short: 'Ellbogen', anchor: 'elbowL', side: 'l', status: 'single', text: 'Ellbogen fast gestreckt und während der Bewegung gleich lassen.', src: ['L1'],
         explain: 'Protokoll „fast gestreckt“; eine Variante mit 90° gebeugtem Ellbogen wurde in derselben Studie getestet. Ein Vergleich der Wirkung auf das Muskelwachstum liegt nicht vor.' },
       { short: 'Daumen', anchor: 'handL', side: 'l', status: 'contested', text: 'Daumen nach vorn oder leicht nach oben, nicht nach unten gedreht.', src: ['L1', 'L4', 'L6'],
-        explain: 'Umstritten. Daumen nach unten erhöhte die EMG-Aktivität des mittleren Deltamuskels (Coratella et al. 2020; Übersicht Rabello et al. 2022). Dagegen: In der Empty-Can-Position drehte das Schulterblatt stärker nach innen und kippte nach vorn (Thigpen et al. 2005, Abstract) – eine Haltung, die als ungünstig gilt; Verletzungsdaten gibt es nicht.' },
+        explain: 'Umstritten. Mit Daumen nach vorn war der mittlere Delta beim Anheben am aktivsten. Daumen nach unten erhöhte vor allem den hinteren Delta, den mittleren nur beim Absenken, beim Heben kaum (EMG, Coratella et al. 2020; Übersicht Rabello et al. 2022). Dagegen: Mit Daumen nach unten drehte das Schulterblatt etwas stärker nach innen (≈ 4–6°) und kippte etwas nach vorn (≈ 2–4°) (Thigpen et al. 2005, 20 Gesunde, leichtes Gewicht, Armheben schräg vor dem Körper). Das gilt als ungünstig für den Raum unter dem Schulterdach; gemessen wurde dieser Raum nicht, Verletzungsdaten gibt es nicht.' },
       { short: 'Rumpf', anchor: 'belly', side: 'r', status: 'single', text: 'Rumpf ruhig halten, nicht mit Schwung aus dem Oberkörper arbeiten.', src: ['L1'],
         explain: 'Die Studie ließ sitzend trainieren, um Rumpfbeteiligung zu vermeiden. Rumpfbewegung beim Seitheben wurde nie gemessen.' },
       { short: 'Ab', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Kontrolliert absenken, etwa so langsam wie beim Anheben.', src: ['L1'],
@@ -1254,9 +1254,9 @@ export const ANIMATIONS = [
     sources: {
       L1: { label: 'Coratella et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17176015', read: 'fulltext' },
       L3: { label: 'Braman et al. 2009, J Shoulder Elbow Surg', url: 'https://doi.org/10.1016/j.jse.2009.02.001', read: 'fulltext' },
-      L4: { label: 'Thigpen et al. 2005, Am J Sports Med', url: 'https://doi.org/10.1177/0363546505281797', read: 'abstract' },
+      L4: { label: 'Thigpen et al. 2005, Am J Sports Med', url: 'https://doi.org/10.1177/0363546505281797', read: 'fulltext' },
       L5: { label: 'Kolber et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000250', read: 'abstract' },
-      L6: { label: 'Rabello et al. 2022, J Bodyw Mov Ther (Review)', url: 'https://doi.org/10.1016/j.jbmt.2022.12.002', read: 'abstract' }
+      L6: { label: 'Rabello et al. 2022, J Bodyw Mov Ther (Review)', url: 'https://doi.org/10.1016/j.jbmt.2022.12.002', read: 'fulltext' }
     }
   },
 
@@ -1275,21 +1275,21 @@ export const ANIMATIONS = [
       { short: 'Stange', anchor: 'bar', side: 'r', status: 'single', text: 'Stange liegt vorn auf Schultern und Schlüsselbein, Oberarme etwa waagerecht.', src: ['S5'],
         explain: 'Protokolldefinition in McCormick et al. 2023 (n = 26): Stange auf vorderen Schultern und Schlüsselbein, Ellbogen voll gebeugt, Oberarme parallel zum Boden. Die Armhaltung wurde nicht gemessen.' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'contested', text: 'Oberkörper bleibt aufrechter als bei der Kniebeuge mit Stange im Nacken.', src: ['S8', 'S3'],
-        explain: 'Umstritten. Mit Maximallast neigte sich der Rumpf bei der Nackenkniebeuge stärker vor, die Kniekinematik war gleich (Yavuz et al. 2015, 2D, n = 12, Abstract). Goršič et al. 2020 (3D, n = 18, 70 % 1RM) fanden keinen signifikanten Rumpfunterschied, nur weniger Beckenkippung bei der Frontkniebeuge. Die Animation zeigt unten ≈ 26° Neigung, berechnet aus einem Sensor-Hüftwinkel, der die Beckenkippung enthält.' },
+        explain: 'Umstritten. Mit Maximallast neigte sich der Rumpf bei der Nackenkniebeuge stärker vor, die Kniekinematik war gleich (Yavuz et al. 2015, 2D, n = 12, Hüftwinkel statt Rumpfwinkel gemessen, nur bis ≈ 90° Kniewinkel). Goršič et al. 2020 (3D, n = 18, 70 % 1RM) fanden keinen signifikanten Rumpfunterschied, nur weniger Beckenkippung bei der Frontkniebeuge. Die Animation zeigt unten ≈ 26° Neigung, berechnet aus einem Sensor-Hüftwinkel, der die Beckenkippung enthält.' },
       { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'single', text: 'Tiefster Punkt: Knie etwa 110–120° gebeugt (gemessen mit leichter Last).', src: ['S1'],
         explain: 'Maximale Kniebeugung 113,5 ± 8,4° ohne Last und 118,3 ± 7,0° mit Langhantel (25 % Körpergewicht); Einschlusskriterium war mindestens 90° (Sorrentino et al. 2024, n = 12). Schwere Lasten wurden nicht gemessen.' },
       { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Mit Langhantel wurde die Hüfte unten weniger gebeugt als ohne Last.', src: ['S1'],
         explain: '126,1 ± 12,1° ohne Last gegenüber 111,4 ± 11,3° mit Langhantel (signifikant; Sorrentino et al. 2024). Becken–Oberschenkel-Winkel aus Trägheitssensoren, nicht Thorax–Oberschenkel.' },
-      { short: 'Knie', anchor: 'thigh', side: 'r', status: 'single', text: 'Bei gleicher Muskelaktivität waren die Druckkräfte im Knie geringer als im Nacken.', src: ['S11'],
-        explain: 'Gullett et al. 2009 (n = 15, Abstract): Nackenkniebeuge mit signifikant höheren Kompressionskräften und Kniestreckmomenten; Muskelaktivität ohne Unterschied. Scherkräfte klein und gleich. Ob das langfristig einen Unterschied macht, ist nicht untersucht.' }
+      { short: 'Knie', anchor: 'thigh', side: 'r', status: 'single', text: 'Ähnliche Muskelaktivität, weniger Kniedruck als hinten, aber auch weniger Gewicht.', src: ['S11'],
+        explain: 'Gullett et al. 2009 (15 Trainierte, je 70 % des 1RM, Volltext): Die Nackenkniebeuge hatte höhere Druckkräfte und Kniestreckmomente, aber auch mehr Gewicht (≈ 62 statt 49 kg). Die Aktivität von Oberschenkel und unterem Rücken war gleich. Scherkräfte waren klein und gleich. Ob das langfristig einen Unterschied macht, ist nicht untersucht.' }
     ],
     sources: {
       S1: { label: 'Sorrentino et al. 2024, Physiol Rep', url: 'https://doi.org/10.14814/phy2.16034', read: 'fulltext', note: 'Raumfahrtmedizinische Studie (Zentrifuge); Werte bei normaler Schwerkraft' },
       S3: { label: 'Goršič et al. 2020, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2020.1832563', read: 'fulltext' },
       S4: { label: 'Bozkurt et al. 2026, Front Physiol', url: 'https://doi.org/10.3389/fphys.2025.1727141', read: 'fulltext' },
       S5: { label: 'McCormick et al. 2023, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.84306', read: 'fulltext' },
-      S8: { label: 'Yavuz et al. 2015, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2014.984240', read: 'abstract' },
-      S11: { label: 'Gullett et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31818546bb', read: 'abstract' }
+      S8: { label: 'Yavuz et al. 2015, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2014.984240', read: 'fulltext' },
+      S11: { label: 'Gullett et al. 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31818546bb', read: 'fulltext' }
     }
   },
 
@@ -1306,7 +1306,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Drücken', kp: [3] }],
     keyPoints: [
       { short: 'Füße', anchor: 'plate', side: 'r', status: 'consensus', text: 'Füße etwa schulterbreit mittig auf die Platte; Breite und Fußdrehung frei wählen.', src: ['L2', 'L5', 'L6'],
-        explain: 'Breiter oder enger Stand und 0° oder 30° Fußdrehung änderten Kniekräfte und Muskelaktivität nicht (Escamilla et al. 2001, n = 10, Abstract; Übersicht Martín-Fuentes et al. 2020). Füße auf mittlerer Höhe war Protokoll der Messstudie.' },
+        explain: 'Die Fußdrehung (0° oder 30°) änderte weder Kniekräfte noch Muskelaktivität. Der Stand änderte den Quadrizeps nicht; breit gab etwas mehr Beinbeuger-Aktivität, eng etwas mehr Druck im Knie (Escamilla et al. 2001, 10 Männer, Volltext). Getestet wurden hohe und tiefe Fußposition.' },
       { short: 'Weg', anchor: 'knee', side: 'l', status: 'consensus', text: 'Knie von fast gestreckt bis etwa 90° beugen; tiefer, wenn das Becken liegen bleibt.', src: ['L2', 'L5', 'L1'],
         explain: 'Protokolle nutzen 0–90° (Martín-Fuentes et al. 2020) bis 0–120° (EMG-Studien in der Übersicht); an einer Schwungrad-Presse gingen Trainierte trotz 90°-Ziel bis 109 ± 9° (Sjöberg et al. 2021, n = 9). Ab wann das Becken von der Lehne abhebt, wurde nicht gemessen.' },
       { short: 'Höhe', anchor: 'thigh', side: 'r', status: 'contested', text: 'Füße höher oder tiefer setzen verschiebt die Last nur wenig; Befunde uneinheitlich.', src: ['L5', 'L6'],
@@ -1319,7 +1319,7 @@ export const ANIMATIONS = [
       L2: { label: 'Martín-Fuentes et al. 2020, Int J Environ Res Public Health (Beinpresse 45°)', url: 'https://doi.org/10.3390/ijerph17228698', read: 'fulltext' },
       L3: { label: 'Marchetti et al. 2023, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000004504', read: 'abstract' },
       L5: { label: 'Martín-Fuentes et al. 2020, Int J Environ Res Public Health (Review)', url: 'https://doi.org/10.3390/ijerph17134626', read: 'fulltext' },
-      L6: { label: 'Escamilla et al. 2001, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-200109000-00020', read: 'abstract' }
+      L6: { label: 'Escamilla et al. 2001, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-200109000-00020', read: 'fulltext' }
     }
   },
 
@@ -1369,13 +1369,13 @@ export const ANIMATIONS = [
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'single', text: 'Knie von gestreckt bis etwa 90° beugen; die Rolle liegt knapp über der Ferse.', src: ['C1'],
         explain: 'Voller Bewegungsumfang 0–90° als Trainingsvorgabe (Maeo et al. 2021, n = 20, 12 Wochen). Die Rollenposition ist Konvention.' },
       { short: 'Sitzend', anchor: 'thigh', side: 'l', status: 'single', text: 'Sitzend (Hüfte ≈ 90°) wuchs der Beinbeuger stärker als liegend – beides wirkt.', src: ['C1', 'C2'],
-        explain: 'Innerhalb derselben Personen wuchsen die Beinbeuger (vor allem die zweigelenkigen Anteile) mit der sitzenden Variante stärker (Maeo et al. 2021). In gestreckter Hüfte entwickelten die Beinbeuger isometrisch bei 30° Kniebeugung mehr Kraft als bei 90° (Hirose et al. 2021, n = 20, Abstract).' },
+        explain: 'Innerhalb derselben Personen wuchsen die Beinbeuger (vor allem die zweigelenkigen Anteile) mit der sitzenden Variante stärker (Maeo et al. 2021). Im Liegen (Hüfte gestreckt) war die Haltekraft der Beinbeuger bei 30° Kniebeugung höher als bei 90° (≈ 218 gegenüber 170 N; Hirose et al. 2021, 20 junge Männer, Volltext).' },
       { short: 'Tempo', anchor: 'pad', side: 'r', status: 'single', text: 'Gleichmäßig: je etwa 2 s beugen und 2 s strecken, ohne Pause.', src: ['C1'],
         explain: 'Protokollvorgabe mit Metronom (Maeo et al. 2021); ein Tempovergleich wurde nicht durchgeführt.' }
     ],
     sources: {
       C1: { label: 'Maeo et al. 2021, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000002523', read: 'fulltext' },
-      C2: { label: 'Hirose et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0245838', read: 'abstract' }
+      C2: { label: 'Hirose et al. 2021, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0245838', read: 'fulltext' }
     }
   },
 
@@ -1383,7 +1383,7 @@ export const ANIMATIONS = [
   {
     ref: 'standing-barbell-overhead-press', view: 'side', basis: 'protocol',
     basisNote: 'Keine lesbare Studie hat das stehende Drücken gemessen. Start an der oberen Brust und Endposition mit gestreckten Ellbogen sind Protokollvorgaben (Hernández-Belmonte et al. 2020, sitzend an der Multipresse); Griffbreite 5–7 cm breiter als die Schultern. Armhaltung, leichte Rücklage beim Passieren des Gesichts und Kopfposition sind Konvention.',
-    tempo: { basis: 'convention', note: 'Protokolle geben nur „kontrolliert ab, zügig auf“ vor (Hernández-Belmonte et al. 2020); hier 1,5 s ab / 1 s auf.' },
+    tempo: { basis: 'convention', note: 'Im Protokoll: kontrolliert ab (etwa 0,5–0,7 m/s), so schnell wie möglich hoch (Hernández-Belmonte et al. 2020). Hier 1,5 s ab / 1 s auf (Konvention).' },
     frames: [
       { label: 'Start', pose: { shank: C(0), knee: C(5), hip: C(2), ankle: C(0), shoulder: C(40, 'Ellbogen vor der Stange, Unterarm etwa senkrecht'), elbow: C(150), armScale: [0.9, 0.95], props: ohpProps },
         facts: [V(0, 'S1', 'protocol', 'Stange berührt am Umkehrpunkt die obere Brust'), V(6, 'S1', 'protocol', 'Griff 5–7 cm breiter als die Schulterbreite (Protokoll)')] },
@@ -1396,18 +1396,18 @@ export const ANIMATIONS = [
       { short: 'Start', anchor: 'bar', side: 'r', status: 'single', text: 'Start mit der Stange an der oberen Brust, Griff knapp breiter als die Schultern.', src: ['S1'],
         explain: 'Protokoll von Hernández-Belmonte et al. 2020 (sitzend, Multipresse, n = 48): Obergriff 5–7 cm breiter als die Schultern, Stange berührt die obere Brust. Für das stehende Drücken wurde die Startposition nicht gemessen.' },
       { short: 'Oben', anchor: 'wrist', side: 'r', status: 'consensus', text: 'Nach oben drücken, bis die Ellbogen ganz gestreckt sind.', src: ['S1', 'S5'],
-        explain: 'Endkriterium der Protokolle. Der volle Bewegungsumfang bis zum gestreckten Ellbogen aktivierte alle gemessenen Schultermuskeln stärker als 90° oder 135° (Paoli et al. 2010, n = 6, sitzend, Abstract).' },
+        explain: 'Endkriterium der Protokolle. Bis zum gestreckten Ellbogen zu drücken ergab bei den meisten Schultermuskeln mehr EMG-Aktivität als ein Stopp bei 90° Ellbogenwinkel. Gegenüber 135° war der Unterschied oft klein (Paoli et al. 2010, n = 6, sitzend mit Kurzhanteln).' },
       { short: 'Rumpf', anchor: 'lowBack', side: 'l', status: 'single', text: 'Rumpf ruhig halten: Im Stehen stabilisiert der Körper die Last selbst.', src: ['S6'],
-        explain: 'Stehend war das 1RM mit Kurzhanteln ≈ 10 % niedriger als sitzend; stehend und mit Kurzhanteln war die Schulteraktivität am höchsten (Saeterbakken & Fimland 2013, n = 15, Abstract). Wie viel sich die Lendenwirbelsäule im Stehen bewegt, wurde nicht gemessen.' },
+        explain: 'Mit der Langhantel war das 1RM stehend und sitzend etwa gleich, mit Kurzhanteln stehend ≈ 10 % niedriger; stehend und mit Kurzhanteln war die Schulteraktivität am höchsten (Saeterbakken & Fimland 2013, n = 15, Volltext). Wie viel sich die Lendenwirbelsäule im Stehen bewegt, wurde nicht gemessen.' },
       { short: 'Mitte', anchor: 'head', side: 'l', status: 'single', text: 'Die schwerste Stelle liegt etwa auf halber Höhe – dort nicht ins Hohlkreuz ausweichen.', src: ['S1'],
-        explain: 'Geschwindigkeitsminimum bei 46 ± 6 % des Stangenwegs ab 75 % 1RM (Hernández-Belmonte et al. 2020, sitzend). „Nicht ins Hohlkreuz“ ist Trainingswissen und nicht untersucht.' },
+        explain: 'Beim Maximalversuch (1RM) war die Stange bei etwa 46 ± 6 % des Wegs am langsamsten. Unter etwa 75 % 1RM gab es keinen solchen Punkt (sitzend, Multipresse). (Hernández-Belmonte et al. 2020, sitzend). „Nicht ins Hohlkreuz“ ist Trainingswissen und nicht untersucht.' },
       { short: 'Ab', anchor: 'elbow', side: 'r', status: 'single', text: 'Stange kontrolliert bis zur oberen Brust absenken.', src: ['S1'],
         explain: 'Protokoll: kontrolliertes Absenken bis zur oberen Brust, dann ohne Pause drücken (Hernández-Belmonte et al. 2020). Ein Tempovergleich liegt nicht vor.' }
     ],
     sources: {
       S1: { label: 'Hernández-Belmonte et al. 2020, Biol Sport', url: 'https://doi.org/10.5114/biolsport.2020.98453', read: 'fulltext', note: 'Sitzend an der Multipresse; übertragen' },
-      S5: { label: 'Paoli et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181d756ea', read: 'abstract' },
-      S6: { label: 'Saeterbakken & Fimland 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318276b873', read: 'abstract' }
+      S5: { label: 'Paoli et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181d756ea', read: 'fulltext' },
+      S6: { label: 'Saeterbakken & Fimland 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318276b873', read: 'fulltext' }
     }
   },
 
@@ -1425,20 +1425,20 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.1, label: 'Unten', kp: [0, 2] }, { a: 0, b: 1, dur: 1.2, label: 'Drücken', kp: [1] }, { a: 1, b: 1, dur: 0.4, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 1.5, label: 'Absenken', kp: [2, 3] }],
     keyPoints: [
       { short: 'Bank', anchor: 'back', side: 'l', status: 'single', text: 'Bank fast senkrecht (≈ 85°) stellen; Rücken und Gesäß bleiben an der Lehne.', src: ['D1', 'S1'],
-        explain: '85° Lehne in der EMG-Studie 2013; 10° Rücklage mit Kopf, Rücken und Gesäß an der Lehne beim sitzenden Langhanteldrücken (Hernández-Belmonte et al. 2020). Ein Lehnenvergleich wurde nicht untersucht.' },
+        explain: '85° Lehne in der EMG-Studie 2013; 10° Rücklage mit Kopf, Rücken und Gesäß an der Lehne beim sitzenden Drücken an der Multipresse (Hernández-Belmonte et al. 2020). Ein Lehnenvergleich wurde nicht untersucht.' },
       { short: 'Oben', anchor: 'wrist', side: 'r', status: 'consensus', text: 'Hanteln hochdrücken, bis die Ellbogen gestreckt sind; Hände über den Schultern.', src: ['D1', 'S5'],
-        explain: 'Protokoll der EMG-Studie 2013 (volle Streckung, Hände über den Schultergelenken). Der volle Bewegungsumfang aktivierte die Schultermuskeln stärker als Teilbereiche (Paoli et al. 2010, n = 6, Abstract).' },
+        explain: 'Protokoll der EMG-Studie 2013 (volle Streckung, Hände über den Schultergelenken). Der volle Bewegungsumfang ergab meist mehr EMG-Aktivität als ein Stopp bei 90° Ellbogenwinkel (Paoli et al. 2010, n = 6).' },
       { short: 'Ab', anchor: 'elbow', side: 'r', status: 'single', text: 'Kontrolliert absenken und unten ohne Pause wenden.', src: ['D1'],
         explain: 'Umkehrpunkt im Protokoll: der Moment, in dem die Hantel die Richtung wechselt; eine Tiefe wurde nicht vorgegeben oder gemessen.' },
-      { short: 'Hanteln', anchor: 'hand', side: 'r', status: 'single', text: 'Kurzhanteln fordern die Schulter etwas mehr als die Langhantel; das Gewicht ist niedriger.', src: ['S6', 'D3'],
-        explain: 'Sitzend war die vordere Schulter mit Kurzhanteln ≈ 11 % aktiver als mit der Langhantel; das 1RM mit Kurzhanteln lag stehend ≈ 7 % unter dem der Langhantel (Saeterbakken & Fimland 2013, n = 15, Abstract). Mit Kurzhanteln sank die Last und die Trizepsaktivität (Kohler et al. 2010, n = 30, Abstract).' }
+      { short: 'Hanteln', anchor: 'hand', side: 'r', status: 'single', text: 'Kurzhanteln fordern die vordere Schulter etwas mehr; im Stehen etwas weniger Gewicht.', src: ['S6', 'D3'],
+        explain: 'Sitzend war die vordere Schulter mit Kurzhanteln ≈ 11 % aktiver als mit der Langhantel; das 1RM mit Kurzhanteln lag stehend ≈ 7 % unter dem der Langhantel (Saeterbakken & Fimland 2013, n = 15, Volltext). Mit Kurzhanteln lag das 10RM bei ≈ 86 % der Langhantel, die Trizepsaktivität war niedriger, die vordere Schulter gleich aktiv (Kohler et al. 2010, n = 30, sitzend ohne Lehne). Im Sitzen war das 1RM mit Kurz- und Langhantel etwa gleich.' }
     ],
     sources: {
       D1: { label: 'Luczak et al. 2013, J Sports Med', url: 'https://doi.org/10.1155/2013/612650', read: 'fulltext' },
-      D3: { label: 'Kohler et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181c8655a', read: 'abstract' },
+      D3: { label: 'Kohler et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181c8655a', read: 'fulltext' },
       S1: { label: 'Hernández-Belmonte et al. 2020, Biol Sport', url: 'https://doi.org/10.5114/biolsport.2020.98453', read: 'fulltext' },
-      S5: { label: 'Paoli et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181d756ea', read: 'abstract' },
-      S6: { label: 'Saeterbakken & Fimland 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318276b873', read: 'abstract' }
+      S5: { label: 'Paoli et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181d756ea', read: 'fulltext' },
+      S6: { label: 'Saeterbakken & Fimland 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318276b873', read: 'fulltext' }
     }
   },
 
@@ -1457,7 +1457,7 @@ export const ANIMATIONS = [
       { short: 'Griff', anchor: 'bar', side: 'r', status: 'single', text: 'Griff etwa schulterbreit, Handrücken nach oben (Obergriff).', src: ['R1'],
         explain: 'Protokoll (Sports 2023, n = 28): Obergriff auf Schulterbreite (Akromion zu Akromion). Griffbreiten wurden beim Langhantelrudern nicht verglichen.' },
       { short: 'Haltung', anchor: 'back', side: 'l', status: 'consensus', text: 'Knie leicht beugen, aus der Hüfte vorkippen, Rücken neutral halten.', src: ['R1', 'R3'],
-        explain: 'Aufbau in beiden Protokollen: Knie leicht gebeugt, Oberkörper weit vorgeneigt, Wirbelsäule neutral. Trotz dieser Anweisung beugte sich die Lendenwirbelsäule im Mittel um 22,9° (42,9 % des eigenen Maximums; Fenwick et al. 2009, n = 7). Die gezeigte Rumpfneigung ist Konvention.' },
+        explain: 'Aufbau: aus der Hüfte vorgeneigt, Wirbelsäule neutral (beide Protokolle); leicht gebeugte Knie nur im Sports-2023-Protokoll beschrieben, bei Fenwick et al. 2009 nur auf dem Foto zu sehen. Trotz dieser Anweisung beugte sich die Lendenwirbelsäule im Mittel um 22,9° (42,9 % des eigenen Maximums; Fenwick et al. 2009, n = 7). Die gezeigte Rumpfneigung ist Konvention.' },
       { short: 'Zug', anchor: 'belly', side: 'r', status: 'single', text: 'Aus gestreckten Armen die Stange zum unteren Brustkorb oder Bauch ziehen.', src: ['R1'],
         explain: 'Start mit gestreckten Ellbogen, Ende bei Berührung des Bauchs (Sports 2023). Ellbogenwinkel und Zugweg wurden nicht gemessen.' },
       { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Vorgebeugt belastete die Lendenwirbelsäule stärker als Kabel- oder hängendes Rudern.', src: ['R3'],
@@ -1491,18 +1491,18 @@ export const ANIMATIONS = [
       { short: 'Hand', anchor: 'wrist', side: 'r', status: 'single', text: 'Handfläche dreht beim Heben nach oben (ab etwa halber Beugung).', src: ['S1'],
         explain: 'Beschreibung der Kurzhantelcurls durch die Autoren (halb gedreht am Start, supiniert ab ≈ 90° Beugung), keine Messung. Ob die Drehung die Bizepsaktivität erhöht, wurde dort nicht geprüft.' },
       { short: 'Variante', anchor: 'elbow', side: 'l', status: 'single', text: 'Mit Kurzhanteln war der Bewegungsumfang etwas größer als mit SZ- oder gerader Stange.', src: ['S1', 'S2'],
-        explain: 'Kurzhantel 123,1°, SZ-Stange 119,9°, gerade Stange 117,3° (Marcolin et al. 2018; der Text der Studie widerspricht an einer Stelle den eigenen Mittelwerten). Stehende und Schrägbank-Curls aktivierten den Bizeps über den ganzen Weg ähnlich, Scott-Curls nur über einen kurzen Bereich (Oliveira et al. 2009, n = 22, Abstract).' }
+        explain: 'Kurzhantel 123,1°, SZ-Stange 119,9°, gerade Stange 117,3° (Marcolin et al. 2018; der Text der Studie widerspricht an einer Stelle den eigenen Mittelwerten). Stehende und Schrägbank-Curls aktivierten den Bizeps über den ganzen Weg ähnlich, Scott-Curls nur über einen kurzen Bereich (Oliveira et al. 2009, 22 trainierte Männer, Volltext).' }
     ],
     sources: {
       S1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
-      S2: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'abstract' }
+      S2: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' }
     }
   },
 
   // ---------- Trizepsdrücken am Kabel ----------
   {
     ref: 'triceps-pushdown', view: 'side', basis: 'protocol',
-    basisNote: 'Keine Studie hat die Bewegung gemessen. Oberarme senkrecht und nah am Körper, Rumpf leicht vorgeneigt, Ellbogen 90° → 0° sind Protokollvorgaben (Hussain et al. 2020; Rendos et al. 2016). Die Rumpfneigung (≈ 8°) ist Konvention.',
+    basisNote: 'Keine Studie hat die Bewegung gemessen. Oberarme senkrecht, Ellbogen 90° → gestreckt und Handgelenk gerade sind Protokollvorgaben (Rendos et al. 2016; Hussain et al. 2020). „Nah am Körper“ und leicht vorgeneigter Rumpf stammen nicht aus Rendos. Die Rumpfneigung (≈ 8°) ist Konvention.',
     tempo: { basis: 'protocol', note: '1,5 s je Phase (Rendos et al. 2016); Hussain et al. 2020: 3 Schläge drücken / 2 Schläge zurück ohne Pause.' },
     frames: [
       { label: 'Oben', pose: { rootPos: [-44, -15], shank: C(3), knee: C(8), ankle: C(3), trunk: C(8, 'leicht vorgeneigt (Protokoll, kein Winkel)'), shoulder: K(8, 'T1', 'Oberarm senkrecht bei 8° Rumpfneigung'), elbow: V(90, 'T2', 'protocol'), armScale: [1, 0.95], props: pushdownProps } },
@@ -1518,12 +1518,12 @@ export const ANIMATIONS = [
         explain: 'Endpunkt beider Protokolle (0° Ellbogenbeugung).' },
       { short: 'Zurück', anchor: 'elbow', side: 'l', status: 'consensus', text: 'Zurück bis etwa 90° im Ellbogen, kontrolliert und ohne Pause umkehren.', src: ['T1', 'T2'],
         explain: 'Startwinkel 90° (Rendos et al. 2016) und keine Pause am Umkehrpunkt (Hussain et al. 2020). Ein größerer Bereich wurde nicht verglichen.' },
-      { short: 'Griff', anchor: 'wrist', side: 'r', status: 'single', text: 'Gerade Stange im Obergriff, schulterbreit; Griffform ändert vor allem den Unterarm.', src: ['T1', 'T2'],
-        explain: 'Schulterbreiter Obergriff an der geraden Stange (Hussain et al. 2020). Verschiedene Griffe (Stange, Kugelgriff) änderten die Trizepsaktivität nicht, nur die der Unterarmmuskeln (Rendos et al. 2016, Abstract).' }
+      { short: 'Griff', anchor: 'wrist', side: 'r', status: 'single', text: 'Gerade Stange im Obergriff, schulterbreit. Andere Griffe änderten den Trizeps nicht.', src: ['T1', 'T2'],
+        explain: 'Schulterbreiter Obergriff an der geraden Stange (Hussain et al. 2020). Ein Standardgriff und zwei Kugelgriffe (Seil zwischen den Fingern) änderten die Trizepsaktivität nicht. Nur der Fingerstrecker im Unterarm war mit Kugelgriff aktiver (Rendos et al. 2016, 24 Trainierte, je 8 Wiederholungen mit 8RM). Andere Griffe veränderten nur einen Unterarmmuskel.' }
     ],
     sources: {
       T1: { label: 'Hussain et al. 2020, Front Physiol', url: 'https://doi.org/10.3389/fphys.2020.00112', read: 'fulltext' },
-      T2: { label: 'Rendos et al. 2016, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001293', read: 'abstract' }
+      T2: { label: 'Rendos et al. 2016, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001293', read: 'fulltext' }
     }
   },
 
@@ -1541,7 +1541,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.5, label: 'Absenken', kp: [2] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 1.2, label: 'Drücken', kp: [3, 4] }],
     keyPoints: [
       { short: 'Bank', anchor: 'back', side: 'l', status: 'contested', text: 'Bank auf etwa 30–45° stellen; flacher betont die Brust, steiler die vordere Schulter.', src: ['P3', 'P4', 'P2'],
-        explain: 'Umstritten. 30° ergab die höchste Aktivität des oberen Brustmuskels, ab 45° verlagerte sie sich zur vorderen Schulter (Rodríguez-Ridao et al. 2020, n = 30, 60 % 1RM, Abstract); 30° und 45° lagen beide über der Flachbank, nur in einem Teil der Druckphase (Lauver et al. 2016, n = 14, Abstract). Die Kraft-Geschwindigkeits-Studie nutzte 45° (Sci Rep 2025). Langzeitwachstum nach Bankwinkel wurde nicht untersucht.' },
+        explain: 'Umstritten. Bei 30° war der obere Brustmuskel im Mittel am aktivsten, aber nicht deutlich mehr als flach oder bei 45°. Ab 45° war die vordere Schulter aktiver als die Brust (Rodríguez-Ridao et al. 2020, n = 30, 60 % 1RM, Langhantel, Volltext).; 30° und 45° lagen nur in einem Teil der Druckphase über der Flachbank, über die ganze Phase nicht (Lauver et al. 2016, 14 Männer, gleiche Last, Volltext). Die Autoren empfehlen eher 30° als 45°. Die Kraft-Geschwindigkeits-Studie nutzte 45° (Sci Rep 2025). Langzeitwachstum nach Bankwinkel wurde nicht untersucht.' },
       { short: 'Kontakt', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Kopf, Schultern und Gesäß bleiben auf der Bank, Füße am Boden.', src: ['P5', 'P2'],
         explain: 'Protokolle: Kopf, Schultern und Hüfte an der Bank (Saeterbakken et al. 2020, Flachbank); Füße am Boden (Sci Rep 2025, Schrägbank 45°).' },
       { short: 'Senken', anchor: 'elbow', side: 'r', status: 'single', text: 'Hanteln kontrolliert bis auf Brusthöhe absenken (etwa 2–3 s).', src: ['P2', 'P5'],
@@ -1549,21 +1549,21 @@ export const ANIMATIONS = [
       { short: 'Oben', anchor: 'wrist', side: 'r', status: 'consensus', text: 'Nach oben drücken, bis die Arme gestreckt sind.', src: ['P2', 'P5'],
         explain: 'Endkriterium beider Protokolle. Der Ellbogenweg auf der Schrägbank war etwas größer als auf der Flachbank (84° gegenüber 80°; Schütz et al. 2022, Langhantel).' },
       { short: 'Hanteln', anchor: 'hand', side: 'r', status: 'single', text: 'Mit Kurzhanteln ist das Gewicht niedriger, die Brustaktivität ähnlich wie mit der Stange.', src: ['P6'],
-        explain: 'Flachbank, 1RM: Kurzhanteln 17 % weniger Last als die Langhantel, Brust- und vordere Schulteraktivität gleich, Bizeps höher, Trizeps niedriger (Saeterbakken et al. 2011, n = 12, Abstract). Für die Schrägbank nicht gemessen.' }
+        explain: 'Flachbank, 1RM: Kurzhanteln 17 % weniger Last als die Langhantel, Brust- und vordere Schulteraktivität gleich, Bizeps höher, Trizeps niedriger (Saeterbakken et al. 2011, n = 12, Volltext). Für die Schrägbank nicht gemessen.' }
     ],
     sources: {
       P1: { label: 'Schütz et al. 2022, Sports (MDPI)', url: 'https://doi.org/10.3390/sports10020019', read: 'fulltext', note: 'Langhantel, 15/30 % Körpergewicht, Bankwinkel nicht berichtet' },
       P2: { label: 'Marques et al. 2025, Sci Rep', url: 'https://doi.org/10.1038/s41598-025-12166-5', read: 'fulltext' },
-      P3: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'abstract' },
-      P4: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'abstract' },
+      P3: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
+      P4: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'fulltext' },
       P5: { label: 'Saeterbakken et al. 2020, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0235555', read: 'fulltext' },
-      P6: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'abstract' }
+      P6: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'fulltext' }
     }
   },
   // ---------- Sumo-Kniebeuge (Frontansicht, v2.9) ----------
   {
     ref: 'sumo-squat', checkedAt: '2026-10-19', view: 'front', basis: 'measured',
-    basisNote: 'Frontansicht, Langhantel hochstabig. Fußabstand ≈ 0,5 m im Bereich der Studienprotokolle (1,5-fache Trochanterbreite in Sinclair et al. 2022; breite Gruppe in Escamilla et al. 2001 mit 169 % der Schulterbreite, Abstract). Knie und Dorsalflexion unten aus Sinclair et al. 2022 (3D-Motion-Capture, 20 trainierte Männer, 70 % 1RM, Stand 1,5-fache Trochanterbreite; Tabelle 6 am PDF geprüft). Hüftbeugung und Rumpfneigung wurden dort nicht berichtet. Fußöffnung, Rumpfneigung und Armhaltung sind Konvention; das Bein ist räumlich gelöst und in die Bildebene projiziert.',
+    basisNote: 'Frontansicht, Langhantel hochstabig. Fußabstand ≈ 0,5 m entspricht etwa dem Protokoll von Sinclair et al. 2022 (1,5-fache Trochanterbreite). Die breite Gruppe bei Escamilla et al. 2001 stand weiter: 70 ± 10 cm zwischen den Knöcheln (169 % der Schulterbreite, Tabelle 1). Knie und Dorsalflexion unten aus Sinclair et al. 2022 (3D-Motion-Capture, 20 trainierte Männer, 70 % 1RM, Stand 1,5-fache Trochanterbreite; Tabelle 6 am PDF geprüft). Hüftbeugung und Rumpfneigung stehen dort nur im Online-Supplement (nicht signifikant). Escamilla et al. 2001 nennen für den breiten Stand unten: Hüfte 110 ± 7° gebeugt, Rumpf 62 ± 5° zur Waagerechten, Füße 26 ± 4° nach außen (Tabelle 2; Kraftdreikämpfer nahe Maximalgewicht). Gezeichnete Fußöffnung und Rumpfneigung sind daran angelehnte Konvention, die Armhaltung ist Konvention; das Bein ist räumlich gelöst und in die Bildebene projiziert.',
     tempo: { basis: 'measured', note: 'Wiederholung 2,19 ± 0,22 s, davon Aufstehen 1,10 ± 0,10 s (breiter Stand, Sinclair et al. 2022, Tabelle 3); Absenken daraus ≈ 1,1 s.' },
     frames: [
       { label: 'Oben', pose: { legs: { planted: true, stance: SUMO.stance, toeOut: SUMO.toeOut, knee: C(4, 'fast gestreckt'), shank: C(0) }, trunkFlex: C(5), armPoints: SUMO.arms, props: sumoProps } },
@@ -1572,20 +1572,20 @@ export const ANIMATIONS = [
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.1, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 3] }, { a: 1, b: 0, dur: 1.1, label: 'Aufstehen', kp: [4] }],
     keyPoints: [
-      { short: 'Stand', anchor: 'footL', side: 'l', status: 'single', text: 'Füße etwa 1,5- bis 1,7-fach schulterbreit, Zehen deutlich nach außen.', src: ['S2', 'S1'],
-        explain: 'Breite Gruppe in Escamilla et al. 2001: 169 ± 12 % der Schulterbreite, Füße 6° weiter nach außen gedreht als im engen Stand (Abstract). Sinclair et al. 2022 gaben 1,5-fache Trochanterbreite vor. Eine optimale Breite ist nicht belegt.' },
+      { short: 'Stand', anchor: 'footL', side: 'l', status: 'single', text: 'Füße etwa 1,5- bis 1,7-fach schulterbreit, Zehen etwas nach außen (Studie: rund 25°).', src: ['S2', 'S1'],
+        explain: 'Breite Gruppe in Escamilla et al. 2001 (39 Kraftdreikämpfer über 40, Wettkampf nahe Maximalgewicht): Abstand der Knöchel 169 ± 12 % der Schulterbreite, etwa 70 cm. Füße 26 ± 4° nach außen, 6° mehr als im engen Stand (Tabelle 1 und 2). Sinclair et al. 2022 gaben 1,5-fache Trochanterbreite vor. Eine optimale Breite ist nicht belegt.' },
       { short: 'Knie', anchor: 'kneeR', side: 'r', status: 'single', text: 'Knie zeigen beim Absenken in Richtung der Fußspitzen.', src: ['S3'],
         explain: 'Lorenzetti et al. 2018 raten bei breitem Stand zu nach außen gedrehten Füßen, damit die Knie über den Füßen bleiben. Einzelstudie mit Körpergewicht und 50 % Zusatzlast.' },
       { short: 'Schienbein', anchor: 'shinL', side: 'l', status: 'consensus', text: 'Schienbeine bleiben steiler als bei der engen Kniebeuge.', src: ['S1', 'S2'],
-        explain: 'Dorsalflexion unten 19,4° im breiten gegenüber 27,7° im engen Stand (Sinclair et al. 2022); Schienbeine 5–9° senkrechter (Escamilla et al. 2001, Abstract).' },
+        explain: 'Dorsalflexion unten 19,4° im breiten gegenüber 27,7° im engen Stand (Sinclair et al. 2022); Schienbeine 5–9° senkrechter (Escamilla et al. 2001, Volltext).' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper neigt sich etwa wie bei der normalen Kniebeuge.', src: ['S2'],
-        explain: 'Kein signifikanter Unterschied der Rumpfposition zwischen engem, mittlerem und breitem Stand (Escamilla et al. 2001, Abstract). Die gezeigte Neigung ist Konvention.' },
+        explain: 'Kein signifikanter Unterschied der Rumpfneigung zwischen engem, mittlerem und breitem Stand (Escamilla et al. 2001, Tabelle 2). Unten war der Rumpf im breiten Stand etwa 62° gegen die Waagerechte geneigt, also rund 28° nach vorn. Werte von Kraftdreikämpfern nahe Maximalgewicht.' },
       { short: 'Muskeln', anchor: 'thighR', side: 'r', status: 'single', text: 'Breiter Stand: mehr Arbeit für Gesäß und Beinbeuger, weniger für den Quadrizeps.', src: ['S1'],
-        explain: 'Sinclair et al. 2022: im breiten Stand größere modellierte Kräfte in Gesäß, Beinbeuger und Wade, im engen größere Quadrizepskraft. Die Kräfte sind aus einem Muskel-Skelett-Modell berechnet, nicht direkt gemessen.' }
+        explain: 'Sinclair et al. 2022: im breiten Stand größere modellierte Kräfte in Gesäß und Beinbeuger, im engen größere Quadrizepskraft. Die Kräfte sind aus einem Muskel-Skelett-Modell berechnet, nicht gemessen. Muskelwachstum wurde nicht untersucht.' }
     ],
     sources: {
       S1: { label: 'Sinclair et al. 2022, Sports (Basel)', url: 'https://doi.org/10.3390/sports10090136', read: 'fulltext', note: 'Experiment 2, Tabellen 3 und 6 am PDF geprüft' },
-      S2: { label: 'Escamilla et al. 2001, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-200106000-00019', read: 'abstract' },
+      S2: { label: 'Escamilla et al. 2001, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-200106000-00019', read: 'fulltext' },
       S3: { label: 'Lorenzetti et al. 2018, BMC Sports Sci Med Rehabil', url: 'https://doi.org/10.1186/s13102-018-0103-7', read: 'fulltext' }
     }
   }
@@ -1603,13 +1603,13 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 0.75, label: 'Absenken', kp: [0] }, { a: 1, b: 2, dur: 0.75, label: 'Absenken', kp: [1, 2] }, { a: 2, b: 2, dur: 0.3, label: 'Unten', kp: [1, 2, 3] }, { a: 2, b: 1, dur: 0.75, label: 'Aufstehen', kp: [3] }, { a: 1, b: 0, dur: 0.75, label: 'Aufstehen', kp: [] }],
     keyPoints: [
       { short: 'Füße', anchor: 'foot', side: 'r', status: 'single', text: 'Füße ein Stück vor die Stange stellen; die Stange läuft senkrecht.', src: ['G1'],
-        explain: 'Gutierrez & Bahamonde 2009 (Tagungsbeitrag, 8 erfahrene Personen, 3D-Video, 50 % Körpergewicht): Wegen der senkrechten Führung setzten alle die Füße nach vorn; die Stange war bei maximaler Kniebeugung weiter vom Knie entfernt als bei der freien Kniebeuge. Wie weit, ist nicht angegeben.' },
+        explain: 'Gutierrez & Bahamonde 2009 (Tagungsbeitrag, 8 erfahrene Personen, 3D-Video, 50 % Körpergewicht): Die Autoren erklären die Unterschiede damit, dass die Füße wegen der senkrechten Führung weiter vorn standen; gemessen wurde die Fußstellung nicht. Die Stange lag unten etwas weiter hinter dem Knie, der Unterschied war aber nicht sicher.' },
       { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'single', text: 'Meist weniger tief als frei: Knie unten etwa 95° gebeugt.', src: ['K1'],
         explain: 'Kotiuk et al. 2022: Multipresse Knie 94,4° und Hüfte 106,3°, freie Kniebeuge bis zur Waagerechten 113,4° und 128,2° (selbst gewählte Ausführung). Gutierrez & Bahamonde 2009 fanden an der Multipresse in allen Gelenken weniger Bewegungsumfang.' },
       { short: 'Schienbein', anchor: 'shin', side: 'l', status: 'single', text: 'Das Schienbein bleibt fast senkrecht, weil die Füße vor der Stange stehen.', src: ['K1', 'G1'],
-        explain: 'Schienbein-Vorneigung unten 4,5 ± 4,8° an der Multipresse gegenüber 23,3° bei der freien Kniebeuge (Kotiuk et al. 2022). Weniger Dorsalflexion auch in Gutierrez & Bahamonde 2009.' },
+        explain: 'Schienbein-Vorneigung unten 4,5 ± 4,8° an der Multipresse gegenüber 23,3° bei der freien Kniebeuge (Kotiuk et al. 2022). Wo die Füße standen, steht dort nicht. Weniger Bewegung im Sprunggelenk auch in Gutierrez & Bahamonde 2009; der Winkel ganz unten unterschied sich dort nicht sicher.' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Der Oberkörper bleibt aufrechter als bei der freien Kniebeuge.', src: ['G1', 'K1'],
-        explain: 'Weniger Rumpfbeugung an der Multipresse (Gutierrez & Bahamonde 2009). Aus den Winkeln von Kotiuk et al. 2022 berechnet: unten ≈ 16° Vorneigung gegenüber ≈ 38° frei.' }
+        explain: 'Weniger Rumpfbeugung an der Multipresse (Gutierrez & Bahamonde 2009). Aus den Mittelwerten von Kotiuk et al. 2022 geschätzt: unten ≈ 16° Vorneigung gegenüber ≈ 38° frei. Die Rumpfneigung selbst wurde nicht gemessen.' }
     ],
     sources: {
       K1: { label: 'Kotiuk et al. 2022, Cent Eur J Sport Sci Med', url: 'https://doi.org/10.18276/cej.2022.4-02', read: 'fulltext', note: 'Neutral-Null-Methode, Messgerät nicht beschrieben' },
@@ -1620,8 +1620,8 @@ export const ANIMATIONS = [
   // ---------- Hack Squat (v2.9) ----------
   {
     ref: 'hack-squat', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
-    basisNote: 'Keine gelesene Studie hat Gelenkwinkel am Hack Squat gemessen oder vorgegeben (34 PubMed-Treffer gesichtet). Gezeigt ist ein üblicher Aufbau: Rücken auf einem um 45° geneigten Schlitten, Schulterpolster, Füße schulterbreit mittig auf einer flachen Plattform; das Knie beugt bis etwa 100°. Die Hüfte läuft auf der Schiene, Knie- und Schienbeinwinkel sind aus dieser Geometrie gelöst. Alles Zeichenkonvention.',
-    tempo: { basis: 'convention', note: 'Je ≈ 1,5 s ab und auf (Konvention). Clark et al. 2019: Die Absenkphase dauerte länger als bei der Kniebeuge, die Hebephase gleich lang.' },
+    basisNote: 'Keine gelesene Studie hat Gelenkwinkel am Hack Squat gemessen (34 PubMed-Treffer gesichtet). Clark et al. 2019 gaben vor: Schlitten 45°, Füße schulterbreit im vorderen Teil der Plattform, Knie mindestens 90° gebeugt, Oberschenkel parallel zur Plattform. Gezeichnet: Rücken auf dem 45°-Schlitten, Schulterpolster, Füße schulterbreit mittig auf einer flachen Plattform (weicht von Clark ab); das Knie beugt bis etwa 100°. Die Hüfte läuft auf der Schiene, Knie- und Schienbeinwinkel sind aus dieser Geometrie gelöst. Der Rest ist Zeichenkonvention.',
+    tempo: { basis: 'convention', note: 'Je ≈ 1,5 s ab und auf (Konvention). Clark et al. 2019: Das Absenken dauerte beim Hack Squat länger als bei der Kniebeuge. Das Heben dauerte gleich lang, nur bei sehr schwerer Last war es beim Hack Squat kürzer.' },
     frames: [
       { label: 'Oben', pose: { root: 'ankle', rootPos: [0, -15 - HACK.plat], trunk: C(-45, 'Schlitten 45° (Konvention)'), shank: K(HACK.top.shank, [], 'aus der Schienenbahn gelöst'), knee: C(HACK.top.knee), foot: C(70, 'Fuß flach auf der vorn angehobenen Plattform (20°)'), armTargetTrunk: [6, 6], armScale: [0.7, 0.8], elbowSide: -1, props: hackProps } },
       { label: 'Unten', pose: { root: 'ankle', rootPos: [0, -15 - HACK.plat], trunk: C(-45, 'Schlitten 45° (Konvention)'), shank: K(HACK.bottom.shank, [], 'aus der Schienenbahn gelöst'), knee: C(HACK.bottom.knee, 'Konvention; Studien geben kein Maß'), foot: C(70, 'Fuß flach auf der vorn angehobenen Plattform (20°)'), armTargetTrunk: [6, 6], armScale: [0.7, 0.8], elbowSide: -1, props: hackProps } }
@@ -1629,14 +1629,14 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 2] }, { a: 0, b: 1, dur: 1.6, label: 'Absenken', kp: [1] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 1.4, label: 'Drücken', kp: [0] }],
     keyPoints: [
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Rücken und Schultern liegen am Polster; der Schlitten führt die Bahn.', src: ['C1'],
-        explain: 'Durch die Stütze am Rücken war die Rumpfmuskulatur beim Hack Squat weniger aktiv als bei der Kniebeuge, und das 1RM war höher (Clark et al. 2019, 10 Männer, Abstract).' },
+        explain: 'Beim Hack Squat war die Rumpfmuskulatur meist weniger aktiv als bei der Kniebeuge, obwohl mehr Gewicht bewegt wurde. Die Autoren erklären das mit der Stütze am Rücken, dem kürzeren Weg und dem langsameren Absenken (Clark et al. 2019, 10 trainierte Männer, Volltext). Auch der äußere Oberschenkelmuskel war beim Hack Squat weniger aktiv.' },
       { short: 'Tiefe', anchor: 'knee', side: 'r', status: 'single', text: 'Kontrolliert absenken, bis die Oberschenkel etwa parallel zur Plattform sind.', src: ['C1'],
         explain: 'Die Absenkphase dauerte beim Hack Squat länger als bei der Kniebeuge (Clark et al. 2019). Die gezeigte Tiefe (≈ 100° Knie) ist Konvention.' },
-      { short: 'Last', anchor: 'thigh', side: 'r', status: 'single', text: 'Meist mehr Gewicht als bei der Kniebeuge möglich, weil der Rücken gestützt ist.', src: ['C1'],
+      { short: 'Last', anchor: 'thigh', side: 'r', status: 'single', text: 'Meist mehr Gewicht möglich; die Maschinenzahl ist nicht mit der Langhantel vergleichbar.', src: ['C1'],
         explain: 'Das 1RM war beim Hack Squat signifikant höher als bei der Kniebeuge, die Rumpfmuskeln dabei weniger aktiv (Clark et al. 2019, 10 Männer, Abstract).' }
     ],
     sources: {
-      C1: { label: 'Clark et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000002144', read: 'abstract' }
+      C1: { label: 'Clark et al. 2019, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000002144', read: 'fulltext' }
     }
   },
 
@@ -1659,7 +1659,7 @@ export const ANIMATIONS = [
       { short: 'Oben', anchor: 'hip', side: 'l', status: 'single', text: 'Oben ganz aufrichten, dann das hintere Bein zuerst wieder absetzen.', src: ['B1', 'D1'],
         explain: 'Ablauf in Bruenger et al. 2012 und Dwyer et al. 2010 unterschiedlich (zurück bzw. über die Box hinweg); die gezeigte Variante ist Konvention.' },
       { short: 'Ab', anchor: 'knee', side: 'r', status: 'single', text: 'Kontrolliert absenken, das vordere Bein bremst.', src: ['B1'],
-        explain: 'Exzentrische Phase 1 s mit Metronom (Bruenger et al. 2012). Langsamer ist möglich; dazu gibt es keine Daten.' }
+        explain: 'Exzentrische Phase 1 s mit Metronom (Bruenger et al. 2012). Beim Absenken fing dort vermutlich das hintere Bein einen Teil der Last ab; das Hüftmoment war beim Absenken kleiner als beim Hochsteigen. Langsamer ist möglich; dazu gibt es keine Daten.' }
     ],
     sources: {
       B1: { label: 'Bruenger et al. 2012, ISBS-Tagungsband', url: 'https://ojs.ub.uni-konstanz.de/cpa/article/view/5380', read: 'fulltext', note: 'Tagungsbeitrag, keine begutachtete Zeitschrift' },
@@ -1694,8 +1694,8 @@ export const ANIMATIONS = [
   // ---------- Ausfallschritte rückwärts (v2.9) ----------
   {
     ref: 'dumbbell-reverse-lunge', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
-    basisNote: 'Winkel des vorderen Beins unten vom Ausfallschritt vorwärts übertragen (Riemann et al. 2012, Tabelle 1 am PDF geprüft). Comfort et al. 2015 (9 Männer, 3D, Volltext) fanden zwischen vorwärts und rückwärts keine Unterschiede in Hüft- und Kniewinkel; ihr Kniewert ist im Text (114,9°) und in der Tabelle (63,7–66,6°) widersprüchlich und wird deshalb nicht übernommen. Seit v2.20.0 setzt der hintere Fußballen auf, bevor die Figur absenkt, und das hintere Knie liegt unten knapp über dem Boden unter der Hüfte (Konvention); daraus folgt die Schrittlänge (≈ 0,69 m, berechnet). Hüftbahn und hinteres Bein sind Konvention.',
-    tempo: { basis: 'protocol', note: '3 s ab / 2 s auf mit Metronom (Comfort et al. 2015); hier kürzer mit Schrittphase (Konvention).' },
+    basisNote: 'Winkel des vorderen Beins unten vom Ausfallschritt vorwärts übertragen (Riemann et al. 2012, Tabelle 1 am PDF geprüft). Comfort et al. 2015 (9 Männer, 3D, Volltext) fanden zwischen vorwärts und rückwärts keine Unterschiede in Hüft- und Kniewinkel; ihr Kniewert ist im Text (114,9°) und in der Tabelle (63,7–66,6°) widersprüchlich und wird deshalb nicht übernommen. Auch die Momente in Tabelle und Text passen nicht zusammen. Seit v2.20.0 setzt der hintere Fußballen auf, bevor die Figur absenkt, und das hintere Knie liegt unten knapp über dem Boden unter der Hüfte (Konvention); daraus folgt die Schrittlänge (≈ 0,69 m, berechnet). Hüftbahn und hinteres Bein sind Konvention.',
+    tempo: { basis: 'protocol', note: '3 s ab / 2 s auf in festem Takt (Comfort et al. 2015); hier kürzer mit Schrittphase (Konvention).' },
     frames: [
       { label: 'Stand', pose: { shank: C(0), knee: C(0), hip: C(0), ankle: C(0), leg2: { ankle: [-4, -15], foot: C(90) }, armPlumb: true, elbow: C(0), props: revLungeProps } },
       { label: 'Schritt', pose: { shank: C(RVL.swing.leg.shank, 'aus der Hüftbahn gelöst'), knee: C(RVL.swing.leg.knee), trunk: C(2), ankle: C(RVL.swing.leg.shank, 'Fuß flach'), leg2: { ankle: RVL.swing.ankle, foot: C(RVL.swing.foot) }, armPlumb: true, elbow: C(0), props: revLungeProps } },
@@ -1708,18 +1708,18 @@ export const ANIMATIONS = [
       { short: 'Schritt', anchor: 'foot2', side: 'l', status: 'single', text: 'Mit einem Bein weit nach hinten treten, der vordere Fuß bleibt stehen.', src: ['C2'],
         explain: 'Protokoll in Comfort et al. 2015: Stand auf einer Kraftmessplatte, Schritt zurück auf die zweite, der vordere Fuß bleibt die ganze Zeit am Boden.' },
       { short: 'Vorne', anchor: 'knee', side: 'r', status: 'single', text: 'Das vordere Bein trägt die Last; Knie etwa 90° beugen.', src: ['L1', 'C2'],
-        explain: 'Winkel übertragen vom Ausfallschritt vorwärts (Riemann et al. 2012). Comfort et al. 2015 fanden keinen Unterschied in Hüft- und Kniewinkel zwischen vorwärts und rückwärts.' },
+        explain: 'Winkel übertragen vom Ausfallschritt vorwärts (Riemann et al. 2012). Wie sich die Last auf vorderes und hinteres Bein verteilt, wurde dort nicht gemessen. Comfort et al. 2015 fanden keinen Unterschied in Hüft- und Kniewinkel zwischen vorwärts und rückwärts.' },
       { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Rückwärts arbeitet die Hüfte etwas weniger als vorwärts.', src: ['C2'],
-        explain: 'Das Hüftmoment war beim Ausfallschritt vorwärts größer als rückwärts (Comfort et al. 2015, 9 Männer, Körpergewicht). Für das Knie waren beide Varianten ähnlich.' },
-      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper bleibt aufrecht; rückwärts neigt er sich oft etwas mehr vor.', src: ['G2'],
-        explain: 'Goulette et al. 2021 (20 Frauen, 3D, Tiefe 75 % der Beinlänge, Abstract): rückwärts mehr Rumpfvorneigung und weniger Kniebeugung als vorwärts; Gradzahlen nicht geprüft. Die gezeigte Haltung ist übertragen.' },
+        explain: 'Das Hüftmoment war beim Ausfallschritt vorwärts größer als rückwärts (Comfort et al. 2015, 9 Männer, Körpergewicht). Der Kniewinkel war bei beiden ähnlich. Das Kniemoment war vorwärts laut Text größer, die Tabelle zeigt es anders.' },
+      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper aufrecht halten. Rückwärts neigt er sich meist mehr vor (etwa 22° statt 7°).', src: ['G2'],
+        explain: 'Goulette et al. 2021 (20 Frauen, 3D, Schrittlänge 75 % der Beinlänge, Oberschenkel waagerecht, Volltext): rückwärts 22° Rumpfvorneigung und 97° Kniebeugung, vorwärts 7° und 103°. Die gezeigte Haltung ist übertragen.' },
       { short: 'Zurück', anchor: 'hand', side: 'l', status: 'single', text: 'Über das vordere Bein hochdrücken und den hinteren Fuß zurückstellen.', src: ['C2'],
         explain: 'Ablauf im Protokoll von Comfort et al. 2015; Hanteln hängen locker an den Seiten (Konvention, vgl. Riemann et al. 2012).' }
     ],
     sources: {
       L1: { label: 'Riemann et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.4.16', read: 'fulltext', note: 'Ausfallschritt vorwärts, übertragen' },
       C2: { label: 'Comfort et al. 2015, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-50.9.05', read: 'fulltext', note: 'Kniewinkel in Text und Tabelle widersprüchlich' },
-      G2: { label: 'Goulette et al. 2021, Phys Ther Sport', url: 'https://doi.org/10.1016/j.ptsp.2020.12.001', read: 'abstract' }
+      G2: { label: 'Goulette et al. 2021, Phys Ther Sport', url: 'https://doi.org/10.1016/j.ptsp.2020.12.001', read: 'fulltext' }
     }
   }
 ,
@@ -1792,7 +1792,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [2] }, { a: 1, b: 1, dur: 1.0, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 1.5, label: 'Absenken', kp: [3] }],
     keyPoints: [
       { short: 'Füße', anchor: 'foot', side: 'r', status: 'single', text: 'Füße flach aufstellen, Knie etwa 90° gebeugt.', src: ['B1', 'B2'],
-        explain: 'Protokoll: Knie 90° (Khaiyat & Norris 2018). Bei einer Brücke mit unterschiedlichem Kniewinkel arbeitete der Halbsehnenmuskel bei 60–90° mehr als bei 120° (Kim & Park 2016, 22 Männer, Abstract). Wie nah die Füße am Gesäß stehen sollen, ist damit nicht geklärt.' },
+        explain: 'Protokoll: Knie 90° (Khaiyat & Norris 2018). Standen die Füße weiter weg (Knie 60–90° statt 120° gebeugt), arbeitete der Halbsehnenmuskel mehr; der große Gesäßmuskel blieb gleich (Kim & Park 2016, 22 Männer, EMG, Halten). Wie nah die Füße am Gesäß stehen sollen, ist damit nicht geklärt.' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Rücken und Schultern liegen auf dem Boden.', src: ['B1'],
         explain: 'Startstellung im Protokoll von Khaiyat & Norris 2018 (Rückenlage).' },
       { short: 'Hoch', anchor: 'hip', side: 'l', status: 'single', text: 'Über die Fersen drücken, bis Schulter, Hüfte und Knie eine Linie bilden.', src: ['B1'],
@@ -1802,7 +1802,7 @@ export const ANIMATIONS = [
     ],
     sources: {
       B1: { label: 'Khaiyat & Norris 2018, J Phys Ther Sci', url: 'https://doi.org/10.1589/jpts.30.642', read: 'fulltext' },
-      B2: { label: 'Kim & Park 2016, J Phys Ther Sci', url: 'https://doi.org/10.1589/jpts.28.2537', read: 'abstract' }
+      B2: { label: 'Kim & Park 2016, J Phys Ther Sci', url: 'https://doi.org/10.1589/jpts.28.2537', read: 'fulltext' }
     }
   }
 ,
@@ -1814,7 +1814,7 @@ export const ANIMATIONS = [
     frames: [
       { label: 'Oben', pose: { root: 'ankle', rootPos: [0, -15 - BACKEXT.plat], shank: V(45, 'S2', 'fulltext', '45°-Bank; Oberkörper in Linie mit den Beinen'), knee: C(0, 'Knie gestreckt (Anweisung)'), hip: V(0, 'S2', 'protocol', 'Oberkörper in Linie mit den Beinen'), ankle: C(0), armTargetTrunk: [18, -44], armScale: [0.7, 0.9], elbowSide: 1, props: backExtProps } },
       { label: 'Unten', pose: { root: 'ankle', rootPos: [0, -15 - BACKEXT.plat], shank: V(45, 'S2', 'fulltext', '45°-Bank'), knee: V(7.4, 'S2', 'fulltext', 'Bewegungsumfang Knie 7,4 ± 3,6°'), hip: V(36.3, 'S2', 'fulltext', 'Bewegungsumfang Hüfte 36,3 ± 7,9° (aus der Hüfte, beidbeinig)'), ankle: C(0), armTargetTrunk: [18, -44], armScale: [0.7, 0.9], elbowSide: 1, props: backExtProps },
-        facts: [V(40, 'S2', 'computed', 'Wirbelsäule zusätzlich gebeugt: Becken–Lende 17,4°, Lende–Mitte 12,5°, Mitte–oben 10,0° (Summe ≈ 40°, nicht gezeichnet)'), V(90, 'A1', 'protocol', 'Andersen et al. 2021: Hüftwinkel unten etwa 90°, per Goniometer kontrolliert')] }
+        facts: [V(40, 'S2', 'computed', 'Die Lendenwirbelsäule beugte sich mit (Becken–Lende 17,4°, Lende–Mitte 12,5°). Der obere Rücken streckte sich dabei eher (Mitte–oben 10,0°). Nicht gezeichnet.'), V(90, 'A1', 'protocol', 'Andersen et al. 2021: Hüftwinkel unten etwa 90°, per Goniometer kontrolliert')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [2, 3] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 1.5, label: 'Aufrichten', kp: [4] }],
     keyPoints: [
@@ -1823,7 +1823,7 @@ export const ANIMATIONS = [
       { short: 'Linie', anchor: 'back', side: 'l', status: 'consensus', text: 'Oben bilden Oberkörper und Beine eine Linie, Knie gestreckt.', src: ['S2', 'A1'],
         explain: 'Start- und Endstellung in Schellenberg et al. 2017 („Oberkörper in Linie mit den Beinen“, Fersen auf der Platte, Knie gestreckt) und Andersen et al. 2021 (aufrecht).' },
       { short: 'Tiefe', anchor: 'glute', side: 'l', status: 'contested', text: 'Absenken, solange der Rücken gerade bleibt.', src: ['S2', 'A1'],
-        explain: 'Umstritten, wie tief. Wer anhält, bevor sich der Rücken beugt, kam auf 36° Hüftbewegung (Schellenberg et al. 2017); Andersen et al. 2021 ließen bis etwa 90° Hüftwinkel absenken.' },
+        explain: 'Umstritten, wie tief. Wer anhält, bevor sich der Rücken beugt, kam auf 36° Hüftbewegung. Ganz gerade blieb die Lende dabei trotzdem nicht (Schellenberg et al. 2017).; Andersen et al. 2021 ließen bis etwa 90° Hüftwinkel absenken.' },
       { short: 'Hüfte', anchor: 'hip', side: 'l', status: 'single', text: 'Aus der Hüfte beugen; wer den Rücken einrollt, bewegt vor allem die Wirbelsäule.', src: ['S2'],
         explain: 'Aus der Hüfte: Hüfte 36°, mittlerer bis oberer Rücken gestreckt. Mit eingerolltem Rücken: Lende–Mitte 36°, Hüfte nur 16°. Die Variante aus der Hüfte ergab größere Hüft- und Rückenmomente (Schellenberg et al. 2017).' },
       { short: 'Auf', anchor: 'thigh', side: 'r', status: 'single', text: 'Kontrolliert zurück in die Linie; oben arbeiten Gesäß und Beinbeuger stark.', src: ['A1'],
@@ -1850,8 +1850,8 @@ export const ANIMATIONS = [
       { short: 'Kabel', anchor: 'cuff', side: 'r', status: 'single', text: 'Manschette am Knöchel, Kabel von der unteren Rolle.', src: ['K2'],
         explain: 'Attarieh et al. 2026 trainierten eine einbeinige Hüftstreckung am Kabel (Abstract); den Aufbau beschreibt das Abstract nicht. Manschette und Rollenhöhe sind gezeichnete Konvention.' },
       { short: 'Zurück', anchor: 'foot', side: 'l', status: 'single', text: 'Das Bein aus der Hüfte nach hinten führen, ohne ins Hohlkreuz auszuweichen.', src: ['K1', 'K2'],
-        explain: 'Beim Kickback war der lange Bizepskopf proximal und distal stärker aktiv als beim rumänischen Kreuzheben und Step-up (Stevens et al. 2022, 15 trainierte Frauen, 75 % 1RM). 10 Wochen Hüftstreckung am Kabel vergrößerten den großen Gesäßmuskel um 9 %, vor allem unten (Attarieh et al. 2026, MRT, Abstract).' },
-      { short: 'Vor', anchor: 'thigh', side: 'l', status: 'single', text: 'Langsam in 2 s nach vorn zurückführen, das Kabel bleibt gespannt.', src: ['K1'],
+        explain: 'Beim Kickback war der lange Bizepskopf stärker aktiv als beim Step-up, im unteren Teil auch stärker als beim rumänischen Kreuzheben (EMG) (Stevens et al. 2022, 15 trainierte Frauen, 75 % 1RM). 10 Wochen Hüftstreckung am Kabel vergrößerten den großen Gesäßmuskel um 9 %, vor allem unten (Attarieh et al. 2026, MRT, Abstract).' },
+      { short: 'Vor', anchor: 'thigh', side: 'l', status: 'single', text: 'Langsam in 2 s nach vorn zurückführen.', src: ['K1'],
         explain: 'Protokoll in Stevens et al. 2022: 2 s exzentrisch (vor), 1 s konzentrisch (zurück), Metronom 60 Schläge je Minute.' }
     ],
     sources: {
@@ -1863,7 +1863,7 @@ export const ANIMATIONS = [
   // ---------- Kurzhantel-Bankdrücken (v2.9) ----------
   {
     ref: 'dumbbell-bench-press', checkedAt: '2026-10-19', view: 'side', basis: 'transfer', layout: 'rows',
-    basisNote: 'Keine Kinematik für Kurzhanteln auf der Flachbank gefunden. Arm- und Körperhaltung sind vom Langhantel-Bankdrücken übertragen (Ellbogen unten 101,4°, Mausehund et al. 2022, am PDF geprüft). Tiefe bis Brusthöhe nach Protokoll (Saeterbakken et al. 2020: ein Band zwischen den Hanteln berührt die Brust). Hanteln im Obergriff, von der Seite als Scheibe gesehen.',
+    basisNote: 'Keine Kinematik für Kurzhanteln auf der Flachbank gefunden. Arm- und Körperhaltung sind vom Langhantel-Bankdrücken übertragen (Ellbogen unten 101,4°, Mausehund et al. 2022, am PDF geprüft). Tiefe bis Brusthöhe nach Protokoll (Saeterbakken et al. 2011 und 2020: ein Band zwischen den Hanteln berührt die Brust). Hanteln im Obergriff, von der Seite als Scheibe gesehen.',
     tempo: { basis: 'protocol', note: '2 s ab, Drücken ≈ 1 s (übertragen vom Langhantel-Bankdrücken).' },
     frames: [
       { label: 'Oben', pose: { ...BENCH_POSE(), armPoints: { elbow: [4, -52], wrist: [8, -104] }, props: benchDbProps } },
@@ -1874,15 +1874,15 @@ export const ANIMATIONS = [
     keyPoints: [
       { short: 'Tiefe', anchor: 'chest', side: 'r', status: 'single', text: 'Kontrolliert bis etwa auf Brusthöhe absenken.', src: ['D3'],
         explain: 'Protokoll in Saeterbakken et al. 2020: ein Gummiband zwischen den Hanteln musste die Brust berühren. Ob tiefer mehr bringt, wurde nicht untersucht.' },
-      { short: 'Gewicht', anchor: 'shoulder', side: 'l', status: 'consensus', text: 'Meist 15–20 % weniger Gesamtgewicht als mit der Langhantel möglich.', src: ['D1', 'D2'],
-        explain: '1RM mit Kurzhanteln 17 % unter der Langhantel (Saeterbakken et al. 2011, 12 Männer) bzw. 89,5 statt 106,4 kg (van den Tillaar & Saeterbakken 2012, 11 Männer). Brust und vorderer Deltamuskel waren gleich aktiv, der Bizeps mehr.' },
+      { short: 'Gewicht', anchor: 'shoulder', side: 'l', status: 'consensus', text: 'Mit Kurzhanteln weniger Gesamtgewicht als mit der Langhantel, etwa 15–20 % (Schätzung).', src: ['D1', 'D2'],
+        explain: '1RM mit Kurzhanteln 17 % unter der Langhantel (Saeterbakken et al. 2011, 12 Männer) bzw. 89,5 statt 106,4 kg (van den Tillaar & Saeterbakken 2012, 11 Männer). Brust und vorderer Deltamuskel waren gleich aktiv, der Bizeps in der zweiten Hälfte des Drückens mehr, der Trizeps durchgehend weniger. Der Wert stammt aus zwei Studien und kann im Einzelfall stärker abweichen.' },
       { short: 'Drücken', anchor: 'elbow', side: 'l', status: 'single', text: 'Gleichmäßig nach oben drücken, beide Hanteln auf gleicher Höhe.', src: ['D1'],
-        explain: 'Mit Kurzhanteln war der Trizeps weniger und der Bizeps mehr aktiv als mit der Langhantel, vermutlich wegen der größeren Stabilisierungsarbeit (Saeterbakken et al. 2011, Abstract). Die gleiche Höhe beider Hanteln ist Konvention.' }
+        explain: 'Mit Kurzhanteln war der Bizeps mehr aktiv, vermutlich zum Stabilisieren. Der Trizeps war nur beim Hochdrücken weniger aktiv (Saeterbakken et al. 2011, 1RM, 12 Männer). In der Studie zählte ein Versuch nur, wenn die Hanteln auf der vorgegebenen Höhe ankamen.' }
     ],
     sources: {
       S1: { label: 'Mausehund et al. 2022, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003948', read: 'fulltext', note: 'Langhantel, übertragen' },
-      D1: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'abstract' },
-      D2: { label: 'van den Tillaar & Saeterbakken 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3182443430', read: 'abstract' },
+      D1: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'fulltext' },
+      D2: { label: 'van den Tillaar & Saeterbakken 2012, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3182443430', read: 'fulltext' },
       D3: { label: 'Saeterbakken et al. 2020, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0235555', read: 'fulltext' }
     }
   },
@@ -1927,7 +1927,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Drücken', kp: [3] }],
     keyPoints: [
       { short: 'Bank', anchor: 'back', side: 'l', status: 'contested', text: 'Bank etwa 30–45° aufstellen.', src: ['R1', 'C1', 'L2'],
-        explain: 'Umstritten. Getestet wurden 15–60° (Rodríguez-Ridao et al. 2020), 30° und 45° (Lauver et al. 2016), 45° (Coratella et al. 2019); der obere Brustanteil war bei 45° am stärksten erregt (Coratella et al. 2019), Lauver et al. fanden bei 30° und 45° nur zeitweise mehr Aktivität.' },
+        explain: 'Umstritten. Getestet wurden 15–60° (Rodríguez-Ridao et al. 2020), 30° und 45° (Lauver et al. 2016), 45° (Coratella et al. 2019); der obere Brustanteil war beim Hochdrücken bei 45° am stärksten erregt, beim Absenken flach (Coratella et al. 2019), Lauver et al. fanden bei 30° und 45° nur zeitweise mehr Aktivität.' },
       { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Griff etwa 1,5-fach schulterbreit.', src: ['R1'],
         explain: 'Protokoll in Rodríguez-Ridao et al. 2020 (150 % der Schulterbreite, Obergriff).' },
       { short: 'Brust', anchor: 'chest', side: 'r', status: 'contested', text: 'Stange zur oberen bis mittleren Brust führen.', src: ['S24', 'R1'],
@@ -1939,7 +1939,7 @@ export const ANIMATIONS = [
       R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
       S24: { label: 'Saeterbakken et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0047', read: 'fulltext' },
       C1: { label: 'Coratella et al. 2019, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2019.1655101', read: 'fulltext' },
-      L2: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'abstract' }
+      L2: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'fulltext' }
     }
   },
 
@@ -1962,11 +1962,11 @@ export const ANIMATIONS = [
       { short: 'Brust', anchor: 'chest', side: 'r', status: 'single', text: 'Stange zur Mitte bis unteren Brust; der Weg ist kurz.', src: ['S24'],
         explain: 'Der senkrechte Stangenweg war auf der Negativbank kürzer als auf der Schrägbank und wie auf der Flachbank (Saeterbakken et al. 2017).' },
       { short: 'Muskeln', anchor: 'shoulder', side: 'l', status: 'contested', text: 'Der untere Brustanteil arbeitet etwa wie auf der Flachbank.', src: ['C1', 'L2'],
-        explain: 'Umstritten. Der sternale Brustanteil war bei −15° gleich stark erregt wie flach (Coratella et al. 2019) bzw. ähnlich wie flach und stärker als bei 45° (Lauver et al. 2016). Mehr Aktivität als flach zeigte keine der beiden Studien.' }
+        explain: 'Umstritten. Beim Hochdrücken war der sternale Brustanteil bei −15° gleich stark erregt wie flach, beim Absenken stärker als flach (Coratella et al. 2019). Der untere Brustanteil war ähnlich wie flach und stärker als bei 45° (Lauver et al. 2016, gleiche Last bei allen Winkeln, Volltext). Beim Hochdrücken zeigte keine der beiden Studien mehr Aktivität als flach.' }
     ],
     sources: {
       C1: { label: 'Coratella et al. 2019, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2019.1655101', read: 'fulltext' },
-      L2: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'abstract' },
+      L2: { label: 'Lauver et al. 2016, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2015.1022605', read: 'fulltext' },
       S24: { label: 'Saeterbakken et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0047', read: 'fulltext' }
     }
   },
@@ -2012,9 +2012,9 @@ export const ANIMATIONS = [
       { short: 'Zug', anchor: 'elbow', side: 'r', status: 'single', text: 'Hantel Richtung Hüfte ziehen, bis der Oberarm etwa neben dem Rumpf ist.', src: ['S1'],
         explain: 'Endwinkel vom Rudern am Kabel übertragen: Schulter −5,0 ± 9,7°, Ellbogen 105,4 ± 13,1° (IMU, 14 Personen). Für das einarmige Rudern auf der Bank gibt es keine Messung.' },
       { short: 'Rumpf', anchor: 'back', side: 'l', status: 'consensus', text: 'Rumpf nicht mitdrehen – einarmig fordert die seitlichen Rumpfmuskeln mehr.', src: ['R3', 'R4'],
-        explain: 'Einarmiges Kabelrudern im Stand: Lendenwirbelsäule beim Ziehen 7,6° verdreht – 67,7 % des eigenen Drehumfangs, obwohl die Teilnehmer neutral bleiben sollten; beidarmig vorgebeugt 3,2° (Fenwick et al. 2009, n = 7). Einarmig aktivierte den äußeren schrägen Bauchmuskel stärker als beidarmig (Saeterbakken et al. 2015, n = 15, Abstract). Beide ohne Bankstütze.' },
+        explain: 'Einarmiges Kabelrudern im Stand: Lendenwirbelsäule beim Ziehen 7,6° verdreht – 67,7 % des eigenen Drehumfangs, obwohl die Teilnehmer neutral bleiben sollten; beidarmig vorgebeugt 3,2° (Fenwick et al. 2009, n = 7). Einarmig aktivierte den äußeren schrägen Bauchmuskel der Gegenseite deutlich stärker als beidarmig; der untere Rücken war einarmig etwas weniger aktiv (Saeterbakken et al. 2015, n = 15, Volltext). Beide ohne Bankstütze.' },
       { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen nah am Körper führen: im EMG eher mehr Latissimus.', src: ['S8'],
-        explain: 'Beim Rudern im Sitzen gingen ein engerer Griff und weniger Abspreizen der Schulter jeweils mit mehr Latissimus-EMG einher (Übersicht Di Fonza et al. 2026, Einzelstudien, nicht kombiniert geprüft). Übertragen; EMG ist kein Maß für Muskelwachstum.' },
+        explain: 'Beim Rudern im Sitzen gingen ein engerer Griff und weniger Abspreizen jeweils mit mehr Latissimus-EMG einher. Die Übersicht warnt, das auf andere Ruderübungen zu übertragen: Beim vorgebeugten Rudern mit der Langhantel brachte ein weiter Griff mehr Latissimus-EMG (Di Fonza et al. 2026). Hier übertragen; EMG ist kein Maß für Muskelwachstum.' },
       { short: 'Ab', anchor: 'wrist', side: 'r', status: 'single', text: 'Kontrolliert absenken, bis der Arm wieder gestreckt ist.', src: ['R1'],
         explain: 'Jede Wiederholung begann und endete mit gestreckten Ellbogen (Langhantelrudern, Sports 2023). Das Absenktempo ist nicht untersucht.' }
     ],
@@ -2022,7 +2022,7 @@ export const ANIMATIONS = [
       R1: { label: 'Nieto-Acevedo et al. 2023, Sports', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
       S1: { label: 'Winther Nielsen et al. 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
       R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' },
-      R4: { label: 'Saeterbakken et al. 2015, Int J Sports Med', url: 'https://doi.org/10.1055/s-0034-1398646', read: 'abstract' },
+      R4: { label: 'Saeterbakken et al. 2015, Int J Sports Med', url: 'https://doi.org/10.1055/s-0034-1398646', read: 'fulltext' },
       S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
     }
   },
@@ -2059,7 +2059,7 @@ export const ANIMATIONS = [
   {
     ref: 'chest-supported-row', checkedAt: '2026-10-19', view: 'side', basis: 'transfer',
     basisNote: 'Keine gelesene Studie hat das Rudern mit Brustauflage kinematisch gemessen. Endwinkel von Schulter und Ellbogen sind vom Rudern am Kabel übertragen (IMU, NPJ Microgravity 2026, Volltext); ruhiger Rumpf auf dem Polster und Start mit gestreckten Armen stammen aus dem Protokoll für Rudern in Bauchlage auf der Bank (Sports 2023, Volltext). Polsterneigung (45°), Hebel und Fußplatte sind Zeichenkonvention.',
-    tempo: { basis: 'protocol', note: '2 s ziehen, 2 s ablassen (Protokoll beim Rudern in Bauchlage, Fischer et al. 2025, Abstract).' },
+    tempo: { basis: 'protocol', note: '2 s ziehen, 2 s ablassen (Protokoll beim Rudern in Bauchlage, Fischer et al. 2025, Volltext).' },
     frames: [
       { label: 'Unten', pose: { ...CSR.pose, shoulder: C(45, 'Arm hängt senkrecht (Rumpf 45°)'), elbow: V(0, 'R1', 'protocol', 'Start mit gestreckten Ellbogen'), props: csrProps } },
       { label: 'Oben', pose: { ...CSR.pose, shoulder: V(-5, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: −5,0 ± 9,7°'), elbow: V(105.4, 'S1', 'fulltext', 'übertragen vom Rudern am Kabel: 105,4 ± 13,1°'), props: csrProps } }
@@ -2073,14 +2073,14 @@ export const ANIMATIONS = [
       { short: 'Zug', anchor: 'elbow', side: 'l', status: 'single', text: 'Ziehen, bis die Oberarme etwa neben dem Rumpf sind.', src: ['S1'],
         explain: 'Endwinkel vom Rudern am Kabel übertragen: Schulter −5,0 ± 9,7°, Ellbogen 105,4 ± 13,1° (IMU, 14 Personen, Volltext).' },
       { short: 'Weg', anchor: 'uarm', side: 'l', status: 'single', text: 'Halber oder voller Weg: im EMG nur kleine, uneinheitliche Unterschiede.', src: ['F1'],
-        explain: 'Fischer et al. 2025 (16 Trainierte, Rudern in Bauchlage, 10RM, 2 s / 2 s, Abstract): Die obere Hälfte des Wegs zeigte mehr mittlere Latissimus-Aktivität, der Trapezmuskel aber weniger Spitzenaktivität; insgesamt nur mittlere, uneinheitliche Effekte.' },
+        explain: 'Fischer et al. 2025 (16 trainierte Männer, Langhantelrudern in Bauchlage, je 10RM, 2 s / 2 s, Volltext): In der oberen Hälfte des Wegs war der Latissimus im Mittel etwas aktiver, der mittlere Trapez erreichte weniger Spitzenwerte. Hintere Schulter und Bizeps zeigten keinen Unterschied. Die Teilwege liefen bei gleicher Zeit nur halb so schnell; das kann Unterschiede verdeckt haben. EMG zeigt Aktivität, nicht Muskelwachstum.' },
       { short: 'Schulter', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Schulterblätter fixiert oder frei: im EMG insgesamt ähnlich.', src: ['S2', 'S3'],
         explain: 'Beim Rudern im Sitzen: fixierte und freie Schulterblätter gaben ähnliche Gesamtmuster mit kleinen Unterschieden einzelner Muskeln (Padovan et al. 2025, HD-EMG, n = 14); isometrisch kein Unterschied bei Trapez und Rhomboideus (Lehman et al. 2004, n = 12). Übertragen.' }
     ],
     sources: {
       R1: { label: 'Nieto-Acevedo et al. 2023, Sports', url: 'https://doi.org/10.3390/sports11110220', read: 'fulltext' },
       S1: { label: 'Winther Nielsen et al. 2026, NPJ Microgravity', url: 'https://doi.org/10.1038/s41526-026-00588-y', read: 'fulltext' },
-      F1: { label: 'Fischer et al. 2025, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2025.103025', read: 'abstract' },
+      F1: { label: 'Fischer et al. 2025, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2025.103025', read: 'fulltext' },
       S2: { label: 'Padovan et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk11010006', read: 'fulltext' },
       S3: { label: 'Lehman et al. 2004, Dyn Med', url: 'https://doi.org/10.1186/1476-5918-3-4', read: 'fulltext' }
     }
@@ -2104,7 +2104,7 @@ export const ANIMATIONS = [
       { short: 'Ellbogen', anchor: 'uarm', side: 'l', status: 'single', text: 'Ellbogen nah am Körper führen: im EMG eher mehr Latissimus.', src: ['S8'],
         explain: 'Beim Rudern im Sitzen gingen ein engerer Griff und weniger Abspreizen der Schulter jeweils mit mehr Latissimus-EMG einher (Übersicht Di Fonza et al. 2026; Einzelstudien, nicht kombiniert geprüft). EMG ist kein Maß für Muskelwachstum.' },
       { short: 'Schulter', anchor: 'upperBack', side: 'l', status: 'consensus', text: 'Schulterblätter fixiert oder frei: im EMG insgesamt ähnlich.', src: ['S2', 'S3'],
-        explain: 'Fixierte und freie Schulterblätter gaben ähnliche Gesamtmuster mit kleinen Unterschieden einzelner Muskeln (Padovan et al. 2025, HD-EMG, n = 14); isometrisch kein Unterschied bei Trapez und Rhomboideus (Lehman et al. 2004, n = 12).' },
+        explain: 'Fixierte und freie Schulterblätter gaben ähnliche Gesamtmuster mit kleinen Unterschieden einzelner Muskeln (Padovan et al. 2025, HD-EMG, n = 14); isometrisch kein Unterschied bei Trapez und Rhomboideus (Lehman et al. 2004, n = 12, Kabelrudern im Sitzen). Übertragen.' },
       { short: 'Zurück', anchor: 'hand', side: 'r', status: 'consensus', text: 'Langsam zurück, bis die Arme wieder fast gestreckt sind.', src: ['S1', 'S2'],
         explain: 'Start und Ende mit gestreckten Ellbogen in beiden Protokollen; gemessen blieb vorn eine Restbeugung von ≈ 6° (Rudern am Kabel).' }
     ],
@@ -2119,7 +2119,7 @@ export const ANIMATIONS = [
   // ---------- Rudern im Hang (v2.10) ----------
   {
     ref: 'inverted-row', checkedAt: '2026-10-19', view: 'side', basis: 'protocol', layout: 'rows',
-    basisNote: 'Keine gelesene Studie nennt Schulter- oder Ellbogenwinkel. Gestreckte Körperlinie, schulterbreiter Obergriff und Tempo stammen aus dem Protokoll von Vural et al. 2023 (Schlingentrainer, Volltext), der Endpunkt „Brust ≈ 10 cm unter der Stange“ aus McGill et al. 2014 (Volltext). Gezeigt ist eine feste Stange auf Hüfthöhe (≈ 90 cm) mit Fersen am Boden; Stangenhöhe und Armwinkel sind Zeichenkonvention, die Körperneigung (unten ≈ 20°, oben ≈ 40°) folgt aus der Geometrie. Fenwick et al. 2009 nutzten eine Variante mit 90° gebeugten Knien.',
+    basisNote: 'Keine gelesene Studie nennt Schulter- oder Ellbogenwinkel. Gestreckte Körperlinie, schulterbreiter Obergriff und Tempo stammen aus dem Protokoll von Vural et al. 2023 (Schlingentrainer, Volltext), der Endpunkt „Brust ≈ 10 cm unter der Stange“ aus McGill et al. 2014 (Volltext). Gezeigt ist eine feste Stange auf Hüfthöhe (≈ 90 cm) mit Fersen am Boden. Bei McGill et al. 2014 hing die Stange etwas über Schulterhöhe, der Körper war also steiler. Stangenhöhe und Armwinkel sind Zeichenkonvention., die Körperneigung (unten ≈ 20°, oben ≈ 40°) folgt aus der Geometrie. Fenwick et al. 2009 nutzten eine Variante mit 90° gebeugten Knien.',
     tempo: { basis: 'protocol', note: '1 s hoch, 1 s ab ohne Pause (Metronom 60/min, Vural et al. 2023).' },
     frames: [
       { label: 'Unten', pose: { ...INV.pose, trunk: K(INV.low, [], 'so gewählt, dass die Arme bei festen Fersen gestreckt sind'), props: invProps },
@@ -2132,26 +2132,26 @@ export const ANIMATIONS = [
       { short: 'Linie', anchor: 'hip', side: 'r', status: 'consensus', text: 'Körper in einer Linie halten, nicht ins Hohlkreuz ausweichen.', src: ['V1', 'R3'],
         explain: 'Kopf, Rumpf und Hüfte in einer Linie war Vorgabe bei Vural et al. 2023. Bei Fenwick et al. 2009 sollten die Teilnehmer den Körper „fest“ halten, drückten die Lendenwirbelsäule aber meist weit ins Hohlkreuz (34,8 % des eigenen Streckumfangs; n = 7).' },
       { short: 'Weg', anchor: 'hand', side: 'l', status: 'consensus', text: 'Aus gestreckten Armen die Brust bis etwa 10 cm an die Stange ziehen.', src: ['M1', 'V1', 'Y1'],
-        explain: 'Brust bis 10 cm an die Stange (McGill et al. 2014, 14 Männer); schulterbreiter Obergriff (Vural et al. 2023). Ein Griffbreitenvergleich fehlt; der Untergriff veränderte die Latissimus-Aktivität (Youdas et al. 2016, Abstract).' },
+        explain: 'Brust bis 10 cm an die Stange (McGill et al. 2014, 14 Männer); schulterbreiter Obergriff (Vural et al. 2023). Ein Griffbreitenvergleich fehlt; im Untergriff war der Latissimus etwas aktiver (94 statt 79 % der Maximalkraft-Aktivität, Youdas et al. 2016); der Bizeps änderte sich nicht.' },
       { short: 'Neigung', anchor: 'chest', side: 'l', status: 'single', text: 'Je flacher der Körper, desto mehr Gewicht tragen die Arme.', src: ['G1'],
-        explain: 'Statisches Rudern im Schlingentrainer mit gestreckten Armen (Giancotti et al. 2021, n = 30): bei 36° Körperneigung trugen die Füße 47 %, bei 6° nur 32 % des Körpergewichts – die Arme also etwa 53 bzw. 68 % (berechnet). Mit fester Stange nicht gemessen.' },
+        explain: 'Statisches Rudern im Schlingentrainer mit gestreckten Armen (Giancotti et al. 2021, n = 30): bei 36° Körperneigung trugen die Füße 47 %, bei 6° nur 32 % des Körpergewichts – die Arme also etwa 53 bzw. 68 % (berechnet, Schätzung; die Armkraft wurde nicht gemessen). Mit fester Stange nicht gemessen. Mit gebeugten Armen lag etwas mehr Gewicht auf den Füßen.' },
       { short: 'Last', anchor: 'elbow', side: 'r', status: 'single', text: 'Fast waagerecht trugen die Arme etwa 73 % des Körpergewichts.', src: ['V1'],
         explain: 'Vural et al. 2023 (Kraftaufnehmer an den Gurten, Körper etwa parallel zum Boden, Wiederholungen): 73,4 ± 1,9 % des Körpergewichts mit Füßen am Boden, 75,7 ± 3,0 % mit Füßen in Schlingen. Mit fester Stange nicht gemessen.' },
       { short: 'Rücken', anchor: 'lowBack', side: 'r', status: 'consensus', text: 'Rudern im Hang belastete die Lendenwirbelsäule eher wenig.', src: ['R3', 'M1'],
-        explain: 'Druck auf L4/L5: 2339 N im Hang gegenüber 3576 N beim vorgebeugten Langhantelrudern (Fenwick et al. 2009) bzw. 2294 N gegenüber 2852 N beim Klimmzug (McGill et al. 2014). Beides Modellrechnungen aus EMG und Bewegung an jungen Männern.' }
+        explain: 'Druck auf L4/L5: 2339 N im Hang gegenüber 3576 N beim vorgebeugten Langhantelrudern (Fenwick et al. 2009) bzw. 2294 N gegenüber 2852 N beim Klimmzug (McGill et al. 2014; Mittelwerte, ohne statistischen Test, große Streuung). Der untere Rückenstrecker war beim Rudern im Hang aber am aktivsten von allen Zugübungen. Beides Modellrechnungen aus EMG und Bewegung an jungen Männern.' }
     ],
     sources: {
       V1: { label: 'Vural et al. 2023, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0291608', read: 'fulltext' },
       M1: { label: 'McGill, Cannon & Andersen 2014, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2014.06.002', read: 'fulltext', note: 'akzeptiertes Manuskript' },
       G1: { label: 'Giancotti et al. 2021, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003100', read: 'fulltext', note: 'akzeptiertes Manuskript (2019)' },
       R3: { label: 'Fenwick, Brown & McGill 2009, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181b07334', read: 'fulltext', note: 'Volltext: Heft 23(5), 1408–1417; PubMed führt dieselbe Arbeit zusätzlich unter 23(2), 350–358 (doi 10.1519/JSC.0b013e3181942019)' },
-      Y1: { label: 'Youdas et al. 2016, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001210', read: 'abstract' }
+      Y1: { label: 'Youdas et al. 2016, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000001210', read: 'fulltext' }
     }
   },
   // ---------- Klimmzug im Untergriff (v2.11) ----------
   {
     ref: 'chin-up', checkedAt: '2026-10-19', view: 'side', basis: 'transfer', noFloor: true,
-    basisNote: 'Seitenansicht, weil der Oberarm im Untergriff stärker vor dem Körper läuft als im Obergriff (bis 42° außerhalb der Schulterblattebene, Prinold & Bull 2016, Volltext). Griff, voller Bewegungsweg und Beinhaltung (Beine nach hinten, 90° zum Rumpf) stammen aus diesem Protokoll. Der Ellbogen oben folgt aus der Geometrie „Kinn über der Stange, Stange vor dem Hals“; gemessen wurde nur der Bewegungsumfang 100,6 ± 14,5° (Youdas et al. 2010, Abstract) – Start und Ende waren dort also vermutlich nicht ganz gestreckt bzw. tiefer. Rumpfneigung aus einem groben Schwerpunktmodell (Mittel aus Schulter, Hüfte und Knie unter den Händen).',
+    basisNote: 'Seitenansicht, weil der Oberarm im Untergriff stärker vor dem Körper läuft als im Obergriff (bis 42° außerhalb der Schulterblattebene, Prinold & Bull 2016, Volltext). Griff, voller Bewegungsweg und Beinhaltung (Beine nach hinten, 90° zum Rumpf) stammen aus diesem Protokoll. Der Ellbogen oben folgt aus der Geometrie „Kinn über der Stange, Stange vor dem Hals“; gemessen wurde nur der Bewegungsumfang 100,6 ± 14,5° (Youdas et al. 2010, Volltext) – Laut Protokoll begann die Bewegung mit gestreckten Ellbogen und endete, sobald die Nase knapp über der Stange war. Das Ende lag also vermutlich tiefer als „Kinn über der Stange“. Rumpfneigung aus einem groben Schwerpunktmodell (Mittel aus Schulter, Hüfte und Knie unter den Händen).',
     tempo: { basis: 'measured', note: 'Hochziehen im Mittel ≈ 1,2 s (alle Griffe zusammen, Prinold & Bull 2014); Absenken nicht gemessen, hier 1,5 s.' },
     frames: [
       { label: 'Hang', pose: { root: 'wrist', rootPos: CHIN.grip, trunk: K(CHIN.tHang, [], 'Schwerpunktmodell: Schulter, Hüfte und Knie im Mittel unter den Händen'), hip: C(0), knee: V(90, 'S1', 'fulltext', 'Beine nach hinten, 90° zum Rumpf (als Kniebeugung gelesen)'), armTarget: CHIN.hang, elbowSide: 1, props: chinProps },
@@ -2164,19 +2164,19 @@ export const ANIMATIONS = [
       { short: 'Griff', anchor: 'hand', side: 'r', status: 'single', text: 'Untergriff etwa schulterbreit, aus dem Hang mit langen Armen starten.', src: ['S1'],
         explain: 'Protokoll von Prinold & Bull 2016 (11 geübte Männer): Handflächen zum Körper, Hände etwa schulterbreit, maximaler Bewegungsweg nach oben.' },
       { short: 'Beine', anchor: 'knee', side: 'l', status: 'single', text: 'Beine angewinkelt nach hinten halten, nicht mit Schwung arbeiten.', src: ['S1', 'S5'],
-        explain: 'Beine nach hinten, 90° zum Rumpf (Prinold & Bull 2016). Beim Kipping bewegen sich Hüfte und Knie deutlich mehr als beim strikten Klimmzug (Dinunzio et al. 2018, Abstract); ob das besser oder schlechter ist, hängt vom Ziel ab.' },
-      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Im Untergriff beugt der Ellbogen etwas weiter als im Obergriff.', src: ['S3'],
-        explain: 'Bewegungsumfang des Ellbogens 100,6 ± 14,5° im Untergriff gegenüber 93,4 ± 14,6° im Obergriff (Youdas et al. 2010, 25 Personen, Abstract).' },
+        explain: 'Beine nach hinten, 90° zum Rumpf (Prinold & Bull 2016). Beim Kipping bewegen sich Hüfte und Knie deutlich mehr als beim strikten Klimmzug (Dinunzio et al. 2018, Obergriff, nicht Untergriff); ob das besser oder schlechter ist, hängt vom Ziel ab.' },
+      { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Im Untergriff beugt der Ellbogen eher etwas weiter als im Obergriff.', src: ['S3'],
+        explain: 'Bewegungsumfang des Ellbogens 100,6 ± 14,5° im Untergriff gegenüber 93,4 ± 14,6° im Obergriff (Youdas et al. 2010, Volltext). Der Unterschied war statistisch nicht gesichert.' },
       { short: 'Muskeln', anchor: 'uarm', side: 'l', status: 'single', text: 'Untergriff: im EMG mehr Bizeps und Brust, Obergriff: mehr unterer Trapez.', src: ['S3', 'S8'],
-        explain: 'Youdas et al. 2010 (Abstract): Bizeps und großer Brustmuskel waren im Untergriff stärker aktiv, der untere Trapezmuskel im Obergriff. Der Latissimus war über die Griffe ähnlich aktiv (Übersicht Di Fonza et al. 2026).' },
+        explain: 'Youdas et al. 2010 (Volltext): Bizeps und großer Brustmuskel waren im Untergriff stärker aktiv, der untere Trapezmuskel im Obergriff. Der Latissimus war über die Griffe ähnlich aktiv (Übersicht Di Fonza et al. 2026).' },
       { short: 'Schulter', anchor: 'shoulder', side: 'r', status: 'single', text: 'Der Oberarm läuft im Untergriff weiter vor dem Körper als im Obergriff.', src: ['S1'],
         explain: 'Abweichung des Oberarms von der Schulterblattebene bis 42° im Untergriff, bis 28° im Obergriff (Prinold & Bull 2016). Die Autoren vermuten daraus mehr Stabilisierungsarbeit der Rotatorenmanschette; Verletzungsdaten gibt es nicht.' }
     ],
     sources: {
       S1: { label: 'Prinold & Bull 2016, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2015.08.002', read: 'fulltext' },
       S2: { label: 'Prinold & Bull 2014, J Biomech', url: 'https://doi.org/10.1016/j.jbiomech.2014.05.015', read: 'fulltext' },
-      S3: { label: 'Youdas et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'abstract' },
-      S5: { label: 'Dinunzio et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1452971', read: 'abstract' },
+      S3: { label: 'Youdas et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181f1598c', read: 'fulltext' },
+      S5: { label: 'Dinunzio et al. 2018, Sports Biomech', url: 'https://doi.org/10.1080/14763141.2018.1452971', read: 'fulltext' },
       S8: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' }
     }
   },
@@ -2202,7 +2202,7 @@ export const ANIMATIONS = [
       { short: 'Zug', anchor: 'elbow', side: 'l', status: 'single', text: 'Griff bis zur Brust ziehen, die Ellbogen gehen dabei nach unten.', src: ['L1'],
         explain: 'Endpunkt Brust im Protokoll von Padovan et al. 2024 (weiter Griff, übertragen). Ellbogen- und Schulterwinkel sind gezeichnete Konvention.' },
       { short: 'Latissimus', anchor: 'back', side: 'l', status: 'consensus', text: 'Griffbreite und -art änderten die Latissimus-Aktivität im EMG kaum.', src: ['L2', 'L3', 'L4'],
-        explain: 'Sieben Griffvarianten ohne Unterschied beim Latissimus (Buonsenso et al. 2025); enger, mittlerer und weiter Obergriff ähnlich (Andersen et al. 2014, Abstract). Obergriff mehr Latissimus als Untergriff (Lusk et al. 2010, Abstract).' },
+        explain: 'Sieben Griffvarianten ohne Unterschied beim Latissimus (Buonsenso et al. 2025); enger, mittlerer und weiter Obergriff ähnlich (Andersen et al. 2014, Abstract). Obergriff etwas mehr Latissimus als Untergriff (EMG 67 % gegen 63 % der Maximalkraft; Lusk et al. 2010, 12 Männer). Die Griffbreite änderte nichts.' },
       { short: 'Zurück', anchor: 'shoulder', side: 'r', status: 'consensus', text: 'In etwa 2 s zurück, bis die Arme wieder gestreckt sind.', src: ['L2', 'L4'],
         explain: 'Tempo 2 s / 2 s mit Metronom in beiden Protokollen. Ob ein anderes Tempo mehr bringt, wurde dort nicht untersucht.' }
     ],
@@ -2210,7 +2210,7 @@ export const ANIMATIONS = [
       L1: { label: 'Padovan et al. 2024, J Hum Kinet', url: 'https://doi.org/10.5114/jhk/185211', read: 'fulltext' },
       L2: { label: 'Buonsenso et al. 2025, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk10030345', read: 'fulltext' },
       L3: { label: 'Andersen et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1097/JSC.0000000000000232', read: 'abstract' },
-      L4: { label: 'Lusk et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddb0ab', read: 'abstract' }
+      L4: { label: 'Lusk et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddb0ab', read: 'fulltext' }
     }
   },
 
@@ -2230,16 +2230,16 @@ export const ANIMATIONS = [
       { short: 'Arme', anchor: 'elbow', side: 'l', status: 'single', text: 'Ellbogen gestreckt halten – der Trizeps arbeitet dabei mit.', src: ['M1'],
         explain: 'Der Trizeps war mit ≈ 19 % der Maximalaktivität einer der aktivsten Muskeln; die Autoren erklären das mit dem Halten der Ellbogenstreckung (Muyor et al. 2022).' },
       { short: 'Weg', anchor: 'hand', side: 'r', status: 'single', text: 'Stange im Bogen von Ohrhöhe bis etwa auf Nabelhöhe führen.', src: ['M1', 'P1'],
-        explain: 'Endpunkte im Protokoll (Muyor et al. 2022). Bei isometrischem Zug sank die Latissimus-Aktivität mit steigender Armhebung von 60° auf 120° (Park & Yoo 2013, Abstract) – unten arbeitet der Latissimus also eher stärker.' },
+        explain: 'Endpunkte im Protokoll (Muyor et al. 2022). Beim Halten gegen eine feste Stange war der Latissimus bei 60° und 90° Armhebung stärker aktiv als bei 120° (Park & Yoo 2013, 14 Männer). Unter 60° wurde nicht gemessen; dass er unten stärker arbeitet, ist eine Annahme.' },
       { short: 'Griff', anchor: 'shoulder', side: 'l', status: 'single', text: 'Griff schulterbreit oder 1,5-fach: im EMG kein deutlicher Unterschied.', src: ['M1'],
-        explain: 'Griffbreite 100 % (≈ 44 cm) und 150 % (≈ 66 cm) der Schulterbreite beeinflussten die EMG-Aktivität der gemessenen Muskeln nicht signifikant (Muyor et al. 2022).' },
+        explain: 'Griffbreite 100 % (≈ 44 cm) und 150 % (≈ 66 cm) der Schulterbreite änderten die EMG-Aktivität nicht signifikant (Muyor et al. 2022, 20 Personen, leichte Last). Gleich ist sie damit nicht bewiesen.' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Zielt mehr auf den Latissimus als Überzüge mit der Langhantel.', src: ['M1', 'S1'],
-        explain: 'Latissimus-Aktivität am Kabel höher, Brust, vordere Schulter und gerader Bauchmuskel beim Langhantel-Überzug höher (Muyor et al. 2022; Übersicht Di Fonza et al. 2026). EMG ist kein Maß für Muskelwachstum.' }
+        explain: 'Beim Langhantel-Überzug waren die meisten Muskeln stärker aktiv, der Latissimus aber nicht. Am Kabel ist der Latissimus daher anteilig stärker gefordert (Muyor et al. 2022; Übersicht Di Fonza et al. 2026). EMG ist kein Maß für Muskelwachstum.' }
     ],
     sources: {
       M1: { label: 'Muyor, López-Miñarro & Alacid 2022, Appl Sci', url: 'https://doi.org/10.3390/app122111138', read: 'fulltext' },
       S1: { label: 'Di Fonza et al. 2026, J Funct Morphol Kinesiol (Review)', url: 'https://doi.org/10.3390/jfmk11030315', read: 'fulltext' },
-      P1: { label: 'Park & Yoo 2013, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2013.08.006', read: 'abstract' }
+      P1: { label: 'Park & Yoo 2013, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2013.08.006', read: 'fulltext' }
     }
   },
 
@@ -2347,13 +2347,13 @@ export const ANIMATIONS = [
       { short: 'Weg', anchor: 'elbow', side: 'r', status: 'single', text: 'Unten fast strecken, oben so weit beugen, wie es ohne Ausweichen geht.', src: ['M1', 'O1'],
         explain: 'Übertragen: Kurzhantelcurls hatten einen Umfang von 123,1 ± 12,3° (Marcolin et al. 2018); frei gewählte Curls begannen bei ≈ 20° statt ganz gestreckt (Oliveira et al. 2009).' },
       { short: 'Muskeln', anchor: 'chest', side: 'l', status: 'contested', text: 'Im Neutralgriff arbeitete der Bizeps meist etwas weniger als im Untergriff.', src: ['C2', 'X1', 'K1'],
-        explain: 'Umstritten. Bei Bodybuildern war der Bizeps im Neutralgriff beim Heben ≈ 12 % und auch der Brachioradialis ≈ 6 % weniger aktiv als im Untergriff, beim Senken gab es keinen Unterschied (Coratella et al. 2023, Kabel mit Seil statt Kurzhanteln); in einer zweiten Studie hatte der Hammercurl die niedrigste Bizepsaktivität von vier Curls (Croskery et al. 2026, Abstract). Ohne Last änderte die Handstellung die Bizepsaktivität nicht (Kleiber et al. 2015, Abstract). Dass der Hammercurl den Unterarm stärker trainiert, zeigen diese EMG-Daten nicht.' }
+        explain: 'Umstritten. Bei Bodybuildern war der Bizeps im Neutralgriff beim Heben ≈ 12 Prozentpunkte und auch der Brachioradialis ≈ 6 Prozentpunkte weniger aktiv als im Untergriff, beim Senken gab es keinen Unterschied (Coratella et al. 2023, Kabel mit Seil statt Kurzhanteln); in einer zweiten Studie hatte der Hammercurl bei leichter Last die niedrigste Bizepsaktivität von vier Curls (Croskery et al. 2026, Volltext). Ohne Last änderte die Handstellung die Bizepsaktivität nicht (Kleiber et al. 2015, Abstract). Dass der Hammercurl den Unterarm stärker trainiert, zeigen diese EMG-Daten nicht.' }
     ],
     sources: {
       M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
       O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' },
       C2: { label: 'Coratella et al. 2023, Sports (Basel)', url: 'https://doi.org/10.3390/sports11030064', read: 'fulltext' },
-      X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'abstract' },
+      X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'fulltext' },
       K1: { label: 'Kleiber et al. 2015, Front Physiol', url: 'https://doi.org/10.3389/fphys.2015.00215', read: 'abstract' }
     }
   },
@@ -2374,11 +2374,11 @@ export const ANIMATIONS = [
       { short: 'Bank', anchor: 'back', side: 'l', status: 'consensus', text: 'Lehne etwa 45–50° schräg stellen; die Arme hängen hinter dem Rumpf.', src: ['B1', 'Z1', 'O1'],
         explain: 'Schulter ≈ 50° gestreckt (Kobayashi et al. 2026), Bank 45° (Zabaleta-Korta et al. 2023), Rumpf 50° zurückgelehnt mit frei hängendem Arm (Oliveira et al. 2009). Andere Bankwinkel wurden nicht verglichen.' },
       { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'consensus', text: 'Oberarme bleiben hängen; nur der Unterarm bewegt sich, von gestreckt bis 130°.', src: ['B1', 'O1'],
-        explain: 'Schulterstellung fest, Ellbogen 0° → 130° (Kobayashi et al. 2026); Arm hängt frei (Oliveira et al. 2009). Ob der Oberarm wirklich still steht, wurde nicht gemessen.' },
+        explain: 'Schulterstellung fest, Ellbogen 0° → 130°; der Oberarm war mit einem Gurt fixiert (Kobayashi et al. 2026). Arm hängt frei (Oliveira et al. 2009). Ob der Oberarm ohne Gurt still steht, wurde nicht gemessen.' },
       { short: 'Bizeps', anchor: 'hand', side: 'r', status: 'single', text: 'Der Bizeps arbeitete über den ganzen Weg ähnlich wie beim Curl im Stehen.', src: ['O1'],
-        explain: 'Oliveira et al. 2009 (22 trainierte Männer, eine Wiederholung mit 40 % der Maximalkraft): Schrägbank- und Stehcurl zeigten dasselbe Muster der Bizepsaktivität, der Scottcurl nicht.' },
+        explain: 'Oliveira et al. 2009 (22 trainierte Männer, eine Wiederholung mit 40 % der isometrischen Maximalkraft, nur langer Bizepskopf gemessen): Schrägbank- und Stehcurl zeigten dasselbe Muster der Bizepsaktivität, der Scottcurl nicht.' },
       { short: 'Wachstum', anchor: 'elbow', side: 'r', status: 'contested', text: 'Ob der Bizeps hier mehr wächst als beim Scottcurl, ist nicht geklärt.', src: ['B1', 'Z1'],
-        explain: 'Umstritten. MRT, 12 Wochen, Arm gegen Arm: Der Bizeps wuchs bei Schrägbankcurls etwas mehr, Brachialis und Brachioradialis bei Scottcurls, alle Beuger zusammen gleich (Kobayashi et al. 2026). Ultraschall, 9 Wochen, trainierte Frauen: nach Schrägbankcurls kein messbarer Zuwachs, nach Scottcurls im unteren Bereich (Zabaleta-Korta et al. 2023).' }
+        explain: 'Umstritten. MRT, 12 Wochen, Arm gegen Arm, 21 Untrainierte: Der Bizeps wuchs bei Schrägbankcurls etwas mehr (22 % gegen 19 %), Brachialis und Brachioradialis bei Scottcurls, alle Beuger zusammen gleich (Kobayashi et al. 2026). Ultraschall, 9 Wochen, trainierte Frauen: nach Schrägbankcurls kein messbarer Zuwachs, nach Scottcurls im unteren Bereich (Zabaleta-Korta et al. 2023).' }
     ],
     sources: {
       B1: { label: 'Kobayashi et al. 2026, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2026.2741751', read: 'fulltext' },
@@ -2457,7 +2457,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 1.44, label: 'Beugen', kp: [0, 1] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 1.72, label: 'Senken', kp: [2] }],
     keyPoints: [
       { short: 'Bizeps', anchor: 'uarm', side: 'l', status: 'single', text: 'In einer EMG-Studie war der Bizeps hier aktiver als beim Hammercurl.', src: ['X1'],
-        explain: 'Croskery et al. 2026 (15 Erwachsene, vier Curls mit ≈ 33 % der Maximalkraft, Abstract): Reihenfolge Konzentrationscurl vor Kurzhantel- und Schrägbankcurl vor Hammercurl; deutlich war nur der Abstand zum Hammercurl. EMG ist kein Maß für Muskelwachstum.' },
+        explain: 'Croskery et al. 2026 (15 Erwachsene, vier Curls im Sitzen, leichte Last: etwa 40–50 % des geschätzten 1RM, Volltext): Reihenfolge Konzentrationscurl vor Kurzhantel- und Schrägbankcurl vor Hammercurl; deutlich war nur der Abstand zum Hammercurl. Bei einem Drittel der Personen schwankte die Reihenfolge von Tag zu Tag. EMG ist kein Maß für Muskelwachstum.' },
       { short: 'Weg', anchor: 'hand', side: 'r', status: 'single', text: 'Unten fast strecken, oben so weit beugen, wie es ohne Ausweichen geht.', src: ['M1', 'O1'],
         explain: 'Übertragen vom Kurzhantelcurl: Umfang 123,1 ± 12,3° (Marcolin et al. 2018), Start bei ≈ 20° (Oliveira et al. 2009).' },
       { short: 'Gefühl', anchor: 'chest', side: 'l', status: 'single', text: 'Wie stark man den Muskel spürt, sagte wenig über seine gemessene Aktivität.', src: ['E1'],
@@ -2466,7 +2466,7 @@ export const ANIMATIONS = [
     sources: {
       M1: { label: 'Marcolin et al. 2018, PeerJ', url: 'https://doi.org/10.7717/peerj.5165', read: 'fulltext' },
       O1: { label: 'Oliveira et al. 2009, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC3737788/', read: 'fulltext' },
-      X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'abstract' },
+      X1: { label: 'Croskery et al. 2026, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/j.jelekin.2026.103220', read: 'fulltext' },
       E1: { label: 'Sevilmiş et al. 2024, Percept Mot Skills', url: 'https://doi.org/10.1177/00315125241279086', read: 'abstract' }
     }
   },
@@ -2511,10 +2511,10 @@ export const ANIMATIONS = [
       { short: 'Weg', anchor: 'handR', side: 'r', status: 'single', text: 'Arm seitlich mit gestrecktem Ellbogen bis auf Schulterhöhe (90°) heben.', src: ['X1'],
         explain: 'Bewegungsumfang 0° → 90° in der Frontalebene, vorher mit Goniometer geübt (Larsen et al. 2025).' },
       { short: 'Rolle', anchor: 'hipR', side: 'l', status: 'single', text: 'Rolle etwa auf Handhöhe: dann ist der Widerstand unten am größten.', src: ['X1'],
-        explain: 'So eingestellt, dass die Last am Anfang der Bewegung am größten ist (Larsen et al. 2025). Mit der Kurzhantel ist es umgekehrt: unten fast keine, oben die größte Last.' },
+        explain: 'So eingestellt, dass die Last am Anfang der Bewegung am größten ist (Larsen et al. 2025). Mit der Kurzhantel ist es umgekehrt: unten wenig, oben die größte Last.' },
       { short: 'Wachstum', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Kabel und Kurzhantel ließen den seitlichen Delta gleich stark wachsen.', src: ['X1'],
         explain: '8 Wochen, ein Arm am Kabel, einer mit Kurzhantel, Sätze bis zum Versagen: Die Dicke des seitlichen Deltamuskels nahm in beiden Armen ähnlich zu (Ultraschall, Larsen et al. 2025).' },
-      { short: 'Ebene', anchor: 'elbowR', side: 'r', status: 'single', text: 'Fällt die Seitenebene schwer, darf der Arm etwas nach vorn kommen.', src: ['X1'],
+      { short: 'Ebene', anchor: 'elbowR', side: 'r', status: 'single', text: 'Schmerzt die Schulter in der Seitenebene, darf der Arm etwas nach vorn kommen.', src: ['X1'],
         explain: 'Wer die Frontalebene nicht halten konnte, durfte zwischen Frontal- und Schulterblattebene heben (Larsen et al. 2025).' }
     ],
     sources: {
@@ -2525,7 +2525,7 @@ export const ANIMATIONS = [
   // ---------- Aufrechtes Rudern (Frontansicht, v2.11) ----------
   {
     ref: 'barbell-upright-row', checkedAt: '2026-10-19', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht. Keine Studie hat die Bewegung vermessen oder eine Endposition vorgegeben. Griff 100 % der Schulterbreite (eine der drei Griffbreiten bei McAllister et al. 2013, Abstract). Stange bis zur oberen Brust; daraus ergeben sich mit Arm- und Unterarmlänge der Figur ≈ 65° Abduktion der Ellbogen (berechnet, unter Schulterhöhe). Stange 2,2 m mit Scheiben Ø 45 cm: Konvention.',
+    basisNote: 'Frontansicht. Keine Studie hat die Bewegung vermessen. Griff 100 % der Schulterbreite (eine der drei Griffbreiten bei McAllister et al. 2013, Volltext). Endposition nach Protokoll McAllister et al. 2013: Stange höchstens bis zum unteren Ende des Brustbeins, damit der Oberarm unter der Waagerechten bleibt. Gezeichnet ist die Stange bis zur oberen Brust (Konvention, höher als im Protokoll); daraus ergeben sich mit Arm- und Unterarmlänge der Figur ≈ 65° Abduktion der Ellbogen (berechnet, unter Schulterhöhe). Stange 2,2 m mit Scheiben Ø 45 cm: Konvention.',
     tempo: { basis: 'convention', note: '≈ 1,5 s hochziehen, 2 s senken (Konvention); keine Tempoangabe in den gelesenen Quellen.' },
     frames: [
       { label: 'Unten', pose: { armPoints: URR.start, legs: { hip: C(0), knee: C(4) }, props: uprightRowProps },
@@ -2535,15 +2535,15 @@ export const ANIMATIONS = [
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Ziehen', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
     keyPoints: [
-      { short: 'Griff', anchor: 'bar', side: 'r', status: 'single', text: 'Breiterer Griff: mehr Delta- und Trapezaktivität, weniger Bizeps.', src: ['M1'],
-        explain: 'McAllister et al. 2013 (16 Trainierte, 85 % 1RM): Griffe von 50, 100 und 200 % der Schulterbreite; mit breiterem Griff stieg die Aktivität von Deltamuskel und Trapez, die des Bizeps sank. EMG ist kein Maß für Muskelwachstum.' },
+      { short: 'Griff', anchor: 'bar', side: 'r', status: 'single', text: 'Sehr breiter Griff (etwa doppelte Schulterbreite): mehr seitlicher und hinterer Delta.', src: ['M1'],
+        explain: 'McAllister et al. 2013 (16 trainierte Männer, je 2 Wiederholungen mit 85 % 1RM): Griffe von 50, 100 und 200 % der Schulterbreite, alle mit derselben Last. Die klarsten Unterschiede gab es zwischen dem sehr breiten und den engeren Griffen. Der breite Griff war dadurch vermutlich relativ schwerer. EMG ist kein Maß für Muskelwachstum. Trapez und Bizeps änderten sich nur beim Absenken.' },
       { short: 'Höhe', anchor: 'elbowR', side: 'r', status: 'single', text: 'Die Ellbogen nicht über Schulterhöhe ziehen.', src: ['K2'],
         explain: 'Aufrechtes Rudern und Seitheben über 90° waren in einer Querschnittsstudie mit Zeichen eines Impingements verbunden (Kolber et al. 2014, 77 Männer). Das ist ein Zusammenhang, kein Beleg für eine Ursache; Verletzungsstudien gibt es nicht.' },
       { short: 'Senken', anchor: 'chest', side: 'l', status: 'single', text: 'Mit gleicher Last ändert die Griffbreite vor allem das Absenken.', src: ['M1'],
         explain: 'Die meisten Unterschiede zwischen den Griffbreiten fand McAllister et al. 2013 in der exzentrischen Phase (seitlicher Delta, oberer und mittlerer Trapez, Bizeps); beim Heben unterschieden sich nur seitlicher und hinterer Delta.' }
     ],
     sources: {
-      M1: { label: 'McAllister et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31824f23ad', read: 'abstract' },
+      M1: { label: 'McAllister et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e31824f23ad', read: 'fulltext' },
       K2: { label: 'Kolber et al. 2014, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000000250', read: 'abstract' }
     }
   },
@@ -2567,14 +2567,14 @@ export const ANIMATIONS = [
         explain: 'Startposition bei Kim et al. 2026; zurück wurde jeweils bis auf Schulterhöhe abgelassen.' },
       { short: 'Oben', anchor: 'elbow', side: 'r', status: 'single', text: 'Hochdrücken bis die Arme gestreckt sind; Ellbogen bleiben seitlich.', src: ['K1'],
         explain: 'Bis zur vollen Ellbogenstreckung, die Ellbogen bewegten sich parallel zur Frontalebene (Kim et al. 2026). Der Deltamuskel war dabei aktiver als Trizeps und oberer Trapez.' },
-      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Mittlerer Delta wie mit Hanteln, Rotatorenmanschette weniger gefordert.', src: ['R1'],
-        explain: 'Reed et al. 2018 (Abstract, EMG mit Oberflächen- und Nadelelektroden): Der mittlere Deltamuskel war an der Schulterdrückmaschine gleich aktiv wie beim Seitheben mit Hanteln; Rotatorenmanschette und Teile des Trapez arbeiteten an der Maschine weniger.' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Mittlerer Delta ähnlich aktiv wie beim Seitheben, Rotatorenmanschette teils weniger.', src: ['R1'],
+        explain: 'Reed et al. 2018 (EMG mit Oberflächen- und Nadelelektroden, je 14–15 junge Gesunde, getrennte Gruppen): Bei gleicher relativer Last (25–75 % des eigenen Maximums) war der mittlere Deltamuskel an der Schulterdrückmaschine ähnlich aktiv wie beim einarmigen Seitheben mit Hantel. Der Unterschulterblattmuskel arbeitete an der Maschine immer weniger, der Untergrätenmuskel und der untere Trapez nur bei schwerer Last, der obere Trapez bei mittlerer und schwerer Last. Der Obergrätenmuskel war gleich aktiv.' },
       { short: 'Maschine', anchor: 'chest', side: 'l', status: 'single', text: 'Maschinen brachten im Training ähnliche Zuwächse wie freie Gewichte.', src: ['H1'],
         explain: 'Hernández-Belmonte et al. 2023 (38 Trainierte, 8 Wochen, Abstract): Kniebeuge, Bankdrücken, Rudern und Schulterdrücken an Maschinen oder mit Langhantel gaben ähnliche Kraft- und Muskelzuwächse ohne mehr Gelenkbeschwerden. Der Deltamuskel selbst wurde nicht vermessen.' }
     ],
     sources: {
       K1: { label: 'Kim et al. 2026, J Clin Med', url: 'https://doi.org/10.3390/jcm15103925', read: 'fulltext' },
-      R1: { label: 'Reed et al. 2018, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2017.07.024', read: 'abstract' },
+      R1: { label: 'Reed et al. 2018, J Sci Med Sport', url: 'https://doi.org/10.1016/j.jsams.2017.07.024', read: 'fulltext' },
       H1: { label: 'Hernández-Belmonte et al. 2023, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003271', read: 'abstract' }
     }
   },
@@ -2668,7 +2668,7 @@ export const ANIMATIONS = [
   // ---------- Kurzhantel-Kickback (v2.12) ----------
   {
     ref: 'dumbbell-triceps-kickback', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
-    basisNote: 'Keine Bewegungsstudie und kein gelesenes Protokoll mit Winkeln (Serbest et al. 2025 nur als Abstract). Gezeichnet auf derselben Bank wie das einarmige Rudern: Knie und Hand der Gegenseite auf der Bank, Rumpf ≈ 20° über der Waagerechten, Oberarm waagerecht neben dem Rumpf, Ellbogen 90° → 0°. Alles Zeichenkonvention.',
+    basisNote: 'Protokoll aus Serbest et al. 2025 (PDF geprüft): über eine Bank gebeugt, Oberkörper waagerecht, Schulter fest, Ellbogen 90° → gestreckt (gemessen 75–175° Innenwinkel). Gezeichnet auf derselben Bank wie das einarmige Rudern: Knie und Hand der Gegenseite auf der Bank, Oberarm waagerecht neben dem Rumpf, Ellbogen 90° → 0°. Der Rumpf ≈ 20° über der Waagerechten ist Zeichenkonvention und weicht vom Protokoll ab.',
     tempo: { basis: 'convention', note: '≈ 1,5 s strecken, 1,5 s beugen (Konvention); kein Tempo untersucht.' },
     frames: [
       { label: 'Gebeugt', pose: { ...ONE_ROW.pose, shoulder: C(-20, 'Oberarm waagerecht neben dem Rumpf'), elbow: C(90, 'Unterarm hängt senkrecht'), props: kickbackDbProps } },
@@ -2678,14 +2678,14 @@ export const ANIMATIONS = [
     keyPoints: [
       { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarm bleibt neben dem Rumpf; nur der Unterarm streckt nach hinten.', src: ['K3'],
         explain: 'Mit dem Oberarm parallel zum Rumpf (wie bei 0° Schulterhebung) trug in einer Modellrechnung der lange Kopf den größten Teil der Kraft (Kholinne et al. 2018, ohne Last, 10 Personen). Für den Kickback selbst ist das nicht gemessen.' },
-      { short: 'Gewicht', anchor: 'hand', side: 'r', status: 'single', text: 'Gewicht behutsam steigern; mehr Last brachte nicht im gleichen Maß mehr.', src: ['S1'],
-        explain: 'Serbest et al. 2025 (14 Frauen, Bewegungsanalyse, Modell und EMG, Abstract): Mit schwereren Hanteln stieg die Trizepskontraktion nicht linear mit der Kraft.' },
+      { short: 'Gewicht', anchor: 'hand', side: 'r', status: 'single', text: 'Gewicht behutsam steigern: mit 5 statt 2 kg kaum mehr Trizeps, aber schlechtere Streckung.', src: ['S1'],
+        explain: 'Serbest et al. 2025 (14 trainierte Frauen, 2 und 5 kg, Halte-Pausen bei 90°, 135° und gestrecktem Arm): Die Trizepsaktivität (EMG) unterschied sich zwischen den Gewichten kaum. Am höchsten war sie bei gestrecktem Arm. Mit 5 kg erreichten die Frauen die volle Streckung seltener. Nur zwei Gewichte und eine kleine Gruppe.' },
       { short: 'Wachstum', anchor: 'chest', side: 'l', status: 'single', text: 'Strecken überkopf brachte mehr Wachstum als mit hängendem Arm.', src: ['X1'],
-        explain: 'Übertrag: Maeo et al. 2022 verglichen Kabelstrecken mit dem Arm am Körper und überkopf (MRT, 12 Wochen); überkopf wuchs der Trizeps etwa 1,4-mal so stark. Der Kickback wurde nicht untersucht, seine Schulterstellung ähnelt aber der neutralen.' }
+        explain: 'Übertrag: Maeo et al. 2022 verglichen Kabelstrecken mit dem Arm am Körper und überkopf (MRT, 12 Wochen); überkopf wuchs der Trizeps etwa 1,4-mal so stark. Der Kickback wurde nicht untersucht. Beim Kickback ist der Oberarm sogar hinter dem Körper; der lange Kopf ist dort eher noch kürzer als in der neutralen Haltung.' }
     ],
     sources: {
       K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' },
-      S1: { label: 'Serbest et al. 2025, Phys Eng Sci Med', url: 'https://doi.org/10.1007/s13246-025-01672-5', read: 'abstract' },
+      S1: { label: 'Serbest et al. 2025, Phys Eng Sci Med', url: 'https://doi.org/10.1007/s13246-025-01672-5', read: 'fulltext' },
       X1: { label: 'Maeo et al. 2022, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2022.2100279', read: 'fulltext' }
     }
   },
@@ -2693,8 +2693,8 @@ export const ANIMATIONS = [
   // ---------- Bankdips (v2.12) ----------
   {
     ref: 'bench-dips', checkedAt: '2026-10-19', view: 'side', basis: 'measured', noFloor: false,
-    basisNote: 'Schulterstreckung (88,1 ± 8,9°) und Rumpfneigung (12,6 ± 6,5°) am Tiefpunkt aus McKenzie et al. 2022 (3D, 13 geübte Männer, selbst gewählte Technik; Volltext). Der Ellbogenwinkel ist dort nur als Grafik ohne Zahl berichtet; gezeichnet sind die üblichen 90°. Oberer Punkt (Schulter 25° gestreckt, Ellbogen ≈ 10°), Bankhöhe (≈ 45 cm) und gestreckte Beine sind Konvention. Probe: Damit sinkt das Becken um ≈ 33 cm (gemessen 31,8 ± 8,6 cm).',
-    tempo: { basis: 'measured', note: '2,17 ± 0,40 s je Wiederholung, Tiefpunkt bei 59 % (McKenzie et al. 2022): ≈ 1,3 s ab, ≈ 0,9 s hoch.' },
+    basisNote: 'Schulterstreckung (88,1 ± 8,9°) und Rumpfneigung (12,6 ± 6,5°) am Tiefpunkt aus McKenzie et al. 2022b (3D, 13 geübte Männer, selbst gewählte Technik; Volltext). Der Ellbogenwinkel ist dort nur als Grafik ohne Zahl berichtet; gezeichnet sind die üblichen 90°. Oberer Punkt (Schulter 25° gestreckt, Ellbogen ≈ 10°), Bankhöhe (≈ 45 cm) und gestreckte Beine sind Konvention. Probe: Damit sinkt das Becken um ≈ 33 cm (gemessen 31,8 ± 8,6 cm).',
+    tempo: { basis: 'measured', note: '2,17 ± 0,40 s je Wiederholung, Tiefpunkt bei 59 % (McKenzie et al. 2022b): ≈ 1,3 s ab, ≈ 0,9 s hoch.' },
     frames: [
       { label: 'Oben', pose: { root: 'ankle', rootPos: BDIP.A, shank: C(BDIP.legTop.shank, 'aus der Geometrie: Ferse fest, Bein fast gestreckt'), knee: C(BDIP.legTop.knee, 'aus der Geometrie: Ferse fest'), trunk: C(BDIP.top.trunk, 'fast aufrecht'), foot: C(90, 'Ferse am Boden'), armWorld: BDIP.W, handFlat: 1, props: benchDipProps },
         facts: [V(-25, [], 'convention', 'Schulter oben ≈ 25° gestreckt, Ellbogen ≈ 10°')] },
@@ -2704,16 +2704,16 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [3] }, { a: 0, b: 1, dur: 1.3, label: 'Absenken', kp: [0, 3] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [0, 1] }, { a: 1, b: 0, dur: 0.9, label: 'Hochdrücken', kp: [2] }],
     keyPoints: [
       { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Hier wird die Schulter am weitesten nach hinten gestreckt, bis an die Grenze.', src: ['M1'],
-        explain: 'Am Tiefpunkt 88 ± 9° Schulterstreckung, im Mittel 101 % des vorher gemessenen Maximums – mehr als beim Barren- (88 %) und Ringdip (69 %) (McKenzie et al. 2022, 13 geübte Männer, selbst gewählte Tiefe).' },
+        explain: 'Am Tiefpunkt 88 ± 9° Schulterstreckung, im Mittel 101 % des vorher gemessenen Maximums – mehr als beim Barren- (88 %) und Ringdip (69 %) (McKenzie et al. 2022b, 13 geübte Männer, selbst gewählte Tiefe).' },
       { short: 'Tiefe', anchor: 'elbow', side: 'l', status: 'contested', text: 'Nur so tief, wie die Schulter es beschwerdefrei zulässt.', src: ['M1'],
         explain: 'Umstritten. Die Autoren raten, Bankdips nicht regelmäßig zu trainieren, weil die endgradige Streckung den vorderen Kapsel-Band-Apparat belasten könnte. Das ist eine Begründung aus der Mechanik, keine Verletzungsstatistik; Bankdips wurden nur mit vier Wiederholungen ohne Zusatzgewicht gemessen.' },
       { short: 'Trizeps', anchor: 'uarm', side: 'r', status: 'single', text: 'Der Trizeps arbeitete weniger als beim Barrendip, gemessen an der Last aber viel.', src: ['M1'],
-        explain: 'Spitzen-EMG des seitlichen Trizepskopfs: 0,83 mV bei Bankdips, 1,04 mV am Barren, 1,05 mV an Ringen; Brust und vordere Schulter arbeiteten bei Bankdips deutlich weniger (McKenzie et al. 2022). Die Füße tragen einen Teil des Körpergewichts.' },
+        explain: 'Spitzen-EMG des seitlichen Trizepskopfs: 0,83 mV bei Bankdips, 1,04 mV am Barren, 1,05 mV an Ringen; Brust und vordere Schulter arbeiteten bei Bankdips deutlich weniger (McKenzie et al. 2022b). Die Füße tragen einen Teil des Körpergewichts.' },
       { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Oberkörper bleibt fast aufrecht und nah an der Bank.', src: ['M1'],
-        explain: 'Rumpfneigung am Tiefpunkt 12,6 ± 6,5°, deutlich weniger als am Barren und an Ringen (McKenzie et al. 2022). Weil der Rumpf kaum kippt, entsteht die Tiefe vor allem aus der Schulterstreckung.' }
+        explain: 'Rumpfneigung am Tiefpunkt 12,6 ± 6,5°, deutlich weniger als am Barren und an Ringen (McKenzie et al. 2022b). Weil der Rumpf kaum kippt, entsteht die Tiefe vor allem aus der Schulterstreckung.' }
     ],
     sources: {
-      M1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' }
+      M1: { label: 'McKenzie et al. 2022b, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' }
     }
   },
 
@@ -2729,14 +2729,14 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Drücken', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [0, 2] }],
     keyPoints: [
       { short: 'Gerät', anchor: 'hand', side: 'r', status: 'single', text: 'Die Maschine selbst ist nicht untersucht; Aussagen stammen von freien Dips.', src: ['M1'],
-        explain: 'Bei Bank-, Barren- und Ringdips arbeiten Trizeps, Brust und vordere Schulter (McKenzie et al. 2022). Die Autoren nennen die Dip-Maschine nur als Hilfe beim Erlernen des Barrendips – gemeint ist dort die unterstützte Variante, nicht die sitzende.' },
+        explain: 'Bei Bank-, Barren- und Ringdips arbeiten Trizeps, Brust und vordere Schulter (McKenzie et al. 2022b). Die Autoren nennen die Dip-Maschine nur als Erleichterung des Barrendips (unterstützte Variante, nicht die sitzende). Getestet wurde sie nicht.' },
       { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Mit dem Oberarm nah am Rumpf trägt der lange Trizepskopf viel.', src: ['K3'],
         explain: 'Bei hängendem Oberarm (0° Schulterhebung) leistete der lange Kopf in einer Modellrechnung den größten Teil der Kraft (Kholinne et al. 2018, ohne Last, 10 Personen). Übertragen, an der Maschine nicht gemessen.' },
       { short: 'Maschine', anchor: 'chest', side: 'l', status: 'single', text: 'Maschinen brachten in einer Studie ähnliche Zuwächse wie freie Gewichte.', src: ['H1'],
         explain: 'Hernández-Belmonte et al. 2023 (38 Trainierte, 8 Wochen, Abstract): Kniebeuge, Bankdrücken, Rudern und Schulterdrücken an Maschinen oder frei gaben ähnliche Kraft- und Muskelzuwächse. Eine Dip-Maschine war nicht dabei.' }
     ],
     sources: {
-      M1: { label: 'McKenzie et al. 2022, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' },
+      M1: { label: 'McKenzie et al. 2022b, Int J Environ Res Public Health (Bank-, Barren-, Ringdips)', url: 'https://doi.org/10.3390/ijerph192013211', read: 'fulltext' },
       K3: { label: 'Kholinne et al. 2018, Acta Orthop Traumatol Turc', url: 'https://doi.org/10.1016/j.aott.2018.02.005', read: 'fulltext' },
       H1: { label: 'Hernández-Belmonte et al. 2023, Med Sci Sports Exerc', url: 'https://doi.org/10.1249/MSS.0000000000003271', read: 'abstract' }
     }
@@ -2764,12 +2764,12 @@ export const ANIMATIONS = [
       { short: 'Unten', anchor: 'uarm', side: 'l', status: 'single', text: 'Am schwersten ist der Anfang des Hebens; danach sinkt die Brustaktivität.', src: ['B1'],
         explain: 'Mit Hanteln war die Brustaktivität in der ersten Hälfte des Hebens am höchsten und fiel nach dem schwersten Punkt deutlich ab, weil der Hebelarm unten am längsten ist (Bergquist et al. 2018, EMG, 29 Personen).' },
       { short: 'Vergleich', anchor: 'chest', side: 'l', status: 'single', text: 'Bankdrücken aktivierte Brust, Schulter und Trizeps stärker; Fliegende mehr den Bizeps.', src: ['S1', 'C2'],
-        explain: 'Solstad et al. 2020 (17 Trainierte, 6RM, Abstract): Brust, vordere Schulter und Trizeps beim Bankdrücken 8–81 % höher, Bizeps bei Fliegenden 57–86 % höher. Vordere Schulter bei Fliegenden ≈ 19 % der Maximalaktivität, seitliche und hintere kaum (Campos et al. 2020). EMG ist kein Maß für Wachstum.' }
+        explain: 'Solstad et al. 2020 (17 trainierte Männer, 6RM, Volltext): über die ganze Bewegung beim Bankdrücken Brust 16 %, vordere Schulter 25 % und Trizeps 75 % mehr EMG; bei Fliegenden Bizeps 76 % mehr. Beim Bankdrücken war das Gewicht etwa doppelt so hoch. Vordere Schulter bei Fliegenden ≈ 19 % der Maximalaktivität, seitliche und hintere kaum (Campos et al. 2020). EMG ist kein Maß für Wachstum.' }
     ],
     sources: {
       B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' },
       C2: { label: 'Campos et al. 2020, J Hum Kinet', url: 'https://doi.org/10.2478/hukin-2020-0033', read: 'fulltext' },
-      S1: { label: 'Solstad et al. 2020, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7675616/', read: 'abstract' }
+      S1: { label: 'Solstad et al. 2020, J Sports Sci Med', url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7675616/', read: 'fulltext' }
     }
   },
 
@@ -2810,7 +2810,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, ...LCF.dur.map((dur, i) => ({ a: i, b: i + 1, dur, label: 'Heben', kp: [0, 1] })), { a: 6, b: 6, dur: 0.3, label: 'Oben', kp: [0] }, ...LCF.dur.map((dur, i) => ({ a: 6 - i, b: 5 - i, dur: LCF.dur[5 - i], label: 'Senken', kp: [2] }))],
     keyPoints: [
       { short: 'Brust', anchor: 'chest', side: 'l', status: 'contested', text: 'Der obere Brustanteil hebt den Arm nach vorn; mehr Aktivität ist nicht gemessen.', src: ['A1', 'R1'],
-        explain: 'Umstritten. Anatomisch beugt der Schlüsselbeinanteil des großen Brustmuskels den Arm nach vorn (StatPearls). Am Kabel wurde das nicht gemessen; beim Bankdrücken war der obere Brustmuskel bei 30° Schräge am aktivsten (Rodríguez-Ridao et al. 2020, Abstract).' },
+        explain: 'Umstritten. Anatomisch beugt der Schlüsselbeinanteil des großen Brustmuskels den Arm nach vorn (StatPearls). Am Kabel wurde das nicht gemessen; beim Bankdrücken war der obere Brustmuskel bei 30° Schräge im Mittel am aktivsten, der Unterschied zu flach war aber nicht deutlich (Rodríguez-Ridao et al. 2020, Volltext).' },
       { short: 'Ellbogen', anchor: 'elbow', side: 'r', status: 'single', text: 'Ellbogen leicht gebeugt lassen und die Arme im Bogen führen.', src: ['B1'],
         explain: 'Leicht gebeugte Ellbogen über die ganze Bewegung, übertragen vom Fliegen mit Band und Hanteln (Bergquist et al. 2018).' },
       { short: 'Tempo', anchor: 'hand', side: 'r', status: 'single', text: 'Gleichmäßig: etwa 2 s heben, 2 s senken.', src: ['B1'],
@@ -2818,7 +2818,7 @@ export const ANIMATIONS = [
     ],
     sources: {
       A1: { label: 'Solari & Burns 2023, StatPearls: Pectoralis Major', url: 'https://www.ncbi.nlm.nih.gov/books/NBK525991/', read: 'summary' },
-      R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'abstract' },
+      R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
       B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' }
     }
   },
@@ -2826,7 +2826,7 @@ export const ANIMATIONS = [
   // ---------- Butterfly (v2.12) ----------
   {
     ref: 'pec-deck', checkedAt: '2026-10-19', view: 'front', basis: 'convention',
-    basisNote: 'Keine Bewegungsstudie. Gezeichnet ist die Variante mit Armpolstern: aufrecht an der Lehne, Oberarme etwa waagerecht zur Seite, Ellbogen 90° gebeugt, Unterarme senkrecht an den Polstern; Weg von seitlich bis die Oberarme nach vorn zeigen und leicht zur Mitte laufen (am Ende stehen die Ellbogen etwa 12 cm neben der Körpermitte vor der Brust). Die Ausgangshaltung beschreibt Marchetti et al. 2019 (isometrisch, 10 Trainierte; nur als automatische Zusammenfassung des PDFs gelesen). Maschine wie beim Reverse Butterfly. Zeichenkonvention sind Tempo, Sitzhöhe, Beinhaltung, der Bogen der Ellbogen und die Neigung der Oberarme am Ende (etwa 14° unter der Waagerechten). Vorn zeigende Oberarme erscheinen von vorn stark verkürzt.',
+    basisNote: 'Keine Bewegungsstudie. Gezeichnet ist die Variante mit Armpolstern: aufrecht an der Lehne, Oberarme etwa waagerecht zur Seite, Ellbogen 90° gebeugt, Unterarme senkrecht an den Polstern; Weg von seitlich bis die Oberarme nach vorn zeigen und leicht zur Mitte laufen (am Ende stehen die Ellbogen etwa 12 cm neben der Körpermitte vor der Brust). Die Ausgangshaltung beschreibt Marchetti et al. 2019 (isometrisch, 10 Trainierte): Rumpf an der Lehne, Schultern auf Höhe der Drehachsen, Oberarme 90° zur Seite, Ellbogen 90° gebeugt. Senkrechte oder waagerechte Unterarme änderten die Aktivität von Brust und vorderer Schulter nicht signifikant. Maschine wie beim Reverse Butterfly. Zeichenkonvention sind Tempo, Sitzhöhe, Beinhaltung, der Bogen der Ellbogen und die Neigung der Oberarme am Ende (etwa 14° unter der Waagerechten). Vorn zeigende Oberarme erscheinen von vorn stark verkürzt.',
     tempo: { basis: 'convention', note: '≈ 2 s zusammenführen, 2 s zurück (Konvention).' },
     frames: [
       ...PECD.az.map((az, i) => ({ label: i === 0 ? 'Außen' : i === PECD.az.length - 1 ? 'Vorn' : 'Mitte', pose: { rootPos: [0, RPD.seat], legsFront: true, legs: { hip: C(85, 'sitzend'), knee: C(85), ...SEAT_LEGS }, armPoints: PECD.arm(az), props: pecDeckProps },
@@ -2835,16 +2835,16 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Außen', kp: [0, 1] }, ...PECD.az.slice(1).map((_, i) => ({ a: i, b: i + 1, dur: 0.5, label: 'Zusammen', kp: [0] })), { a: PECD.az.length - 1, b: PECD.az.length - 1, dur: 0.3, label: 'Vorn', kp: [2] }, ...PECD.az.slice(1).map((_, i) => ({ a: PECD.az.length - 1 - i, b: PECD.az.length - 2 - i, dur: 0.5, label: 'Zurück', kp: [1, 3] }))],
     keyPoints: [
       { short: 'Arme', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme etwa auf Schulterhöhe, Ellbogen rund 90° gebeugt am Polster.', src: ['M1'],
-        explain: 'Haltung bei Marchetti et al. 2019: Rumpf an der Lehne, Schultern 90° abgespreizt, Ellbogen und Handgelenk auf Schulterhöhe, Ellbogen 90° gebeugt. Nur als automatische Zusammenfassung des PDFs gelesen.' },
-      { short: 'Offen', anchor: 'hand', side: 'r', status: 'single', text: 'Weit geöffnet war die Brust aktiver als in der Mitte des Wegs.', src: ['M1'],
-        explain: 'Isometrische Maximalversuche (Marchetti et al. 2019, 10 Trainierte): in der weit geöffneten Stellung (90°) war der große Brustmuskel deutlich aktiver als bei 45°. Das ist eine Haltemessung, keine Bewegung. Nur als automatische Zusammenfassung gelesen.' },
+        explain: 'Haltung bei Marchetti et al. 2019: Rumpf an der Lehne, Schultern 90° abgespreizt, Ellbogen und Handgelenk auf Schulterhöhe, Ellbogen 90° gebeugt (Methodenteil geprüft).' },
+      { short: 'Offen', anchor: 'hand', side: 'r', status: 'single', text: 'Weit geöffnet war die Brust in einer Haltevariante aktiver als in der Mitte des Wegs.', src: ['M1'],
+        explain: 'Isometrische Maximalversuche (Marchetti et al. 2019, 10 trainierte Männer): Mit waagerechten Unterarmen war der große Brustmuskel weit geöffnet (90°) etwa 47 % aktiver als bei 45°. Mit senkrechten Unterarmen gab es keinen sicheren Unterschied. Das ist eine Haltemessung, keine Bewegung, und sagt nichts über Muskelwachstum.' },
       { short: 'Sätze', anchor: 'chest', side: 'l', status: 'single', text: 'Ein Satz brachte bei Einsteigern ähnlich viel Wachstum wie drei.', src: ['P1'],
         explain: 'Pinto et al. 2025 (15 untrainierte Männer, 12 Wochen, Arm gegen Arm, Abstract): Brustdicke oben +17 % / +18 %, unten +21 % / +21 %, Maximalkraft +46 % / +43 % mit einem bzw. drei Sätzen. Für Trainierte nicht geprüft.' },
       { short: 'Region', anchor: 'belly', side: 'l', status: 'single', text: 'Oberer und unterer Brustanteil wuchsen am Butterfly ähnlich.', src: ['P1'],
         explain: 'Ultraschall nach 12 Wochen: Schlüsselbein- und Brustbeinanteil nahmen ähnlich zu; die Autoren sehen keinen Hinweis auf gezieltes Wachstum einzelner Bereiche (Pinto et al. 2025, Abstract).' }
     ],
     sources: {
-      M1: { label: 'Marchetti et al. 2019, Rev Bras Pesq Ciênc Saúde', url: 'https://revistas.icesp.br/index.php/RBPeCS/article/view/733', read: 'summary' },
+      M1: { label: 'Marchetti et al. 2019, Rev Bras Pesq Ciênc Saúde', url: 'https://revistas.icesp.br/index.php/RBPeCS/article/view/733', read: 'fulltext' },
       P1: { label: 'Pinto et al. 2025, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000005045', read: 'abstract' }
     }
   },
@@ -2884,7 +2884,7 @@ export const ANIMATIONS = [
   // ---------- Sit-up ----------
   {
     ref: 'sit-up', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
-    basisNote: 'Keine im Volltext gelesene Bewegungsmessung. Start und Ende folgen dem Protokoll von Escamilla et al. 2006 (Volltext): Knie etwa 90°, Füße fixiert, Hände an den Ohren; Rumpf und Hüfte beugen, bis die Ellbogen auf Höhe der Knie sind. Die Reihenfolge – erst einrollen, dann aus der Hüfte aufrichten – folgt Cordo et al. 2003 (Abstract, gestreckte Beine). Wie weit sich der Rumpf oben aufrichtet und beugt (oberer Rumpf ≈ 15° über die Senkrechte, davon 20° Rumpfbeugung), Fußhalter und Matte sind Konvention. Die Negativ-Variante auf der Schrägbank ist nicht gezeichnet: keine Studie mit Bankwinkel gefunden.',
+    basisNote: 'Keine im Volltext gelesene Bewegungsmessung. Start und Ende folgen dem Protokoll von Escamilla et al. 2006 (Volltext): Knie etwa 90°, Füße fixiert, Hände an den Ohren; Rumpf und Hüfte beugen, bis die Ellbogen auf Höhe der Knie sind. Die Reihenfolge – erst einrollen, dann aus der Hüfte aufrichten – folgt Cordo et al. 2003 (Volltext, gestreckte, freie Beine). Dort dauerte das Einrollen etwa 1,1 s von knapp 3 s Aufrichten. Escamilla et al. 2006 beschreiben im Methodenteil Rumpf- und Hüftbeugung als gleichzeitig. Wie weit sich der Rumpf oben aufrichtet und beugt (oberer Rumpf ≈ 15° über die Senkrechte, davon 20° Rumpfbeugung), Fußhalter und Matte sind Konvention. Die Negativ-Variante auf der Schrägbank ist nicht gezeichnet: keine Studie mit Bankwinkel gefunden.',
     tempo: { basis: 'protocol', note: 'Protokoll: 1 s hoch, 1 s halten, 1 s ab (Metronom, Escamilla et al. 2006). Gezeichnet langsamer (≈ 2 s je Richtung, erst einrollen, dann ohne Stopp aufrichten), damit die Folge sichtbar bleibt.' },
     frames: [
       { label: 'Unten', pose: { root: 'ankle', rootPos: SITUP_ROOT.ank, shank: K(SITUP_ROOT.at(FLOOR.lie, 0), 'E1', 'Unterschenkel bleibt (Füße fixiert)'), knee: V(90, 'E1', 'protocol', 'Knie etwa 90°'), foot: C(90), trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), headTilt: C(0), armTargetTrunk: [-2, 38], armScale: [0.35, 0.7], elbowSide: 1, props: situpProps } },
@@ -2897,17 +2897,17 @@ export const ANIMATIONS = [
       { short: 'Start', anchor: 'foot', side: 'r', status: 'single', text: 'Knie etwa 90° gebeugt, Füße fixiert, Hände an den Ohren.', src: ['E1'],
         explain: 'Protokoll von Escamilla et al. 2006 (21 Gesunde): Daumen in den Ohren, Hände locker am Kopf, Knie ≈ 90°, Hüfte ≈ 45°, Füße gehalten.' },
       { short: 'Folge', anchor: 'upperBack', side: 'l', status: 'single', text: 'Erst Kopf und Schultern einrollen, dann aus der Hüfte aufrichten.', src: ['C1', 'H1'],
-        explain: 'Cordo et al. 2003 (8 Gesunde, Bewegungsanalyse, Abstract) teilen den Sit-up in Einrollen des Rumpfs (Nacken und oberer Rumpf, dann Lendenbereich) und anschließendes Drehen des Beckens Richtung Füße. Gemessen mit gestreckten, freien Beinen. Beim vollen Sit-up beugt sich die Lendenwirbelsäule deutlich mehr als beim Crunch (≈ 38° gegenüber ≈ 3°, Halpern & Bleck 1979, Abstract).' },
+        explain: 'Cordo et al. 2003 (8 Gesunde, Bewegungsanalyse, Volltext) teilen den Sit-up in zwei Teile: erst rollt sich der Rumpf ein (Nacken und oberer Rumpf, dann der Lendenbereich), dann dreht das Becken Richtung Füße. Beim Einrollen kippt das Becken zuerst leicht nach hinten, der untere Rücken liegt flach. Gemessen mit gestreckten, freien Beinen und vor der Brust gekreuzten Armen. Beim vollen Sit-up beugt sich die Lendenwirbelsäule deutlich mehr als beim Crunch (≈ 38° gegenüber ≈ 3°, Halpern & Bleck 1979, Abstract).' },
       { short: 'Oben', anchor: 'elbow', side: 'r', status: 'single', text: 'Hochkommen, bis die Ellbogen auf Höhe der Knie sind.', src: ['E1'],
         explain: 'Endpunkt im Protokoll von Escamilla et al. 2006. Dort war der gerade Oberschenkelmuskel (Hüftbeuger) beim Sit-up deutlich aktiver als beim Crunch.' },
       { short: 'Füße', anchor: 'heel', side: 'r', status: 'contested', text: 'Fixierte Füße verschieben Arbeit Richtung Hüftbeuger.', src: ['P1', 'A1'],
-        explain: 'Umstritten: Bei Parfrey et al. 2008 (14 Personen, Abstract) senkte das Fixieren der Füße die Aktivität aller Bauchmessstellen und erhöhte die des geraden Oberschenkelmuskels. Andersson et al. 1997 (6 Männer, Abstract) fanden mit gestützten Beinen mehr Hüftbeuger-Arbeit, die Bauchmuskeln änderten sich aber meist nicht.' },
+        explain: 'Umstritten: Bei Parfrey et al. 2008 (14 Männer, gehaltene Positionen) senkte das Fixieren der Füße die Aktivität aller Bauchmessstellen leicht (etwa 20–28 %) und erhöhte die des geraden Oberschenkelmuskels deutlich. Andersson et al. 1997 (6 Männer, Volltext) fanden beim Aufrichten aus der Hüfte mit gestützten Beinen mehr Hüftbeuger-Aktivität, die Bauchmuskeln blieben gleich. Beim reinen Einrollen des Oberkörpers waren die Hüftbeuger in allen Varianten wenig aktiv. Auch gebeugte Beine erhöhten die Hüftbeuger-Aktivität.' },
     ],
     sources: {
       E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' },
       C1: { label: 'Cordo et al. 2003, J Electromyogr Kinesiol', url: 'https://doi.org/10.1016/s1050-6411(03)00023-3', read: 'abstract' },
-      P1: { label: 'Parfrey et al. 2008, Appl Physiol Nutr Metab', url: 'https://doi.org/10.1139/H08-061', read: 'abstract' },
-      A1: { label: 'Andersson et al. 1997, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s004210050135', read: 'abstract' },
+      P1: { label: 'Parfrey et al. 2008, Appl Physiol Nutr Metab', url: 'https://doi.org/10.1139/H08-061', read: 'fulltext' },
+      A1: { label: 'Andersson et al. 1997, Eur J Appl Physiol', url: 'https://doi.org/10.1007/s004210050135', read: 'fulltext' },
       H1: { label: 'Halpern & Bleck 1979, Clin Orthop Relat Res', url: 'https://pubmed.ncbi.nlm.nih.gov/161217/', read: 'abstract' }
     }
   },
@@ -2930,13 +2930,13 @@ export const ANIMATIONS = [
       { short: 'Rücken', anchor: 'upperBack', side: 'l', status: 'single', text: 'Oberer Rücken und Kopf bleiben auf der Matte.', src: ['E1'],
         explain: 'Beim Reverse Crunch bewegt sich das Becken zum Rumpf, nicht umgekehrt (Escamilla et al. 2006: „Crunch in umgekehrter Richtung“). Dass Kopf und Schultern liegen bleiben, ist hier Zeichenkonvention.' },
       { short: 'Unten', anchor: 'belly', side: 'r', status: 'contested', text: 'Ob der untere Bauch hier mehr arbeitet, ist ungeklärt.', src: ['W1', 'K1'],
-        explain: 'Umstritten: Willett et al. 2001 (25 Gesunde, Abstract) fanden beim Reverse Curl die höchste Aktivität im unteren geraden Bauchmuskel. Clark et al. 2003 (8 Personen, Abstract) fanden keinen Unterschied zwischen oberem und unterem Anteil und beim Reverse Curl weniger Aktivität als beim Crunch.' },
+        explain: 'Umstritten: Willett et al. 2001 (25 Gesunde) fanden im unteren geraden Bauchmuskel beim Reverse Curl mehr Aktivität als bei den anderen getesteten Übungen. Ob unten mehr arbeitet als oben, lässt sich daraus nicht ablesen. Clark et al. 2003 (8 Personen, Abstract) fanden keinen Unterschied zwischen oberem und unterem Anteil und beim Reverse Curl weniger Aktivität als beim Crunch.' },
       { short: 'Tempo', anchor: 'hip', side: 'r', status: 'single', text: 'Ohne Schwung: etwa 1 s hoch, 1 s halten, 1 s ab.', src: ['E1'],
         explain: 'Takt im Protokoll von Escamilla et al. 2006 (Metronom). Beim Reverse Crunch auf 30° Schräge war der gerade Oberschenkelmuskel dort hoch aktiv; flach war die Belastung geringer.' }
     ],
     sources: {
       E1: { label: 'Escamilla et al. 2006, Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/16649890/', read: 'fulltext' },
-      W1: { label: 'Willett et al. 2001, J Strength Cond Res', url: 'https://pubmed.ncbi.nlm.nih.gov/11726260/', read: 'abstract' },
+      W1: { label: 'Willett et al. 2001, J Strength Cond Res', url: 'https://pubmed.ncbi.nlm.nih.gov/11726260/', read: 'fulltext' },
       K1: { label: 'Clark et al. 2003, J Strength Cond Res', url: 'https://doi.org/10.1519/1533-4287(2003)017%3C0475:ECOTUA%3E2.0.CO;2', read: 'abstract' }
     }
   },
@@ -2944,8 +2944,8 @@ export const ANIMATIONS = [
   // ---------- Beinheben liegend ----------
   {
     ref: 'lying-leg-raise', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
-    basisNote: 'Keine im Volltext gelesene Bewegungsmessung der Übung. Oben folgt der Startstellung des Beinsenk-Tests bei Lindegren et al. 2022 (Volltext): Beine 90° zur Unterlage, Knie bis 5–10° gebeugt erlaubt, Arme vor der Brust gekreuzt. Wie tief die Beine sinken, ist Konvention (25° über der Matte; zitierte Normwerte Erwachsener für den Kontrollverlust im Test: 15–55°). Oben rollt das Becken leicht ein (10°, Konvention); Elvira et al. 2014 (Abstract) maßen Beckenkippung, die Werte sind hier nicht übernommen.',
-    tempo: { basis: 'protocol', note: '≈ 2 s heben, 2 s senken (Elvira et al. 2014 testeten 1 Wiederholung je 4 s bis je 1 s, Abstract).' },
+    basisNote: 'Keine im Volltext gelesene Bewegungsmessung der Übung. Oben folgt der Startstellung des Beinsenk-Tests bei Lindegren et al. 2022 (Volltext): Beine 90° zur Unterlage, Knie bis 5–10° gebeugt erlaubt, Arme vor der Brust gekreuzt. Wie tief die Beine sinken, ist Konvention (25° über der Matte; zitierte Normwerte Erwachsener für den Kontrollverlust im Test: 15–55°). Oben rollt das Becken leicht ein (10°, Konvention). Bei Elvira et al. 2014 (Volltext) kam beim Heben vom Boden bis senkrecht nur gut die Hälfte der Bewegung aus der Hüfte (≈ 58°), etwa 30° aus der Bewegung zwischen Becken und unterem Rücken. Die Werte sind nicht übernommen, weil Bewegungsweg und Winkeldefinition abweichen.',
+    tempo: { basis: 'protocol', note: '≈ 2 s heben, 2 s senken. Elvira et al. 2014 testeten beim Beinheben 1 Wiederholung in 4 s, 2 s und 1,5 s (Volltext); 4 s entspricht dem langsamsten Tempo.' },
     frames: [
       { label: 'Unten', pose: { root: 'shoulder', rootPos: FLOOR.sh, trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), hip: C(FLOOR.lie + 115, 'Beine schweben ≈ 25° über der Matte'), knee: V(5, 'L2', 'protocol', 'Knie bis 5–10° gebeugt erlaubt'), ankle: C(-20), armTargetTrunk: [20, -6], armScale: [0.7, 0.9], elbowSide: -1, props: matProps } },
       { label: 'Oben', pose: { root: 'shoulder', rootPos: FLOOR.sh, trunk: C(FLOOR.lie - 10, 'Becken leicht eingerollt'), curl: C(10), hip: K(FLOOR.lie + 170, 'L2', 'Oberschenkel senkrecht (90° zur Matte) bei 10° Beckenkippung'), knee: V(5, 'L2', 'protocol'), ankle: C(-20), armTargetTrunk: [20, -6], armScale: [0.7, 0.9], elbowSide: -1, props: matProps } }
@@ -2954,17 +2954,17 @@ export const ANIMATIONS = [
     keyPoints: [
       { short: 'Senkrecht', anchor: 'knee', side: 'r', status: 'single', text: 'Beine gestreckt bis etwa senkrecht heben; leicht gebeugte Knie sind normal.', src: ['L2'],
         explain: 'Startstellung im Beinsenk-Test bei Lindegren et al. 2022 (90 Jugendliche): Beine 90° zur Unterlage, 5–10° Kniebeugung wegen der hinteren Oberschenkelmuskeln erlaubt. Das ist ein Test, keine Trainingsstudie.' },
-      { short: 'Becken', anchor: 'glute', side: 'r', status: 'single', text: 'Beim Absenken kippt das Becken früh nach vorn ins Hohlkreuz.', src: ['Z1'],
-        explain: 'Zannotti et al. 2002 (17 Personen, Videoanalyse, Abstract): Das Becken kippte schon nach ≈ 3,6° Absenken nach vorn, auch wenn die Personen es verhindern wollten.' },
+      { short: 'Becken', anchor: 'glute', side: 'r', status: 'single', text: 'Beim Absenken kippt das Becken früh etwas nach vorn, auch mit Anspannen. Das ist normal.', src: ['Z1'],
+        explain: 'Zannotti et al. 2002 (17 junge Gesunde, Videoanalyse): Beine aus der Senkrechten in 4 s abgesenkt. Das Becken hatte sich um 1° nach vorn gedreht, sobald die Beine im Mittel 3,5–3,6° abgesenkt waren – mit und ohne Gegenspannen. Bei 75° Absenkung waren es etwa 20–22° (Tabelle 3). Die Lendenwirbelsäule wurde nicht gemessen.' },
       { short: 'Tiefe', anchor: 'lowBack', side: 'l', status: 'single', text: 'Nur so tief senken, wie der untere Rücken Kontakt zur Matte hält.', src: ['L2'],
         explain: 'So endet der Beinsenk-Test (Lindegren et al. 2022, Druckkissen unter der Lende). Gesunde Erwachsene verloren den Kontakt laut dort zitierten Studien bei 15–55° über der Unterlage, Jugendliche im Mittel bei 72°.' },
       { short: 'Tempo', anchor: 'thigh', side: 'r', status: 'single', text: 'Langsam: Schnell werden Hüft- und Beckenweg kleiner, die Knie beugen mehr.', src: ['V1'],
-        explain: 'Elvira et al. 2014 (17 Trainierte, 3D-Analyse, Abstract): Bei höherem Tempo nahmen Beckenkippung und Hüftweg ab und die Kniebeugung zu.' }
+        explain: 'Elvira et al. 2014 (17 Freizeitsportler, 3D-Analyse, Volltext): Schon bei 1 Wiederholung in 2 s beugten sich die Knie mehr. Bei 1 Wiederholung in 1,5 s wurden zusätzlich Hüft- und Beckenweg etwas kleiner (je etwa 3°).' }
     ],
     sources: {
       L2: { label: 'Lindegren et al. 2022, Int J Sports Phys Ther', url: 'https://doi.org/10.26603/001c.31042', read: 'fulltext' },
-      Z1: { label: 'Zannotti et al. 2002, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2002.32.9.432', read: 'abstract' },
-      V1: { label: 'Elvira et al. 2014, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2013.860483', read: 'abstract' }
+      Z1: { label: 'Zannotti et al. 2002, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2002.32.9.432', read: 'fulltext' },
+      V1: { label: 'Elvira et al. 2014, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2013.860483', read: 'fulltext' }
     }
   },
 
@@ -2972,7 +2972,7 @@ export const ANIMATIONS = [
   {
     ref: 'dead-bug', checkedAt: '2026-10-20', view: 'side', basis: 'protocol',
     basisNote: 'Keine Bewegungsmessung gefunden. Start nach Tsartsapakis et al. 2023 (Volltext): Arme senkrecht über der Brust, Hüfte und Knie je 90°, unterer Rücken in Kontakt mit der Matte. Das gestreckte Bein endet bei 30° Hüftbeugung mit gestrecktem Knie wie die Begrenzung bei Pereira et al. 2017 (Volltext). Der Arm über dem Kopf (170°) und das gegengleiche Muster sind Konvention bzw. nur aus automatischen Zusammenfassungen koreanischer Studien bekannt. In der Seitenansicht arbeiten erst der nahe Arm und das ferne Bein, dann umgekehrt.',
-    tempo: { basis: 'protocol', note: 'Metronom 40 Schläge je Minute (Pereira et al. 2017): ≈ 1,5 s strecken, 1,5 s zurück.' },
+    tempo: { basis: 'protocol', note: 'Metronom 40 Schläge je Minute (Pereira et al. 2017). Wie die Schläge verteilt waren, steht nicht im Text. Gezeichnet ≈ 1,5 s strecken, 1,5 s zurück.' },
     frames: [
       { label: 'Start', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie, 'Rückenlage; Gesäß und Schulterblätter liegen auf'), curl: C(0), hip: V(90, 'T1', 'protocol', 'Hüfte 90°'), knee: V(90, 'T1', 'protocol', 'Knie 90°'), ankle: C(-10), shoulder: V(90, 'T1', 'protocol', 'Arme senkrecht über der Brust'), elbow: C(0), leg2: { hip: V(90, 'T1', 'protocol'), knee: V(90, 'T1', 'protocol'), ankle: C(-10) }, arm2: { shoulder: V(90, 'T1', 'protocol'), elbow: C(0) }, props: matProps } },
       { label: 'Gestreckt A', pose: { root: 'hip', rootPos: [0, FLOOR.hipY], trunk: C(FLOOR.lie), curl: C(0), hip: V(90, 'T1', 'protocol'), knee: V(90, 'T1', 'protocol'), ankle: C(-10), shoulder: C(170, 'Arm über dem Kopf, schwebt über der Matte'), elbow: C(0), leg2: { hip: V(30, 'P2', 'protocol', 'Hüfte bis 30°, Knie gestreckt'), knee: V(0, 'P2', 'protocol'), ankle: C(-10) }, arm2: { shoulder: V(90, 'T1', 'protocol'), elbow: C(0) }, props: matProps } },
@@ -2987,20 +2987,20 @@ export const ANIMATIONS = [
       { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'single', text: 'Der untere Rücken hält Kontakt zur Matte.', src: ['T1'],
         explain: 'Anweisung bei Tsartsapakis et al. 2023. Im selben Satz steht „neutrale Wirbelsäule“; ob flach gedrückt oder natürlich gekrümmt, ist nicht gemessen.' },
       { short: 'Stärke', anchor: 'belly', side: 'r', status: 'contested', text: 'Wie stark die Bauchmuskeln arbeiten, unterscheidet sich je nach Studie.', src: ['P2', 'S1'],
-        explain: 'Umstritten: Bei Pereira et al. 2017 (19 Gesunde, Volltext) war der gerade Bauchmuskel ≈ 27 %, die schrägen ≈ 82–85 % der Maximalkraft aktiv. Souza et al. 2001 (12 Gesunde, Abstract) fanden keinen Muskel über 41 % und halten die Übung für zu leicht für Kraftzuwachs. Varianten und Normierung unterscheiden sich.' }
+        explain: 'Umstritten: Bei Pereira et al. 2017 (19 Gesunde, Volltext) war der gerade Bauchmuskel ≈ 27 %, die schrägen ≈ 82–85 % ihrer maximalen Muskelaktivität (EMG) aktiv. Die Werte streuen stark. Souza et al. 2001 (12 Gesunde, Volltext): Bauchmuskeln im Schnitt ≈ 7 % (ein Fuß am Boden), ≈ 21 % (beide Beine in der Luft) und ≈ 35 % (mit Gewichtsmanschetten) der Maximalkraft; nie über 41 %. Die Autoren halten das für Gesunde für zu leicht für Kraftzuwachs. Varianten und Normierung unterscheiden sich.' }
     ],
     sources: {
       T1: { label: 'Tsartsapakis et al. 2023, J Funct Morphol Kinesiol', url: 'https://doi.org/10.3390/jfmk8030110', read: 'fulltext' },
       P2: { label: 'Pereira et al. 2017, J Manipulative Physiol Ther', url: 'https://doi.org/10.1016/j.jmpt.2017.02.010', read: 'fulltext' },
       K2: { label: 'Kim, Cho & Kim 2020, J Korean Soc Integr Med', url: 'https://doi.org/10.15268/ksim.2020.8.2.001', read: 'summary' },
-      S1: { label: 'Souza et al. 2001, Arch Phys Med Rehabil', url: 'https://doi.org/10.1053/apmr.2001.26082', read: 'abstract' }
+      S1: { label: 'Souza et al. 2001, Arch Phys Med Rehabil', url: 'https://doi.org/10.1053/apmr.2001.26082', read: 'fulltext' }
     }
   },
 
   // ---------- Runde 11 (v2.16): Unterarmstütz (Plank) ----------
   {
     ref: 'plank', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
-    basisNote: 'Keine Studie hat Gelenkwinkel im Unterarmstütz gemessen. Aufbau nach den Protokollen von Escamilla et al. 2016 (Volltext, Abbildungen) und Cortell-Tormo et al. 2017 (Abstract): Unterarme auf dem Boden, Ellbogen unter den Schultern, Körper gerade, auf den Zehen. Start mit abgelegtem Becken und das Halten von 3 s sind Zeichenkonvention.',
+    basisNote: 'Keine Studie hat Gelenkwinkel im Unterarmstütz gemessen. Aufbau nach den Protokollen von Escamilla et al. 2016 (Volltext, Abbildungen) und Cortell-Tormo et al. 2017 (Abstract): Unterarme auf dem Boden, Ellbogen unter den Schultern, Körper gerade, auf den Zehen. Start mit abgelegtem Becken wie im Protokoll (Abbildung 3a). Das Halten von 3 s ist Zeichenkonvention, in der Studie 1 s.',
     tempo: { basis: 'protocol', note: 'Escamilla et al. 2016: 1 s in die Position, 1 s halten, 1 s zurück (Metronom, für die EMG-Messung). Gezeichnet 1 s hoch, 3 s halten, 1 s ab; im Training wird meist länger gehalten (30 s bei Schoenfeld et al. 2014).' },
     frames: [
       { label: 'Ablegen', pose: { ...PLANK.base, trunk: C(PLANK.start.trunk, 'Becken auf der Matte (Konvention)'), hip: C(PLANK.start.hip, 'Hüfte gestreckt, Zehen aufgestellt'), props: plankProps } },
@@ -3015,7 +3015,7 @@ export const ANIMATIONS = [
       { short: 'Becken', anchor: 'glute', side: 'l', status: 'consensus', text: 'Becken leicht nach hinten kippen erhöhte die Aktivität der Bauchmuskeln.', src: ['S1', 'C1'],
         explain: 'Schoenfeld et al. 2014 (19 Personen, je 30 s, Abstract): Kippung nach hinten mehr äußerer schräger Bauchmuskel, langer Hebel (Ellbogen weiter vorn) mehr gerader Bauchmuskel. Cortell-Tormo et al. 2017 (15 Personen, Abstract): Kippung nach hinten mit zusammengezogenen Schulterblättern am höchsten. EMG zeigt Aktivierung, nicht Wachstum.' },
       { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Gerader und schräger Bauchmuskel arbeiten mäßig, auf den Knien weniger.', src: ['E1'],
-        explain: 'Escamilla et al. 2016 (18 Personen, Volltext), Plank auf den Zehen in % der maximalen Anspannung: oberer gerader Bauchmuskel 34, unterer 40, äußerer schräger 40, innerer schräger 29; auf den Knien 27, 26, 22 und 20.' },
+        explain: 'Escamilla et al. 2016 (18 Personen, Volltext), Plank auf den Zehen in % der maximalen Anspannung: oberer gerader Bauchmuskel 34, unterer 40, äußerer schräger 40, innerer schräger 29; auf den Knien 27, 26, 22 und 20. Nur beim unteren geraden Bauchmuskel war der Unterschied sicher. Gemessen wurde über 1 s hoch, 1 s halten, 1 s ab.' },
       { short: 'Ende', anchor: 'shoulder', side: 'r', status: 'single', text: 'Bis zur Erschöpfung gehalten, endete der Plank meist durch Bauch- oder Armermüdung.', src: ['D1'],
         explain: 'Devorski et al. 2021 (17 Personen, Abstract): 41 % hörten wegen Ermüdung der Bauchmuskeln auf, 47 % wegen Ermüdung von Armen und Schultern. Das beschreibt die Studie, keine Vorgabe für die Haltedauer.' }
     ],
@@ -3030,7 +3030,7 @@ export const ANIMATIONS = [
   // ---------- Runde 11: Seitstütz ----------
   {
     ref: 'side-plank', checkedAt: '2026-10-21', view: 'front', basis: 'protocol', layout: 'cols',
-    basisNote: 'Frontansicht, um die Bildachse gedreht: Die Figur liegt auf der linken Seite. Unterer Oberarm senkrecht unter der Schulter, Körper gerade, Füße übereinander (Abbildungen in Youdas et al. 2014 und Escamilla et al. 2016, beide Volltext). Die Körperneigung (≈ 21°) folgt daraus geometrisch; der Start mit abgesenkter Hüfte und die Haltezeit sind Zeichenkonvention.',
+    basisNote: 'Frontansicht, um die Bildachse gedreht: Die Figur liegt auf der linken Seite. Unterer Oberarm senkrecht unter der Schulter, Körper gerade, Füße übereinander (Abbildungen in Youdas et al. 2014 und Escamilla et al. 2016, beide Volltext). Die Körperneigung (≈ 21°) folgt daraus geometrisch; Der Start mit abgesenkter Hüfte entspricht Escamilla et al. 2016 (Abbildung 6a); die Haltezeit ist Zeichenkonvention.',
     tempo: { basis: 'protocol', note: 'Youdas et al. 2014: Hüfte im Takt eines Metronoms (40/min) gehoben; Escamilla et al. 2016: 1 s hoch, 1 s halten, 1 s ab. Gezeichnet 1 s hoch, 3 s halten, 1 s ab.' },
     frames: [
       { label: 'Hüfte unten', pose: { rotate: C(SIDEP.start.rotate, 'gelöst: Hüfte nahe der Matte'), trunk: C(SIDEP.start.trunk, 'seitlich geknickt (Konvention)'), root: 'ankleL', rootPos: SIDEP.AW, legs: { stance: -9 }, arm: { abd: SIDEP.start.armR }, armL: { points: SIDEP.start.armL }, props: sidePlankProps } },
@@ -3071,7 +3071,7 @@ export const ANIMATIONS = [
         explain: 'Im Protokoll hält ein Partner das obere Bein an Knöchel und Knie, etwa auf Höhe seiner eigenen Hüfte (Serner et al. 2013, Volltext). Die Bank hier ist Zeichenkonvention; mit nur dem Knie aufgelegt ist der Hebel kürzer (leichter).' },
       { short: 'Linie', anchor: 'hipL', side: 'l', status: 'single', text: 'Körper heben, bis er gerade ist; das untere Bein zum oberen ziehen.', src: ['S1'],
         explain: 'Serner et al. 2013: Körper vom Boden heben und das untere Bein heranziehen, bis die Füße sich berühren und der Körper eine Linie bildet; dann halb absenken, bis der untere Fuß den Boden berührt, ohne sich abzustützen.' },
-      { short: 'Adduktor', anchor: 'thighR', side: 'r', status: 'single', text: 'Höchste Adduktoren-Aktivität unter acht Adduktionsübungen.', src: ['S1'],
+      { short: 'Adduktor', anchor: 'thighR', side: 'r', status: 'single', text: 'Mit die höchste Adduktoren-Aktivität unter acht Adduktionsübungen.', src: ['S1'],
         explain: 'Serner et al. 2013 (40 Fußballspieler, Volltext): Adductor longus des oberen Beins 108 % der maximalen Anspannung, gleichauf mit dem Ball zwischen den Knien; Bauchmuskeln bis 36–40 %. EMG zeigt Aktivierung, nicht Wachstum.' },
       { short: 'Kraft', anchor: 'kneeR', side: 'r', status: 'single', text: '8 Wochen mit der Übung steigerten die exzentrische Adduktionskraft um ≈ 9 %.', src: ['H1'],
         explain: 'Harøy et al. 2017 (randomisiert, 45 U19-Fußballer, Abstract): +0,29 Nm/kg (8,9 %) gegenüber dem Aufwärmprogramm FIFA 11+ ohne die Übung. Muskelwachstum wurde nicht gemessen.' }
@@ -3120,7 +3120,7 @@ export const ANIMATIONS = [
       { short: 'Füße', anchor: 'toe', side: 'l', status: 'single', text: 'Füße auf Bank oder Stufe; je höher, desto steiler zeigt der Körper nach unten.', src: ['W1'],
         explain: 'Wu et al. 2025 (27 Männer, Volltext): Fußhöhe je Person so berechnet, dass die Linie Schulter–großer Rollhügel 10°, 20° oder 30° geneigt war. Die Stufe von ≈ 40 cm hier ist Konvention.' },
       { short: 'Linie', anchor: 'hip', side: 'l', status: 'consensus', text: 'Körper gerade von Kopf bis Ferse, wie beim normalen Liegestütz.', src: ['P1', 'P2'],
-        explain: 'Anweisung in den Liegestütz-Protokollen (Suprak et al. 2013, San Juan et al. 2015, beide Volltext), hier übertragen; mit erhöhten Füßen nicht eigens gemessen.' },
+        explain: 'Anweisung im Liegestütz-Protokoll von San Juan et al. 2015 (Volltext), hier übertragen., hier übertragen; mit erhöhten Füßen nicht eigens gemessen.' },
       { short: 'Kraft', anchor: 'wrist', side: 'r', status: 'single', text: 'Bei 30° war die Kraft unter den Händen kleiner als bei 10° und 20°.', src: ['W1'],
         explain: 'Mittlere Maximalkraft 667 N (10°), 663 N (20°), 596 N (30°) (Wu et al. 2025). Die Autoren halten 20° für den besten Kompromiss – das ist ihre Deutung, nicht gemessen.' },
       { short: 'Vergleich', anchor: 'chest', side: 'l', status: 'single', text: 'Mit erhöhten Händen sank die Muskelaktivität; erhöhte Füße kamen dort nicht vor.', src: ['K1'],
@@ -3202,7 +3202,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Einrollen', kp: [1] }, { a: 1, b: 1, dur: 1.0, label: 'Unten', kp: [1, 2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [3] }],
     keyPoints: [
       { short: 'Aufbau', anchor: 'knee', side: 'r', status: 'single', text: 'Kniend vor dem Turm, Seil an den Kopfseiten; die Hüfte bleibt fast ruhig.', src: ['E1'],
-        explain: 'Der Aufbau ist übliche Praxis, keine gelesene Studie hat ihn gemessen. Dass die Bewegung aus dem Rumpf kommt, ist vom Crunch am Boden übertragen: Dort arbeitete der gerade Oberschenkelmuskel (Hüftbeuger) am wenigsten von zwölf Übungen (Escamilla et al. 2006, Volltext).' },
+        explain: 'Der Aufbau ist übliche Praxis, keine gelesene Studie hat ihn gemessen. Dass die Bewegung aus dem Rumpf kommt, ist vom Crunch am Boden übertragen: Dort arbeitete der gerade Oberschenkelmuskel (Hüftbeuger) mit am wenigsten von zwölf Übungen (Escamilla et al. 2006, Volltext).' },
       { short: 'Rumpf', anchor: 'belly', side: 'r', status: 'single', text: 'Brustkorb zum Becken einrollen, nicht nur aus der Hüfte nach vorn kippen.', src: ['E1'],
         explain: 'Beim Crunch beugt sich die Wirbelsäule, bei Übungen mit viel Hüftbeugung (Sit-up mit gebeugten Knien) arbeiteten die Hüftbeuger deutlich mehr (Escamilla et al. 2006). Am Kabel gemessen ist das nicht.' },
       { short: 'Last', anchor: 'chest', side: 'l', status: 'single', text: 'Mit mehr Last stieg die Bauch-Aktivität; am höchsten bei der Maximallast.', src: ['M1'],
@@ -3300,7 +3300,7 @@ export const ANIMATIONS = [
   {
     ref: 'ab-wheel-rollout', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
     basisNote: 'Ablauf nach Escamilla et al. 2006 (Power Wheel, Volltext) und Youdas et al. 2008 (Ab-Slide, Volltext): Start im Vierfüßlerstand mit etwa 90° in Hüfte und Schulter, Arme gestreckt, Wirbelsäule und Becken neutral; geradeaus nach vorn rollen, bis der Körper gestreckt ist bzw. die Unterarme fast den Boden berühren, dann zurück. Gemessen wurden keine Winkel: Das Ende ist so gelöst, dass die Brust ≈ 4 cm über dem Boden bleibt, die Zwischenbilder halten die Arme gestreckt und das Rad am Boden (Raddurchmesser ≈ 18 cm, Konvention).',
-    tempo: { basis: 'protocol', note: '1 s hinaus, 1 s halten, 1 s zurück, 1 s Pause (Metronom; Escamilla et al. 2006 und Youdas et al. 2008).' },
+    tempo: { basis: 'protocol', note: '1 s hinaus, 1 s halten, 1 s zurück, 1 s Pause (Metronom; Escamilla et al. 2006). Youdas et al. 2008 ähnlich, aber ohne Pause.' },
     frames: ROLL.frames.map((q, i) => ({ label: i === 0 ? 'Vierfüßler' : i === 8 ? 'Gestreckt' : 'Rollen ' + i, pose: { ...ROLL.base, rootPos: [0, ROLL.y], trunk: i === 0 ? K(q.trunk, 'E1', 'gelöst: Hüfte und Schulter 90°, Rad am Boden') : i === 8 ? K(q.trunk, 'Y1', 'gelöst: Brust ≈ 4 cm über dem Boden') : C(q.trunk), knee: C(q.knee), armWorld: q.wrist, elbowSide: 1, props: rollProps },
       facts: i === 0 ? [V(90, 'E1', 'fulltext', 'Hüfte und Schulter ≈ 90° im Vierfüßlerstand')] : i === 8 ? [V(0, 'E1', 'fulltext', 'Körper gestreckt, Wirbelsäule und Becken neutral')] : [] })), // Bilder 1–7: Zwischenbilder (Arme gestreckt, Rad am Boden)
     phases: [{ a: 0, b: 0, dur: 1.0, label: 'Vierfüßler', kp: [0] }, ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ a: i, b: i + 1, dur: ROLL.durs[i], label: 'Hinaus', kp: [1, 4] })), { a: 8, b: 8, dur: 1.0, label: 'Gestreckt', kp: [1, 2] },
@@ -3311,10 +3311,10 @@ export const ANIMATIONS = [
       { short: 'Rücken', anchor: 'lowBack', side: 'l', status: 'consensus', text: 'Wirbelsäule und Becken bleiben neutral – nicht durchhängen.', src: ['E1', 'Y1'],
         explain: 'Anweisung in beiden Studien. Escamilla et al. 2006 erklären, dass die Bauchmuskeln dabei vor allem halten (isometrisch) und gegen das Durchhängen arbeiten; gemessen wurde die Haltung nicht.' },
       { short: 'Bauch', anchor: 'belly', side: 'r', status: 'consensus', text: 'Hohe Bauch-Aktivität bei wenig Arbeit der Hüftbeuger.', src: ['Y1', 'E1'],
-        explain: 'Youdas et al. 2008 (22 Personen): gerader Bauchmuskel 79 %, innerer schräger 70 %, äußerer schräger 63 %, gerader Oberschenkelmuskel 28 % der maximalen Anspannung. Escamilla et al. 2006 (21 Personen): Rollout unter den höchsten Bauch- und Latissimus-Werten, wenig Hüftbeuger und Rückenstrecker.' },
+        explain: 'Youdas et al. 2008 (22 Personen, Spitzenwerte): gerader Bauchmuskel 79 %, innerer schräger 70 %, äußerer schräger 63 %, gerader Oberschenkelmuskel 28 % der maximalen Anspannung. Die Werte streuen stark. Der Hüftbeuger war deutlich weniger aktiv als beim Beinstoß in Rückenlage. Escamilla et al. 2006 (21 Personen): Rollout mit den höchsten Werten im geraden Bauchmuskel, wenig Hüftbeuger und Rückenstrecker. Der breite Rückenmuskel war nur mäßig aktiv (15 % der maximalen Anspannung).' },
       { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'single', text: 'Schultern und Rücken werden stark gefordert; bei Beschwerden dort vorsichtig sein.', src: ['Y1'],
         explain: 'Die Teilnehmenden berichteten von hoher Belastung in Schultern und Rücken; die Autoren halten die Übung bei Problemen an Wirbelsäule oder Armen für womöglich ungeeignet (Youdas et al. 2008). Das ist ihre Einschätzung, Beschwerden wurden nicht erfasst.' },
-      { short: 'Bremsen', anchor: 'back', side: 'l', status: 'single', text: 'Beim Hinausrollen bremst der breite Rückenmuskel die Arme.', src: ['E1'],
+      { short: 'Bremsen', anchor: 'back', side: 'l', status: 'single', text: 'Vermutlich bremst der breite Rückenmuskel die Arme beim Hinausrollen (nicht gemessen).', src: ['E1'],
         explain: 'Escamilla et al. 2006 deuten die hohe Latissimus-Aktivität so: Er arbeitet beim Hinausrollen bremsend gegen die Schulterbeugung und beim Zurückrollen ziehend.' }
     ],
     sources: {
@@ -3341,7 +3341,7 @@ export const ANIMATIONS = [
       { short: 'Lende', anchor: 'lowBack', side: 'l', status: 'single', text: 'Lendenwirbelsäule auf der Matte, Becken neutral halten.', src: ['P1'],
         explain: 'Eine Physiotherapeutin prüfte und korrigierte das während der Messung (Pereira et al. 2017). Gemessen wurde die Beckenstellung nicht.' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Auch mit chronischen Rückenschmerzen wurde eine ähnliche Bauch-Aktivität erreicht.', src: ['P1'],
-        explain: '13 Personen mit chronischen Rückenschmerzen erreichten ähnliche Werte wie die Gesunden (Pereira et al. 2017). Die Autoren empfehlen den Criss-Cross erst nach Dead Bug und Single Leg Stretch – eine Reihenfolge nach Muskelaktivität, kein Trainingsversuch.' },
+        explain: '13 Personen mit chronischen Rückenschmerzen erreichten nach Angabe der Autoren ähnliche Werte wie die Gesunden. Ein direkter Gruppenvergleich wurde nicht gerechnet, die Werte lagen etwas niedriger (Pereira et al. 2017). Die Autoren empfehlen den Criss-Cross erst nach Dead Bug und Single Leg Stretch – eine Reihenfolge nach Muskelaktivität, kein Trainingsversuch.' },
       { short: 'Tempo', anchor: 'foot', side: 'r', status: 'single', text: 'Ruhig im Takt, nicht schwingen.', src: ['P1'],
         explain: 'Takt per Metronom (40/min) und Ansage (Pereira et al. 2017). Gezeichnet 1,5 s je Seitenwechsel.' }
     ],
@@ -3366,7 +3366,7 @@ export const ANIMATIONS = [
       { short: 'Becken', anchor: 'belly', side: 'r', status: 'single', text: 'Becken ruhig halten – die Bauchmuskeln halten dagegen.', src: ['H1'],
         explain: 'Beim gestreckten Beinheben arbeiteten schräge und quere Bauchmuskeln mit; die Autoren deuten das so, dass sie das Becken gegen den Zug der Hüftbeuger festhalten (Hu et al. 2010, 17 Frauen, Volltext, Rückenlage – hier übertragen).' },
       { short: 'Muskeln', anchor: 'hip', side: 'r', status: 'single', text: 'Hauptbeweger sind Darmbeinmuskel und gerader Oberschenkelmuskel.', src: ['H1'],
-        explain: 'Beim gestreckten Beinheben war der Darmbeinmuskel (Feindraht) auf der hebenden Seite am stärksten aktiv, an der Oberfläche der gerade Oberschenkelmuskel (Hu et al. 2010). Im Stand am Kabel nicht gemessen.' }
+        explain: 'Beim gestreckten Beinheben in Rückenlage sehen die Autoren Darmbeinmuskel und geraden Oberschenkelmuskel als Hauptbeweger, vielleicht auch den langen Adduktor (Hu et al. 2010, 17 Frauen). Die Stärke lässt sich zwischen Muskeln nicht vergleichen. Im Stand am Kabel nicht gemessen.' }
     ],
     sources: {
       J1: { label: 'Juker et al. 1998, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-199802000-00020', read: 'abstract' },
@@ -3408,8 +3408,8 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.3, label: 'Rechts', kp: [0] }, ...[0, 1, 2, 3, 4, 5, 6, 7].map((i) => ({ a: i, b: i + 1, dur: 0.25, label: 'Nach links', kp: [0, 1] })), { a: 8, b: 8, dur: 0.3, label: 'Links', kp: [0] },
       ...[8, 7, 6, 5, 4, 3, 2, 1].map((i) => ({ a: i, b: i - 1, dur: 0.25, label: 'Nach rechts', kp: [1, 2] }))],
     keyPoints: [
-      { short: 'Drehen', anchor: 'belly', side: 'r', status: 'single', text: 'Die Drehung kommt vor allem aus den schrägen Bauchmuskeln.', src: ['K1'],
-        explain: 'Bei der Rumpfdrehung im Sitz starteten und trugen der äußere schräge Bauchmuskel der Gegenseite und der innere der Drehseite die Bewegung mit (Kumar et al. 2001, 50 Personen, isometrisch, Volltext). Beim Russian Twist selbst nicht gemessen.' },
+      { short: 'Drehen', anchor: 'belly', side: 'r', status: 'single', text: 'Bei der Drehung arbeiten die schrägen Bauchmuskeln zusammen mit Rücken- und Brustmuskeln.', src: ['K1'],
+        explain: 'Bei maximaler Rumpfdrehung im Sitz gegen einen Schultergurt waren der äußere schräge Bauchmuskel der Gegenseite und der innere der Drehseite stark aktiv, ebenso Latissimus und Rückenstrecker (Kumar et al. 2001, 50 Personen, isometrisch). Die Reihenfolge des Einsatzes war nicht einheitlich. Beim Russian Twist selbst nicht gemessen.' },
       { short: 'Rücken', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Breiter Rückenmuskel und Rückenstrecker der Drehseite arbeiten mit.', src: ['K1'],
         explain: 'Bei Männern war der breite Rückenmuskel der Drehseite am stärksten aktiv, der Rückenstrecker der gleichen Seite ebenfalls hoch; bei Frauen der große Brustmuskel der Gegenseite (Kumar et al. 2001). Die Autoren vermuten, dass der Schultergurt des Geräts das mitbestimmte.' },
       { short: 'Vergleich', anchor: 'chest', side: 'r', status: 'single', text: 'Übungen mit Drehung aktivierten die schrägen Bauchmuskeln stärker als ohne.', src: ['P1'],
@@ -3423,8 +3423,8 @@ export const ANIMATIONS = [
   // ---------- Runde 14 (v2.19): Wadenheben sitzend ----------
   {
     ref: 'seated-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
-    basisNote: 'Kniewinkel 90° aus dem Trainingsprotokoll von Kinoshita et al. 2023 (Abstract). Sprunggelenk 25° Dorsalflexion bis 30° Plantarflexion, Blockhöhe, Sitz und Polster sind Konvention. Hüfte und Fußballen bleiben am Platz; Schienbein und Knie sind je Bild so gelöst, dass das Knie mit der Ferse steigt.',
-    tempo: { basis: 'convention', note: 'Gezeichnet 1 s hoch, kurz halten, 2 s runter (Konvention; das Abstract nennt kein Tempo).' },
+    basisNote: 'Kniewinkel 90° aus dem Trainingsprotokoll von Kinoshita et al. 2023 (Volltext). Sprunggelenk gezeichnet 25° Dorsalflexion bis 30° Plantarflexion (Konvention); das Modellbild von Kinoshita et al. 2023 zeigt 20° Dorsalflexion bis 30° Plantarflexion (Abb. 1, kein Messwert). Blockhöhe, Sitz und Polster sind Konvention. Hüfte und Fußballen bleiben am Platz; Schienbein und Knie sind je Bild so gelöst, dass das Knie mit der Ferse steigt.',
+    tempo: { basis: 'convention', note: '2 s hoch, 2 s runter (Metronom, Kinoshita et al. 2023).' },
     frames: [
       { label: 'Unten', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0, 'aufrecht'), shank: C(SCR.down.shank, 'gelöst: Hüfte und Ballen bleiben am Platz'), knee: V(SCR.down.knee, 'K2', 'protocol', 'Knie ≈ 90° gebeugt'), ankle: C(25, 'Ferse unter Blockhöhe'), armWorld: SCR.down.hand, elbowSide: -1, props: scrProps } },
       { label: 'Mitte', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0), shank: C(SCR.mid.shank, 'gelöst'), knee: C(SCR.mid.knee, 'gelöst'), ankle: C(-2.5, 'Zwischenbild, damit die Hüfte auf dem Sitz bleibt'), armWorld: SCR.mid.hand, elbowSide: -1, props: scrProps } },
@@ -3433,14 +3433,14 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [2] }, { a: 0, b: 1, dur: 0.5, label: 'Hochdrücken', kp: [0, 1] }, { a: 1, b: 2, dur: 0.5, label: 'Hochdrücken', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Oben', kp: [2] }, { a: 2, b: 1, dur: 1.0, label: 'Absenken', kp: [0] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [0] }],
     keyPoints: [
       { short: 'Soleus', anchor: 'shin', side: 'l', status: 'single', text: 'Mit 90° gebeugtem Knie trainiert vor allem der Schollenmuskel (Soleus).', src: ['K2'],
-        explain: '12 Wochen, 14 Untrainierte, 70 % 1RM: Der Soleus wuchs sitzend ähnlich wie stehend (2,9 % vs. 2,1 %), der Zwillingswadenmuskel sitzend kaum (0,6–1,7 % vs. 9,2–12,4 %) (Kinoshita et al. 2023, Abstract).' },
+        explain: '12 Wochen, 14 Untrainierte, 70 % 1RM: Der Soleus wuchs sitzend ähnlich wie stehend (2,9 % vs. 2,1 %), der Zwillingswadenmuskel sitzend kaum (0,6–1,7 % vs. 9,2–12,4 %) (Kinoshita et al. 2023, Volltext).' },
       { short: 'Zwilling', anchor: 'knee', side: 'r', status: 'consensus', text: 'Den Zwillingswadenmuskel lieber mit gestrecktem Knie trainieren (stehend).', src: ['A2', 'K2'],
         explain: 'Bei 90° Kniebeugung war das Oberflächen-EMG des inneren Zwillingswadenmuskels im Mittel etwa fünfmal kleiner als bei gestrecktem Knie (Avancini et al. 2015, isometrisch, 22 Personen, Abstract); im Training wuchs er sitzend kaum (Kinoshita et al. 2023).' },
       { short: 'Weg', anchor: 'heel', side: 'l', status: 'single', text: 'Ganzen Weg nutzen: Ferse unter Blockhöhe, oben hoch auf die Ballen.', src: ['S1'],
         explain: 'Gemessen nur im Stand: Dorsalflexion −31 ± 6,8° bis Plantarflexion 33,6 ± 7,8° beim einbeinigen Wadenheben (Larsen et al. 2025, Volltext). Sitzend ist der gezeichnete Weg Konvention.' }
     ],
     sources: {
-      K2: { label: 'Kinoshita et al. 2023, Front Physiol', url: 'https://doi.org/10.3389/fphys.2023.1272106', read: 'abstract' },
+      K2: { label: 'Kinoshita et al. 2023, Front Physiol', url: 'https://doi.org/10.3389/fphys.2023.1272106', read: 'fulltext' },
       A2: { label: 'Avancini et al. 2015, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0126888', read: 'abstract' },
       S1: { label: 'Larsen et al. 2025, Eur J Sport Sci', url: 'https://doi.org/10.1002/ejsc.70030', read: 'fulltext' }
     }
@@ -3449,8 +3449,8 @@ export const ANIMATIONS = [
   // ---------- Runde 14: Wadenheben an der Beinpresse ----------
   {
     ref: 'leg-press-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'convention',
-    basisNote: 'Gezeichnet an der 45°-Beinpresse der App: Knie fast gestreckt, nur die Fußballen an der unteren Plattenkante, die Ferse hängt frei; die Platte folgt den Ballen entlang der Schienen. Winkel Konvention. Die Trainingsstudie (Nunes et al. 2020, Abstract) nutzte eine sitzende waagerechte Beinpresse und trainierte jedes Bein einzeln.',
-    tempo: { basis: 'convention', note: 'Gezeichnet 1 s drücken, kurz halten, 2 s zurück (Konvention).' },
+    basisNote: 'Gezeichnet an der 45°-Beinpresse der App: Knie fast gestreckt, nur die Fußballen an der unteren Plattenkante, die Ferse hängt frei; die Platte folgt den Ballen entlang der Schienen. Winkel Konvention. Die Trainingsstudie (Nunes et al. 2020, Volltext) nutzte eine sitzende waagerechte Beinpresse und trainierte jedes Bein einzeln.',
+    tempo: { basis: 'convention', note: '1 s drücken, 1 s halten, 2 s zurück (Studienprotokoll, Nunes et al. 2020).' },
     frames: [
       { label: 'Gedehnt', pose: { ...LPC.pose, ankle: C(25, 'Ferse sinkt unter die Plattenkante'), props: lpcProps } },
       { label: 'Gestreckt', pose: { ...LPC.pose, ankle: C(-30, 'Ballen drücken die Platte weg'), props: lpcProps } }
@@ -3458,14 +3458,14 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Gedehnt', kp: [1] }, { a: 0, b: 1, dur: 1.0, label: 'Drücken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Gestreckt', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [2] }],
     keyPoints: [
       { short: 'Füße', anchor: 'toe', side: 'r', status: 'single', text: 'Fußspitzen außen betonen eher den inneren, innen eher den äußeren Wadenkopf.', src: ['N1'],
-        explain: '9 Wochen, 22 junge Männer, je Bein eine Fußstellung: innerer Kopf +8,4 % (außen) vs. +3,8 % (innen), äußerer Kopf +9,1 % (innen) vs. +5,5 % (außen); gerade lag dazwischen (Nunes et al. 2020, Ultraschall, Abstract).' },
+        explain: '9 Wochen, 22 junge Männer, je Bein eine Fußstellung: innerer Kopf +8,4 % (außen) vs. +3,8 % (innen), äußerer Kopf +9,1 % (innen) vs. +5,5 % (außen); gerade lag dazwischen (Nunes et al. 2020, Ultraschall; Füße 45° gedreht; nur außen vs. innen unterschied sich signifikant).' },
       { short: 'Knie', anchor: 'knee', side: 'l', status: 'single', text: 'Knie fast gestreckt lassen – so arbeitet auch der Zwillingswadenmuskel voll mit.', src: ['A2'],
         explain: 'Mit gestrecktem Knie war das EMG des inneren Zwillingswadenmuskels im Mittel etwa fünfmal größer als bei 90° Kniebeugung (Avancini et al. 2015, isometrisch, Abstract).' },
       { short: 'Einbeinig', anchor: 'plate', side: 'r', status: 'single', text: 'Einbeinig geht auch – so wurde in der Studie jedes Bein getrennt trainiert.', src: ['N1'],
         explain: 'Nunes et al. 2020: einbeinig an einer sitzenden waagerechten Beinpresse, 3–4 Sätze mit 20–25 Wiederholungen, dreimal pro Woche (Abstract).' }
     ],
     sources: {
-      N1: { label: 'Nunes et al. 2020, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003674', read: 'abstract', note: 'Waagerechte Beinpresse, nicht 45°-Schlitten' },
+      N1: { label: 'Nunes et al. 2020, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0000000000003674', read: 'fulltext', note: 'Waagerechte Beinpresse, nicht 45°-Schlitten' },
       A2: { label: 'Avancini et al. 2015, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0126888', read: 'abstract' }
     }
   },
@@ -3474,7 +3474,7 @@ export const ANIMATIONS = [
   {
     ref: 'single-leg-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'measured',
     basisNote: 'Sprunggelenkwinkel aus Larsen et al. 2025 (Volltext; einbeiniges Wadenheben, Bewegungsumfang je Person per Goniometer eingestellt). Hier ohne Zusatzlast auf einer Stufe (≈ 14 cm), eine Hand an der Wand, das freie Bein angewinkelt – Konvention.',
-    tempo: { basis: 'protocol', note: 'Gezeichnet 1 s hoch, 2 s runter, unten kurz halten (wie im Protokoll von Larsen et al. 2025 beim Wadenheben stehend).' },
+    tempo: { basis: 'protocol', note: 'Gezeichnet 1 s hoch, 2 s runter, unten kurz halten (Konvention). Larsen et al. 2025: je etwa 1 s, unten kurze Pause.' },
     frames: [
       { label: 'Unten', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(31, 'S1', 'fulltext', '−31 ± 6,8° (Dorsalflexion)'), leg2: { hip: C(8, 'freies Bein hinten angewinkelt'), knee: C(80), ankle: C(-25) }, armWorld: SLC.hand, elbowSide: -1, props: slcProps } },
       { label: 'Oben', pose: { root: 'toe', rootPos: [30, -STEP - 2], shank: C(0), knee: V(0, 'S1', 'protocol', 'Knie gestreckt'), hip: C(0), ankle: V(-33.6, 'S1', 'fulltext', '+33,6 ± 7,8° Plantarflexion'), leg2: { hip: C(8), knee: C(80), ankle: C(-25) }, armWorld: SLC.hand, elbowSide: -1, props: slcProps } }
@@ -3482,7 +3482,7 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [0] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [0, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [1] }],
     keyPoints: [
       { short: 'Weg', anchor: 'heel', side: 'l', status: 'single', text: 'Ferse tief unter Stufenhöhe senken, oben hoch auf den Ballen.', src: ['S1'],
-        explain: 'Gemessener Bewegungsumfang beim einbeinigen Wadenheben: Dorsalflexion −31 ± 6,8°, Plantarflexion 33,6 ± 7,8° (Larsen et al. 2025). Ob die gedehnte Position mehr bringt, ist offen (siehe Wadenheben stehend).' },
+        explain: 'Bewegungsumfang beim einbeinigen Wadenheben an der Multipresse, je Person per Goniometer festgelegt: Dorsalflexion −31 ± 6,8°, Plantarflexion 33,6 ± 7,8° (Larsen et al. 2025). Ob die gedehnte Position mehr bringt, ist offen (siehe Wadenheben stehend).' },
       { short: 'Ermüdung', anchor: 'shin', side: 'l', status: 'single', text: 'Bis zur Erschöpfung sinkt die Kraft der Wade deutlich – Pausen einplanen.', src: ['SA'],
         explain: '28 junge Erwachsene, einbeiniges Fersenheben bis zum Abbruch: maximale isometrische Kraft danach 20,5 % niedriger, vor allem durch geringere Ansteuerung; die Zahl der Wiederholungen sagte die Maximalkraft nicht voraus (Sara et al. 2021, Abstract).' },
       { short: 'Knie', anchor: 'knee', side: 'r', status: 'single', text: 'Knie gestreckt halten – so arbeitet der Zwillingswadenmuskel stärker.', src: ['A2'],
@@ -3498,7 +3498,7 @@ export const ANIMATIONS = [
   // ---------- Runde 14: Abduktoren-Maschine (Frontansicht) ----------
   {
     ref: 'hip-abduction-machine', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht, sitzend. Keine Bewegungsmessung an der Abduktorenmaschine gefunden (PubMed-Suche 2026-10-21). Die Oberschenkel zeigen zum Betrachter und erscheinen stark verkürzt; die Knie wandern je Bein bis 38° nach außen. Sitz, Polster und Winkel sind Zeichenkonvention. Muskelangaben aus EMG-Studien (de Almeida Paz et al. 2022, Brandt et al. 2013; Abstracts).',
+    basisNote: 'Frontansicht, sitzend. Keine Bewegungsmessung gefunden. Brandt et al. 2013 gibt als Vorgabe an: sitzend, Hüfte 80° gebeugt, von 0° so weit wie möglich, etwa 45° je Hüfte. Die Oberschenkel zeigen zum Betrachter und erscheinen stark verkürzt; die Knie wandern je Bein bis 38° nach außen. Sitz, Polster und Winkel sind Zeichenkonvention. Muskelangaben aus EMG-Studien (de Almeida Paz et al. 2022, Brandt et al. 2013; Abstracts).',
     tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s öffnen, kurz halten, 2 s schließen (Konvention).' },
     frames: [
       { label: 'Geschlossen', pose: { root: 'pelvis', rootPos: HIPM.PEL, legs: HIPM.legs(HIPM.closed), legsFront: true, armPoints: HIPM.arms, props: hipmProps(false) } },
@@ -3509,20 +3509,20 @@ export const ANIMATIONS = [
       { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'single', text: 'Der mittlere Gesäßmuskel arbeitet hier im Verhältnis am stärksten.', src: ['P1'],
         explain: '11 Männer, je 10 maximale Wiederholungen: Das Verhältnis mittlerer Gesäßmuskel zu Spanner der Oberschenkelfaszie war an der Maschine größer als beim seitlichen Beinheben und beim Clamshell; die Aktivität des Gesäßmuskels selbst unterschied sich nicht (de Almeida Paz et al. 2022, Abstract).' },
       { short: 'Band', anchor: 'kneeL', side: 'l', status: 'single', text: 'Mit Gummiband war der mittlere Gesäßmuskel stärker aktiv als an der Maschine.', src: ['B1'],
-        explain: '16 untrainierte Frauen, vier Laststufen nach der Borg-Skala: Abduktion mit elastischem Widerstand rekrutierte den mittleren Gesäßmuskel stärker als die Maschine (Brandt et al. 2013, Abstract).' },
-      { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um die Last zu wählen.', src: ['B1'],
-        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG an der Abduktionsmaschine r = 0,62 ± 0,54 (Brandt et al. 2013, Abstract).' }
+        explain: '16 untrainierte Frauen, vier Laststufen nach der Borg-Skala: Abduktion mit elastischem Widerstand rekrutierte den mittleren Gesäßmuskel stärker als die Maschine (Brandt et al. 2013, Volltext).' },
+      { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Die gefühlte Anstrengung (0–10) hilft, die Last grob zu wählen.', src: ['B1'],
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG an der Abduktionsmaschine r = 0,62 ± 0,54 (Brandt et al. 2013, Volltext). Die große Streuung zeigt: An der Maschine passte das nicht bei allen gleich gut.' }
     ],
     sources: {
       P1: { label: 'de Almeida Paz et al. 2022, J Bodyw Mov Ther', url: 'https://doi.org/10.1016/j.jbmt.2022.01.001', read: 'abstract' },
-      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract' }
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'fulltext' }
     }
   },
 
   // ---------- Runde 14: Adduktoren-Maschine (Frontansicht) ----------
   {
     ref: 'hip-adduction-machine', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht, sitzend, wie die Abduktorenmaschine; die Polster liegen innen an den Knien. Die Knie starten je Bein 38° außen und schließen bis fast zusammen. Keine Bewegungsmessung an der Maschine gefunden (PubMed-Suche 2026-10-21); Winkel Konvention. Muskelangaben aus EMG-Studien (Brandt et al. 2013, Serner et al. 2013; Abstracts).',
+    basisNote: 'Frontansicht, sitzend, wie die Abduktorenmaschine; die Polster liegen innen an den Knien. Die Knie starten je Bein 38° außen und schließen bis fast zusammen. Keine Bewegungsmessung an der Maschine gefunden (PubMed-Suche 2026-10-21); Winkel Konvention. Muskelangaben aus EMG-Studien (Brandt et al. 2013, Volltext; Serner et al. 2013, Volltext: Maschine mit leicht gebeugten Knien, ganzer Bewegungsweg).',
     tempo: { basis: 'convention', note: 'Gezeichnet 1,5 s schließen, kurz halten, 2 s öffnen (Konvention).' },
     frames: [
       { label: 'Geöffnet', pose: { root: 'pelvis', rootPos: HIPM.PEL, legs: HIPM.legs(HIPM.open), legsFront: true, armPoints: HIPM.arms, props: hipmProps(true) } },
@@ -3530,23 +3530,23 @@ export const ANIMATIONS = [
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Geöffnet', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Schließen', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Geschlossen', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Öffnen', kp: [2] }],
     keyPoints: [
-      { short: 'Gleich', anchor: 'thighR', side: 'r', status: 'single', text: 'Maschine und Gummiband aktivierten die Adduktoren etwa gleich stark.', src: ['B1'],
-        explain: '16 untrainierte Frauen, vier Laststufen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Abstract).' },
-      { short: 'Band', anchor: 'kneeL', side: 'l', status: 'single', text: 'Adduktion gegen Gummiband zählt zu den intensiven Adduktionsübungen.', src: ['SE'],
-        explain: '40 Elitefußballer, 8 Adduktionsübungen: Spitzen-EMG des langen Adduktors 14–108 %; Copenhagen-Adduktion und Adduktion mit Gummiband nennen die Autoren als dynamische Übungen mit hoher Intensität (Serner et al. 2013, Abstract). Ob eine Maschine dabei war, geht aus dem Abstract nicht hervor.' },
-      { short: 'Last', anchor: 'belly', side: 'r', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um die Last zu wählen.', src: ['B1'],
-        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG an der Adduktionsmaschine r = 0,69 ± 0,55 (Brandt et al. 2013, Abstract).' }
+      { short: 'Gleich', anchor: 'thighR', side: 'r', status: 'single', text: 'Maschine und Band ohne klaren Unterschied; bei fast maximaler Last lag die Maschine höher.', src: ['B1'],
+        explain: '16 untrainierte Frauen, vier Laststufen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Volltext).' },
+      { short: 'Maschine', anchor: 'kneeL', side: 'l', status: 'single', text: 'Die Adduktorenmaschine zählt zu den intensiven Adduktionsübungen.', src: ['SE'],
+        explain: 'Serner et al. 2013 (40 Elitefußballer, 38 ausgewertet, Volltext): langer Adduktor an der Maschine bei 10-RM-Last 99 % der Maximalaktivität, beide Beine ähnlich (95 %). Copenhagen-Adduktion und Gummiband lagen ebenfalls hoch. EMG zeigt Aktivierung, nicht Wachstum.' },
+      { short: 'Last', anchor: 'belly', side: 'r', status: 'single', text: 'Die gefühlte Anstrengung (0–10) hilft, die Last grob zu wählen.', src: ['B1'],
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG an der Adduktionsmaschine r = 0,69 ± 0,55 (Brandt et al. 2013, Volltext). Die große Streuung zeigt: An der Maschine passte das nicht bei allen gleich gut.' }
     ],
     sources: {
-      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract' },
-      SE: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'abstract' }
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'fulltext' },
+      SE: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'fulltext' }
     }
   },
 
   // ---------- Runde 14: Abduktion am Kabel stehend (Frontansicht) ----------
   {
     ref: 'cable-hip-abduction-standing', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht. Keine Studie zur Abduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Abduktion gegen elastischen Widerstand im Stand (Brandt et al. 2013, Abstract). Gezeichnet: Stand auf dem linken Bein, Manschette am rechten Knöchel, Kabel von der unteren Rolle des Turms auf der Standbeinseite vor dem Standbein vorbei, Bein bis 35° seitlich, Rumpf neigt sich leicht zum Standbein. Winkel Konvention.',
+    basisNote: 'Frontansicht. Keine Studie zur Abduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Abduktion gegen elastischen Widerstand im Stand (Brandt et al. 2013, Volltext). Gezeichnet: Stand auf dem linken Bein, Manschette am rechten Knöchel, Kabel von der unteren Rolle des Turms auf der Standbeinseite vor dem Standbein vorbei, Bein bis etwa 45° seitlich, Oberkörper aufrecht (Vorgabe bei Brandt et al. 2013, Gummiband). Winkel Konvention.',
     tempo: { basis: 'convention', note: 'Gezeichnet 1 s heben, kurz halten, 2 s senken (Konvention).' },
     frames: [
       { label: 'Unten', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.abd.down.lean), legs: { abdR: C(CHIP.abd.down.abd, 'Bein neben dem Standbein, Kabel gespannt') }, armPoints: CHIP.abd.down.armPoints, armL: CHIP.abd.down.armL, props: chipProps('L') } },
@@ -3555,22 +3555,22 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [2] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [0, 1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
     keyPoints: [
       { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'single', text: 'Gegen Zug im Stand war der mittlere Gesäßmuskel stärker aktiv als an der Maschine.', src: ['B1'],
-        explain: '16 untrainierte Frauen: Abduktion mit elastischem Widerstand im Stand rekrutierte den mittleren Gesäßmuskel stärker als die Abduktionsmaschine (Brandt et al. 2013, Abstract). Am Kabel nicht gemessen – übertragen.' },
-      { short: 'Liegend', anchor: 'hipL', side: 'l', status: 'single', text: 'Ohne Gerät aktivierte seitliches Beinheben im Liegen den Muskel am stärksten.', src: ['D1'],
-        explain: 'Unter 12 Übungen lag seitliches Beinheben im Liegen beim mittleren Gesäßmuskel vorn (81 ± 42 % der Maximalkraft) (Distefano et al. 2009, Abstract). Das Kabel wurde dort nicht getestet.' },
+        explain: '16 untrainierte Frauen: Abduktion mit elastischem Widerstand im Stand rekrutierte den mittleren Gesäßmuskel stärker als die Abduktionsmaschine (Brandt et al. 2013, Volltext). Am Kabel nicht gemessen – übertragen.' },
+      { short: 'Liegend', anchor: 'hipL', side: 'l', status: 'single', text: 'Ohne Gerät lag Beinheben im Liegen beim mittleren Gesäßmuskel vorn, andere knapp dahinter.', src: ['D1'],
+        explain: 'Unter 12 Übungen lag seitliches Beinheben im Liegen beim mittleren Gesäßmuskel vorn (81 ± 42 % der maximalen Muskelaktivität, EMG) (Distefano et al. 2009, Volltext). Das Kabel wurde dort nicht getestet. Einbeinige Kniebeuge, einbeiniges Kreuzheben und Seitwärtsgehen mit Band lagen nicht deutlich darunter.' },
       { short: 'Last', anchor: 'belly', side: 'r', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um den Zug zu wählen.', src: ['B1'],
-        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG bei der Abduktion mit elastischem Widerstand r = 0,66 ± 0,29 (Brandt et al. 2013, Abstract).' }
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG bei der Abduktion mit elastischem Widerstand r = 0,66 ± 0,29 (Brandt et al. 2013, Volltext).' }
     ],
     sources: {
-      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract', note: 'Elastischer Widerstand, nicht Kabel' },
-      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' }
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'fulltext', note: 'Elastischer Widerstand, nicht Kabel' },
+      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'fulltext' }
     }
   },
 
   // ---------- Runde 14: Adduktion am Kabel (Frontansicht) ----------
   {
     ref: 'cable-hip-adduction', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht. Keine Studie zur Adduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Adduktion gegen elastischen Widerstand im Stand (Serner et al. 2013, Brandt et al. 2013; Abstracts). Gezeichnet: Turm rechts, Manschette am rechten (nahen) Knöchel, Stand auf dem linken Bein; das Bein startet 28° außen und zieht bis knapp vor das Standbein (9° über die Mitte). Winkel Konvention.',
+    basisNote: 'Frontansicht. Keine Studie zur Adduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Adduktion gegen elastischen Widerstand im Stand (Serner et al. 2013, Brandt et al. 2013; Volltext). Gezeichnet: Turm rechts, Manschette am rechten (nahen) Knöchel, Stand auf dem linken Bein; das Bein startet 28° außen und zieht bis knapp vor das Standbein (9° über die Mitte). Winkel Konvention. Im Protokoll (Serner et al. 2013) endet das Bein eine Fußbreite neben dem Standbein, etwas dahinter; das Kreuzen vor dem Standbein ist Zeichenkonvention.',
     tempo: { basis: 'convention', note: 'Gezeichnet 1 s heranziehen, kurz halten, 2 s zurück (Konvention).' },
     frames: [
       { label: 'Außen', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.add.out.lean), legs: { abdR: C(CHIP.add.out.abd, 'vom Kabel nach außen gezogen') }, armPoints: CHIP.add.out.armPoints, armL: CHIP.add.out.armL, frontLeg: 'R', props: chipProps('R') } },
@@ -3579,43 +3579,43 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Außen', kp: [3] }, { a: 0, b: 1, dur: 1.0, label: 'Heranziehen', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Innen', kp: [0, 1] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [2] }],
     keyPoints: [
       { short: 'Intensiv', anchor: 'thighR', side: 'r', status: 'single', text: 'Adduktion gegen Zug im Stand zählt zu den intensiven Adduktionsübungen.', src: ['SE'],
-        explain: '40 Elitefußballer, 8 Adduktionsübungen: Spitzen-EMG des langen Adduktors 14–108 %; die Adduktion mit Gummiband nennen die Autoren als dynamische Übung mit hoher Intensität (Serner et al. 2013, Abstract). Am Kabel nicht gemessen.' },
+        explain: '40 Elitefußballer, 8 Adduktionsübungen: Spitzen-EMG des langen Adduktors 14–108 %; die Adduktion mit Gummiband nennen die Autoren als dynamische Übung mit hoher Intensität (Serner et al. 2013, Volltext). Am Kabel nicht gemessen.' },
       { short: 'Gleich', anchor: 'kneeR', side: 'r', status: 'single', text: 'Gummiband und Maschine aktivierten die Adduktoren etwa gleich stark.', src: ['B1'],
-        explain: '16 untrainierte Frauen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Abstract).' },
+        explain: '16 untrainierte Frauen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Volltext).' },
       { short: 'Seiten', anchor: 'kneeL', side: 'l', status: 'single', text: 'Beide Seiten trainieren – Standbein und Zugbein arbeiten verschieden.', src: ['SE'],
-        explain: 'Bei 3 der 8 Übungen unterschied sich die Aktivität des langen Adduktors zwischen den Beinen deutlich (35–48 %) (Serner et al. 2013, Abstract); welche Übungen, nennt das Abstract nicht.' },
+        explain: 'Bei 3 der 8 Übungen war der lange Adduktor am arbeitenden Bein deutlich aktiver: Copenhagen-Adduktion, Adduktion mit Gummiband (103 % gegen 70 % am Standbein) und Adduktion in Seitenlage (Serner et al. 2013, Volltext).' },
       { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um den Zug zu wählen.', src: ['B1'],
-        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG bei der Adduktion mit elastischem Widerstand r = 0,8 ± 0,3 (Brandt et al. 2013, Abstract).' }
+        explain: 'Zusammenhang zwischen Borg-CR10 und normiertem EMG bei der Adduktion mit elastischem Widerstand r = 0,8 ± 0,3 (Brandt et al. 2013, Volltext).' }
     ],
     sources: {
-      SE: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'abstract', note: 'Elastischer Widerstand, nicht Kabel' },
-      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'abstract' }
+      SE: { label: 'Serner et al. 2013, Br J Sports Med', url: 'https://doi.org/10.1136/bjsports-2012-091746', read: 'fulltext', note: 'Elastischer Widerstand, nicht Kabel' },
+      B1: { label: 'Brandt et al. 2013, Int J Sports Phys Ther', url: 'https://pubmed.ncbi.nlm.nih.gov/24377067/', read: 'fulltext' }
     }
   },
 
   // ---------- Runde 14: Seitliches Beinheben liegend (Frontansicht, Seitlage) ----------
   {
     ref: 'side-lying-hip-abduction', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht in Seitlage (Figur gedreht, Kopf links, linke Seite auf der Matte). Unteres Bein gestreckt, oberes bis 40° abgespreizt; Kopf auf dem unteren Arm. Winkel Konvention – die EMG-Studien (Distefano et al. 2009, McBeth et al. 2012; Abstracts) nennen im Abstract keinen Bewegungsumfang. Dass das Bein leicht hinter der Körperlinie geführt wird, zeigt die Frontansicht nicht.',
-    tempo: { basis: 'convention', note: 'Gezeichnet 1 s heben, kurz halten, 2 s senken (Konvention).' },
+    basisNote: 'Frontansicht in Seitlage (Figur gedreht, Kopf links, linke Seite auf der Matte). Unteres Bein gestreckt, oberes gezeichnet bis 40° abgespreizt (Konvention); Kopf auf dem unteren Arm. In den EMG-Studien wurde das obere Bein bis 30–35° abgespreizt, Knie gestreckt, Bein nicht eingedreht, Zehen nach vorn (Distefano et al. 2009: 30°, McBeth et al. 2012: 35°; Volltext). Dass das Bein leicht hinter der Körperlinie geführt wird, zeigt die Frontansicht nicht.',
+    tempo: { basis: 'protocol', note: 'Gezeichnet 2 s heben, 2 s senken – so in der Studie (Distefano et al. 2009, Metronom).' },
     frames: [
       { label: 'Unten', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: C(0, 'Beine übereinander') }, props: sideMatProps } },
       { label: 'Oben', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: C(SLA.up, 'oberes Bein abgespreizt') }, props: sideMatProps } }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [0] }],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [0] }],
     keyPoints: [
       { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'consensus', text: 'Aktiviert den mittleren Gesäßmuskel stark – mehr als der Clamshell.', src: ['D1', 'MB'],
-        explain: 'Distefano et al. 2009 (21 Aktive, 12 Übungen): 81 ± 42 % der Maximalkraft, deutlich vor beiden Clamshell-Varianten (40 und 38 %). McBeth et al. 2012 (20 Läufer): 70 ± 30 % gegenüber 33 ± 17 % beim Clamshell (Abstracts).' },
+        explain: 'Distefano et al. 2009 (21 Aktive, 12 Übungen): 81 ± 42 % der maximalen Muskelaktivität (EMG), deutlich vor beiden Clamshell-Varianten (40 und 38 %). McBeth et al. 2012 (20 Läufer, Gewichtsmanschette 5 % der Körpermasse): 79 ± 30 % gegenüber 33 ± 17 % beim Clamshell (Volltext; im Abstract steht 70 %).' },
       { short: 'Muskeln', anchor: 'hipR', side: 'r', status: 'single', text: 'Mittlerer Gesäßmuskel vor Spanner der Oberschenkelfaszie und großem Gesäßmuskel.', src: ['MB'],
-        explain: 'Mit 5 % der Körpermasse am Knöchel: mittlerer Gesäßmuskel 70 ± 30 %, Spanner 54 ± 19 %, vordere Hüftbeuger 28 ± 22 %, großer Gesäßmuskel 25 ± 25 % (McBeth et al. 2012, Abstract).' },
+        explain: 'Mit 5 % der Körpermasse am Knöchel: mittlerer Gesäßmuskel 70 ± 30 %, Spanner 54 ± 19 %, vordere Hüftbeuger 28 ± 22 %, großer Gesäßmuskel 25 ± 25 % (McBeth et al. 2012, Volltext).' },
       { short: 'Drehung', anchor: 'footR', side: 'r', status: 'single', text: 'Bein nicht nach außen drehen – sonst übernimmt der Spanner.', src: ['MB'],
-        explain: 'Mit Außenrotation war der Spanner der Oberschenkelfaszie (71 ± 17 %) aktiver als der mittlere Gesäßmuskel (53 ± 28 %) (McBeth et al. 2012, Abstract).' },
+        explain: 'Mit Außenrotation war der Spanner der Oberschenkelfaszie (71 ± 17 %) aktiver als der mittlere Gesäßmuskel (53 ± 28 %) (McBeth et al. 2012, Volltext).' },
       { short: 'Gerät', anchor: 'kneeL', side: 'l', status: 'single', text: 'Mehr Spanner-Aktivität als an der Abduktorenmaschine.', src: ['P1'],
         explain: 'Beim seitlichen Beinheben war der Spanner der Oberschenkelfaszie aktiver als an der Maschine und beim Clamshell; der mittlere Gesäßmuskel war in allen drei gleich (de Almeida Paz et al. 2022, 11 Männer, Abstract).' }
     ],
     sources: {
-      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' },
-      MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'abstract' },
+      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'fulltext' },
+      MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'fulltext' },
       P1: { label: 'de Almeida Paz et al. 2022, J Bodyw Mov Ther', url: 'https://doi.org/10.1016/j.jbmt.2022.01.001', read: 'abstract' }
     }
   },
@@ -3635,15 +3635,15 @@ export const ANIMATIONS = [
         explain: '17 Gesunde, 6 Varianten: Mit neutralem statt zurückgekipptem Becken waren großer und mittlerer Gesäßmuskel stärker aktiv (Willcox & Burden 2013, Abstract).' },
       { short: 'Hüfte', anchor: 'thighR', side: 'r', status: 'single', text: 'Hüfte etwa 60° beugen – so arbeitete der mittlere Gesäßmuskel am meisten.', src: ['W1'],
         explain: 'Von den getesteten Hüftwinkeln brachte 60° Beugung die höchste Aktivität des mittleren Gesäßmuskels; der Spanner der Oberschenkelfaszie blieb niedrig und änderte sich kaum (Willcox & Burden 2013, Abstract).' },
-      { short: 'Hüftbeuger', anchor: 'band', side: 'r', status: 'single', text: 'Die vorderen Hüftbeuger arbeiten am stärksten mit – eher eine Aufwärmübung.', src: ['MB'],
-        explain: 'Clamshell mit Last: vordere Hüftbeuger 54 ± 25 %, Spanner 34 ± 20 %, großer Gesäßmuskel 34 ± 25 %, mittlerer 33 ± 17 % der Maximalkraft (McBeth et al. 2012, Abstract).' },
-      { short: 'Vergleich', anchor: 'kneeL', side: 'l', status: 'single', text: 'Etwa halb so viel Gesäßaktivität wie seitliches Beinheben im Liegen.', src: ['D1'],
-        explain: 'Mittlerer Gesäßmuskel: Clamshell-Varianten 40 ± 38 % und 38 ± 29 %, seitliches Beinheben 81 ± 42 % der Maximalkraft (Distefano et al. 2009, Abstract).' }
+      { short: 'Hüftbeuger', anchor: 'band', side: 'r', status: 'single', text: 'Die vorderen Hüftbeuger arbeiten am stärksten, der mittlere Gesäßmuskel nur mäßig.', src: ['MB'],
+        explain: 'Clamshell mit Last: vordere Hüftbeuger 54 ± 25 %, Spanner 34 ± 20 %, großer Gesäßmuskel 34 ± 25 %, mittlerer 33 ± 17 % der Maximalkraft (McBeth et al. 2012, Volltext).' },
+      { short: 'Vergleich', anchor: 'kneeL', side: 'l', status: 'single', text: 'Etwa halb so viel Aktivität im mittleren Gesäßmuskel wie seitliches Beinheben im Liegen.', src: ['D1'],
+        explain: 'Mittlerer Gesäßmuskel: Clamshell 40 ± 38 % und 38 ± 29 %, seitliches Beinheben 81 ± 42 % der maximalen Muskelaktivität (EMG). Gemessen ohne Band. Der große Gesäßmuskel war bei beiden Übungen ähnlich (34–39 %) (Distefano et al. 2009, Volltext).' }
     ],
     sources: {
       W1: { label: 'Willcox & Burden 2013, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2013.4004', read: 'abstract' },
-      MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'abstract' },
-      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'abstract' }
+      MB: { label: 'McBeth et al. 2012, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-47.1.15', read: 'fulltext' },
+      D1: { label: 'Distefano et al. 2009, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2009.2796', read: 'fulltext' }
     }
   },
 
@@ -3661,19 +3661,19 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [2] }, { a: 0, b: 1, dur: 2.0, label: 'Absenken', kp: [0, 2] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Drücken', kp: [3] }],
     keyPoints: [
       { short: 'Bank', anchor: 'back', side: 'l', status: 'contested', text: 'Bank etwa 30° schräg: dort war der obere Brustanteil am aktivsten.', src: ['R1', 'T1'],
-        explain: 'Umstritten. Mit freier Langhantel (30 Trainierte, 60 % 1RM) war der obere Brustanteil bei 30° am aktivsten; bei 45° und 60° übernahm der vordere Deltamuskel (Rodríguez-Ridao et al. 2020). Trebs et al. 2010 (15 Männer, 70 % 1RM) fanden den oberen Brustanteil bei 44° aktiver als bei 28° und flach. Eigene Daten zur Multipresse auf der Schrägbank gibt es nicht.' },
-      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'consensus', text: 'Je steiler die Bank, desto mehr arbeitet die vordere Schulter.', src: ['R1', 'T1'],
-        explain: 'Bei 45° und 60° war der vordere Deltamuskel stärker aktiv als die Brustanteile (Rodríguez-Ridao et al. 2020); bei 28°, 44° und 56° war er aktiver als flach (Trebs et al. 2010, Abstract).' },
+        explain: 'Umstritten. Mit freier Langhantel (30 Trainierte, 60 % 1RM) war der obere Brustanteil bei 30° im Mittel am aktivsten, aber nicht deutlich mehr als flach. Die Autoren erklären das andere Ergebnis von Trebs et al. mit der Multipresse. bei 45° und 60° übernahm der vordere Deltamuskel (Rodríguez-Ridao et al. 2020). Trebs et al. 2010 (15 Männer, 70 % 1RM) fanden den oberen Brustanteil bei 44° aktiver als bei 28° und flach. Trebs et al. 2010 haben an der Multipresse gemessen: Dort war der obere Brustanteil bei 44° am aktivsten, bei 28° nicht höher als flach.' },
+      { short: 'Schulter', anchor: 'shoulder', side: 'l', status: 'consensus', text: 'Schräg arbeitet die vordere Schulter mehr als flach; ob stufenweise mehr, ist unklar.', src: ['R1', 'T1'],
+        explain: 'Bei 45° und 60° war der vordere Deltamuskel stärker aktiv als die Brustanteile (Rodríguez-Ridao et al. 2020); bei 28°, 44° und 56° war er aktiver als flach (Trebs et al. 2010, Volltext).' },
       { short: 'Bahn', anchor: 'bar', side: 'r', status: 'single', text: 'Bank so stellen, dass die Stange senkrecht auf die obere Brust trifft.', src: ['S24'],
         explain: 'Mit freier Stange auf der 25°-Schrägbank lag der Auftreffpunkt höher am Brustbein und die Bahn war senkrechter als flach (Saeterbakken et al. 2017, 12 Wettkampf-Bankdrücker). An der Multipresse ist die Bahn fest; die Bankposition bestimmt deshalb, wo die Stange auftrifft (Konvention).' },
       { short: 'Gerät', anchor: 'chest', side: 'r', status: 'single', text: 'Frei schaffte man etwa 3 % mehr; die seitliche Schulter war frei aktiver.', src: ['SA', 'SC'],
-        explain: 'Flachbank-Daten: Die Langhantel-1RM lag ≈ 3 % über der an der Multipresse, Brust und vordere Schulter waren gleich aktiv (Saeterbakken et al. 2011, 12 trainierte Männer). Mit freier Stange war der mittlere Deltamuskel stärker aktiv (Schick et al. 2010). Für die Schrägbank fehlen eigene Daten.' }
+        explain: 'Flachbank-Daten: Die Langhantel-1RM lag ≈ 3 % über der an der Multipresse, Brust und vordere Schulter waren über die ganze Bewegung gleich aktiv, beim Absenken an der Multipresse etwas weniger (Saeterbakken et al. 2011, 12 trainierte Männer, 1RM). Mit freier Stange war der mittlere Deltamuskel stärker aktiv (Schick et al. 2010). Für die Schrägbank fehlen eigene Daten.' }
     ],
     sources: {
       R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
-      T1: { label: 'Trebs et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddfae7', read: 'abstract' },
+      T1: { label: 'Trebs et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddfae7', read: 'fulltext' },
       S24: { label: 'Saeterbakken et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0047', read: 'fulltext' },
-      SA: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'abstract' },
+      SA: { label: 'Saeterbakken et al. 2011, J Sports Sci', url: 'https://doi.org/10.1080/02640414.2010.543916', read: 'fulltext' },
       SC: { label: 'Schick et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181cc2237', read: 'abstract' }
     }
   },
@@ -3697,14 +3697,14 @@ export const ANIMATIONS = [
         explain: 'Abgeleitet: Auf der Schrägbank traf die Stange höher am Brustbein auf als flach (Saeterbakken et al. 2017). Eine Maschinenstudie dazu gibt es nicht; die Sitzhöhe ist Konvention.' },
       { short: 'Maschine', anchor: 'shoulder', side: 'l', status: 'single', text: 'An der (flachen) Brustpresse war der obere Brustanteil weniger aktiv als frei.', src: ['C1'],
         explain: '10 Wettkampf-Bodybuilder, 80 % 1RM: Der obere (klavikuläre) Brustanteil war an der Brustpresse weniger erregt als bei allen Bankdrück-Varianten, am stärksten auf der 45°-Schrägbank (Coratella et al. 2019). Eine schräge Maschine wurde nicht getestet.' },
-      { short: 'Oben', anchor: 'elbow', side: 'l', status: 'single', text: 'Bis knapp vor die volle Streckung drücken, dann kontrolliert zurück.', src: ['R1'],
+      { short: 'Oben', anchor: 'elbow', side: 'l', status: 'single', text: 'Bis zur Streckung drücken, ohne den Ellbogen zu überstrecken, dann kontrolliert zurück.', src: ['R1'],
         explain: 'In Rodríguez-Ridao et al. 2020 wurde bis zur Ellbogenstreckung ohne Überstreckung gedrückt. Wie weit zurück, ist für die Maschine nicht untersucht.' }
     ],
     sources: {
       R1: { label: 'Rodríguez-Ridao et al. 2020, Int J Environ Res Public Health', url: 'https://doi.org/10.3390/ijerph17197339', read: 'fulltext' },
-      T1: { label: 'Trebs et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddfae7', read: 'abstract' },
+      T1: { label: 'Trebs et al. 2010, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e3181ddfae7', read: 'fulltext' },
       S24: { label: 'Saeterbakken et al. 2017, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0047', read: 'fulltext' },
-      C1: { label: 'Coratella et al. 2019, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2019.1655101', read: 'abstract' }
+      C1: { label: 'Coratella et al. 2019, Eur J Sport Sci', url: 'https://doi.org/10.1080/17461391.2019.1655101', read: 'fulltext' }
     }
   },
 
@@ -3730,7 +3730,7 @@ export const ANIMATIONS = [
     keyPoints: [
       { short: 'Weg', anchor: 'elbowR', side: 'r', status: 'consensus', text: 'Arme seitlich bis etwa Schulterhöhe (90°) heben.', src: ['L1', 'C2', 'CA'],
         explain: 'Alle drei Protokolle endeten bei 90° Abduktion (Larsen et al. 2025, 24 Trainierte; Coratella et al. 2020, 10 Bodybuilder; Campos et al. 2020, 13 trainierte Männer). Das ist eine Vorgabe, kein Vergleich mit höheren Endstellungen.' },
-      { short: 'Ellbogen', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Mit gestrecktem Arm war der mittlere Delta etwas aktiver als mit gebeugtem.', src: ['C2'],
+      { short: 'Ellbogen', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Mit fast gestrecktem Arm war der mittlere Delta beim Anheben deutlich aktiver.', src: ['C2'],
         explain: 'Kurzhanteln, 10 Bodybuilder: Mit 90° gebeugtem Ellbogen war die EMG-Aktivität des mittleren Deltamuskels niedriger als mit fast gestrecktem Arm (Coratella et al. 2020). An der Maschine wurde das nicht geprüft.' },
       { short: 'Gerät', anchor: 'uarmL', side: 'l', status: 'single', text: 'Kabel und Kurzhantel ließen den seitlichen Delta gleich wachsen.', src: ['L1'],
         explain: '8 Wochen, ein Arm am Kabel, einer mit Kurzhantel: Die Muskeldicke nahm in beiden Armen ähnlich zu (Larsen et al. 2025). Eine Maschine wurde nicht getestet; das Gerät scheint zweitrangig.' },
@@ -3763,14 +3763,14 @@ export const ANIMATIONS = [
       { short: 'Ellbogen', anchor: 'elbowR', side: 'r', status: 'single', text: 'Ellbogen leicht gebeugt und gleich halten (gemessen etwa 14°).', src: ['LI', 'B1'],
         explain: 'Beide Studien gaben eine leichte Beugung vor; gemessen wurden 14 ± 9° (Liu et al. 2024). Verschiedene Ellbogenwinkel wurden nicht verglichen.' },
       { short: 'Griff', anchor: 'shoulderL', side: 'l', status: 'single', text: 'Neutraler Griff: hinterer Delta an der Maschine etwas aktiver als im Obergriff.', src: ['SF'],
-        explain: 'Reverse-Fly-Maschine, trainierte Männer: Mit neutralem Griff waren hinterer Deltamuskel und Infraspinatus aktiver als im Obergriff (Schoenfeld et al. 2013, Abstract). Am Kabel nicht geprüft.' },
+        explain: 'Reverse-Fly-Maschine, 19 trainierte Männer: Mit neutralem Griff war der hintere Delta im Mittel etwas aktiver (90 statt 87 % der Maximalaktivität, kleiner Effekt), der Infraspinatus deutlicher (70 statt 62 %). Spitzenwerte unterschieden sich nicht (Schoenfeld et al. 2013, Volltext). Am Kabel nicht geprüft.' },
       { short: 'Tempo', anchor: 'upperBack', side: 'l', status: 'single', text: 'Kontrolliert öffnen und zurückführen, in der Studie je 2 s.', src: ['B1'],
         explain: 'Metronom 2 s / 2 s bei 10-RM-Last (Bergquist et al. 2018). Ein Messprotokoll, kein Tempovergleich.' }
     ],
     sources: {
       B1: { label: 'Bergquist et al. 2018, J Hum Kinet', url: 'https://doi.org/10.1515/hukin-2017-0137', read: 'fulltext' },
       LI: { label: 'Liu et al. 2024, PeerJ', url: 'https://doi.org/10.7717/peerj.17839', read: 'fulltext' },
-      SF: { label: 'Schoenfeld et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318281e1e9', read: 'abstract' }
+      SF: { label: 'Schoenfeld et al. 2013, J Strength Cond Res', url: 'https://doi.org/10.1519/JSC.0b013e318281e1e9', read: 'fulltext' }
     }
   },
 
@@ -3787,9 +3787,9 @@ export const ANIMATIONS = [
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 1.5, label: 'Heben', kp: [0, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 1.5, label: 'Senken', kp: [0] }],
     keyPoints: [
       { short: 'Y', anchor: 'hand', side: 'r', status: 'single', text: 'Arme gestreckt schräg nach vorn-oben in Y-Form heben, etwa 135°.', src: ['SO', 'EK'],
-        explain: 'Im Stand mit Band wurden die Arme bis ≈ 135° in der Schulterblattebene gehoben (Song et al. 2026, 36 Personen). Das Armheben über Kopf in Bauchlage, in Linie mit dem unteren Trapez, brachte von 10 Übungen die höchste Aktivität dieses Muskels (Ekstrom et al. 2003, 30 Gesunde, Abstract).' },
+        explain: 'Im Stand mit Band wurden die Arme bis ≈ 135° in der Schulterblattebene gehoben (Song et al. 2026, 36 Personen). Das Armheben über Kopf in Bauchlage, in Linie mit dem unteren Trapez, brachte von 10 Übungen die höchste Aktivität dieses Muskels (Ekstrom et al. 2003, 30 Gesunde, einarmig in Bauchlage auf der Liege, Volltext).' },
       { short: 'Trapez', anchor: 'upperBack', side: 'l', status: 'contested', text: 'Der untere Trapez arbeitet stark – der obere aber ähnlich mit.', src: ['AD', 'EK'],
-        explain: 'Umstritten, wie gezielt die Übung ist. Bei der Y-Übung ohne Gewicht: unterer Trapez 63 ± 40 %, oberer 54 ± 31 % der Maximalkraft (Adachi et al. 2022, 16 Männer; Körperlage nur in einer Abbildung). Ekstrom et al. 2003 nennen das Armheben in Bauchlage die beste Übung für den unteren Trapez.' },
+        explain: 'Umstritten, wie gezielt die Übung ist. Bei der Y-Übung ohne Gewicht: unterer Trapez 63 ± 40 %, oberer 54 ± 31 % der Maximalkraft (Adachi et al. 2022, 16 Männer; Körperlage nur in einer Abbildung). Ekstrom et al. 2003 nennen das Armheben in Bauchlage die beste Übung für den unteren Trapez (97 %). Auch dort arbeitete der obere Trapez deutlich mit (79 %).' },
       { short: 'Rücken', anchor: 'back', side: 'l', status: 'single', text: 'Oberkörper nicht zusätzlich überstrecken – sonst arbeitet mehr der obere Trapez.', src: ['BO'],
         explain: '31 Gesunde, Armheben in Bauchlage: Zusätzliche Rumpfstreckung steigerte den oberen Trapez; unterer (42–48 %) und mittlerer Trapez blieben gleich (Borms et al. 2022, Abstract).' },
       { short: 'Bauch', anchor: 'belly', side: 'r', status: 'single', text: 'Bauch fest anspannen: Der untere Trapez war so aktiver.', src: ['SO'],
@@ -3797,7 +3797,7 @@ export const ANIMATIONS = [
     ],
     sources: {
       SO: { label: 'Song et al. 2026, J Clin Med', url: 'https://doi.org/10.3390/jcm15187282', read: 'fulltext' },
-      EK: { label: 'Ekstrom et al. 2003, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2003.33.5.247', read: 'abstract' },
+      EK: { label: 'Ekstrom et al. 2003, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2003.33.5.247', read: 'fulltext' },
       AD: { label: 'Adachi et al. 2022, Orthop J Sports Med', url: 'https://doi.org/10.1177/23259671221132194', read: 'fulltext' },
       BO: { label: 'Borms et al. 2022, Braz J Phys Ther', url: 'https://doi.org/10.1016/j.bjpt.2022.100420', read: 'abstract' }
     }
@@ -3845,7 +3845,7 @@ export const ANIMATIONS = [
       { short: 'Gerade', anchor: 'shoulderR', side: 'r', status: 'single', text: 'Schultern gerade nach oben ziehen, die Arme hängen seitlich.', src: ['PI'],
         explain: 'Der Standard-Shrug wird mit den Armen an der Seite (0° Abduktion) ausgeführt (Pizzari et al. 2014, Abstract). Nicht kreisen ist Konvention, nicht untersucht.' },
       { short: 'Trapez', anchor: 'neck', side: 'l', status: 'consensus', text: 'Shrugs zählen zu den Übungen mit der höchsten Aktivität im oberen Trapez.', src: ['EK', 'AN'],
-        explain: 'Von 10 Übungen erzeugte der einarmige Shrug die höchste Aktivität im oberen Trapez (Ekstrom et al. 2003, 30 Gesunde). Bei 12 Frauen mit Nackenschmerzen 102 ± 11 % der Maximalkraft, mit 20–30 kg (Andersen et al. 2008). Beides Abstracts.' },
+        explain: 'Von 10 Übungen erzeugte der einarmige Shrug die höchste Aktivität im oberen Trapez: 119 ± 23 % mit dem 5er-Maximalgewicht (Ekstrom et al. 2003, 30 Gesunde, Volltext). Bei 12 Frauen mit Nackenschmerzen erreichte der Shrug 102 ± 11 % (Mittelwert ± Standardfehler), mit etwa 24 kg (Andersen et al. 2008, Volltext). Seitheben (97 %) und aufrechtes Rudern (85 %) lagen nicht signifikant darunter, mit nur 5–9 kg. Alle Werte in % der EMG-Aktivität bei maximaler Anspannung.' },
       { short: 'Variante', anchor: 'handL', side: 'l', status: 'single', text: 'Variante: Arme etwa 30° abspreizen – oberer und unterer Trapez arbeiten mehr.', src: ['PI'],
         explain: 'Shrug mit 30° Abduktion in der Frontalebene: oberer und unterer Trapez signifikant aktiver als beim Standard-Shrug, bei 23 Gesunden und 14 Personen mit Schulterinstabilität (Pizzari et al. 2014, Abstract).' },
       { short: 'Hub', anchor: 'chest', side: 'r', status: 'single', text: 'Das Schlüsselbein hebt sich etwa 25°, das Schulterblatt dreht mit.', src: ['PE', 'HA'],
@@ -3853,8 +3853,8 @@ export const ANIMATIONS = [
     ],
     sources: {
       PI: { label: 'Pizzari et al. 2014, Clin Biomech', url: 'https://doi.org/10.1016/j.clinbiomech.2013.11.011', read: 'abstract' },
-      EK: { label: 'Ekstrom et al. 2003, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2003.33.5.247', read: 'abstract' },
-      AN: { label: 'Andersen et al. 2008, Phys Ther', url: 'https://doi.org/10.2522/ptj.20070304', read: 'abstract' },
+      EK: { label: 'Ekstrom et al. 2003, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2003.33.5.247', read: 'fulltext' },
+      AN: { label: 'Andersen et al. 2008, Phys Ther', url: 'https://doi.org/10.2522/ptj.20070304', read: 'fulltext' },
       PE: { label: 'Peeters et al. 2022, JSES Int', url: 'https://doi.org/10.1016/j.jseint.2022.09.014', read: 'fulltext' },
       HA: { label: 'Hallaçeli & Günal 2001, Arch Orthop Trauma Surg', url: 'https://doi.org/10.1007/s004020100339', read: 'abstract' }
     }
@@ -4127,11 +4127,11 @@ export const ANIMATIONS = [
       { short: 'Hüfte', anchor: 'glute', side: 'l', status: 'single', text: 'Die Hüfte arbeitet kaum mit, wenn die Knie frei nach vorn wandern.', src: ['FR'],
         explain: 'Übertragen von der Kniebeuge: Mit frei nach vorn wandernden Knien lag das Hüftmoment bei 28 statt 303 N·m (Fry et al. 2003, 7 Männer, Abstract). Beim Sissy Squat bleibt die Hüfte gestreckt; gemessen wurde das nicht.' },
       { short: 'Kniedruck', anchor: 'thigh', side: 'r', status: 'single', text: 'Tiefe Beugung mit Knie vor den Zehen erhöht den Druck hinter der Kniescheibe.', src: ['E8'],
-        explain: 'Übertragen vom Ausfallschritt (18 Personen, 12RM): Zwischen 70 und 90° Kniebeugung waren Kraft und Druck im Kniescheibengelenk mit kurzem Schritt (Knie vor den Zehen) höher (Escamilla et al. 2008, Abstract).' }
+        explain: 'Übertragen vom Ausfallschritt (18 Personen, 12RM): Beim Ausfallschritt mit kurzem Schritt (Knie etwa 8 cm vor den Zehen) war die berechnete Last hinter der Kniescheibe bei 70–90° Beugung höher (Escamilla et al. 2008, Modell, 18 Gesunde). Für den Sissy Squat ist das eine Übertragung.' }
     ],
     sources: {
       FR: { label: 'Fry et al. 2003, J Strength Cond Res', url: 'https://doi.org/10.1519/1533-4287(2003)017<0629:eokpoh>2.0.co;2', read: 'abstract' },
-      E8: { label: 'Escamilla et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2694', read: 'abstract' }
+      E8: { label: 'Escamilla et al. 2008, J Orthop Sports Phys Ther', url: 'https://doi.org/10.2519/jospt.2008.2694', read: 'fulltext' }
     }
   }
 
