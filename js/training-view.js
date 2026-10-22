@@ -18,7 +18,7 @@ import { openProgress, hasHistory } from './progress-view.js';
 import { openAnimation, hasAnimation } from './anim-view.js';
 import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm, fmtPace } from './input.js';
 import { weightWarning, placeholderFor, INTENSITIES } from './model.js';
-import { typoText } from './diary-view.js';
+import { typoText, openBackfill } from './diary-view.js';
 import * as SETS from './sets.js';
 import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
 import { swapOptions, candidateLine } from './group-view.js';
@@ -689,6 +689,7 @@ function startView(rerender) {
       : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
         h('p', { class: 'muted' }, 'Lege im Tab „Pläne“ einen Plan an – oder starte ein freies Training.')),
     h('button', { class: 'btn block', type: 'button', onclick: start(() => S.startEmpty()) }, 'Freies Training starten'),
+    h('button', { class: 'btn block subtle', type: 'button', onclick: () => openBackfill(rerender) }, 'Training nachtragen'),
     lightWeekCard(light, rerender),
     recent.length ? h('div', {}, h('div', { class: 'sec' }, 'Letzte Trainings'),
       h('div', { class: 'card list' }, recent.map((s) => {
