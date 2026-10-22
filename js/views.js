@@ -11,6 +11,7 @@ import { stepRest, formatDuration } from './rest.js';
 import { wakeLockSupported, storageStatus } from './device.js';
 import { BAR_KG_MIN, BAR_KG_MAX } from './model.js';
 import { fmtNum } from './input.js';
+import { gearPicker } from './gear-view.js';
 
 // v2.26.0: An/Aus-Schalter für eine Einstellung (gleiche Form wie beim Zyklus).
 function onOff(label, key, rerender) {
@@ -150,6 +151,13 @@ export function settingsView(rerender) {
             return next;
           }
         })) : null
+    ),
+    h(
+      'div',
+      { class: 'card' },
+      h('h2', {}, 'Mein Equipment'),
+      h('p', { class: 'muted small' }, 'Was du zur Verfügung hast. Im Startpool kannst du damit auf passende Übungen eingrenzen. Körpergewicht ohne Zubehör ist immer dabei. Bereits übernommene Übungen bleiben unverändert.'),
+      gearPicker()
     ),
     h(
       'div',

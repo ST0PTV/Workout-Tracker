@@ -770,3 +770,8 @@ body { overflow-wrap: anywhere; }
 .ss-link { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: -2px 0 -2px 38px; border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.25); background: none; color: var(--muted, #9aa6c7); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; width: calc(100% - 38px); }
 .ss-link.on { border-color: rgba(110, 231, 216, 0.6); color: var(--accent); background: rgba(110, 231, 216, 0.06); }
 .ss-line { margin: -4px 0 -4px 38px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+
+/* v2.31.0: Mein Equipment */
+.pool-mine { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 10px; }
+.pool-mine .link { min-height: 36px; }
+.gear-picker .wrap { margin-bottom: 8px; }

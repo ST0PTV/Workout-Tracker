@@ -20,6 +20,58 @@ export const EQUIPMENT = {
   bodyweight: 'Körpergewicht'
 };
 
+// v2.31.0: Geräte, die man besitzt oder nicht ("Mein Equipment"). Feiner als EQUIPMENT: Körpergewichtsübungen
+// brauchen oft doch etwas (Stange, Barren, Bank). Reihenfolge = Reihenfolge der Tasten.
+// Körpergewicht ohne Zubehör ist immer dabei und steht deshalb nicht in der Liste.
+export const GEAR = {
+  barbell: 'Langhantel',
+  dumbbell: 'Kurzhantel',
+  cable: 'Kabelzug',
+  machine: 'Kraftmaschinen',
+  cardio: 'Cardiogeräte',
+  bench: 'Bank / Box',
+  pullbar: 'Klimmzugstange',
+  dipbars: 'Dipbarren',
+  band: 'Widerstandsband',
+  wheel: 'Ab-Rad'
+};
+
+// Zusätzlich nötiges Zubehör je Übung (neben dem eigenen Gerät aus equipment). Zuordnung selbst vorgenommen,
+// nicht aus Quellen; Übungen ohne Eintrag und ohne Gerät gehen ohne Zubehör (Boden oder Wand genügt).
+const EXTRA_GEAR = {
+  bench: ['bench-press-barbell', 'incline-barbell-bench-press', 'decline-barbell-bench-press', 'close-grip-bench-press',
+    'ez-bar-skullcrusher', 'hip-thrust', 'incline-press-dumbbell', 'dumbbell-bench-press', 'dumbbell-fly', 'incline-prone-y-raise',
+    'incline-dumbbell-curl', 'preacher-curl', 'concentration-curl', 'bulgarian-split-squat', 'dumbbell-step-up',
+    'feet-elevated-push-up', 'bench-dips', 'copenhagen-plank'],
+  pullbar: ['pull-up', 'chin-up', 'hanging-leg-raise'],
+  dipbars: ['dips', 'l-sit', 'captains-chair-knee-raise'],
+  band: ['clamshell-band'],
+  wheel: ['ab-wheel-rollout'],
+  barbell: ['inverted-row'], // Stange im Rack auf Hüfthöhe; mit Ringen oder TRX geht es auch (dann Filter aus)
+  machine: ['back-extension-45']
+};
+const EXTRA_BY_REF = new Map();
+for (const [gear, refs] of Object.entries(EXTRA_GEAR)) for (const r of refs) EXTRA_BY_REF.set(r, [...(EXTRA_BY_REF.get(r) || []), gear]);
+
+// Alle Geräte, die eine Pool-Übung braucht (leer = ohne Zubehör machbar).
+export function gearOf(p) {
+  const own = p.kind === 'cardio' ? 'cardio' : p.equipment === 'bodyweight' ? null : p.equipment;
+  return [...new Set([own, ...(EXTRA_BY_REF.get(p.ref) || [])].filter(Boolean))];
+}
+
+// Gültige Auswahl aus den Einstellungen oder null (= nichts festgelegt, alles zeigen).
+export function ownedGear(settings) {
+  const list = settings?.equipment;
+  if (!Array.isArray(list)) return null;
+  const ok = Object.keys(GEAR).filter((k) => list.includes(k));
+  return ok.length ? ok : null;
+}
+
+// Passt die Übung zur Auswahl? Ohne Auswahl (null) passt alles.
+export function fitsGear(p, owned) {
+  return !owned || gearOf(p).every((k) => owned.includes(k));
+}
+
 export const CONFIDENCE = { high: 'hoch', medium: 'mittel', low: 'niedrig' };
 
 // Quelle: kurze Angabe, Link (DOI oder URL), was sie für die Zuordnung zeigt (eigene Worte).

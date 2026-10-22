@@ -4,7 +4,8 @@ import { h } from './util.js';
 import { MUSCLES, EXERCISE_KINDS, createExercise, BAR_KG_MIN, BAR_KG_MAX } from './model.js';
 import { isPerSide, isBarbell } from './plates.js';
 import { fmtNum } from './input.js';
-import { POOL, EQUIPMENT, CONFIDENCE, POOL_CHECKED_AT, poolEntry, poolRefsInLibrary } from './pool.js';
+import { POOL, EQUIPMENT, GEAR, CONFIDENCE, POOL_CHECKED_AT, poolEntry, poolRefsInLibrary, gearOf, ownedGear, fitsGear } from './pool.js';
+import { gearPicker } from './gear-view.js';
 import { MUSCLE_INFO, MUSCLE_INFO_CHECKED_AT } from './muscle-info.js';
 import * as lib from './exercises.js';
 import { openSheet } from './sheet.js';
@@ -98,6 +99,7 @@ export function openEvidence(ref) {
     h('p', {}, h('b', {}, p.involved ? 'Hauptsächlich beteiligt: ' : 'Primär: '), muscleLinks(m.primary)),
     h('p', {}, h('b', {}, p.involved ? 'Mitbeteiligt: ' : 'Sekundär: '), muscleLinks(m.secondary)),
     p.others.length ? h('p', {}, h('b', {}, 'Außerdem beteiligt: '), p.others.join('; ')) : null,
+    h('p', {}, h('b', {}, 'Braucht: '), gearOf(p).map((k) => GEAR[k]).join(', ') || 'kein Zubehör'),
     h('p', {}, h('b', {}, 'Belastbarkeit: '), h('span', { class: `conf ${p.confidence}` }, CONFIDENCE[p.confidence]), ` · ${p.basis}`),
     p.note ? h('p', {}, p.note) : null,
     h('h3', {}, 'Quellen'),
@@ -115,10 +117,13 @@ function checkBox(state) {
 // v2.8.0: Alle Pool-Übungen auf einmal – mit Bestätigung (Leerzustand der Übungen-Liste).
 function confirmAddAll(rerender) {
   const inLib = poolRefsInLibrary(lib.listExercises({ includeArchived: true }));
-  const todo = POOL.filter((p) => !inLib.has(p.ref));
+  const owned = ownedGear(store.get('settings'));
+  const open = POOL.filter((p) => !inLib.has(p.ref));
+  const todo = open.filter((p) => fitsGear(p, owned));
   const cardio = todo.filter((p) => p.kind === 'cardio').length;
   const sheet = openSheet(h('div', { class: 'confirm-all' },
     h('p', { class: 'muted' }, 'Die Liste wird lang. Übungen, die du nicht brauchst, kannst du später archivieren. Muskeln und Quellen bleiben je Übung abrufbar.'),
+    owned && open.length > todo.length ? h('p', { class: 'muted small' }, `Nach „Mein Equipment“ gefiltert: ${open.length - todo.length} Übungen, die dein Equipment nicht abdeckt, bleiben im Pool.`) : null,
     h('div', { class: 'card sum' },
       h('span', {}, 'Kraft und Körpergewicht', h('b', {}, String(todo.length - cardio))),
       h('span', {}, 'Cardio-Geräte', h('b', {}, String(cardio)))),
@@ -130,11 +135,11 @@ function confirmAddAll(rerender) {
         rerender();
       } }, `${todo.length} übernehmen`),
       h('button', { class: 'btn', type: 'button', onclick: () => sheet.close() }, 'Abbrechen'))),
-  { title: `Alle ${todo.length} Übungen übernehmen?` });
+  { title: owned ? `${todo.length} passende Übungen übernehmen?` : `Alle ${todo.length} Übungen übernehmen?` });
 }
 
 function openPool(rerender) {
-  const local = { query: '', region: null, muscle: null, equip: null, select: false, picked: new Set() };
+  const local = { query: '', region: null, muscle: null, equip: null, mine: true, select: false, picked: new Set() };
   const listBox = h('div');
   const selBox = h('div');
   const barBox = h('div', { class: 'pool-bar-wrap' });
@@ -142,9 +147,11 @@ function openPool(rerender) {
     const inLib = poolRefsInLibrary(lib.listExercises());
     const items = POOL
       .filter((p) => lib.matchesQuery({ name: p.name, note: '' }, local.query) && lib.inRegion(p, local.region)
-        && (!local.muscle || p.muscles.primary.includes(local.muscle)) && (!local.equip || p.equipment === local.equip))
+        && (!local.muscle || p.muscles.primary.includes(local.muscle)) && (!local.equip || p.equipment === local.equip)
+        && fitsGear(p, local.mine ? ownedGear(store.get('settings')) : null))
       .sort((a, b) => a.name.localeCompare(b.name, 'de'));
     countLine.textContent = items.length === POOL.length ? `${POOL.length} Übungen` : `${items.length} von ${POOL.length} Übungen`;
+    countLine.textContent += local.mine && ownedGear(store.get('settings')) ? ' · Mein Equipment' : '';
     // Auswählen-Modus (v2.8.0): Haken statt „+“, „Alle auswählen“ gilt für die angezeigten, noch nicht übernommenen Übungen.
     const selectable = items.filter((p) => !inLib.has(p.ref));
     for (const ref of [...local.picked]) if (inLib.has(ref)) local.picked.delete(ref);
@@ -201,9 +208,22 @@ function openPool(rerender) {
     modeBtn.setAttribute('aria-pressed', String(local.select));
   };
   modeBtn.addEventListener('click', () => { local.select = !local.select; local.picked.clear(); drawMode(); draw(); });
+  // v2.31.0: „Nur mein Equipment“ (nur sichtbar, wenn Equipment festgelegt ist) und Zugang zur Auswahl.
+  const mineRow = h('div', { class: 'pool-mine' });
+  const drawMine = () => {
+    const owned = ownedGear(store.get('settings'));
+    mineRow.replaceChildren(
+      owned ? h('button', { class: `chip small${local.mine ? ' on' : ''}`, type: 'button', 'aria-pressed': String(local.mine),
+        onclick: () => { local.mine = !local.mine; drawMine(); draw(); } }, 'Nur mein Equipment') : '',
+      h('button', { class: 'link', type: 'button', onclick: () => {
+        openSheet(h('div', {}, h('p', { class: 'muted small' }, 'Was du zur Verfügung hast. Körpergewicht ohne Zubehör ist immer dabei. Gilt für diese Liste und „Alle übernehmen“.'),
+          gearPicker(() => { drawMine(); draw(); })), { title: 'Mein Equipment' });
+      } }, owned ? 'Equipment ändern' : 'Mein Equipment festlegen'));
+  };
   const body = h('div', {},
     h('div', { class: 'pool-top' }, hint, modeBtn),
     searchField('', 'Im Pool suchen', (v) => { local.query = v; draw(); }),
+    mineRow,
     h('div', { class: 'chips-wrap' }),
     countLine,
     selBox,
@@ -223,6 +243,7 @@ function openPool(rerender) {
   };
   drawMode();
   drawChips();
+  drawMine();
   draw();
   openSheet(body, { title: 'Startpool', full: true });
 }
@@ -420,7 +441,7 @@ export function exercisesView(rerender) {
         h('div', { class: 'big' }, icon('train', { size: 44 })), h('h2', {}, 'Noch keine Übungen'),
         h('p', { class: 'muted' }, 'Übernimm Grundübungen aus dem Startpool oder lege eigene an.'),
         h('div', { class: 'row-btns' },
-          h('button', { class: 'btn primary', type: 'button', onclick: () => confirmAddAll(rerender) }, `Alle ${POOL.length} Startpool-Übungen übernehmen`),
+          h('button', { class: 'btn primary', type: 'button', onclick: () => confirmAddAll(rerender) }, ownedGear(store.get('settings')) ? 'Passende Startpool-Übungen übernehmen' : `Alle ${POOL.length} Startpool-Übungen übernehmen`),
           h('button', { class: 'btn', type: 'button', onclick: () => openPool(rerender) }, 'Startpool durchsehen'),
           h('button', { class: 'btn', type: 'button', onclick: () => openEditor(null, rerender) }, 'Eigene Übung'))));
       return;
