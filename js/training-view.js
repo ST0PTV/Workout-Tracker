@@ -27,6 +27,8 @@ import { askWarmup, startRun, cooldownOffer } from './routine-view.js';
 import { cycleStartCards } from './cycle-view.js';
 import * as RT from './routines.js';
 import * as PR from './progression.js';
+import { missedHints, formatDays, isWeekSkipped } from './schedule.js';
+import { planChanges } from './plan-sync.js';
 import { askRating, needsRating, ratingLine, suggestionCard, askBreak } from './progression-view.js';
 
 const ui = { current: null, sessionId: null, swapOpen: null };
@@ -245,6 +247,7 @@ function finishFlow(rerender) {
   askPersistOnce();
   const sum = S.sessionView(r.session).summary;
   const dur = elapsed(before.startedAt);
+  const sync = planSyncCard(r.session, rerender);
   rerender();
   let summarySheet = null;
   summarySheet = openSheet(h('div', { class: 'info' },
@@ -253,8 +256,54 @@ function finishFlow(rerender) {
       h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Arbeitssätze')),
       h('div', { class: 'stat' }, h('b', {}, `${Math.round(sum.volume).toLocaleString('de-DE')}`), h('span', {}, 'Volumen kg'))),
     h('p', { class: 'muted small' }, 'Volumen = Gewicht × Wiederholungen der Arbeitssätze (ohne Aufwärmsätze, ohne Körpergewichtsübungen). Die Werte sind die Vorbelegung fürs nächste Training.'),
+    sync,
     cooldownOffer(r.session, () => summarySheet?.close())
   ), { title: 'Training gespeichert' });
+}
+
+// v2.29.0 (Feature-To-Do B4): „Änderungen von heute in den Plan übernehmen?“ – Liste ohne Vorauswahl,
+// nichts wird still überschrieben. Gewichte gehören nicht dazu (sie hängen an der Übung).
+function planSyncCard(session, rerender) {
+  const plan = session.planId ? P.getPlan(session.planId) : null;
+  if (!plan) return null;
+  const byId = Object.fromEntries(lib.listExercises({ includeArchived: true }).map((e) => [e.id, e]));
+  const changes = planChanges(session, plan, byId);
+  if (!changes.length) return null;
+  const chosen = new Set();
+  const box = h('div', { class: 'plan-sync' });
+  const draw = () => {
+    const btn = h('button', { class: 'btn primary block', type: 'button', disabled: !chosen.size, onclick: () => {
+      const r = P.applyPlanChanges(plan.id, changes.filter((c) => chosen.has(c.id)));
+      if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+      box.replaceChildren(h('p', { class: 'muted small' }, `Plan „${plan.name}“ angepasst (${chosen.size} ${chosen.size === 1 ? 'Änderung' : 'Änderungen'}).`));
+      toast('Plan angepasst.');
+      rerender();
+    } }, chosen.size ? `${chosen.size} in den Plan übernehmen` : 'Auswählen, was in den Plan soll');
+    box.replaceChildren(
+      h('div', { class: 'sec' }, `Plan „${plan.name}“ anpassen?`),
+      h('p', { class: 'muted small' }, 'Heute lief es anders als im Plan. Nichts ist vorausgewählt – was du nicht antippst, bleibt im Plan, wie es ist. Gewichte stehen nicht im Plan, sie kommen wie immer vom letzten Training.'),
+      h('div', { class: 'card list' }, changes.map((c) => {
+        const on = chosen.has(c.id);
+        return h('button', { class: `row pick${on ? ' on' : ''}`, type: 'button', 'aria-pressed': String(on), onclick: () => {
+          if (on) chosen.delete(c.id); else chosen.add(c.id);
+          draw();
+        } }, h('span', { class: `check${on ? ' on' : ''}` }, on ? icon('check', { size: 16 }) : null), h('span', { class: 't' }, h('b', {}, c.text)));
+      })),
+      btn);
+  };
+  draw();
+  return box;
+}
+
+// v2.29.0 (Feature-To-Do A): Hinweis am Folgetag, wenn an einem Trainingstag gar kein Training stattfand.
+// Neutral (Projektregel §4): kein Zähler, keine Serie, keine Wertung; erscheint nur für den Vortag.
+function missedCards(rerender) {
+  return missedHints(P.listPlans(), store.get('sessions')).map(({ plan, date, day }) =>
+    h('div', { class: 'card hint-box', role: 'note' },
+      h('p', {}, `Gestern (${day}) war „${plan.name}“ eingeplant, eingetragen ist kein Training.`),
+      h('div', { class: 'row-btns' },
+        h('button', { class: 'btn', type: 'button', onclick: () => { P.ackMissed(plan.id, date); rerender(); } }, 'OK'),
+        h('button', { class: 'btn', type: 'button', onclick: () => { P.skipWeek(plan.id, new Date(), date); toast(`„${plan.name}“: diese Woche ausgesetzt.`); rerender(); } }, 'Diese Woche aussetzen'))));
 }
 
 // ---------- Übungsseite (A) ----------
@@ -524,6 +573,7 @@ function startView(rerender) {
     h('h1', {}, 'Training'),
     h('p', { class: 'sub' }, 'Plan wählen und loslegen. Alle Daten bleiben auf diesem Gerät.'),
     ...cycleStartCards(rerender),
+    ...missedCards(rerender),
     plans.length
       ? plans.map((p) => {
         const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
@@ -551,8 +601,11 @@ function startView(rerender) {
           if (!pause) { launch(false); return; }
           askBreak(p, byId, past, pause, { onReduce: () => launch(true), onKeep: () => launch(false) });
         };
+        const days = formatDays(p.days);
+        const skipped = days && isWeekSkipped(p);
         return h('div', { class: 'pcard start-card' },
-          h('span', { class: 'pc-top' }, h('b', {}, p.name)),
+          h('span', { class: 'pc-top' }, h('b', {}, p.name), days ? h('small', { class: 'muted' }, days) : null),
+          skipped ? h('small', { class: 'muted' }, 'Diese Woche ausgesetzt · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.unskipWeek(p.id); rerender(); } }, 'rückgängig')) : null,
           h('small', {}, `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}${warm ? ` · Aufwärmen: ${warm.name}` : ''}`),
           names.length ? h('span', { class: 'ex' }, names.join(' · ')) : null,
           h('button', { class: 'btn primary block', type: 'button', disabled: !names.length, onclick: go }, 'Starten'));

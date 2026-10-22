@@ -6,6 +6,8 @@ import { formatSet } from './sets.js';
 import { nowISO } from './util.js';
 import { REST_MIN, REST_MAX } from './rest.js';
 import { createPlan, createPlanItem, validatePlan, lastPerformance } from './model.js';
+import { isDayList, weekKey, dateKey, SKIP_WEEKS_KEEP } from './schedule.js';
+import { applyChanges } from './plan-sync.js';
 
 export function listPlans({ includeArchived = false } = {}) {
   return store.get('plans').filter((p) => includeArchived || !p.archived);
@@ -105,6 +107,44 @@ export function setItemGroup(planId, itemId, groupId) {
     if (!it) return 'Eintrag nicht gefunden.';
     if (groupId !== null && !store.get('groups').some((g) => g.id === groupId)) return 'Gruppe nicht gefunden.';
     it.groupId = groupId;
+  });
+}
+
+// v2.29.0 (Feature-To-Do A): Trainingstage, Mo = 0 … So = 6; leere Liste = keine festen Tage.
+export function setPlanDays(planId, days) {
+  return update(planId, (p) => {
+    if (!isDayList(days)) return 'Trainingstage ungültig.';
+    p.days = [...days].sort((a, b) => a - b);
+  });
+}
+
+// „Diese Woche überspringen“: gilt für die Woche von `date`; bestätigt zugleich einen offenen Hinweis.
+export function skipWeek(planId, date = new Date(), ackDate = null) {
+  return update(planId, (p) => {
+    const key = weekKey(date);
+    const weeks = (p.skipWeeks || []).filter((w) => w !== key);
+    p.skipWeeks = [...weeks, key].sort().slice(-SKIP_WEEKS_KEEP);
+    if (ackDate) p.missedAck = dateKey(ackDate);
+  });
+}
+
+export function unskipWeek(planId, date = new Date()) {
+  return update(planId, (p) => {
+    const key = weekKey(date);
+    p.skipWeeks = (p.skipWeeks || []).filter((w) => w !== key);
+  });
+}
+
+// Hinweis „gestern war … eingeplant“ gesehen: wird für diesen Tag nicht wieder gezeigt.
+export function ackMissed(planId, dayKey) {
+  return update(planId, (p) => { p.missedAck = dayKey; });
+}
+
+// v2.29.0 (Feature-To-Do B4): gewählte Änderungen aus einem Training übernehmen (plan-sync.js).
+export function applyPlanChanges(planId, changes) {
+  return update(planId, (p) => {
+    if (!changes.length) return 'Nichts ausgewählt.';
+    p.items = applyChanges(p.items, changes, createPlanItem);
   });
 }
 

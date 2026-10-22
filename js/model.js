@@ -144,6 +144,7 @@ const isId = (v) => isStr(v) && v.length > 0;
 const isISO = (v) => isStr(v) && !Number.isNaN(Date.parse(v));
 const isNullableNum = (v, { int = false } = {}) =>
   v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0 && (!int || Number.isInteger(v)));
+const isDateKey = (v) => isStr(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
 const isStrArray = (v) => Array.isArray(v) && v.every(isStr);
 // Optionale Pausenzeit (v1.4 an Planeintrag und Trainingseintrag): fehlt, null oder 1–3600 s.
 const isRest = (v) => v === undefined || v === null || (Number.isInteger(v) && v > 0 && v <= 3600);
@@ -198,6 +199,11 @@ export function validatePlan(p) {
   if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);
   // v2.3.0 (optional, ohne Schemaänderung): Aufwärm-/Cool-down-Routine des Plans (eigene id oder Vorlage "tpl:…").
   for (const k of ['warmupRoutineId', 'cooldownRoutineId']) if (p[k] !== undefined && p[k] !== null && !isId(p[k])) err.push(`Plan ${p.id}: ${k} ungültig.`);
+  // v2.29.0 (optional, ohne Schemaänderung): Trainingstage (Mo = 0 … So = 6), übersprungene Wochen
+  // (Montag als "JJJJ-MM-TT") und der zuletzt bestätigte Hinweis-Tag. Logik: js/schedule.js.
+  if (p.days !== undefined && !(Array.isArray(p.days) && p.days.length <= 7 && new Set(p.days).size === p.days.length && p.days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6))) err.push(`Plan ${p.id}: Trainingstage ungültig.`);
+  if (p.skipWeeks !== undefined && !(Array.isArray(p.skipWeeks) && p.skipWeeks.every(isDateKey))) err.push(`Plan ${p.id}: übersprungene Wochen ungültig.`);
+  if (p.missedAck !== undefined && p.missedAck !== null && !isDateKey(p.missedAck)) err.push(`Plan ${p.id}: Hinweis-Datum ungültig.`);
   if (!isISO(p.createdAt) || !isISO(p.updatedAt)) err.push(`Plan ${p.id}: Zeitstempel ungültig.`);
   return err;
 }
@@ -244,6 +250,8 @@ export function validateSession(x) {
     for (const en of x.entries) {
       if (!en || !isId(en.id) || !isId(en.exerciseId)) { err.push(`Training ${x.id}: Eintrag ohne id/exerciseId.`); continue; }
       if (en.plannedExerciseId !== null && !isId(en.plannedExerciseId)) err.push(`Training ${x.id}: plannedExerciseId ungültig.`);
+      // v2.29.0 (optional): Platz im Plan, aus dem der Eintrag stammt (für „Änderungen übernehmen“).
+      if (en.planItemId !== undefined && en.planItemId !== null && !isId(en.planItemId)) err.push(`Training ${x.id}: planItemId ungültig.`);
       if (en.groupId !== null && !isId(en.groupId)) err.push(`Training ${x.id}: groupId ungültig.`);
       if (en.targetSets !== undefined && en.targetSets !== null && !(Number.isInteger(en.targetSets) && en.targetSets > 0)) err.push(`Training ${x.id}: targetSets ungültig.`);
       if (!isRest(en.restSeconds)) err.push(`Training ${x.id}: Pausenzeit ungültig.`);
@@ -500,6 +508,7 @@ export function startSessionFromPlan(plan, exercisesById, sessions) {
   session.entries = plan.items
     .filter((it) => exercisesById[it.exerciseId])
     .map((it) => createEntry(it.exerciseId, {
+      planItemId: it.id, // v2.29.0: Plan-Platz, bleibt auch nach einem Tausch
       groupId: it.groupId,
       targetSets: it.targetSets ?? null, // v1.3: für die Vorbelegung nach einem Tausch
       restSeconds: it.restSeconds ?? null, // v1.4: Pause nur in diesem Plan (gilt für den Platz, auch nach Tausch)
