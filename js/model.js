@@ -57,8 +57,16 @@ export const DEFAULT_SETTINGS = {
   focus: ['strength'],
   weightUnit: 'kg',
   restSeconds: 120,
-  figure: 'male' // v1.4: Figur für Muskelkarte und Piktogramme ('male' | 'female'); Logik ist gleich
+  figure: 'male', // v1.4: Figur für Muskelkarte und Piktogramme ('male' | 'female'); Logik ist gleich
+  keepAwake: true, // v2.26.0 (A1): Bildschirm während eines laufenden Trainings anlassen (falls das Gerät es kann)
+  plateMath: true, // v2.26.0 (A4): Scheiben pro Seite bei Langhantel-Übungen anzeigen
+  barKg: 20, // v2.26.0 (A4): Standard-Stangengewicht; pro Übung überschreibbar (exercise.barKg)
+  persistAsked: false // v2.26.0 (A2): einmal nach dauerhaftem Speicher gefragt (nach dem ersten beendeten Training)
 };
+
+// v2.26.0 (A4): Grenzen für das Stangengewicht (kg).
+export const BAR_KG_MIN = 0;
+export const BAR_KG_MAX = 50;
 
 export const FIGURES = ['male', 'female'];
 
@@ -155,6 +163,9 @@ export function validateExercise(e) {
   if (!Number.isInteger(e.defaultWorkSets) || e.defaultWorkSets < 0) err.push(`Übung ${e.id}: defaultWorkSets ungültig.`);
   if (!isStr(e.note)) err.push(`Übung ${e.id}: Notiz ungültig.`);
   if (e.restSeconds !== undefined && e.restSeconds !== null && !(Number.isInteger(e.restSeconds) && e.restSeconds > 0 && e.restSeconds <= 3600)) err.push(`Übung ${e.id}: Pausenzeit ungültig.`);
+  // v2.26.0: optionale Felder (fehlen in älteren Daten): eigenes Stangengewicht, Wiederholungen je Seite.
+  if (e.barKg !== undefined && e.barKg !== null && !(typeof e.barKg === 'number' && Number.isFinite(e.barKg) && e.barKg >= BAR_KG_MIN && e.barKg <= BAR_KG_MAX)) err.push(`Übung ${e.id}: Stangengewicht ungültig.`);
+  if (e.perSide !== undefined && typeof e.perSide !== 'boolean') err.push(`Übung ${e.id}: „je Seite“ ungültig.`);
   if (!e.source || !['builtin', 'custom'].includes(e.source.origin) || !VERIFICATION.includes(e.source.verification)) {
     err.push(`Übung ${e.id}: Quelle ungültig.`);
   }

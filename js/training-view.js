@@ -10,6 +10,8 @@ import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { restState } from './timer.js';
+import { requestPersist } from './device.js';
+import { barFor, plateLine, isPerSide } from './plates.js';
 import { formatDuration } from './rest.js';
 import { WARMUP_HINT, WARMUP_INFO, WARMUP_CHECKED_AT } from './warmup-info.js';
 import { openProgress, hasHistory } from './progress-view.js';
@@ -28,6 +30,14 @@ import * as PR from './progression.js';
 import { askRating, needsRating, ratingLine, suggestionCard, askBreak } from './progression-view.js';
 
 const ui = { current: null, sessionId: null, swapOpen: null };
+// v2.26.0 (A4): Scheiben-Zeile der offenen Übung; folgt dem zuletzt bearbeiteten Gewichtsfeld.
+const plate = { el: null, bar: null };
+function showPlates(kg) {
+  if (!plate.el || plate.bar === null) return;
+  const line = plateLine(kg, plate.bar);
+  plate.el.hidden = !line;
+  plate.el.textContent = line || '';
+}
 let tick = null;
 
 const fmtDay = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -69,6 +79,41 @@ function renderRest(bar, session) {
   bar.querySelector('.rt-sub').textContent = st.done ? `+${formatDuration(st.overtime)} · ${exName}` : `Pause · ${exName}`;
   bar.querySelector('.rt-ring-fg').setAttribute('stroke-dashoffset', String(RING_LEN * (1 - st.progress)));
   bar.querySelectorAll('.rt-adj').forEach((b) => { b.hidden = st.done; });
+  // v2.26.0 (A6): Pause vorbei → einmal sanft aufleuchten (kein Ton, kein Blinken; aus bei „Bewegung reduzieren“).
+  if (st.done && bar.dataset.wasDone === '0') {
+    bar.classList.remove('pulse');
+    void bar.offsetWidth; // Animation neu starten
+    bar.classList.add('pulse');
+  }
+  bar.dataset.wasDone = st.done ? '1' : '0';
+  // v2.26.0 (A5): Vorschau auf den nächsten offenen Satz.
+  const next = bar.querySelector('.rt-next');
+  if (next) { const txt = nextUp(); next.textContent = txt || ''; next.hidden = !txt; }
+}
+
+// v2.26.0 (A5): „Als Nächstes: Satz 2 · 80 × 8“ – Eintrag oder Platzhalter des ersten offenen Satzes,
+// sonst die nächste Übung mit offenen Sätzen. Wird beim Zeichnen der Seite einmal berechnet (siehe activeView).
+const nextCache = { key: null, text: null };
+function nextUp() {
+  return nextCache.key ? nextCache.text : null;
+}
+function computeNext(v, entryId) {
+  const i = v.entries.findIndex((d) => d.entry.id === entryId);
+  if (i < 0) return null;
+  const d = v.entries[i];
+  const kind = d.exercise?.kind;
+  const sets = d.entry.sets;
+  const k = kind === 'cardio' ? -1 : sets.findIndex((x) => x.completedAt === null);
+  if (k >= 0) {
+    const set = sets[k];
+    const workNo = set.type === 'warmup' ? 0 : sets.slice(0, k + 1).filter((x) => x.type !== 'warmup').length;
+    const vals = set.reps !== null ? set : { ...set, ...(placeholderFor(d.entry, k, d.last) || {}) };
+    const label = set.type === 'warmup' ? 'Aufwärmsatz' : `Satz ${SETS.setLabel(set, workNo)}`;
+    const values = vals.reps !== null && vals.reps !== undefined ? ` · ${SETS.formatSet({ ...vals, drops: [] }, kind)}${isPerSide(d.exercise) ? ' je Seite' : ''}` : '';
+    return `Als Nächstes: ${label}${values}`;
+  }
+  const after = v.entries.slice(i + 1).find((x) => !x.complete) || v.entries.slice(0, i).find((x) => !x.complete);
+  return after ? `Als Nächstes: ${after.exercise?.name || 'nächste Übung'}` : 'Alle Sätze erledigt';
 }
 
 function restBar(rerender) {
@@ -78,13 +123,24 @@ function restBar(rerender) {
   svg.setAttribute('aria-hidden', 'true');
   svg.innerHTML = `<circle cx="27" cy="27" r="23" class="rt-ring-bg"/><circle cx="27" cy="27" r="23" class="rt-ring-fg" stroke-dasharray="${RING_LEN}" stroke-dashoffset="${RING_LEN}" transform="rotate(-90 27 27)"/>`;
   const act = (fn) => () => { const r = fn(); if (!r.ok) toast(r.errors[0], { error: true }); renderRest(bar, S.activeSession()); };
-  const bar = h('div', { class: 'restbar', 'data-rest': '', role: 'timer', 'aria-live': 'off', hidden: true },
+  const bar = h('div', { class: 'restbar', 'data-rest': '', 'data-was-done': '1', role: 'timer', 'aria-live': 'off', hidden: true },
     svg,
     h('div', { class: 'rt-text' }, h('b', { class: 'rt-time' }, ''), h('small', { class: 'rt-sub' }, '')),
     h('button', { class: 'rt-btn rt-adj', type: 'button', 'aria-label': 'Pause 15 Sekunden kürzer', onclick: act(() => S.adjustRunningRest(-1)) }, '−15'),
     h('button', { class: 'rt-btn rt-adj', type: 'button', 'aria-label': 'Pause 15 Sekunden länger', onclick: act(() => S.adjustRunningRest(1)) }, '+15'),
-    h('button', { class: 'rt-btn', type: 'button', 'aria-label': 'Pause beenden', onclick: () => { S.stopRest(); bar.hidden = true; } }, icon('close', { size: 18 })));
+    h('button', { class: 'rt-btn', type: 'button', 'aria-label': 'Pause beenden', onclick: () => { S.stopRest(); bar.hidden = true; } }, icon('close', { size: 18 })),
+    h('div', { class: 'rt-next', hidden: true }, '')); // v2.26.0 (A5): eigene Zeile über die volle Breite
   return bar;
+}
+
+// v2.26.0 (A10): Toast mit „Rückgängig“ nach dem Löschen eines Satzes oder einer Übung.
+function undoToast(message, restore, after) {
+  toast(message, { action: { label: 'Rückgängig', onClick: () => {
+    const r = restore();
+    if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+    toast('Wiederhergestellt.');
+    after();
+  } } });
 }
 
 // ---------- Hilfs-Sheets ----------
@@ -149,9 +205,11 @@ function openOverview(rerender) {
           h('button', { type: 'button', 'aria-label': 'Nach unten', disabled: d.index === v.entries.length - 1, onclick: () => { S.moveEntry(d.entry.id, d.index + 1); if (ui.current === d.index) ui.current += 1; else if (ui.current === d.index + 1) ui.current -= 1; draw(); rerender(); } }, icon('down')),
           h('button', { type: 'button', class: 'danger', 'aria-label': 'Übung aus dem Training entfernen', onclick: () => {
             if (d.doneCount && !confirm('Diese Übung hat erledigte Sätze. Trotzdem entfernen?')) return;
-            S.removeEntry(d.entry.id);
+            const res = S.removeEntry(d.entry.id);
+            if (!res.ok) { toast(res.errors[0], { error: true }); return; }
             if (ui.current >= d.index && ui.current > 0) ui.current -= 1;
             draw(); rerender();
+            undoToast(`${d.exercise?.name || 'Übung'} entfernt.`, () => S.restoreEntry(res.removed), () => { draw(); rerender(); });
           } }, icon('trash')))))),
       h('button', { class: 'addline', type: 'button', onclick: () => openAddExercise(rerender, () => { const s = S.activeSession(); ui.current = s.entries.length - 1; draw(); }) }, icon('plus', { size: 18 }), 'Übung hinzufügen'),
       h('p', { class: 'muted small center' }, `${v.summary.hardSets} Arbeitssätze erledigt`),
@@ -165,6 +223,15 @@ function openOverview(rerender) {
   sheet = openSheet(body, { title: 'Übersicht', full: true });
 }
 
+// v2.26.0 (A2): Nach dem ersten beendeten Training einmal dauerhaften Speicher anfragen –
+// erst dann gibt es Daten, die sich nicht neu erzeugen lassen. Kein Hinweis, egal wie der Browser antwortet.
+function askPersistOnce() {
+  const st = store.get('settings');
+  if (st.persistAsked) return;
+  store.set('settings', { ...st, persistAsked: true });
+  requestPersist();
+}
+
 function finishFlow(rerender) {
   if (!confirm('Training beenden? Nicht abgehakte Sätze werden nicht gespeichert.')) return;
   const before = S.activeSession();
@@ -175,6 +242,7 @@ function finishFlow(rerender) {
     return;
   }
   ui.current = null;
+  askPersistOnce();
   const sum = S.sessionView(r.session).summary;
   const dur = elapsed(before.startedAt);
   rerender();
@@ -216,6 +284,11 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
   };
   checkTypo();
   w.addEventListener('input', checkTypo);
+  if (!bw) {
+    const platesNow = () => { const kg = parseWeight(w.value); showPlates(kg === null ? ph?.weightKg ?? null : Number.isNaN(kg) ? null : kg); };
+    w.addEventListener('input', platesNow);
+    w.addEventListener('focus', platesNow);
+  }
   const onChange = () => { const v = commit(); if (v) S.updateSet(d.entry.id, set.id, v); };
   w.addEventListener('change', onChange);
   r.addEventListener('change', onChange);
@@ -230,7 +303,12 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
     act: {
       setType: (t) => ok(S.setSetType(eid, set.id, t)),
       toggleTag: (tag) => ok(S.toggleTag(eid, set.id, tag)),
-      remove: () => ok(S.removeSet(eid, set.id))
+      remove: () => {
+        const res = S.removeSet(eid, set.id);
+        if (!ok(res)) return false;
+        undoToast('Satz gelöscht.', () => S.restoreSet(eid, res.removed), rerender);
+        return true;
+      }
     }
   });
   const row = h('div', { class: `setrow${done ? ' done' : ''}${set.type === 'warmup' ? ' warm' : ''}${SETS.hasStages(set.type) ? ' staged' : ''}` },
@@ -353,10 +431,21 @@ function exercisePage(v, d, rerender) {
   const rows = cardio ? [] : d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt)).filter(Boolean);
   const lastSets = d.last ? d.last.sets.filter((x) => x.type !== 'warmup') : [];
   const isLast = d.index === n - 1;
+  const perSide = isPerSide(ex);
+  // v2.26.0 (A4): Startwert = nächster offener Satz (Eintrag oder Platzhalter), sonst der letzte Satz.
+  plate.bar = cardio ? null : barFor(ex, store.get('settings'));
+  plate.el = plate.bar === null ? null : h('p', { class: 'plates muted small', 'aria-live': 'polite' });
+  if (plate.el) {
+    const sets = d.entry.sets;
+    const i = sets.findIndex((x) => x.completedAt === null);
+    const kg = i >= 0 ? (sets[i].weightKg ?? placeholderFor(d.entry, i, d.last)?.weightKg ?? null) : (sets[sets.length - 1]?.weightKg ?? null);
+    showPlates(kg);
+    if (kg === null) plate.el.hidden = true;
+  }
   return h('div', { class: 'ex-page' },
     ex ? h('div', {},
       h('h2', { class: 'exh' }, ex.name),
-      h('div', { class: 'sub2' }, lib.muscleSummary(ex)),
+      h('div', { class: 'sub2' }, lib.muscleSummary(ex), perSide ? h('span', { class: 'side-pill' }, 'je Seite') : null),
       ...swapLine(d, rerender),
       h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
         icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
@@ -368,8 +457,9 @@ function exercisePage(v, d, rerender) {
         ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null)),
     suggestionCard(d, rerender),
     cardio ? cardioCard(d, rerender) : h('div', { class: 'card sets' },
-      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, 'Wdh.'), h('span', {}, '')),
-      rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.')),
+      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, perSide ? 'Wdh./S.' : 'Wdh.'), h('span', {}, '')),
+      rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.'),
+      plate.el),
     cardio ? null : h('div', { class: 'nav2' },
       h('button', { class: 'btn', type: 'button', onclick: () => { S.addSet(d.entry.id, 'warmup'); rerender(); } }, icon('plus', { size: 18 }), 'Aufwärmsatz'),
       h('button', { class: 'btn', type: 'button', onclick: () => { S.addSet(d.entry.id, 'work'); rerender(); } }, icon('plus', { size: 18 }), 'Satz')),
@@ -400,6 +490,9 @@ function activeView(v, rerender) {
   const plan = s.planId ? P.getPlan(s.planId) : null;
   const n = v.entries.length;
   const d = v.entries[ui.current];
+  // Vorschau bezieht sich auf die gerade offene Übung (nicht unbedingt die des Timers).
+  nextCache.key = s.restTimer ? (d?.entry.id ?? null) : null;
+  nextCache.text = nextCache.key ? computeNext(v, nextCache.key) : null;
   const bar = restBar(rerender);
   const page = h('section', { class: 'training' },
     h('div', { class: 'prog' },

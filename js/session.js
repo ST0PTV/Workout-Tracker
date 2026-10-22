@@ -159,13 +159,28 @@ export const quickStage = (entryId, setId, type) => onSet(entryId, setId, (set) 
   return SETS.addStage(set) ? undefined : false;
 });
 
+// v2.26.0 (A10): Ergebnis enthält removed = { set, index } für „Rückgängig“.
 export function removeSet(entryId, setId) {
-  return update((s) => {
+  let removed = null;
+  const r = update((s) => {
     const entry = s.entries.find((e) => e.id === entryId);
     if (!entry) return 'Übung nicht gefunden.';
-    const n = entry.sets.length;
-    entry.sets = entry.sets.filter((x) => x.id !== setId);
-    if (entry.sets.length === n) return 'Satz nicht gefunden.';
+    const index = entry.sets.findIndex((x) => x.id === setId);
+    if (index < 0) return 'Satz nicht gefunden.';
+    removed = { set: structuredClone(entry.sets[index]), index };
+    entry.sets.splice(index, 1);
+  });
+  return r.ok ? { ...r, removed } : r;
+}
+
+// v2.26.0 (A10): gelöschten Satz an seiner alten Stelle wieder einsetzen. Nur das eine Element –
+// spätere Änderungen im selben Training bleiben erhalten.
+export function restoreSet(entryId, removed) {
+  return update((s) => {
+    const entry = s.entries.find((e) => e.id === entryId);
+    if (!entry || !removed?.set) return 'Die Übung ist nicht mehr im Training.';
+    if (entry.sets.some((x) => x.id === removed.set.id)) return 'Satz ist schon wieder da.';
+    entry.sets.splice(Math.min(removed.index, entry.sets.length), 0, structuredClone(removed.set));
   });
 }
 
@@ -210,12 +225,24 @@ export function swapEntry(entryId, exerciseId) {
   return r.ok ? { ...r, mode, index: mode === 'inserted' ? i + 1 : i } : r;
 }
 
+// v2.26.0 (A10): Ergebnis enthält removed = { entry, index } für „Rückgängig“ (der Pausen-Timer kommt nicht zurück).
 export function removeEntry(entryId) {
-  return update((s) => {
-    const n = s.entries.length;
-    s.entries = s.entries.filter((e) => e.id !== entryId);
-    if (s.entries.length === n) return 'Übung nicht gefunden.';
+  let removed = null;
+  const r = update((s) => {
+    const index = s.entries.findIndex((e) => e.id === entryId);
+    if (index < 0) return 'Übung nicht gefunden.';
+    removed = { entry: structuredClone(s.entries[index]), index };
+    s.entries.splice(index, 1);
     if (s.restTimer?.entryId === entryId) s.restTimer = null;
+  });
+  return r.ok ? { ...r, removed } : r;
+}
+
+export function restoreEntry(removed) {
+  return update((s) => {
+    if (!removed?.entry) return 'Nichts wiederherzustellen.';
+    if (s.entries.some((e) => e.id === removed.entry.id)) return 'Übung ist schon wieder da.';
+    s.entries.splice(Math.min(removed.index, s.entries.length), 0, structuredClone(removed.entry));
   });
 }
 

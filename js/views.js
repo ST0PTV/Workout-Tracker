@@ -8,6 +8,33 @@ import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { stepper } from './controls.js';
 import { stepRest, formatDuration } from './rest.js';
+import { wakeLockSupported, storageStatus } from './device.js';
+import { BAR_KG_MIN, BAR_KG_MAX } from './model.js';
+import { fmtNum } from './input.js';
+
+// v2.26.0: An/Aus-Schalter für eine Einstellung (gleiche Form wie beim Zyklus).
+function onOff(label, key, rerender) {
+  const cur = store.get('settings')[key] !== false;
+  return h('div', { class: 'set-line' }, h('span', { class: 'set-label' }, label),
+    h('div', { class: 'seg seg-sm', role: 'radiogroup', 'aria-label': label },
+      [[false, 'Aus'], [true, 'Ein']].map(([v, l]) => h('button', { type: 'button', role: 'radio', class: cur === v ? 'on' : '', 'aria-checked': String(cur === v), onclick: () => {
+        if (cur === v) return;
+        if (!store.set('settings', { ...store.get('settings'), [key]: v })) { toast('Speichern fehlgeschlagen.', { error: true }); return; }
+        rerender();
+      } }, l))));
+}
+
+// v2.26.0 (A2): Speicherstatus wird nachgeladen (die Browser-Schnittstelle ist asynchron).
+// Die Belegungs-Schätzung des Browsers wird bewusst nicht gezeigt: Sie zählt localStorage meist nicht mit
+// (im Test 0 KB) – die eigene Messung „Belegter Speicher“ steht schon darüber.
+function storageLines() {
+  const persisted = kv('Speicher geschützt', '…');
+  storageStatus().then((st) => {
+    persisted.lastChild.textContent = st.persisted === null ? 'unbekannt' : st.persisted ? 'ja' : 'nein';
+  });
+  return [persisted,
+    h('p', { class: 'muted small' }, '„Geschützt“ heißt: Der Browser hat zugesagt, die Daten nicht von sich aus zu löschen, wenn Speicher knapp wird. Ein Backup ersetzt das nicht.')];
+}
 
 export { trainingView } from './training-view.js';
 
@@ -105,7 +132,24 @@ export function settingsView(rerender) {
           if (!store.set('settings', { ...settings, restSeconds: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
           return next;
         }
-      })
+      }),
+      onOff('Bildschirm im Training anlassen', 'keepAwake', rerender),
+      h('p', { class: 'muted small' }, wakeLockSupported()
+        ? 'Nur solange ein Training läuft. Kostet etwas Akku.'
+        : 'Dieses Gerät oder dieser Browser unterstützt das nicht – die Einstellung bleibt ohne Wirkung.'),
+      onOff('Scheiben pro Seite anzeigen', 'plateMath', rerender),
+      store.get('settings').plateMath !== false ? h('div', {},
+        h('p', { class: 'muted small' }, 'Bei Langhantel-Übungen. Standard-Stange, pro Übung im Übungs-Editor änderbar. Eingetragen wird weiter das Gesamtgewicht.'),
+        stepper({
+          value: store.get('settings').barKg ?? 20,
+          format: (v) => `${fmtNum(v)} kg`,
+          label: 'Standard-Stange',
+          onStep: (v, d) => {
+            const next = Math.max(BAR_KG_MIN, Math.min(BAR_KG_MAX, v + d * 2.5));
+            if (!store.set('settings', { ...store.get('settings'), barKg: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
+            return next;
+          }
+        })) : null
     ),
     h(
       'div',
@@ -130,7 +174,8 @@ export function settingsView(rerender) {
       kv('App', APP_NAME),
       kv('Version', APP_VERSION),
       kv('Datenschema', `v${store.SCHEMA_VERSION}`),
-      kv('Belegter Speicher', `${store.usageKB()} KB`)
+      kv('Belegter Speicher', `${store.usageKB()} KB`),
+      ...storageLines()
     )
   );
 }

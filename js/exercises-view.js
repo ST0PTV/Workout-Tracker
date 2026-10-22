@@ -1,7 +1,9 @@
 // Übungen-Tab (Variante A + Pool aus B): Liste nach Körperregion, Suche, Filter,
 // Plus-Button mit Auswahl Startpool/Eigene Übung, Editor, Info-Sheets zu Muskelgruppen und Quellen.
 import { h } from './util.js';
-import { MUSCLES, EXERCISE_KINDS, createExercise } from './model.js';
+import { MUSCLES, EXERCISE_KINDS, createExercise, BAR_KG_MIN, BAR_KG_MAX } from './model.js';
+import { isPerSide, isBarbell } from './plates.js';
+import { fmtNum } from './input.js';
 import { POOL, EQUIPMENT, CONFIDENCE, POOL_CHECKED_AT, poolEntry, poolRefsInLibrary } from './pool.js';
 import { MUSCLE_INFO, MUSCLE_INFO_CHECKED_AT } from './muscle-info.js';
 import * as lib from './exercises.js';
@@ -257,8 +259,9 @@ export function openEditor(existing, rerender) {
   noteInput.addEventListener('input', () => { ex.note = noteInput.value; });
 
   const kindBox = h('div');
+  let drawExtra = null; // v2.26.0: weiter unten gesetzt, hängt vom Typ ab
   const drawKind = () => kindBox.replaceChildren(h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Typ' },
-    EXERCISE_KINDS.map((k) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(ex.kind === k), class: ex.kind === k ? 'on' : '', onclick: () => { ex.kind = k; drawKind(); } }, KIND_LABEL[k]))));
+    EXERCISE_KINDS.map((k) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(ex.kind === k), class: ex.kind === k ? 'on' : '', onclick: () => { ex.kind = k; drawKind(); drawExtra?.(); } }, KIND_LABEL[k]))));
 
   const musclesBox = h('div');
   const drawMuscles = () => {
@@ -311,6 +314,32 @@ export function openEditor(existing, rerender) {
   };
   drawRest();
 
+  // v2.26.0 (A8, A4): Wiederholungen je Seite und Stangengewicht für die Scheiben-Anzeige.
+  const extraBox = h('div');
+  drawExtra = () => {
+    if (ex.kind === 'cardio') { extraBox.replaceChildren(); return; }
+    const settings = store.get('settings');
+    const side = isPerSide(ex);
+    const sideField = h('div', { class: 'field' }, h('label', {}, 'Wiederholungen'),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Wiederholungen' },
+        [[false, 'Normal'], [true, 'Je Seite']].map(([v, l]) => h('button', { type: 'button', role: 'radio', class: side === v ? 'on' : '', 'aria-checked': String(side === v), onclick: () => { ex.perSide = v; drawExtra(); } }, l))),
+      h('p', { class: 'muted small' }, side ? 'Du trägst die Wiederholungen einer Seite ein (z. B. 8 pro Bein). Im Training steht „je Seite“ dabei.' : 'Beide Seiten gleichzeitig oder abwechselnd – die Zahl gilt für den ganzen Satz.'));
+    if (ex.kind !== 'strength') { extraBox.replaceChildren(sideField); return; }
+    const own = typeof ex.barKg === 'number';
+    const pre = isBarbell(ex);
+    const barRow = own
+      ? h('div', { class: 'rest-row' },
+        stepper({ value: ex.barKg, format: (v) => `${fmtNum(v)} kg`, label: 'Stange', onStep: (v, d) => { ex.barKg = Math.max(BAR_KG_MIN, Math.min(BAR_KG_MAX, v + d * 2.5)); return ex.barKg; } }),
+        h('button', { class: 'link', type: 'button', onclick: () => { ex.barKg = null; drawExtra(); } }, pre ? `Standard (${fmtNum(settings.barKg ?? 20)} kg)` : 'Aus'))
+      : h('div', { class: 'rest-row' },
+        h('span', { class: 'muted small' }, pre ? `Standard-Stange (${fmtNum(settings.barKg ?? 20)} kg)` : 'Keine Scheiben-Anzeige'),
+        h('button', { class: 'link', type: 'button', onclick: () => { ex.barKg = settings.barKg ?? 20; drawExtra(); } }, pre ? 'Eigene Stange' : 'Einschalten'));
+    extraBox.replaceChildren(sideField,
+      h('div', { class: 'field' }, h('label', {}, 'Stange für „Scheiben pro Seite“'), barRow,
+        settings.plateMath === false ? h('p', { class: 'muted small' }, 'Die Anzeige ist in den Einstellungen ausgeschaltet.') : null));
+  };
+  drawExtra();
+
   drawKind(); drawMuscles(); drawSource();
   const body = h('form', { class: 'editor', onsubmit: (e) => { e.preventDefault(); save(); } },
     h('div', { class: 'field' }, h('label', {}, 'Name'), nameInput),
@@ -322,6 +351,7 @@ export function openEditor(existing, rerender) {
         h('button', { type: 'button', 'aria-label': 'Weniger Sätze', onclick: () => step(-1) }, icon('minus')), setsValue,
         h('button', { type: 'button', 'aria-label': 'Mehr Sätze', onclick: () => step(1) }, icon('plus')))),
     h('div', { class: 'field' }, h('label', {}, 'Pause zwischen Sätzen'), restBox),
+    extraBox,
     h('div', { class: 'field' }, h('label', {}, 'Notiz'), noteInput, sourceBox),
     !isNew ? h('button', { class: 'btn block subtle', type: 'button', onclick: archive }, ex.archived ? 'Wiederherstellen' : 'Archivieren') : null,
     h('button', { class: 'btn primary block sticky-bottom', type: 'submit' }, ex.archived ? 'Speichern (archiviert)' : 'Speichern'));

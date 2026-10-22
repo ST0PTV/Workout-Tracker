@@ -2,16 +2,29 @@ import * as store from './store.js';
 import { startRouter, toast } from './ui.js';
 import { trainingView, plansView, exercisesView, progressView, settingsView } from './views.js';
 import { runnerView } from './routine-view.js';
+import { activeSession } from './session.js';
+import { setKeepAwake } from './device.js';
 
 const boot = store.init();
 
+// v2.26.0 (A3): Schlägt ein Speichern fehl, bleibt oben ein Banner, bis das nächste Speichern klappt.
+const saveBar = document.getElementById('savebar');
+store.onWriteResult((ok) => { if (saveBar) saveBar.hidden = ok; });
+
+// v2.26.0 (A1): Nach jedem Zeichnen prüfen, ob der Bildschirm anbleiben soll (laufendes Training + Einstellung).
+const withDevice = (view) => () => {
+  const node = view(() => router());
+  setKeepAwake(!!activeSession() && store.get('settings').keepAwake !== false);
+  return node;
+};
+
 const router = startRouter({
-  '/': () => trainingView(() => router()),
-  '/plans': () => plansView(() => router()),
-  '/exercises': () => exercisesView(() => router()),
-  '/progress': () => progressView(() => router()),
-  '/settings': () => settingsView(() => router()),
-  '/routine': () => runnerView(() => router()) // v2.3.0: Ablauf einer Aufwärm-/Cool-down-Routine
+  '/': withDevice(trainingView),
+  '/plans': withDevice(plansView),
+  '/exercises': withDevice(exercisesView),
+  '/progress': withDevice(progressView),
+  '/settings': withDevice(settingsView),
+  '/routine': withDevice(runnerView) // v2.3.0: Ablauf einer Aufwärm-/Cool-down-Routine
 });
 
 if (!boot.ok) {

@@ -50,13 +50,25 @@ function read(key, fallback) {
   return clone(fallback);
 }
 
+// v2.26.0 (A3): Jeder Schreibversuch meldet sein Ergebnis an die Beobachter (Banner „Nicht gespeichert“).
+const writeListeners = new Set();
+export function onWriteResult(fn) {
+  writeListeners.add(fn);
+  return () => writeListeners.delete(fn);
+}
+function notifyWrite(ok, key) {
+  for (const fn of writeListeners) { try { fn(ok, key); } catch { /* Beobachter darf das Speichern nicht stören */ } }
+}
+
 function write(key, value) {
+  let ok = true;
   try {
     storage().setItem(PREFIX + key, JSON.stringify(value));
-    return true;
   } catch {
-    return false; // z. B. Speicher voll oder privater Modus
+    ok = false; // z. B. Speicher voll oder privater Modus
   }
+  notifyWrite(ok, key);
+  return ok;
 }
 
 // Gespeicherte Schema-Version; ohne Eintrag = neue Installation.

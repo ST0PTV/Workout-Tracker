@@ -30,14 +30,23 @@ export function currentPath() {
 }
 
 let toastTimer = null;
-export function toast(message, { error = false } = {}) {
+// v2.26.0 (A10): optional eine Aktion im Toast, z. B. { label: 'Rückgängig', onClick }; bleibt dann 6 s stehen.
+export function toast(message, { error = false, action = null } = {}) {
   const el = document.getElementById('toast');
   if (!el) return;
-  el.textContent = message;
+  el.replaceChildren(h('span', {}, message));
+  if (action) {
+    el.append(h('button', { class: 'toast-act', type: 'button', onclick: () => {
+      clearTimeout(toastTimer);
+      el.classList.remove('show', 'has-act');
+      action.onClick();
+    } }, action.label));
+  }
   el.classList.toggle('error', error);
+  el.classList.toggle('has-act', !!action);
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), error ? 5000 : 2800);
+  toastTimer = setTimeout(() => el.classList.remove('show', 'has-act'), action ? 6000 : error ? 5000 : 2800);
 }
 
 export function startRouter(routes) {

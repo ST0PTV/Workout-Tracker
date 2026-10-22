@@ -336,6 +336,7 @@ body.sheet-open { overflow: hidden; }
 .start-card .btn { margin-top: 12px; }
 /* Toast über der Pausen-Leiste, damit beide lesbar bleiben */
 body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px); }
+body:has(.restbar:not([hidden]) .rt-next:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 126px); }
 
 /* ---------- v1.0: Fortschritt ---------- */
 .tabbar .tab { font-size: 10.5px; letter-spacing: -0.01em; white-space: nowrap; }
@@ -724,3 +725,32 @@ body { overflow-wrap: anywhere; }
 .cyc-date { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
 .cyc-date input { flex: 1; min-height: 44px; }
 .cyc-fields { margin-top: 14px; }
+
+/* ---------- v2.26.0: Quick Wins ---------- */
+/* A3: Banner, wenn Speichern fehlschlägt (bleibt bis zum nächsten erfolgreichen Speichern) */
+.savebar { position: fixed; z-index: 30; left: 12px; right: 12px; top: calc(var(--safe-top) + 8px); margin: 0 auto; max-width: 616px;
+  padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 600; background: rgba(70, 18, 30, 0.96); border: 1px solid var(--danger); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+.savebar[hidden] { display: none; }
+.savebar a { color: var(--text); text-decoration: underline; margin-left: 4px; }
+/* Einstellungen: An/Aus-Zeile */
+.set-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.set-label { font-size: 15px; }
+.seg.seg-sm { flex: none; width: 132px; }
+.seg.seg-sm button { min-height: 36px; }
+/* A4: Scheiben pro Seite unter der Satztabelle */
+.card.sets .plates { margin: 4px 0 2px; padding: 4px 16px 6px; font-variant-numeric: tabular-nums; }
+.plates[hidden] { display: none; }
+/* A8: je Seite */
+.side-pill { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--accent); border: 1px solid rgba(110, 231, 216, 0.5); vertical-align: 1px; }
+/* A5: nächster Satz in der Pausen-Leiste */
+.restbar { flex-wrap: wrap; row-gap: 6px; }
+.rt-next { flex: 1 0 100%; padding: 6px 2px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rt-next[hidden] { display: none; }
+/* A6: Pause vorbei – einmal sanft aufleuchten, kein Blinken */
+@keyframes rt-glow { 0% { box-shadow: 0 0 0 0 rgba(110, 231, 216, 0.0); } 35% { box-shadow: 0 0 0 6px rgba(110, 231, 216, 0.35); } 100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); } }
+.restbar.pulse { animation: rt-glow 1.6s ease-out 1; }
+@media (prefers-reduced-motion: reduce) { .restbar.pulse { animation: none; } }
+/* A10: Toast mit Aktion (Rückgängig) */
+.toast.has-act { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; width: max-content; }
+.toast.has-act > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.toast-act { flex: none; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: rgba(110, 231, 216, 0.18); color: var(--accent); font-weight: 700; cursor: pointer; }
