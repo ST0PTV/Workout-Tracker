@@ -5,6 +5,9 @@
 import { h } from './util.js';
 import * as store from './store.js';
 import * as H from './history.js';
+import * as P from './plans.js';
+import * as lib from './exercises.js';
+import { miniFigure } from './figure.js';
 import { weightWarning, sessionSummary } from './model.js';
 import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm } from './input.js';
 import { INTENSITIES } from './model.js';
@@ -29,13 +32,17 @@ function durText(min) {
 
 // ---------- Liste ----------
 
+// v2.32.0: Training im Nachhinein eintragen (Zeit wählen, optional Plan, dann im Editor ausfüllen).
+const backfillButton = (rerender) => h('button', { class: 'btn block', type: 'button', onclick: () => openBackfill(rerender) }, icon('plus', { size: 18 }), 'Training nachtragen');
+
 export function diaryList(rerender) {
   const rows = H.diaryRows();
   if (!rows.length) {
     return h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('list', { size: 44 })), h('h2', {}, 'Noch keine Trainings'),
-      h('p', { class: 'muted' }, 'Abgeschlossene Trainings erscheinen hier. Du kannst sie ansehen und Tippfehler korrigieren.'));
+      h('p', { class: 'muted' }, 'Abgeschlossene Trainings erscheinen hier. Du kannst sie ansehen und Tippfehler korrigieren.'),
+      backfillButton(rerender));
   }
-  const out = [h('p', { class: 'sub' }, 'Alle abgeschlossenen Trainings, neueste zuerst. Antippen zum Ansehen und Korrigieren.')];
+  const out = [h('p', { class: 'sub' }, 'Alle abgeschlossenen Trainings, neueste zuerst. Antippen zum Ansehen und Korrigieren.'), backfillButton(rerender)];
   let month = null;
   for (const r of rows) {
     const m = fmtMonth(r.session.startedAt);
@@ -113,14 +120,72 @@ function readView(s) {
   ];
 }
 
-export function openDiaryEntry(id, rerender) {
-  const orig = H.getFinished(id);
+// Übung wählen (Sheet mit Suche); onPick bekommt die Übung.
+function openExercisePicker(onPick) {
+  const state = { query: '' };
+  const listBox = h('div');
+  const draw = () => {
+    const sections = lib.groupedExercises(lib.listExercises(), { query: state.query });
+    listBox.replaceChildren(...(sections.length ? sections.map((s) => h('section', {}, h('div', { class: 'sec' }, s.label),
+      h('div', { class: 'card list' }, s.items.map((e) => h('button', { class: 'row', type: 'button', onclick: () => { sheet.close(); onPick(e); } },
+        h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e))), icon('plus', { size: 18 }))))))
+      : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Neue Übungen legst du im Tab „Übungen“ an.')]));
+  };
+  const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });
+  search.addEventListener('input', () => { state.query = search.value; draw(); });
+  draw();
+  const sheet = openSheet(h('div', {}, h('label', { class: 'search' }, icon('search', { size: 18 }), search), listBox), { title: 'Übung hinzufügen', full: true });
+}
+
+// v2.32.0: Schritt 1 – Beginn, Ende und optional ein Plan; Schritt 2 – der Editor mit leeren Sätzen.
+export function openBackfill(rerender) {
+  const end0 = new Date(); end0.setSeconds(0, 0);
+  const start0 = new Date(end0.getTime() - 3600000);
+  const a = h('input', { class: 'input', type: 'datetime-local', value: toLocalInput(start0.toISOString()), 'aria-label': 'Beginn' });
+  const b = h('input', { class: 'input', type: 'datetime-local', value: toLocalInput(end0.toISOString()), 'aria-label': 'Ende' });
+  const info = h('p', { class: 'muted small' });
+  const st = { planId: null };
+  const plans = P.listPlans().sort((x, y) => x.name.localeCompare(y.name, 'de'));
+  const planBox = h('div', { class: 'wrap' });
+  const drawPlans = () => planBox.replaceChildren(
+    h('button', { class: `chip${st.planId === null ? ' on' : ''}`, type: 'button', 'aria-pressed': String(st.planId === null), onclick: () => { st.planId = null; drawPlans(); } }, 'Freies Training'),
+    ...plans.map((p) => h('button', { class: `chip${st.planId === p.id ? ' on' : ''}`, type: 'button', 'aria-pressed': String(st.planId === p.id), onclick: () => { st.planId = p.id; drawPlans(); } }, p.name)));
+  const upd = () => {
+    const min = Math.round((new Date(b.value) - new Date(a.value)) / 60000);
+    info.textContent = Number.isFinite(min) && min > 0 ? `Dauer ${durText(min)}.` : 'Das Ende muss nach dem Beginn liegen.';
+  };
+  a.addEventListener('input', upd); b.addEventListener('input', upd); upd(); drawPlans();
+  const sheet = openSheet(h('div', { class: 'editor' },
+    h('p', { class: 'muted small' }, 'Für ein Training, das du nicht live eingetragen hast. Du trägst die Sätze danach selbst ein – es werden keine Werte aus früheren Trainings übernommen.'),
+    h('div', { class: 'field' }, h('label', {}, 'Beginn'), a),
+    h('div', { class: 'field' }, h('label', {}, 'Ende'), b),
+    info,
+    h('div', { class: 'field' }, h('label', {}, 'Plan (optional)'), planBox,
+      h('p', { class: 'muted small' }, 'Mit Plan stehen seine Übungen schon da, du kannst sie ändern.')),
+    h('button', { class: 'btn primary block', type: 'button', onclick: () => {
+      if (!a.value || !b.value) { toast('Bitte Beginn und Ende angeben.', { error: true }); return; }
+      const plan = st.planId ? P.getPlan(st.planId) : null;
+      const byId = Object.fromEntries(lib.listExercises({ includeArchived: true }).map((e) => [e.id, e]));
+      const r = H.newBackfill({ plan, startISO: new Date(a.value).toISOString(), endISO: new Date(b.value).toISOString() }, byId);
+      if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+      sheet.close();
+      openDiaryEntry(r.draft.id, rerender, { draft: r.draft });
+    } }, 'Weiter')), { title: 'Training nachtragen' });
+}
+
+export function openDiaryEntry(id, rerender, opts = {}) {
+  const isNew = !!opts.draft;
+  const orig = isNew ? opts.draft : H.getFinished(id);
   if (!orig) { toast('Training nicht gefunden.', { error: true }); return; }
-  const state = { mode: 'view', draft: null, invalid: new Set() };
+  const state = { mode: isNew ? 'edit' : 'view', draft: isNew ? opts.draft : null, invalid: new Set() };
   const body = h('div', { class: 'diary-detail' });
   let sheet = null;
 
-  const leaveEdit = () => { state.mode = 'view'; state.draft = null; state.invalid.clear(); draw(); };
+  const leaveEdit = () => {
+    if (isNew) { state.mode = 'closed'; sheet.close(); return; }
+    state.mode = 'view'; state.draft = null; state.invalid.clear(); draw();
+  };
+  const hasValues = (d) => d.entries.some((en) => en.sets.some((x) => !H.isEmptySet(x)));
 
   function editRow(entry, set, workNo, exId, kind = 'strength') {
     const key = set.id;
@@ -194,10 +259,10 @@ export function openDiaryEntry(id, rerender) {
     return [
       h('div', { class: 'edit-bar' },
         h('button', { class: 'btn', type: 'button', onclick: () => {
-          if (H.isDirty(d) && !confirm('Änderungen verwerfen?')) return;
+          if (isNew ? hasValues(d) && !confirm('Eingaben verwerfen?') : H.isDirty(d) && !confirm('Änderungen verwerfen?')) return;
           leaveEdit();
         } }, 'Abbrechen'),
-        h('button', { class: 'btn primary', type: 'button', onclick: save }, 'Fertig')),
+        h('button', { class: 'btn primary', type: 'button', onclick: save }, isNew ? 'Speichern' : 'Fertig')),
       h('button', { class: 'card time-line', type: 'button', 'aria-label': 'Beginn und Ende ändern', onclick: () => openTimeSheet(d, draw) },
         h('span', { class: 't' }, h('b', {}, `${fmtLong(d.startedAt)} · ${fmtClock(d.startedAt)}–${fmtClock(d.endedAt)}`), h('small', {}, durText(H.durationMin(d)))),
         icon('edit', { size: 18 })),
@@ -219,20 +284,21 @@ export function openDiaryEntry(id, rerender) {
               H.removeEntry(d, en.id); draw();
             } }, icon('trash', { size: 18 }), 'Entfernen')));
       }),
-      d.entries.length ? null : h('p', { class: 'muted center' }, 'Keine Übungen mehr im Training.'),
-      h('button', { class: 'btn block subtle danger-text', type: 'button', onclick: remove }, 'Training löschen')
+      d.entries.length ? null : h('p', { class: 'muted center' }, isNew ? 'Noch keine Übung. Füge unten die erste hinzu.' : 'Keine Übungen mehr im Training.'),
+      h('button', { class: 'btn block', type: 'button', onclick: () => openExercisePicker((e) => { H.addEntry(d, e); draw(); }) }, icon('plus', { size: 18 }), 'Übung hinzufügen'),
+      isNew ? null : h('button', { class: 'btn block subtle danger-text', type: 'button', onclick: remove }, 'Training löschen')
     ];
   }
 
   function save() {
     if (state.invalid.size) { toast('Bitte gültige Zahlen eingeben (Gewicht z. B. 82,5).', { error: true }); return; }
-    const res = H.saveEdited(state.draft);
+    const res = isNew ? H.saveNew(state.draft) : H.saveEdited(state.draft);
     if (!res.ok) {
-      if (res.empty) { remove(); return; }
+      if (res.empty && !isNew) { remove(); return; }
       toast(res.errors[0], { error: true });
       return;
     }
-    toast('Training gespeichert.');
+    toast(isNew ? 'Training nachgetragen.' : 'Training gespeichert.');
     leaveEdit();
     rerender();
   }
@@ -248,8 +314,9 @@ export function openDiaryEntry(id, rerender) {
   }
 
   function draw() {
-    const s = H.getFinished(id);
-    if (!s) { sheet?.close(); return; }
+    if (state.mode === 'closed') return;
+    const s = isNew ? null : H.getFinished(id);
+    if (!isNew && !s) { sheet?.close(); return; }
     if (state.mode === 'edit') { state.invalid.clear(); body.replaceChildren(...editView().flat(2).filter(Boolean)); return; }
     body.replaceChildren(...readView(s).flat().filter(Boolean),
       h('button', { class: 'btn primary block', type: 'button', onclick: () => { state.draft = H.startEdit(id); state.mode = 'edit'; draw(); } }, icon('edit', { size: 18 }), 'Bearbeiten'));
@@ -257,8 +324,11 @@ export function openDiaryEntry(id, rerender) {
 
   draw();
   sheet = openSheet(body, {
-    title: `${H.sessionName(orig)} · ${fmtFull(orig.startedAt)}`,
+    title: isNew ? `Nachtragen · ${fmtFull(orig.startedAt)}` : `${H.sessionName(orig)} · ${fmtFull(orig.startedAt)}`,
     full: true,
-    onClose: () => { if (state.mode === 'edit' && state.draft && H.isDirty(state.draft)) toast('Änderungen verworfen.'); }
+    onClose: () => {
+      if (state.mode !== 'edit' || !state.draft) return;
+      if (isNew ? hasValues(state.draft) : H.isDirty(state.draft)) toast(isNew ? 'Nachtrag nicht gespeichert.' : 'Änderungen verworfen.');
+    }
   });
 }

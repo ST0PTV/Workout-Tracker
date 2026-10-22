@@ -3,7 +3,7 @@
 // (endedAt === null) ist hier nie erreichbar – dafür ist session.js zuständig.
 import * as store from './store.js';
 import { nowISO } from './util.js';
-import { createSet, sessionSummary, hardSets, validateSession, SET_TYPES } from './model.js';
+import { createSet, createEntry, createSession, sessionSummary, hardSets, validateSession, SET_TYPES } from './model.js';
 import { getPlan } from './plans.js';
 import * as SETS from './sets.js';
 import { fmtDuration } from './input.js';
@@ -142,14 +142,9 @@ export function setTimes(draft, startISO, endISO, now = Date.now()) {
 // Satz ganz ohne Werte (kein Gewicht, keine Wdh., keine Dauer/Strecke) trägt keine Information.
 export const isEmptySet = (x) => x.weightKg === null && x.reps === null && !x.durationSec && !x.distanceM;
 
-// Entwurf prüfen und speichern. Übungen ohne Sätze fallen weg; bleibt keine Übung übrig,
-// wird nicht gespeichert ({ empty: true }) – die Oberfläche bietet dann „Training löschen“ an.
-export function saveEdited(draft) {
-  const sessions = store.get('sessions');
-  const i = sessions.findIndex((s) => s.id === draft?.id);
-  if (i < 0) return { ok: false, errors: ['Training nicht gefunden.'] };
-  const orig = sessions[i];
-  if (orig.endedAt === null) return { ok: false, errors: ['Ein laufendes Training wird im Training-Tab bearbeitet.'] };
+// Entwurf bereinigen und prüfen (gemeinsam für Bearbeiten und Nachtragen): leere Sätze und Übungen ohne Sätze
+// fallen weg; bleibt keine Übung übrig, gibt es { empty: true }.
+function finalizeDraft(draft) {
   if (!(Date.parse(draft.endedAt) > Date.parse(draft.startedAt))) return { ok: false, errors: ['Das Ende muss nach dem Beginn liegen.'] };
   const next = structuredClone(draft);
   for (const e of next.entries) e.sets = e.sets.filter((x) => !isEmptySet(x)); // v1.4: leere Sätze fallen weg
@@ -165,9 +160,66 @@ export function saveEdited(draft) {
   next.updatedAt = nowISO();
   const errors = validateSession(next);
   if (errors.length) return { ok: false, errors };
-  sessions[i] = next;
-  if (!store.set('sessions', sessions)) return { ok: false, errors: ['Speichern fehlgeschlagen (Speicher voll?).'] };
   return { ok: true, errors: [], session: next };
+}
+
+// Entwurf prüfen und speichern. Übungen ohne Sätze fallen weg; bleibt keine Übung übrig,
+// wird nicht gespeichert ({ empty: true }) – die Oberfläche bietet dann „Training löschen“ an.
+export function saveEdited(draft) {
+  const sessions = store.get('sessions');
+  const i = sessions.findIndex((s) => s.id === draft?.id);
+  if (i < 0) return { ok: false, errors: ['Training nicht gefunden.'] };
+  if (sessions[i].endedAt === null) return { ok: false, errors: ['Ein laufendes Training wird im Training-Tab bearbeitet.'] };
+  const r = finalizeDraft(draft);
+  if (!r.ok) return r;
+  sessions[i] = r.session;
+  if (!store.set('sessions', sessions)) return { ok: false, errors: ['Speichern fehlgeschlagen (Speicher voll?).'] };
+  return r;
+}
+
+// ---------- Training nachtragen (v2.32.0) ----------
+// Ein nachgetragenes Training ist ein Entwurf im Speicher (noch nicht in sessions), der im Tagebuch-Editor
+// ausgefüllt wird. Gespeichert wird erst mit saveNew. Sätze starten leer: Es werden keine Werte aus früheren
+// Trainings übernommen, damit nichts als „gemacht“ gilt, was nicht eingetragen wurde.
+const blankSet = (draft) => createSet({ type: 'work', completedAt: draft.endedAt });
+
+// plan: Plan-Objekt oder null (freies Training). byId: Übungen nach id. Prüft die Zeiten wie setTimes
+// (Ende nach Beginn, höchstens MAX_SESSION_HOURS, nicht in der Zukunft).
+export function newBackfill({ plan = null, startISO, endISO }, byId, now = Date.now()) {
+  const draft = createSession({ planId: plan ? plan.id : null, endedAt: endISO });
+  const t = setTimes(draft, startISO, endISO, now);
+  if (!t.ok) return t;
+  if (plan) {
+    for (const it of plan.items) {
+      const ex = byId[it.exerciseId];
+      if (!ex) continue;
+      const n = ex.kind === 'cardio' ? 1 : Math.min(10, it.targetSets ?? ex.defaultWorkSets ?? 3);
+      draft.entries.push(createEntry(it.exerciseId, {
+        planItemId: it.id, groupId: it.groupId ?? null, targetSets: it.targetSets ?? null,
+        sets: Array.from({ length: n }, () => blankSet(draft))
+      }));
+    }
+  }
+  return { ok: true, errors: [], draft };
+}
+
+// Übung am Ende des Entwurfs hinzufügen (mit einem leeren Arbeitssatz). Gibt den Eintrag oder null.
+export function addEntry(draft, exercise) {
+  if (!exercise) return null;
+  const en = createEntry(exercise.id, { sets: [blankSet(draft)] });
+  draft.entries.push(en);
+  return en;
+}
+
+// Nachgetragenes Training speichern. Ohne einen Satz mit Werten wird nicht gespeichert ({ empty: true }).
+export function saveNew(draft) {
+  const sessions = store.get('sessions');
+  if (!draft || sessions.some((s) => s.id === draft.id)) return { ok: false, errors: ['Training existiert schon.'] };
+  const r = finalizeDraft(draft);
+  if (!r.ok) return r.empty ? { ...r, errors: ['Noch kein Satz mit Werten eingetragen.'] } : r;
+  sessions.push(r.session);
+  if (!store.set('sessions', sessions)) return { ok: false, errors: ['Speichern fehlgeschlagen (Speicher voll?).'] };
+  return r;
 }
 
 export function deleteSession(id) {
