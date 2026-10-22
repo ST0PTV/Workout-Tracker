@@ -29,9 +29,10 @@ import * as RT from './routines.js';
 import * as PR from './progression.js';
 import { missedHints, formatDays, isWeekSkipped, weekKey } from './schedule.js';
 import { planChanges } from './plan-sync.js';
+import * as SS from './superset.js';
 import { askRating, needsRating, ratingLine, suggestionCard, askBreak, askLight, openProgressionInfo } from './progression-view.js';
 
-const ui = { current: null, sessionId: null, swapOpen: null };
+const ui = { current: null, sessionId: null, swapOpen: null, ssBanner: null };
 // v2.26.0 (A4): Scheiben-Zeile der offenen Übung; folgt dem zuletzt bearbeiteten Gewichtsfeld.
 const plate = { el: null, bar: null };
 function showPlates(kg) {
@@ -76,7 +77,9 @@ function renderRest(bar, session) {
   bar.hidden = false;
   bar.classList.toggle('done', st.done);
   const entry = session.entries.find((e) => e.id === t.entryId);
-  const exName = entry ? (lib.getExercise(entry.exerciseId)?.name || '') : '';
+  const group = entry ? SS.members(session, entry.id) : [];
+  const exName = group.length ? `Runde ${group.map((_, i) => SS.LETTERS[i]).join(' + ')}`
+    : entry ? (lib.getExercise(entry.exerciseId)?.name || '') : '';
   bar.querySelector('.rt-time').textContent = st.done ? 'Pause vorbei' : formatDuration(st.remaining);
   bar.querySelector('.rt-sub').textContent = st.done ? `+${formatDuration(st.overtime)} · ${exName}` : `Pause · ${exName}`;
   bar.querySelector('.rt-ring-fg').setAttribute('stroke-dashoffset', String(RING_LEN * (1 - st.progress)));
@@ -201,7 +204,7 @@ function openOverview(rerender) {
       h('div', { class: 'card list' }, v.entries.map((d) => h('div', { class: `row ov${d.index === ui.current ? ' cur' : ''}` },
         h('button', { class: 't plain', type: 'button', onclick: () => { ui.current = d.index; sheet.close(); rerender(); } },
           h('b', {}, `${d.index + 1}. ${d.exercise?.name || 'Unbekannte Übung'}`),
-          h('small', {}, `${d.doneCount}/${d.entry.sets.length} Sätze${d.complete ? ' · fertig' : ''}${d.entry.plannedExerciseId ? ` · statt ${lib.getExercise(d.entry.plannedExerciseId)?.name || 'geplanter Übung'}` : ''}`)),
+          h('small', {}, `${d.doneCount}/${d.entry.sets.length} Sätze${d.complete ? ' · fertig' : ''}${d.entry.plannedExerciseId ? ` · statt ${lib.getExercise(d.entry.plannedExerciseId)?.name || 'geplanter Übung'}` : ''}${SS.letterOf(v.session, d.entry.id) ? ` · Supersatz ${SS.letterOf(v.session, d.entry.id)}` : ''}`)),
         h('div', { class: 'arrows horiz' },
           h('button', { type: 'button', 'aria-label': 'Nach oben', disabled: d.index === 0, onclick: () => { S.moveEntry(d.entry.id, d.index - 1); if (ui.current === d.index) ui.current -= 1; else if (ui.current === d.index - 1) ui.current += 1; draw(); rerender(); } }, icon('up')),
           h('button', { type: 'button', 'aria-label': 'Nach unten', disabled: d.index === v.entries.length - 1, onclick: () => { S.moveEntry(d.entry.id, d.index + 1); if (ui.current === d.index) ui.current += 1; else if (ui.current === d.index + 1) ui.current -= 1; draw(); rerender(); } }, icon('down')),
@@ -293,6 +296,32 @@ function planSyncCard(session, rerender) {
   };
   draw();
   return box;
+}
+
+// v2.30.0 (B1, Variante B): nach einem Satz im Supersatz zur Partnerübung springen (ohne Pause in der Runde)
+// bzw. nach der Runde zum ersten Mitglied mit offenem Satz (die Pause läuft dann schon).
+function supersetJump(entryId, session) {
+  const g = SS.afterSet(session, entryId);
+  if (!g || !g.next || g.next === entryId) return;
+  const idx = session.entries.findIndex((e) => e.id === g.next);
+  if (idx < 0) return;
+  const target = session.entries[idx];
+  const name = `${SS.letterOf(session, target.id)} · ${lib.getExercise(target.exerciseId)?.name || 'nächste Übung'}`;
+  ui.current = idx;
+  ui.ssBanner = { entryId: target.id, text: g.rest ? `Runde fertig – nach der Pause weiter mit ${name}.` : `Supersatz: direkt weiter mit ${name}, ohne Pause dazwischen.` };
+}
+
+// Umschalter A | B | … über der Übung (nur im Supersatz). Wechseln fragt nicht nach der Bewertung.
+function supersetSwitch(v, d, rerender) {
+  const m = SS.members(v.session, d.entry.id);
+  if (!m.length) return null;
+  return h('div', { class: 'ss-seg', role: 'tablist', 'aria-label': 'Supersatz' }, m.map((en, i) => {
+    const x = v.entries.find((y) => y.entry.id === en.id);
+    const done = en.sets.filter((z) => z.type !== 'warmup' && z.completedAt !== null).length;
+    const on = en.id === d.entry.id;
+    return h('button', { type: 'button', role: 'tab', class: on ? 'on' : '', 'aria-selected': String(on), onclick: () => { if (!on) { ui.current = x.index; ui.ssBanner = null; rerender(); } } },
+      h('b', {}, SS.LETTERS[i]), ` · ${x.exercise?.name || 'Übung'}`, done ? h('small', {}, ' ', icon('check', { size: 14, cls: 'inline' }), String(done)) : null);
+  }));
 }
 
 // v2.30.0 (B3): leichte Woche ein- und ausschalten (gilt bis Sonntag dieser Woche, für alle Pläne).
@@ -391,6 +420,7 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
         toast(res.errors[0], { error: true });
         return;
       }
+      supersetJump(d.entry.id, res.session);
       rerender();
     } }, done ? icon('check', { size: 22 }) : null), hint);
   return [
@@ -482,6 +512,7 @@ function cardioCard(d, rerender) {
       if (v.durationSec === null && v.distanceM === null && d.last?.sets[0]) v = { durationSec: d.last.sets[0].durationSec, distanceM: d.last.sets[0].distanceM };
       const r = S.completeSet(d.entry.id, set.id, v);
       if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+      supersetJump(d.entry.id, r.session);
       rerender();
     } }, done ? [icon('check', { size: 18 }), ' Erledigt – wieder öffnen'] : 'Einheit erledigt'));
 }
@@ -506,10 +537,15 @@ function exercisePage(v, d, rerender) {
     showPlates(kg);
     if (kg === null) plate.el.hidden = true;
   }
+  const letter = SS.letterOf(v.session, d.entry.id);
+  const banner = ui.ssBanner?.entryId === d.entry.id ? h('div', { class: 'ss-banner', role: 'status' }, ui.ssBanner.text) : null;
   return h('div', { class: 'ex-page' },
+    supersetSwitch(v, d, rerender),
+    banner,
     ex ? h('div', {},
       h('h2', { class: 'exh' }, ex.name),
       h('div', { class: 'sub2' }, lib.muscleSummary(ex), perSide ? h('span', { class: 'side-pill' }, 'je Seite') : null,
+        letter ? h('span', { class: 'side-pill' }, `Supersatz ${letter}`) : null,
         d.entry.repRange && !cardio ? h('span', { class: 'side-pill' }, `Ziel ${d.entry.repRange.min === d.entry.repRange.max ? d.entry.repRange.min : `${d.entry.repRange.min}–${d.entry.repRange.max}`} Wdh.`) : null),
       ...swapLine(d, rerender),
       h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
@@ -534,13 +570,25 @@ function exercisePage(v, d, rerender) {
       h('button', { class: 'btn', type: 'button', onclick: () => openOverview(rerender) }, icon('list', { size: 18 }), 'Übersicht'),
       isLast
         ? h('button', { class: 'btn primary', type: 'button', onclick: () => rateThen(d, () => finishFlow(rerender)) }, 'Beenden')
-        : h('button', { class: 'btn primary', type: 'button', 'aria-label': 'Nächste Übung', onclick: () => rateThen(d, () => { ui.current = d.index + 1; rerender(); }) }, 'Weiter', icon('chevron', { size: 18 }))));
+        : h('button', { class: 'btn primary', type: 'button', 'aria-label': 'Nächste Übung', onclick: () => rateThen(d, () => { ui.current = d.index + 1; rerender(); }, d.index + 1) }, 'Weiter', icon('chevron', { size: 18 }))));
 }
 
 // v2.4.0 (1B): beim Verlassen einer Übung einmal nach der Bewertung fragen.
-function rateThen(d, next) {
+function rateThen(d, next, targetIndex = null) {
   // v2.8.1: auch beim Beenden aus der Übersicht (dort ist d die gerade offene Übung, evtl. null).
-  if (d && needsRating(d)) askRating(d, next); else next();
+  // v2.30.0 (B1): im Supersatz erst beim Verlassen der Gruppe fragen – dann für jedes Mitglied, das noch offen ist.
+  if (!d) { next(); return; }
+  const v = S.sessionView();
+  const m = v ? SS.members(v.session, d.entry.id) : [];
+  if (m.length) {
+    const ids = new Set(m.map((e) => e.id));
+    if (targetIndex !== null && v.entries[targetIndex] && ids.has(v.entries[targetIndex].entry.id)) { next(); return; }
+    const todo = v.entries.filter((x) => ids.has(x.entry.id) && needsRating(x));
+    const step = (i) => (i < todo.length ? askRating(todo[i], () => step(i + 1)) : next());
+    step(0);
+    return;
+  }
+  if (needsRating(d)) askRating(d, next); else next();
 }
 
 function activeView(v, rerender) {
@@ -552,6 +600,7 @@ function activeView(v, rerender) {
     ui.current = firstOpen < 0 ? 0 : firstOpen;
   }
   ui.current = Math.max(0, Math.min(ui.current, v.entries.length - 1));
+  if (ui.ssBanner && v.entries[ui.current]?.entry.id !== ui.ssBanner.entryId) ui.ssBanner = null;
   const plan = s.planId ? P.getPlan(s.planId) : null;
   const n = v.entries.length;
   const d = v.entries[ui.current];

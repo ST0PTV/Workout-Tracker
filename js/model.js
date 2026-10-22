@@ -10,6 +10,7 @@
 //   (ein harter Satz; alle Stufen zählen ins Volumen).
 import { uuid, nowISO } from './util.js';
 import { ITEM_BY_REF, TEMPLATES, PHASES } from './routine-data.js';
+import { chainGroups } from './superset.js';
 
 export const SCHEMA_VERSION = 2;
 
@@ -199,6 +200,7 @@ export function validatePlan(p) {
       if (it.targetSets !== null && (!Number.isInteger(it.targetSets) || it.targetSets < 0)) err.push(`Plan ${p.id}: targetSets ungültig.`);
       if (!isRest(it.restSeconds)) err.push(`Plan ${p.id}: Pausenzeit ungültig.`);
       if (!isRepRange(it.repRange)) err.push(`Plan ${p.id}: Wiederholungsbereich ungültig.`);
+      if (it.supersetNext !== undefined && typeof it.supersetNext !== 'boolean') err.push(`Plan ${p.id}: Supersatz-Kopplung ungültig.`);
     }
   }
   if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);
@@ -261,6 +263,7 @@ export function validateSession(x) {
       if (en.targetSets !== undefined && en.targetSets !== null && !(Number.isInteger(en.targetSets) && en.targetSets > 0)) err.push(`Training ${x.id}: targetSets ungültig.`);
       if (!isRest(en.restSeconds)) err.push(`Training ${x.id}: Pausenzeit ungültig.`);
       if (!isRepRange(en.repRange)) err.push(`Training ${x.id}: Wiederholungsbereich ungültig.`);
+      if (en.ssGroup !== undefined && en.ssGroup !== null && !isId(en.ssGroup)) err.push(`Training ${x.id}: Supersatz-Gruppe ungültig.`);
       // v2.4.0 (optional): Bewertung der Übung und Entscheidung über den Vorschlag.
       if (en.rating !== undefined && !['easy', 'right', 'hard', 'none'].includes(en.rating)) err.push(`Training ${x.id}: Bewertung ungültig.`);
       if (en.suggestion !== undefined && !['accepted', 'declined'].includes(en.suggestion)) err.push(`Training ${x.id}: Vorschlag-Status ungültig.`);
@@ -515,9 +518,11 @@ export function swapEntryExercise(entry, newExercise, sessions) {
 // Training aus einem Plan starten.
 export function startSessionFromPlan(plan, exercisesById, sessions) {
   const session = createSession({ planId: plan.id });
-  session.entries = plan.items
-    .filter((it) => exercisesById[it.exerciseId])
+  const items = plan.items.filter((it) => exercisesById[it.exerciseId]);
+  const groups = chainGroups(items, uuid); // v2.30.0 (B1): gekoppelte Einträge → gemeinsame ssGroup
+  session.entries = items
     .map((it) => createEntry(it.exerciseId, {
+      ...(groups.has(it.id) ? { ssGroup: groups.get(it.id) } : {}),
       planItemId: it.id, // v2.29.0: Plan-Platz, bleibt auch nach einem Tausch
       groupId: it.groupId,
       targetSets: it.targetSets ?? null, // v1.3: für die Vorbelegung nach einem Tausch

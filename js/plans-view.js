@@ -230,9 +230,20 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
         ? h('button', { class: 'stp-main plain stp-toggle', type: 'button', 'aria-expanded': String(open), onclick: () => { mode.open = open ? null : d.item.id; draw(); } },
           info, h('span', { class: `chev${open ? ' up' : ''}` }, icon(open ? 'up' : 'down', { size: 18 })))
         : h('div', { class: 'stp-main' }, info);
-      return h('div', { class: 'stp' },
+      const step = h('div', { class: 'stp' },
         h('div', { class: 'num' }, String(d.index + 1)),
         h('div', { class: 'card stp-card' }, main, editRow, side ? h('div', { class: 'edit-bottom' }, side) : null));
+      // v2.30.0 (B1): Kopplung zum nächsten Eintrag (Supersatz). Bearbeiten: große Taste; Ansicht: kurze Zeile.
+      if (d.index === details.length - 1) return step;
+      const linked = d.item.supersetNext === true;
+      const link = mode.edit
+        ? h('button', { class: `ss-link${linked ? ' on' : ''}`, type: 'button', 'aria-pressed': String(linked), onclick: () => {
+          const r = P.setLinkNext(planId, d.item.id, !linked);
+          if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+          draw(); rerender();
+        } }, icon('link', { size: 16 }), linked ? 'Supersatz · lösen' : 'Mit nächster als Supersatz koppeln')
+        : linked ? h('div', { class: 'ss-line' }, icon('link', { size: 14, cls: 'inline' }), ' Supersatz') : null;
+      return link ? [step, link] : step;
     });
 
     const slots = planSlots(plan, () => { draw(); rerender(); });
@@ -240,7 +251,8 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
       head,
       mode.edit ? daysBlock(plan, () => { draw(); rerender(); }) : null,
       slots.before,
-      ...steps,
+      ...steps.flat(),
+      details.some((x) => x.item.supersetNext) ? h('p', { class: 'muted small' }, 'Supersatz: abwechselnd ein Satz pro Übung, Pause erst nach der Runde (die längste Pause der Gruppe). Sätze und Volumen zählen wie bisher.') : null,
       mode.edit || !details.length ? h('button', { class: 'addline', type: 'button', onclick: () => openExercisePicker(P.getPlan(planId), (ids) => {
         if (!ids.length) return;
         const r = P.addExercises(planId, ids);

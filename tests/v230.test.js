@@ -173,4 +173,107 @@ test('Einstellung lightWeek gültig speicherbar', () => {
   assert.ok(store.set('settings', { ...st, lightWeek: '2026-10-19' }));
 });
 
+// ---------- B1: Supersätze ----------
+const SS = await import('../js/superset.js');
+const SYNC = await import('../js/plan-sync.js');
+
+test('chainGroups: Ketten ab zwei Einträgen, Kopplung am Ende zählt nicht', () => {
+  const it = (id, link) => ({ id, exerciseId: id, groupId: null, targetSets: null, ...(link ? { supersetNext: true } : {}) });
+  let n = 0;
+  const g = SS.chainGroups([it('a', 1), it('b'), it('c'), it('d', 1), it('e', 1), it('f'), it('g', 1)], () => `g${++n}`);
+  assert.equal(g.get('a'), g.get('b'));
+  assert.ok(!g.has('c'));
+  assert.equal(g.get('d'), g.get('f'));
+  assert.notEqual(g.get('a'), g.get('d'));
+  assert.ok(!g.has('g'), 'letzter Eintrag gekoppelt ins Leere');
+  assert.deepEqual(SS.normalizeLinks([it('x', 1)]), [{ id: 'x', exerciseId: 'x', groupId: null, targetSets: null }]);
+});
+
+let ssPlan, a, bb, c;
+test('Plan: koppeln, lösen; Verschieben und Entfernen lösen Kopplungen am Platz', () => {
+  a = lib.saveExercise(M.createExercise({ name: 'SS-A', muscles: { primary: ['chest'], secondary: [] }, restSeconds: 90 })).exercise;
+  bb = lib.saveExercise(M.createExercise({ name: 'SS-B', muscles: { primary: ['lats'], secondary: [] }, restSeconds: 150 })).exercise;
+  c = lib.saveExercise(M.createExercise({ name: 'SS-C', muscles: { primary: ['quads'], secondary: [] } })).exercise;
+  ssPlan = P.newPlan('Supersatz').plan;
+  P.addExercises(ssPlan.id, [a.id, bb.id, c.id]);
+  const ids = () => P.getPlan(ssPlan.id).items.map((x) => x.id);
+  const links = () => P.getPlan(ssPlan.id).items.map((x) => !!x.supersetNext);
+  assert.ok(P.setLinkNext(ssPlan.id, ids()[0], true).ok);
+  assert.equal(P.setLinkNext(ssPlan.id, ids()[2], true).ok, false, 'letzter Eintrag');
+  assert.deepEqual(links(), [true, false, false]);
+  assert.deepEqual(M.validatePlan(P.getPlan(ssPlan.id)), []);
+  // Verschieben von C nach vorn: Kopplung am neuen Platz (davor nichts) und alte bleiben vorhersehbar
+  P.moveItem(ssPlan.id, ids()[2], 1);
+  assert.deepEqual(links(), [false, false, false], 'A war Vorgänger des neuen Platzes → gelöst');
+  P.moveItem(ssPlan.id, ids()[1], 2); // C zurück ans Ende
+  assert.ok(P.setLinkNext(ssPlan.id, ids()[0], true).ok);
+  assert.ok(P.setLinkNext(ssPlan.id, ids()[1], true).ok);
+  P.removeItem(ssPlan.id, ids()[2]);
+  assert.deepEqual(links(), [true, false], 'Kopplung ins Leere entfernt');
+  P.addExercises(ssPlan.id, [c.id]);
+  P.removeItem(ssPlan.id, ids()[1]);
+  assert.deepEqual(links(), [false, false], 'Vorgänger eines entfernten Eintrags gelöst');
+  P.removeItem(ssPlan.id, ids()[1]);
+  P.addExercises(ssPlan.id, [bb.id, c.id]);
+  P.setLinkNext(ssPlan.id, ids()[0], true);
+  assert.deepEqual(P.getPlan(ssPlan.id).items.map((x) => x.exerciseId), [a.id, bb.id, c.id]);
+});
+
+test('Training: A und B teilen eine Gruppe; ohne Pause in der Runde, nach der Runde die längste Pause', () => {
+  store.set('sessions', []);
+  assert.ok(S.startFromPlan(ssPlan.id).ok);
+  let s = S.activeSession();
+  assert.ok(s.entries[0].ssGroup && s.entries[0].ssGroup === s.entries[1].ssGroup);
+  assert.equal(s.entries[2].ssGroup, undefined);
+  assert.equal(SS.letterOf(s, s.entries[1].id), 'B');
+  const [ea, eb] = s.entries;
+  // A Satz 1 → weiter mit B, keine Pause
+  S.completeSet(ea.id, ea.sets[0].id, { weightKg: 40, reps: 10 });
+  s = S.activeSession();
+  assert.equal(s.restTimer, null);
+  assert.deepEqual(SS.afterSet(s, ea.id), { rest: false, next: eb.id });
+  // B Satz 1 → Runde vorbei, Pause = max(90, 150), danach A
+  S.completeSet(eb.id, eb.sets[0].id, { weightKg: 50, reps: 12 });
+  s = S.activeSession();
+  assert.equal(s.restTimer.durationSec, 150);
+  assert.deepEqual(SS.afterSet(s, eb.id), { rest: true, next: ea.id });
+  // C ist normal
+  const ec = s.entries[2];
+  S.completeSet(ec.id, ec.sets[0].id, { weightKg: 80, reps: 5 });
+  assert.equal(S.activeSession().restTimer.durationSec, store.get('settings').restSeconds);
+  assert.equal(SS.afterSet(S.activeSession(), ec.id), null);
+});
+
+test('Ungleiche Satzzahl: ist B fertig, kommt nach A direkt die Pause; Tausch behält die Gruppe', () => {
+  let s = S.activeSession();
+  const [ea, eb] = s.entries;
+  // B nur 1 Satz: übrige B-Sätze entfernen
+  for (const x of eb.sets.slice(1)) S.removeSet(eb.id, x.id);
+  S.completeSet(ea.id, ea.sets[1].id, { weightKg: 40, reps: 10 });
+  s = S.activeSession();
+  assert.ok(s.restTimer && s.restTimer.durationSec === 150, 'Runde nur noch aus A → Pause');
+  assert.deepEqual(SS.afterSet(s, ea.id), { rest: true, next: ea.id });
+  // Tausch einer Übung ohne erledigten Satz behält ssGroup (neues Training)
+  S.discard();
+  S.startFromPlan(ssPlan.id);
+  s = S.activeSession();
+  assert.ok(S.swapEntry(s.entries[1].id, c.id).ok);
+  assert.equal(S.activeSession().entries[1].ssGroup, s.entries[0].ssGroup);
+  assert.deepEqual(M.validateSession(S.activeSession()), []);
+  S.discard();
+});
+
+test('Plan anpassen (B4): Entfernen löst die Kopplung des Vorgängers', () => {
+  const items = [{ id: 'i1', exerciseId: 'x', supersetNext: true }, { id: 'i2', exerciseId: 'y' }];
+  const out = SYNC.applyChanges(items, [{ kind: 'remove', itemId: 'i2' }], () => null);
+  assert.deepEqual(out, [{ id: 'i1', exerciseId: 'x' }]);
+});
+
+test('Validierung: supersetNext und ssGroup', () => {
+  const p = P.getPlan(ssPlan.id);
+  assert.ok(M.validatePlan({ ...p, items: [{ ...p.items[0], supersetNext: 'ja' }, ...p.items.slice(1)] }).length);
+  const s = past(1, ex, [[60, 10]]);
+  assert.ok(M.validateSession({ ...s, entries: [{ ...s.entries[0], ssGroup: 5 }] }).length);
+});
+
 done();

@@ -93,6 +93,61 @@ await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 await p.locator('button', { hasText: 'Leichte Woche beenden' }).click(); await p.waitForTimeout(300);
 ok((await text()).includes('Diese Woche leicht trainieren'), 'B3: leichte Woche beendet');
 
+// ---------- B1: Supersätze (Variante B) ----------
+await p.evaluate(async () => {
+  const lib = await import('./js/exercises.js');
+  const P = await import('./js/plans.js');
+  const store = await import('./js/store.js');
+  store.set('sessions', []);
+  const a = lib.addFromPool('dumbbell-curl').exercise;
+  const b = lib.addFromPool('triceps-pushdown').exercise || lib.listExercises().find((e) => e.name.includes('Rudern'));
+  const plan = P.newPlan('Arme SS').plan;
+  P.addExercises(plan.id, [a.id, b.id]);
+  P.setItemRest(plan.id, P.getPlan(plan.id).items[1].id, 150);
+});
+await p.goto(srv.url + '/index.html#/plans'); await p.waitForTimeout(400);
+await p.locator('.pcard', { hasText: 'Arme SS' }).click(); await p.waitForTimeout(400);
+await p.locator('.sheet button.pill', { hasText: 'Bearbeiten' }).click(); await p.waitForTimeout(300);
+await p.locator('.sheet button.ss-link').first().click(); await p.waitForTimeout(300);
+ok((await p.locator('.sheet button.ss-link.on').count()) === 1, 'B1: im Editor gekoppelt');
+await p.locator('.sheet .plan').screenshot({ path: join(out, '7-plan-link.png') });
+await p.locator('.sheet button.pill', { hasText: 'Fertig' }).click(); await p.waitForTimeout(300);
+ok((await sheetText()).toLowerCase().includes('supersatz'), 'B1: Ansicht zeigt „Supersatz“');
+await p.keyboard.press('Escape'); await p.waitForTimeout(300);
+await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
+await p.locator('.start-card', { hasText: 'Arme SS' }).locator('button', { hasText: 'Starten' }).click(); await p.waitForTimeout(500);
+if (await p.locator('.sheet', { hasText: 'Leichte Woche' }).count()) { await p.locator('.sheet button', { hasText: 'Heute normal' }).click(); await p.waitForTimeout(400); }
+ok(await p.locator('.ss-seg button').count() === 2, 'B1: Umschalter A | B');
+const fillAndCheck = async () => {
+  const row = p.locator('.setrow:not(.done)').first();
+  await row.locator('input.val').nth(0).fill('12'); await row.locator('input.val').nth(0).dispatchEvent('change');
+  await row.locator('input.val').nth(1).fill('10'); await row.locator('input.val').nth(1).dispatchEvent('change');
+  await row.locator('.ck').click(); await p.waitForTimeout(500);
+};
+await fillAndCheck();
+t = await text();
+ok((await p.locator('.ss-seg button.on').innerText()).startsWith('B'), 'B1: nach Satz A → Seite B');
+ok(t.includes('Supersatz: direkt weiter mit B'), 'B1: Hinweis „direkt weiter mit B“');
+ok(await p.locator('.restbar:not([hidden])').count() === 0, 'B1: keine Pause innerhalb der Runde');
+await shot('8-ss-switch');
+await fillAndCheck();
+t = await text();
+ok((await p.locator('.ss-seg button.on').innerText()).startsWith('A'), 'B1: nach Satz B → zurück zu A');
+ok(t.includes('Runde fertig – nach der Pause weiter mit A'), 'B1: Hinweis „Runde fertig“');
+const sub = await p.locator('.restbar .rt-sub').innerText();
+ok(/Runde A \+ B/.test(sub) && /2:2\d|2:30/.test(await p.locator('.restbar .rt-time').innerText()), `B1: Pause nach der Runde, 2:30 (${sub})`);
+await shot('9-ss-rest');
+// Weiter von A → B (in der Gruppe): keine Bewertung; Weiter von B → Bewertung für A und B
+await p.locator('button[aria-label="Nächste Übung"]').click(); await p.waitForTimeout(400);
+ok(await p.locator('.rate-sheet').count() === 0, 'B1: Wechsel innerhalb der Gruppe ohne Bewertung');
+await p.locator('button', { hasText: 'Beenden' }).last().click(); await p.waitForTimeout(400);
+ok(await p.locator('.rate-sheet').count() === 1, 'B1: beim Verlassen der Gruppe Bewertung');
+await p.locator('.rate-sheet .rate-btn').nth(1).click(); await p.waitForTimeout(400);
+ok(await p.locator('.rate-sheet').count() === 1, 'B1: zweite Bewertung für das andere Mitglied');
+await p.locator('.rate-sheet .rate-btn').nth(1).click(); await p.waitForTimeout(600);
+const rated = await p.evaluate(async () => (await import('./js/store.js')).get('sessions').filter((s) => s.endedAt).at(-1).entries.map((e) => e.rating));
+ok(JSON.stringify(rated) === '["right","right"]', `B1: beide bewertet (${JSON.stringify(rated)})`);
+
 ok(errs.length === 0, `keine Konsolenfehler ${errs.slice(0, 3).join(' | ')}`);
 console.log('Screenshots: ' + out);
 await b.close(); await srv.close();

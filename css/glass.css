@@ -760,3 +760,13 @@ body { overflow-wrap: anywhere; }
 .light-line .btn { flex: 1; margin: 0; }
 .light-week p { margin: 6px 0 10px; }
 .rr-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* v2.30.0: Supersätze (Variante B) */
+.ss-seg { display: flex; gap: 6px; margin: 4px 0 8px; }
+.ss-seg button { flex: 1; min-height: 48px; padding: 6px 8px; border-radius: 14px; border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.04); color: inherit; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ss-seg button.on { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #06101f; border-color: transparent; }
+.ss-seg small { font-weight: 600; opacity: 0.8; }
+.ss-banner { border-radius: 14px; padding: 10px 12px; margin: 0 0 8px; background: rgba(122, 162, 255, 0.16); border: 1px solid rgba(122, 162, 255, 0.35); font-size: 14px; line-height: 1.4; }
+.ss-link { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: -2px 0 -2px 38px; border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.25); background: none; color: var(--muted, #9aa6c7); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; width: calc(100% - 38px); }
+.ss-link.on { border-color: rgba(110, 231, 216, 0.6); color: var(--accent); background: rgba(110, 231, 216, 0.06); }
+.ss-line { margin: -4px 0 -4px 38px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }

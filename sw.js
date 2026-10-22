@@ -32,6 +32,7 @@ const PRECACHE = [
   'js/plans.js',
   'js/schedule.js',
   'js/plan-sync.js',
+  'js/superset.js',
   'js/plans-view.js',
   'js/session.js',
   'js/timer.js',

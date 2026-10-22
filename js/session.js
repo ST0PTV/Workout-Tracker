@@ -10,6 +10,7 @@ import { effectiveRest } from './rest.js';
 import * as SETS from './sets.js';
 import { startRest, adjustRest } from './timer.js';
 import * as PR from './progression.js';
+import * as SS from './superset.js';
 
 function exercisesById() {
   return Object.fromEntries(store.get('exercises').map((e) => [e.id, e]));
@@ -98,7 +99,11 @@ export function completeSet(entryId, setId, values = {}) {
     const err = completionError({ ...set, ...values }, kind);
     if (err) return err;
     Object.assign(set, values, { completedAt: nowISO() });
-    if (kind !== 'cardio') s.restTimer = startRest(entryId, effectiveRest(ex, store.get('settings'), entry));
+    // v2.30.0 (B1): im Supersatz keine Pause innerhalb der Runde, danach die längste Pause der Gruppe.
+    const g = SS.afterSet(s, entryId);
+    if (g && !g.rest) s.restTimer = null;
+    else if (g) s.restTimer = startRest(entryId, SS.roundRest(s, entryId, exercisesById(), store.get('settings')));
+    else if (kind !== 'cardio') s.restTimer = startRest(entryId, effectiveRest(ex, store.get('settings'), entry));
   });
 }
 
@@ -214,6 +219,7 @@ export function swapEntry(entryId, exerciseId) {
       targetSets: entry.targetSets ?? null,
       restSeconds: entry.restSeconds ?? null,
       ...(entry.repRange ? { repRange: { ...entry.repRange } } : {}),
+      ...(entry.ssGroup ? { ssGroup: entry.ssGroup } : {}), // eingefügt direkt dahinter → bleibt in der Gruppe
       sets: prefillSets(ex, finishedSessions(), entry.targetSets ?? null)
     }));
     mode = 'inserted';
