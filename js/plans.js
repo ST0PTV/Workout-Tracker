@@ -5,7 +5,7 @@ import * as store from './store.js';
 import { formatSet } from './sets.js';
 import { nowISO } from './util.js';
 import { REST_MIN, REST_MAX } from './rest.js';
-import { createPlan, createPlanItem, validatePlan, lastPerformance } from './model.js';
+import { createPlan, createPlanItem, validatePlan, lastPerformance, REP_RANGE_MAX } from './model.js';
 import { isDayList, weekKey, dateKey, SKIP_WEEKS_KEEP } from './schedule.js';
 import { applyChanges } from './plan-sync.js';
 
@@ -97,6 +97,16 @@ export function setItemRest(planId, itemId, sec) {
     if (!it) return 'Eintrag nicht gefunden.';
     if (sec !== null && !(Number.isInteger(sec) && sec >= REST_MIN && sec <= REST_MAX)) return 'Pause ungültig.';
     it.restSeconds = sec;
+  });
+}
+
+// v2.30.0 (B2): Wiederholungsbereich { min, max } nur in diesem Plan; null = kein Bereich (Bewertung entscheidet).
+export function setItemRepRange(planId, itemId, range) {
+  return update(planId, (p) => {
+    const it = p.items.find((x) => x.id === itemId);
+    if (!it) return 'Eintrag nicht gefunden.';
+    if (range !== null && !(Number.isInteger(range.min) && Number.isInteger(range.max) && range.min >= 1 && range.min <= range.max && range.max <= REP_RANGE_MAX)) return 'Wiederholungsbereich ungültig.';
+    if (range === null) delete it.repRange; else it.repRange = { min: range.min, max: range.max };
   });
 }
 

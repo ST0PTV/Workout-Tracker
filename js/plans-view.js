@@ -12,6 +12,42 @@ import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import { miniFigure } from './figure.js';
 import { routinesPanel, planSlots, openNewRoutine } from './routine-view.js';
 import { DAY_LABELS, formatDays, isWeekSkipped } from './schedule.js';
+import { openProgressionInfo } from './progression-view.js';
+
+// v2.30.0 (B2): Wiederholungsbereich pro Planeintrag (optional). Standard beim Einschalten 8–12 (Konvention).
+const rrText = (it) => (it.repRange ? ` × ${it.repRange.min === it.repRange.max ? it.repRange.min : `${it.repRange.min}–${it.repRange.max}`} Wdh.` : '');
+
+function repRangeCtl(planId, item, onChange) {
+  const rr = item.repRange || null;
+  const set = (next) => {
+    const r = P.setItemRepRange(planId, item.id, next);
+    if (!r.ok) { toast(r.errors[0], { error: true }); return false; }
+    return true;
+  };
+  const head = h('span', { class: 'ctl-label' }, 'Wiederholungsbereich',
+    h('button', { class: 'info-btn small', type: 'button', 'aria-label': 'Wie wirkt der Bereich?', onclick: () => openProgressionInfo('range') }, icon('info', { size: 16 })));
+  if (!rr) {
+    return h('div', { class: 'ctl col' }, head,
+      h('button', { class: 'btn block subtle', type: 'button', onclick: () => { if (set({ min: 8, max: 12 })) onChange(); } }, 'Bereich festlegen (z. B. 8–12)'),
+      h('p', { class: 'muted small' }, 'Ohne Bereich richtet sich der Vorschlag nach deiner Bewertung.'));
+  }
+  return h('div', { class: 'ctl col' }, head,
+    h('div', { class: 'rr-ctl' },
+      stepper({ value: rr.min, small: true, label: 'Wiederholungen von', format: (v) => `ab ${v}`, onStep: (v, delta) => {
+        const cur = P.getPlan(planId).items.find((x) => x.id === item.id).repRange;
+        const next = Math.max(1, Math.min(cur.max, v + delta));
+        if (!set({ min: next, max: cur.max })) return null;
+        onChange(); return next;
+      } }),
+      stepper({ value: rr.max, small: true, label: 'Wiederholungen bis', format: (v) => `bis ${v}`, onStep: (v, delta) => {
+        const cur = P.getPlan(planId).items.find((x) => x.id === item.id).repRange;
+        const next = Math.max(cur.min, Math.min(50, v + delta));
+        if (!set({ min: cur.min, max: next })) return null;
+        onChange(); return next;
+      } })),
+    h('p', { class: 'muted small' }, 'Alle Sätze am oberen Ende → mehr Gewicht, Wiederholungen zurück ans untere Ende. „Schwer“ bremst. ',
+      h('button', { class: 'link small', type: 'button', onclick: () => { if (set(null)) onChange(); } }, 'Bereich entfernen')));
+}
 
 // v2.29.0 (Feature-To-Do A): Trainingstage als Chips. Optional – ohne Tage gibt es keinen Hinweis.
 function daysBlock(plan, onChange) {
@@ -146,8 +182,8 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
       const restText = `Pause ${formatDuration(rest)}${own ? ' (Plan)' : ''}`;
       const open = mode.edit && mode.open === d.item.id;
       const info = h('div', { class: 't' },
-        h('b', {}, name, mode.edit ? null : h('span', { class: 'tag' }, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'} · ${restText}`)),
-        mode.edit ? h('small', {}, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'} · ${restText}${d.item.groupId ? ` · Tausch: ${ctx.groups.find((g) => g.id === d.item.groupId)?.name || 'Gruppe'}` : ''}`) : (ex ? h('small', {}, lib.muscleSummary(ex)) : null),
+        h('b', {}, name, mode.edit ? null : h('span', { class: 'tag' }, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'}${rrText(d.item)} · ${restText}`)),
+        mode.edit ? h('small', {}, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'}${rrText(d.item)} · ${restText}${d.item.groupId ? ` · Tausch: ${ctx.groups.find((g) => g.id === d.item.groupId)?.name || 'Gruppe'}` : ''}`) : (ex ? h('small', {}, lib.muscleSummary(ex)) : null),
         d.archivedExercise ? h('small', { class: 'warn' }, 'Übung ist archiviert') : null,
         !mode.edit && ex?.note ? h('i', {}, icon('edit', { size: 13, cls: 'inline' }), ` ${ex.note}`) : null,
         !mode.edit ? h('span', { class: `last${d.last ? '' : ' none'}` }, d.last && d.last.sets.length ? `Zuletzt ${fmtDate(d.last.date)}: ${P.formatLastSets(d.last.sets, ex?.kind)}` : 'Noch nicht trainiert') : null);
@@ -171,6 +207,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
             draw();
             return next;
           } })) : null,
+        ex && ex.kind !== 'cardio' ? repRangeCtl(planId, d.item, () => { draw(); rerender(); }) : null,
         ex ? h('p', { class: 'muted small' }, `Übung sonst ${formatDuration(effectiveRest(ex, ctx.settings))}`, own ? [' · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.setItemRest(planId, d.item.id, null); draw(); } }, 'zurücksetzen')] : ' · gilt nur in diesem Plan') : null,
         ex ? h('div', { class: 'ctl col' }, h('span', { class: 'ctl-label' }, 'Tauschen aus'),
           exGroups.length

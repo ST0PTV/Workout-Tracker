@@ -754,3 +754,9 @@ body { overflow-wrap: anywhere; }
 .toast.has-act { pointer-events: auto; display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; width: max-content; }
 .toast.has-act > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .toast-act { flex: none; min-height: 40px; padding: 0 14px; border-radius: 10px; border: 0; background: rgba(110, 231, 216, 0.18); color: var(--accent); font-weight: 700; cursor: pointer; }
+
+/* v2.30.0: leichte Woche */
+.light-line { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+.light-line .btn { flex: 1; margin: 0; }
+.light-week p { margin: 6px 0 10px; }
+.rr-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }

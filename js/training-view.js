@@ -27,9 +27,9 @@ import { askWarmup, startRun, cooldownOffer } from './routine-view.js';
 import { cycleStartCards } from './cycle-view.js';
 import * as RT from './routines.js';
 import * as PR from './progression.js';
-import { missedHints, formatDays, isWeekSkipped } from './schedule.js';
+import { missedHints, formatDays, isWeekSkipped, weekKey } from './schedule.js';
 import { planChanges } from './plan-sync.js';
-import { askRating, needsRating, ratingLine, suggestionCard, askBreak } from './progression-view.js';
+import { askRating, needsRating, ratingLine, suggestionCard, askBreak, askLight, openProgressionInfo } from './progression-view.js';
 
 const ui = { current: null, sessionId: null, swapOpen: null };
 // v2.26.0 (A4): Scheiben-Zeile der offenen Übung; folgt dem zuletzt bearbeiteten Gewichtsfeld.
@@ -295,6 +295,21 @@ function planSyncCard(session, rerender) {
   return box;
 }
 
+// v2.30.0 (B3): leichte Woche ein- und ausschalten (gilt bis Sonntag dieser Woche, für alle Pläne).
+function lightWeekCard(active, rerender) {
+  const setWeek = (v) => { store.set('settings', { ...store.get('settings'), lightWeek: v }); rerender(); };
+  const info = h('button', { class: 'info-btn small', type: 'button', 'aria-label': 'Was ist eine leichte Woche?', onclick: () => openProgressionInfo('light') }, icon('info', { size: 18 }));
+  if (active) {
+    return h('div', { class: 'card hint-box light-week' },
+      h('div', { class: 'sug-top' }, h('b', {}, 'Leichte Woche bis Sonntag'), info),
+      h('p', { class: 'small' }, 'Beim Start schlägt die App weniger Sätze und Gewicht vor. Diese Trainings sind kein Ausgangspunkt für Vorbelegung und Vorschläge.'),
+      h('button', { class: 'btn block', type: 'button', onclick: () => setWeek(null) }, 'Leichte Woche beenden'));
+  }
+  return h('div', { class: 'light-line' },
+    h('button', { class: 'btn block subtle', type: 'button', onclick: () => { setWeek(weekKey(new Date())); toast('Leichte Woche bis Sonntag.'); } }, 'Diese Woche leicht trainieren'),
+    info);
+}
+
 // v2.29.0 (Feature-To-Do A): Hinweis am Folgetag, wenn an einem Trainingstag gar kein Training stattfand.
 // Neutral (Projektregel §4): kein Zähler, keine Serie, keine Wertung; erscheint nur für den Vortag.
 function missedCards(rerender) {
@@ -494,7 +509,8 @@ function exercisePage(v, d, rerender) {
   return h('div', { class: 'ex-page' },
     ex ? h('div', {},
       h('h2', { class: 'exh' }, ex.name),
-      h('div', { class: 'sub2' }, lib.muscleSummary(ex), perSide ? h('span', { class: 'side-pill' }, 'je Seite') : null),
+      h('div', { class: 'sub2' }, lib.muscleSummary(ex), perSide ? h('span', { class: 'side-pill' }, 'je Seite') : null,
+        d.entry.repRange && !cardio ? h('span', { class: 'side-pill' }, `Ziel ${d.entry.repRange.min === d.entry.repRange.max ? d.entry.repRange.min : `${d.entry.repRange.min}–${d.entry.repRange.max}`} Wdh.`) : null),
       ...swapLine(d, rerender),
       h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
         icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
@@ -545,7 +561,7 @@ function activeView(v, rerender) {
   const bar = restBar(rerender);
   const page = h('section', { class: 'training' },
     h('div', { class: 'prog' },
-      h('span', {}, `${plan ? plan.name : 'Freies Training'}${n ? ` · Übung ${ui.current + 1} von ${n}` : ''}`),
+      h('span', {}, `${plan ? plan.name : 'Freies Training'}${s.light ? ' · leicht' : ''}${n ? ` · Übung ${ui.current + 1} von ${n}` : ''}`),
       h('span', { 'data-clock': '' }, elapsed(s.startedAt))),
     h('div', { class: 'bar' }, h('div', { style: `width:${n ? Math.round((v.entries.filter((x) => x.complete).length / n) * 100) : 0}%` })),
     d ? exercisePage(v, d, rerender) : h('div', { class: 'card empty' },
@@ -568,6 +584,8 @@ function startView(rerender) {
   const past = S.finishedSessions();
   const recent = past.slice(0, 3);
   const pause = PR.breakInfo(past);
+  const settings = store.get('settings');
+  const light = settings.lightWeek === weekKey(new Date());
   const start = (fn) => () => { const r = fn(); if (!r.ok) { toast(r.errors[0], { error: true }); return; } ui.current = null; rerender(); };
   return h('section', {},
     h('h1', {}, 'Training'),
@@ -580,10 +598,11 @@ function startView(rerender) {
         const warm = RT.planRoutine(p, 'warmup');
         // v2.3.0: Plan mit Aufwärm-Routine fragt vor dem Start; „Nein“ startet ohne weiteren Hinweis.
         // v2.4.0 (3A): nach ≥ 21 Tagen Pause erst „Willkommen zurück“, dann wie gewohnt (Aufwärm-Frage, Start).
-        const launch = (reduce) => {
+        const launch = (reduce, lighter = false) => {
           const begin = () => {
             const r = S.startFromPlan(p.id);
             if (r.ok && reduce) S.applyBreakReduction(pause.pct, pause.days);
+            if (r.ok && lighter) { const l = S.applyLightWeek(); return l.ok && l.session ? l : r; }
             return r;
           };
           if (!warm) { start(begin)(); return; }
@@ -598,6 +617,14 @@ function startView(rerender) {
           });
         };
         const go = () => {
+          // v2.30.0 (B3): leichte Woche aktiv → Vorschlag statt „Willkommen zurück“ (die Reduktion ist ohnehin größer).
+          if (light) {
+            askLight(p, byId, past, {
+              onLight: () => launch(false, true),
+              onNormal: () => launch(false)
+            });
+            return;
+          }
           if (!pause) { launch(false); return; }
           askBreak(p, byId, past, pause, { onReduce: () => launch(true), onKeep: () => launch(false) });
         };
@@ -613,6 +640,7 @@ function startView(rerender) {
       : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
         h('p', { class: 'muted' }, 'Lege im Tab „Pläne“ einen Plan an – oder starte ein freies Training.')),
     h('button', { class: 'btn block', type: 'button', onclick: start(() => S.startEmpty()) }, 'Freies Training starten'),
+    lightWeekCard(light, rerender),
     recent.length ? h('div', {}, h('div', { class: 'sec' }, 'Letzte Trainings'),
       h('div', { class: 'card list' }, recent.map((s) => {
         const sum = S.sessionView(s).summary;

@@ -213,6 +213,7 @@ export function swapEntry(entryId, exerciseId) {
       groupId: entry.groupId,
       targetSets: entry.targetSets ?? null,
       restSeconds: entry.restSeconds ?? null,
+      ...(entry.repRange ? { repRange: { ...entry.repRange } } : {}),
       sets: prefillSets(ex, finishedSessions(), entry.targetSets ?? null)
     }));
     mode = 'inserted';
@@ -273,7 +274,7 @@ export function decideSuggestion(entryId, accept) {
   const s = activeSession();
   const en = s?.entries.find((e) => e.id === entryId);
   const ex = en ? exercisesById()[en.exerciseId] : null;
-  const sug = ex ? PR.suggestFor(ex, finishedSessions(), { beforeSessionId: s.id }) : null;
+  const sug = ex ? PR.suggestFor(ex, finishedSessions(), { beforeSessionId: s.id, repRange: en.repRange ?? null }) : null;
   return update((x) => {
     const e = x.entries.find((y) => y.id === entryId);
     if (!e) return 'Übung nicht gefunden.';
@@ -282,6 +283,20 @@ export function decideSuggestion(entryId, accept) {
       e.sets = PR.applySuggestion(e.sets, sug);
     }
     e.suggestion = accept ? 'accepted' : 'declined';
+  });
+}
+
+// v2.30.0 (B3): leichte Woche – Training markieren und offene Arbeitssätze halbieren, Gewichte −10 %.
+export function applyLightWeek() {
+  const past = finishedSessions();
+  const byId = exercisesById();
+  return update((s) => {
+    for (const e of s.entries) {
+      const ex = byId[e.exerciseId];
+      if (!ex || ex.kind === 'cardio') continue;
+      e.sets = PR.applyLight(e.sets, PR.loadStep(ex, past));
+    }
+    s.light = true;
   });
 }
 
@@ -325,11 +340,11 @@ export function sessionView(session = activeSession()) {
     summary: sessionSummary(session, byId),
     entries: session.entries.map((entry, index) => {
       const ex = byId[entry.exerciseId] || null;
-      const last = ex ? lastPerformance(ex.id, past) : null;
+      const last = ex ? lastPerformance(ex.id, past, { skipLight: true }) : null;
       const doneCount = entry.sets.filter((x) => x.completedAt !== null).length;
-      const open = !entry.suggestion && !entry.sets.some((x) => x.type !== 'warmup' && x.completedAt !== null) && !session.returnAdjust && session.endedAt === null;
+      const open = !entry.suggestion && !entry.sets.some((x) => x.type !== 'warmup' && x.completedAt !== null) && !session.returnAdjust && !session.light && session.endedAt === null;
       return {
-        suggestion: open && ex ? PR.suggestFor(ex, past, { beforeSessionId: session.id }) : null,
+        suggestion: open && ex ? PR.suggestFor(ex, past, { beforeSessionId: session.id, repRange: entry.repRange ?? null }) : null,
         workDone: entry.sets.some((x) => x.type !== 'warmup' && x.completedAt !== null),
         entry,
         index,
