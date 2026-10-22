@@ -965,20 +965,20 @@ export const POOL = [
       S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Iliopsoas ist der Hauptbeuger im Hüftgelenk; bei fixiertem Bein beugt er den Rumpf.')
     ]
   }, 'bodyweight'),
-  P('sit-up', 'Sit-up / Negativ-Sit-up', 'bodyweight', ['abs', 'hip-flexors'], ['obliques'], {
+  P('sit-up', 'Sit-up / Negativ-Sit-up', 'bodyweight', ['abs', 'obliques', 'hip-flexors'], [], {
     confidence: 'medium', basis: 'EMG + Anatomie',
     note: 'Knie gebeugt, Rumpf Wirbel für Wirbel aufrollen. Negativ-Variante: auf Schrägbank mit Kopf unten, kontrolliert ablassen.',
     sources: [
       S('Escamilla et al. 2006, J Orthop Sports Phys Ther', '10.2519/jospt.2006.36.2.45', 'Sit-up mit gebeugten Knien: hohe Obliques-Aktivität und mit die höchste Rectus-femoris-Aktivität der getesteten Übungen.'),
-      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Auch hier zählt der Sit-up mit gebeugten Knien zu den Übungen mit hoher Hüftbeuger-(Rectus-femoris-)Aktivität.'),
+      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Sit-up mit gebeugten Knien: schräge Bauchmuskeln (50 %, 49 %) etwas über dem geraden (39 %, 38 %), dazu viel Hüftbeuger-Aktivität (EMG).'),
       S('Siccardi et al. 2023, StatPearls: Psoas Major', 'https://www.ncbi.nlm.nih.gov/books/NBK535418/', 'Anatomie: Beidseitiger Psoas hilft, den Rumpf aus der Rückenlage aufzurichten, und beugt die Hüfte.')
     ]
   }, 'bodyweight'),
-  P('captains-chair-knee-raise', 'Knieheben im Stütz (Captain\'s Chair)', 'bodyweight', ['abs', 'hip-flexors'], ['obliques'], {
+  P('captains-chair-knee-raise', 'Knieheben im Stütz (Captain\'s Chair)', 'bodyweight', ['abs', 'obliques', 'hip-flexors'], [], {
     confidence: 'medium', basis: 'EMG + Anatomie',
     note: 'Unterarme auf den Polstern, Rücken an der Lehne; Knie heben und Becken einrollen, ohne Schwung. Langsam absenken.',
     sources: [
-      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Hängendes Knieheben in Armschlaufen (verwandte Variante): mit die höchste Rectus- und Obliques-EMG der Studie.'),
+      S('Escamilla et al. 2006, Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/16649890/', 'Hängendes Knieheben in Armschlaufen (verwandte Variante): schräge Bauchmuskeln (79 %, 85 %) über dem geraden (69 %, 75 %); Übertrag auf den Captain’s Chair.'),
       S('Bordoni & Varacallo 2026, StatPearls: Iliopsoas Muscle', 'https://www.ncbi.nlm.nih.gov/books/NBK531508/', 'Anatomie: Der Iliopsoas ist der Hauptbeuger der Hüfte. Knieheben ist vor allem Hüftbeugung (eigene Ableitung).')
     ]
   }, 'bodyweight'),

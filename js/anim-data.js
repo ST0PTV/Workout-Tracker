@@ -15,6 +15,7 @@ export const READ = {
   computed: 'berechnet aus Studienwerten',
   ik: 'aus der Geometrie gelöst, nicht gemessen',
   protocol: 'Vorgabe im Studienprotokoll, nicht gemessen',
+  figure: 'aus einer Abbildung abgelesen (Schätzung)',
   convention: 'Zeichenkonvention, nicht gemessen'
 };
 // Datenbasis einer Animation
@@ -38,7 +39,7 @@ const PU = { grip: 62, bar: -330 }; // Klimmzugstange: Hände bei ±62 (1,5-fach
 // Sumo-Kniebeuge (Frontansicht, v2.9): Knöchelmitte bei ±52 (≈ 0,51 m Fußabstand; Protokolle 1,5-fache Trochanterbreite bis 169 % Schulterbreite), Fußöffnung 32° (Konvention).
 // Das räumlich gelöste Bein ergibt unten ≈ 36° Winkel des Oberschenkels zur Sagittalebene; Sinclair et al. 2022 berichten 23,2° Hüftabduktion (Tabelle, ungeprüft; andere Winkeldefinition).
 // Arme: Hände an der Stange außerhalb der Schultern, Ellbogen unten (projiziert, Konvention).
-const SUMO = { stance: C(52, 'Fußabstand ≈ 0,51 m; im Bereich der Protokolle (1,5-fache Trochanterbreite bis 169 % Schulterbreite)'), toeOut: C(32, 'Füße deutlich nach außen; das Knie folgt der Ebene Hüfte–Knöchel'), arms: { elbow: [30, 44], wrist: [46, 4] } };
+const SUMO = { stance: C(52, 'Fußabstand ≈ 0,51 m; im Bereich der Protokolle (1,5-fache Trochanterbreite bis 169 % Schulterbreite)'), toeOut: V(26, 'S2', 'fulltext', 'Fußwinkel 26 ± 4° (breiter Stand, Escamilla et al. 2001, Tabelle 2); das Knie folgt der Ebene Hüfte–Knöchel'), arms: { elbow: [30, 44], wrist: [46, 4] } };
 // ---------- Runde 3.1 (v2.9): Geräte und gelöste Winkel ----------
 const dir2 = (a) => [Math.sin(a * Math.PI / 180), -Math.cos(a * Math.PI / 180)]; // Richtung von senkrecht-oben, nach vorn positiv
 // Multipresse: Stange läuft senkrecht über dem Punkt, den die gemessene Endstellung unten ergibt (Kotiuk et al. 2022).
@@ -244,9 +245,9 @@ const BAY = (() => {
 })();
 
 // ---------- Runde 7 (v2.11): Schultern ----------
-// Aufrechtes Rudern (Frontansicht): Griff 100 % der Schulterbreite (Hände unter den Schultern); oben liegt die Stange an der oberen Brust.
-// Mit diesem Griff und der Unterarmlänge erreichen die Ellbogen ≈ 65° Abduktion (aus der Geometrie, unter Schulterhöhe).
-const URR = { grip: 0, start: { elbow: [4, 68], wrist: [0, 122] }, top: { elbow: [61.6, 28.7], wrist: [8, 22] } };
+// Aufrechtes Rudern (Frontansicht): Griff 100 % der Schulterbreite (Hände unter den Schultern); oben liegt die Stange am unteren Ende des Brustbeins
+// (Protokoll McAllister et al. 2013). Mit diesem Griff und der Unterarmlänge erreichen die Ellbogen ≈ 62° Abduktion (aus der Geometrie, unter Schulterhöhe).
+const URR = { grip: 0, start: { elbow: [4, 68], wrist: [0, 122] }, top: { elbow: [60.1, 31.8], wrist: [8, 46] } };
 // Schulterdrücken an der Maschine (Seitenansicht): Lehne 75° → Rumpf 15° zurück; Hebel mit Drehpunkt hinter dem Kopf auf der Mittelsenkrechten der beiden Griffpositionen.
 const MSP = (() => {
   const base = { root: 'hip', rootPos: [0, -98], trunk: -15, hip: 75, knee: 90, foot: 90 };
@@ -542,7 +543,7 @@ const DG = Math.PI / 180;
 // Polster auf den Oberschenkeln knapp hinter den Knien. Je Sprunggelenkwinkel Schienbein und Knie so gelöst, dass Hüfte und Ballen am Platz bleiben –
 // das Knie hebt sich mit der Ferse, der Oberschenkel kippt leicht. Block ≈ 13 cm, Sitz und Polster Konvention.
 const SCR = (() => {
-  const BLK = 26, P0 = solvePose({ root: 'hip', rootPos: [0, 0], trunk: 0, hip: 90, knee: 90, ankle: 25 });
+  const BLK = 26, P0 = solvePose({ root: 'hip', rootPos: [0, 0], trunk: 0, hip: 90, knee: 90, ankle: 20 });
   const hip = [0, r1(-BLK - 2 - P0.joints.toe[1])], toe = [r1(P0.joints.toe[0]), -BLK - 2];
   const at = (a) => {
     const kOf = (sh) => solvePose({ root: 'toe', rootPos: toe, shank: sh, knee: 0, trunk: 0, ankle: a }).joints.knee;
@@ -553,7 +554,7 @@ const SCR = (() => {
   const withHand = (o) => { const P = solvePose({ root: 'toe', rootPos: toe, trunk: 0, ...o }), K = P.joints.knee, d = [K[0] - P.joints.hip[0], K[1] - P.joints.hip[1]], l = Math.hypot(d[0], d[1]);
     const u = [d[0] / l, d[1] / l], n = [u[1], -u[0]], pad = [K[0] - u[0] * 16 + n[0] * 24, K[1] - u[1] * 16 + n[1] * 24];
     return { ...o, hand: [r1(pad[0] - 4), r1(pad[1] - 8)] }; }; // Hände an den Griffen des Polsters
-  return { BLK, hip, toe, down: withHand(at(25)), mid: withHand(at(-2.5)), up: withHand(at(-30)) };
+  return { BLK, hip, toe, down: withHand(at(20)), mid: withHand(at(-5)), up: withHand(at(-30)) };
 })();
 // Wadenheben an der Beinpresse (Seitenansicht): Sitz, Lehne und Beine wie oben an der Beinpresse, Knie fast gestreckt; nur die Fußballen
 // stehen an der unteren Kante der Platte, die Ferse hängt frei. Das Bein bleibt starr, nur das Sprunggelenk bewegt sich – die Platte folgt
@@ -588,7 +589,7 @@ const CHIP = (() => {
     const v = [T[0] - S[0], T[1] - S[1]], k = LEN.uarm / ARM_REACH; return { elbow: [r1(sg * v[0] * k + 2), r1(v[1] * k + 10)], wrist: [r1(sg * v[0] - 8), r1(v[1])] }; };
   const abdF = (abd, lean) => ({ armL: { points: towerHand(abd, lean, 'L') }, armPoints: hipHand(spec(abd, lean), 'R') });
   const addF = (abd, lean) => ({ armPoints: towerHand(abd, lean, 'R'), armL: { points: hipHand(spec(abd, lean), 'L') } });
-  return { AL, spec, abd: { down: { abd: 0, lean: 0, ...abdF(0, 0) }, up: { abd: 35, lean: -4, ...abdF(35, -4) } }, add: { out: { abd: 28, lean: 3, ...addF(28, 3) }, in: { abd: -9, lean: 0, ...addF(-9, 0) } } };
+  return { AL, spec, abd: { down: { abd: 0, lean: 0, ...abdF(0, 0) }, up: { abd: 35, lean: -4, ...abdF(35, -4) } }, add: { out: { abd: 28, lean: 3, ...addF(28, 3) }, in: { abd: 3, lean: 0, ...addF(3, 0) } } };
 })();
 // Seitlage (Frontansicht, um −90° gedreht wie beim Seitstütz: Kopf links, linke Körperseite unten auf der Matte). Unterer Arm über dem Kopf
 // (Kopf liegt darauf), oberer Arm am Körper. Beckenhöhe so gelöst, dass der tiefste Umrisspunkt auf der Matte liegt.
@@ -599,7 +600,7 @@ const SIDEL = (() => {
   return { base, y };
 })();
 // Seitliches Beinheben: unteres Bein gestreckt, oberes bis 40° abgespreizt (Konvention).
-const SLA = { y: SIDEL.y({ legs: { abdR: 0 } }), up: 40 };
+const SLA = { y: SIDEL.y({ legs: { abdR: 0 } }), up: 35 };
 // Clamshell: Hüfte 60° gebeugt (Variante mit der höchsten Aktivität des mittleren Gesäßmuskels bei Willcox & Burden 2013), Knie 90°, Fersen zusammen.
 // Das obere Knie öffnet sich um die Achse Hüfte–Knöchel bis 40° (Konvention). Bein räumlich gelöst und in die Frontalebene projiziert
 // (x seitlich, y abwärts, z zum Betrachter).
@@ -1562,13 +1563,13 @@ export const ANIMATIONS = [
   },
   // ---------- Sumo-Kniebeuge (Frontansicht, v2.9) ----------
   {
-    ref: 'sumo-squat', checkedAt: '2026-10-19', view: 'front', basis: 'measured',
-    basisNote: 'Frontansicht, Langhantel hochstabig. Fußabstand ≈ 0,5 m entspricht etwa dem Protokoll von Sinclair et al. 2022 (1,5-fache Trochanterbreite). Die breite Gruppe bei Escamilla et al. 2001 stand weiter: 70 ± 10 cm zwischen den Knöcheln (169 % der Schulterbreite, Tabelle 1). Knie und Dorsalflexion unten aus Sinclair et al. 2022 (3D-Motion-Capture, 20 trainierte Männer, 70 % 1RM, Stand 1,5-fache Trochanterbreite; Tabelle 6 am PDF geprüft). Hüftbeugung und Rumpfneigung stehen dort nur im Online-Supplement (nicht signifikant). Escamilla et al. 2001 nennen für den breiten Stand unten: Hüfte 110 ± 7° gebeugt, Rumpf 62 ± 5° zur Waagerechten, Füße 26 ± 4° nach außen (Tabelle 2; Kraftdreikämpfer nahe Maximalgewicht). Gezeichnete Fußöffnung und Rumpfneigung sind daran angelehnte Konvention, die Armhaltung ist Konvention; das Bein ist räumlich gelöst und in die Bildebene projiziert.',
+    ref: 'sumo-squat', checkedAt: '2026-10-22', view: 'front', basis: 'measured',
+    basisNote: 'Frontansicht, Langhantel hochstabig. Fußabstand ≈ 0,5 m entspricht etwa dem Protokoll von Sinclair et al. 2022 (1,5-fache Trochanterbreite). Die breite Gruppe bei Escamilla et al. 2001 stand weiter: 70 ± 10 cm zwischen den Knöcheln (169 % der Schulterbreite, Tabelle 1). Knie und Dorsalflexion unten aus Sinclair et al. 2022 (3D-Motion-Capture, 20 trainierte Männer, 70 % 1RM, Stand 1,5-fache Trochanterbreite; Tabelle 6 am PDF geprüft). Hüftbeugung und Rumpfneigung stehen dort nur im Online-Supplement (nicht signifikant). Escamilla et al. 2001 nennen für den breiten Stand unten: Hüfte 110 ± 7° gebeugt, Rumpf 62 ± 5° zur Waagerechten, Füße 26 ± 4° nach außen (Tabelle 2; Kraftdreikämpfer nahe Maximalgewicht). Gezeichnet sind Fußöffnung (26°) und Rumpfneigung (≈ 28° aus der Senkrechten) nach Escamilla et al. 2001 – andere Gruppe und schwerere Last als bei Sinclair, daher eine Mischung aus zwei Studien; die Armhaltung ist Konvention; das Bein ist räumlich gelöst und in die Bildebene projiziert.',
     tempo: { basis: 'measured', note: 'Wiederholung 2,19 ± 0,22 s, davon Aufstehen 1,10 ± 0,10 s (breiter Stand, Sinclair et al. 2022, Tabelle 3); Absenken daraus ≈ 1,1 s.' },
     frames: [
       { label: 'Oben', pose: { legs: { planted: true, stance: SUMO.stance, toeOut: SUMO.toeOut, knee: C(4, 'fast gestreckt'), shank: C(0) }, trunkFlex: C(5), armPoints: SUMO.arms, props: sumoProps } },
-      { label: 'Unten', pose: { legs: { planted: true, stance: SUMO.stance, toeOut: SUMO.toeOut, knee: V(128.5, 'S1', 'fulltext', '128,54 ± 6,92° (breit, Tabelle 6)'), shank: V(19.4, 'S1', 'fulltext', 'gleich der Dorsalflexion 19,44 ± 6,99° (breit, Tabelle 6; Fuß flach)') }, trunkFlex: C(35, 'kein Unterschied zum engen Stand (Escamilla et al. 2001)'), armPoints: SUMO.arms, props: sumoProps },
-        facts: [V(134.1, 'S1', 'fulltext', 'zum Vergleich enger Stand (1,0-fache Trochanterbreite): Knie 134,13 ± 4,44°, Dorsalflexion 27,68 ± 6,20°'), V(23.2, 'S1', 'fulltext', 'Hüftabduktion unten −23,17 ± 9,38° (breit); die gezeichnete Figur zeigt ≈ 36° (andere Winkeldefinition, Zeichenmodell)'), V(112.1, 'S1', 'fulltext', 'Bewegungsumfang Knie 112,09 ± 12,09°'), V(169, 'S2', 'abstract', 'Stand 169 ± 12 % der Schulterbreite (breite Gruppe)')] }
+      { label: 'Unten', pose: { legs: { planted: true, stance: SUMO.stance, toeOut: SUMO.toeOut, knee: V(128.5, 'S1', 'fulltext', '128,54 ± 6,92° (breit, Tabelle 6)'), shank: V(19.4, 'S1', 'fulltext', 'gleich der Dorsalflexion 19,44 ± 6,99° (breit, Tabelle 6; Fuß flach)') }, trunkFlex: V(28, 'S2', 'fulltext', 'Rumpf 62 ± 5° zur Waagerechten = ≈ 28° Vorneigung bei maximaler Kniebeugung (breiter Stand, Tabelle 2); kein Unterschied zum engen Stand'), armPoints: SUMO.arms, props: sumoProps },
+        facts: [V(134.1, 'S1', 'fulltext', 'zum Vergleich enger Stand (1,0-fache Trochanterbreite): Knie 134,13 ± 4,44°, Dorsalflexion 27,68 ± 6,20°'), V(23.2, 'S1', 'fulltext', 'Hüftabduktion unten −23,17 ± 9,38° (breit); die gezeichnete Figur zeigt ≈ 36° (andere Winkeldefinition, Zeichenmodell)'), V(112.1, 'S1', 'fulltext', 'Bewegungsumfang Knie 112,09 ± 12,09°'), V(169, 'S2', 'fulltext', 'Stand 169 ± 12 % der Schulterbreite (breite Gruppe, Tabelle 1)')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0] }, { a: 0, b: 1, dur: 1.1, label: 'Absenken', kp: [1, 2] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2, 3] }, { a: 1, b: 0, dur: 1.1, label: 'Aufstehen', kp: [4] }],
     keyPoints: [
@@ -1619,8 +1620,8 @@ export const ANIMATIONS = [
 
   // ---------- Hack Squat (v2.9) ----------
   {
-    ref: 'hack-squat', checkedAt: '2026-10-19', view: 'side', basis: 'convention',
-    basisNote: 'Keine gelesene Studie hat Gelenkwinkel am Hack Squat gemessen (34 PubMed-Treffer gesichtet). Clark et al. 2019 gaben vor: Schlitten 45°, Füße schulterbreit im vorderen Teil der Plattform, Knie mindestens 90° gebeugt, Oberschenkel parallel zur Plattform. Gezeichnet: Rücken auf dem 45°-Schlitten, Schulterpolster, Füße schulterbreit mittig auf einer flachen Plattform (weicht von Clark ab); das Knie beugt bis etwa 100°. Die Hüfte läuft auf der Schiene, Knie- und Schienbeinwinkel sind aus dieser Geometrie gelöst. Der Rest ist Zeichenkonvention.',
+    ref: 'hack-squat', checkedAt: '2026-10-22', view: 'side', basis: 'convention',
+    basisNote: 'Keine gelesene Studie hat Gelenkwinkel am Hack Squat gemessen (34 PubMed-Treffer gesichtet). Clark et al. 2019 gaben vor: Schlitten 45°, Füße schulterbreit im vorderen Teil der Plattform, Knie mindestens 90° gebeugt, Oberschenkel parallel zur Plattform. Gezeichnet: Rücken auf dem 45°-Schlitten, Schulterpolster, Füße im vorderen Teil der Plattform wie bei Clark et al. 2019 (Volltext); das Knie beugt bis etwa 100° (Konvention, Clark: mindestens 90°). Die Hüfte läuft auf der Schiene, Knie- und Schienbeinwinkel sind aus dieser Geometrie gelöst. Der Rest ist Zeichenkonvention.',
     tempo: { basis: 'convention', note: 'Je ≈ 1,5 s ab und auf (Konvention). Clark et al. 2019: Das Absenken dauerte beim Hack Squat länger als bei der Kniebeuge. Das Heben dauerte gleich lang, nur bei sehr schwerer Last war es beim Hack Squat kürzer.' },
     frames: [
       { label: 'Oben', pose: { root: 'ankle', rootPos: [0, -15 - HACK.plat], trunk: C(-45, 'Schlitten 45° (Konvention)'), shank: K(HACK.top.shank, [], 'aus der Schienenbahn gelöst'), knee: C(HACK.top.knee), foot: C(70, 'Fuß flach auf der vorn angehobenen Plattform (20°)'), armTargetTrunk: [6, 6], armScale: [0.7, 0.8], elbowSide: -1, props: hackProps } },
@@ -1808,13 +1809,13 @@ export const ANIMATIONS = [
 ,
   // ---------- Rückenstrecken 45° (v2.9) ----------
   {
-    ref: 'back-extension-45', checkedAt: '2026-10-19', view: 'side', basis: 'measured',
-    basisNote: 'Hüft- und Knie-Bewegungsumfang aus Schellenberg et al. 2017 (3D, 16 Personen, 45°-Bank, Bewegung aus der Hüfte mit stabilem Rücken, beidbeinig; Tabelle 2 am PDF geprüft). Dabei beugte sich auch die Wirbelsäule (zusammen ≈ 40°), das zeichnet die Figur nicht. Andersen et al. 2021 gingen deutlich tiefer (≈ 90° Hüftwinkel). Polsterkante am Becken nach Petrič et al. 2022 und Schellenberg et al. 2017; Fußplatte, Fersenrolle und Armhaltung sind Konvention.',
+    ref: 'back-extension-45', checkedAt: '2026-10-22', view: 'side', basis: 'measured',
+    basisNote: 'Hüft- und Knie-Bewegungsumfang aus Schellenberg et al. 2017 (3D, 16 Personen, 45°-Bank, Bewegung aus der Hüfte mit stabilem Rücken, beidbeinig; Tabelle 2 am PDF geprüft). Dabei beugte sich die Lendenwirbelsäule mit (≈ 30°), der obere Rücken streckte sich eher; das zeichnet die Figur nicht. Kniewinkel oben und unten aus Abb. 2a abgelesen (Schätzung). Andersen et al. 2021 gingen deutlich tiefer (≈ 90° Hüftwinkel). Polsterkante am Becken nach Petrič et al. 2022 und Schellenberg et al. 2017; Fußplatte, Fersenrolle und Armhaltung sind Konvention.',
     tempo: { basis: 'convention', note: 'Je ≈ 1,5 s ab und auf (Konvention); Andersen et al. 2021 ließen selbst gewählt, aber kontrolliert arbeiten.' },
     frames: [
-      { label: 'Oben', pose: { root: 'ankle', rootPos: [0, -15 - BACKEXT.plat], shank: V(45, 'S2', 'fulltext', '45°-Bank; Oberkörper in Linie mit den Beinen'), knee: C(0, 'Knie gestreckt (Anweisung)'), hip: V(0, 'S2', 'protocol', 'Oberkörper in Linie mit den Beinen'), ankle: C(0), armTargetTrunk: [18, -44], armScale: [0.7, 0.9], elbowSide: 1, props: backExtProps } },
-      { label: 'Unten', pose: { root: 'ankle', rootPos: [0, -15 - BACKEXT.plat], shank: V(45, 'S2', 'fulltext', '45°-Bank'), knee: V(7.4, 'S2', 'fulltext', 'Bewegungsumfang Knie 7,4 ± 3,6°'), hip: V(36.3, 'S2', 'fulltext', 'Bewegungsumfang Hüfte 36,3 ± 7,9° (aus der Hüfte, beidbeinig)'), ankle: C(0), armTargetTrunk: [18, -44], armScale: [0.7, 0.9], elbowSide: 1, props: backExtProps },
-        facts: [V(40, 'S2', 'computed', 'Die Lendenwirbelsäule beugte sich mit (Becken–Lende 17,4°, Lende–Mitte 12,5°). Der obere Rücken streckte sich dabei eher (Mitte–oben 10,0°). Nicht gezeichnet.'), V(90, 'A1', 'protocol', 'Andersen et al. 2021: Hüftwinkel unten etwa 90°, per Goniometer kontrolliert')] }
+      { label: 'Oben', pose: { root: 'ankle', rootPos: [0, -15 - BACKEXT.plat], shank: V(45, 'S2', 'fulltext', '45°-Bank; Oberkörper in Linie mit den Beinen'), knee: V(5, 'S2', 'figure', 'Abb. 2a, Startpunkt: ≈ 5° gebeugt (zwei unabhängige Ablesungen 5,1° und 5,1°, ± 0,5°)'), hip: V(0, 'S2', 'protocol', 'Oberkörper in Linie mit den Beinen'), ankle: C(0), armTargetTrunk: [18, -44], armScale: [0.7, 0.9], elbowSide: 1, props: backExtProps } },
+      { label: 'Unten', pose: { root: 'ankle', rootPos: [0, -15 - BACKEXT.plat], shank: V(45, 'S2', 'fulltext', '45°-Bank'), knee: V(0, 'S2', 'figure', 'Abb. 2a, Umkehrpunkt: ≈ gestreckt (Ablesungen −0,7° und −0,8°); das Knie streckt sich beim Absenken. Bewegungsumfang laut Tabelle 7,4 ± 3,6°'), hip: V(36.3, 'S2', 'fulltext', 'Bewegungsumfang Hüfte 36,3 ± 7,9° (aus der Hüfte, beidbeinig)'), ankle: C(0), armTargetTrunk: [18, -44], armScale: [0.7, 0.9], elbowSide: 1, props: backExtProps },
+        facts: [V(30, 'S2', 'computed', 'Die Lendenwirbelsäule beugte sich mit (Becken–Lende 17,4° + Lende–Mitte 12,5° ≈ 30°). Der obere Rücken streckte sich dabei eher (Mitte–oben 10,0°). Nicht gezeichnet.'), V(90, 'A1', 'protocol', 'Andersen et al. 2021: Hüftwinkel unten etwa 90°, per Goniometer kontrolliert')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 1.5, label: 'Absenken', kp: [2, 3] }, { a: 1, b: 1, dur: 0.3, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 1.5, label: 'Aufrichten', kp: [4] }],
     keyPoints: [
@@ -2524,14 +2525,14 @@ export const ANIMATIONS = [
 
   // ---------- Aufrechtes Rudern (Frontansicht, v2.11) ----------
   {
-    ref: 'barbell-upright-row', checkedAt: '2026-10-19', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht. Keine Studie hat die Bewegung vermessen. Griff 100 % der Schulterbreite (eine der drei Griffbreiten bei McAllister et al. 2013, Volltext). Endposition nach Protokoll McAllister et al. 2013: Stange höchstens bis zum unteren Ende des Brustbeins, damit der Oberarm unter der Waagerechten bleibt. Gezeichnet ist die Stange bis zur oberen Brust (Konvention, höher als im Protokoll); daraus ergeben sich mit Arm- und Unterarmlänge der Figur ≈ 65° Abduktion der Ellbogen (berechnet, unter Schulterhöhe). Stange 2,2 m mit Scheiben Ø 45 cm: Konvention.',
+    ref: 'barbell-upright-row', checkedAt: '2026-10-22', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht. Keine Studie hat die Bewegung vermessen. Griff 100 % der Schulterbreite (eine der drei Griffbreiten bei McAllister et al. 2013, Volltext). Endposition nach Protokoll McAllister et al. 2013: Stange höchstens bis zum unteren Ende des Brustbeins, damit der Oberarm unter der Waagerechten bleibt. So ist es gezeichnet; daraus ergeben sich mit Arm- und Unterarmlänge der Figur ≈ 62° Abduktion der Ellbogen (berechnet, unter Schulterhöhe). Stange 2,2 m mit Scheiben Ø 45 cm: Konvention.',
     tempo: { basis: 'convention', note: '≈ 1,5 s hochziehen, 2 s senken (Konvention); keine Tempoangabe in den gelesenen Quellen.' },
     frames: [
       { label: 'Unten', pose: { armPoints: URR.start, legs: { hip: C(0), knee: C(4) }, props: uprightRowProps },
-        facts: [V(100, 'M1', 'abstract', 'Griff 100 % der Schulterbreite (verglichen: 50, 100, 200 %)')] },
+        facts: [V(100, 'M1', 'protocol', 'Griff 100 % der Schulterbreite (verglichen: 50, 100, 200 %)')] },
       { label: 'Oben', pose: { armPoints: URR.top, legs: { hip: C(0), knee: C(4) }, props: uprightRowProps },
-        facts: [K(65, 'M1', 'Ellbogen-Abduktion aus Griffbreite und Stangenhöhe (Figur)')] }
+        facts: [K(62, 'M1', 'Ellbogen-Abduktion aus Griffbreite und Stangenhöhe am unteren Brustbein (Figur)')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Ziehen', kp: [1] }, { a: 1, b: 1, dur: 0.2, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
     keyPoints: [
@@ -2674,12 +2675,14 @@ export const ANIMATIONS = [
       { label: 'Gebeugt', pose: { ...ONE_ROW.pose, shoulder: C(-20, 'Oberarm waagerecht neben dem Rumpf'), elbow: C(90, 'Unterarm hängt senkrecht'), props: kickbackDbProps } },
       { label: 'Gestreckt', pose: { ...ONE_ROW.pose, shoulder: C(-20, 'Oberarm bleibt stehen'), elbow: C(0, 'gestreckt'), props: kickbackDbProps } }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Gebeugt', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Strecken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Gestreckt', kp: [1] }, { a: 1, b: 0, dur: 1.5, label: 'Beugen', kp: [2] }],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Gebeugt', kp: [0] }, { a: 0, b: 1, dur: 1.5, label: 'Strecken', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Gestreckt', kp: [1, 2] }, { a: 1, b: 0, dur: 1.5, label: 'Beugen', kp: [3] }],
     keyPoints: [
       { short: 'Oberarm', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarm bleibt neben dem Rumpf; nur der Unterarm streckt nach hinten.', src: ['K3'],
         explain: 'Mit dem Oberarm parallel zum Rumpf (wie bei 0° Schulterhebung) trug in einer Modellrechnung der lange Kopf den größten Teil der Kraft (Kholinne et al. 2018, ohne Last, 10 Personen). Für den Kickback selbst ist das nicht gemessen.' },
       { short: 'Gewicht', anchor: 'hand', side: 'r', status: 'single', text: 'Gewicht behutsam steigern: mit 5 statt 2 kg kaum mehr Trizeps, aber schlechtere Streckung.', src: ['S1'],
         explain: 'Serbest et al. 2025 (14 trainierte Frauen, 2 und 5 kg, Halte-Pausen bei 90°, 135° und gestrecktem Arm): Die Trizepsaktivität (EMG) unterschied sich zwischen den Gewichten kaum. Am höchsten war sie bei gestrecktem Arm. Mit 5 kg erreichten die Frauen die volle Streckung seltener. Nur zwei Gewichte und eine kleine Gruppe.' },
+      { short: 'Strecken', anchor: 'elbow', side: 'r', status: 'single', text: 'Arm hinten ganz strecken: Dort war der Trizeps am aktivsten.', src: ['S1'],
+        explain: 'Serbest et al. 2025 (Volltext): Haltepausen bei 90°, 135° und gestrecktem Arm (≈ 180°). In jedem Durchgang und mit beiden Gewichten war die Trizepsaktivität (EMG) bei gestrecktem Arm am höchsten und bei 90° am niedrigsten. Eine Studie, kleine Gruppe; EMG zeigt Aktivierung, nicht Wachstum.' },
       { short: 'Wachstum', anchor: 'chest', side: 'l', status: 'single', text: 'Strecken überkopf brachte mehr Wachstum als mit hängendem Arm.', src: ['X1'],
         explain: 'Übertrag: Maeo et al. 2022 verglichen Kabelstrecken mit dem Arm am Körper und überkopf (MRT, 12 Wochen); überkopf wuchs der Trizeps etwa 1,4-mal so stark. Der Kickback wurde nicht untersucht. Beim Kickback ist der Oberarm sogar hinter dem Körper; der lange Kopf ist dort eher noch kürzer als in der neutralen Haltung.' }
     ],
@@ -3422,15 +3425,15 @@ export const ANIMATIONS = [
   },
   // ---------- Runde 14 (v2.19): Wadenheben sitzend ----------
   {
-    ref: 'seated-calf-raise', checkedAt: '2026-10-21', view: 'side', basis: 'protocol',
-    basisNote: 'Kniewinkel 90° aus dem Trainingsprotokoll von Kinoshita et al. 2023 (Volltext). Sprunggelenk gezeichnet 25° Dorsalflexion bis 30° Plantarflexion (Konvention); das Modellbild von Kinoshita et al. 2023 zeigt 20° Dorsalflexion bis 30° Plantarflexion (Abb. 1, kein Messwert). Blockhöhe, Sitz und Polster sind Konvention. Hüfte und Fußballen bleiben am Platz; Schienbein und Knie sind je Bild so gelöst, dass das Knie mit der Ferse steigt.',
-    tempo: { basis: 'convention', note: '2 s hoch, 2 s runter (Metronom, Kinoshita et al. 2023).' },
+    ref: 'seated-calf-raise', checkedAt: '2026-10-22', view: 'side', basis: 'protocol',
+    basisNote: 'Kniewinkel 90° aus dem Trainingsprotokoll von Kinoshita et al. 2023 (Volltext). Sprunggelenk 20° Dorsalflexion bis 30° Plantarflexion wie im Muskelmodell von Kinoshita et al. 2023 (Abb. 1; Annahme des Modells, kein Messwert). Blockhöhe, Sitz und Polster sind Konvention. Hüfte und Fußballen bleiben am Platz; Schienbein und Knie sind je Bild so gelöst, dass das Knie mit der Ferse steigt.',
+    tempo: { basis: 'protocol', note: '2 s hoch, 2 s runter (Metronom 60 bpm, Kinoshita et al. 2023).' },
     frames: [
-      { label: 'Unten', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0, 'aufrecht'), shank: C(SCR.down.shank, 'gelöst: Hüfte und Ballen bleiben am Platz'), knee: V(SCR.down.knee, 'K2', 'protocol', 'Knie ≈ 90° gebeugt'), ankle: C(25, 'Ferse unter Blockhöhe'), armWorld: SCR.down.hand, elbowSide: -1, props: scrProps } },
-      { label: 'Mitte', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0), shank: C(SCR.mid.shank, 'gelöst'), knee: C(SCR.mid.knee, 'gelöst'), ankle: C(-2.5, 'Zwischenbild, damit die Hüfte auf dem Sitz bleibt'), armWorld: SCR.mid.hand, elbowSide: -1, props: scrProps } },
+      { label: 'Unten', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0, 'aufrecht'), shank: C(SCR.down.shank, 'gelöst: Hüfte und Ballen bleiben am Platz'), knee: V(SCR.down.knee, 'K2', 'protocol', 'Knie ≈ 90° gebeugt'), ankle: C(20, 'Ferse unter Blockhöhe; 20° wie im Modell von Kinoshita et al. 2023 (Abb. 1)'), armWorld: SCR.down.hand, elbowSide: -1, props: scrProps } },
+      { label: 'Mitte', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0), shank: C(SCR.mid.shank, 'gelöst'), knee: C(SCR.mid.knee, 'gelöst'), ankle: C(-5, 'Zwischenbild, damit die Hüfte auf dem Sitz bleibt'), armWorld: SCR.mid.hand, elbowSide: -1, props: scrProps } },
       { label: 'Oben', pose: { root: 'toe', rootPos: SCR.toe, trunk: C(0), shank: C(SCR.up.shank, 'gelöst'), knee: C(SCR.up.knee, 'gelöst: Knie hebt sich mit der Ferse'), ankle: C(-30, 'hoch auf den Ballen'), armWorld: SCR.up.hand, elbowSide: -1, props: scrProps } }
     ],
-    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [2] }, { a: 0, b: 1, dur: 0.5, label: 'Hochdrücken', kp: [0, 1] }, { a: 1, b: 2, dur: 0.5, label: 'Hochdrücken', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Oben', kp: [2] }, { a: 2, b: 1, dur: 1.0, label: 'Absenken', kp: [0] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [0] }],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten, kurz halten', kp: [2] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [0, 1] }, { a: 1, b: 2, dur: 1.0, label: 'Hochdrücken', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Oben', kp: [2] }, { a: 2, b: 1, dur: 1.0, label: 'Absenken', kp: [0] }, { a: 1, b: 0, dur: 1.0, label: 'Absenken', kp: [0] }],
     keyPoints: [
       { short: 'Soleus', anchor: 'shin', side: 'l', status: 'single', text: 'Mit 90° gebeugtem Knie trainiert vor allem der Schollenmuskel (Soleus).', src: ['K2'],
         explain: '12 Wochen, 14 Untrainierte, 70 % 1RM: Der Soleus wuchs sitzend ähnlich wie stehend (2,9 % vs. 2,1 %), der Zwillingswadenmuskel sitzend kaum (0,6–1,7 % vs. 9,2–12,4 %) (Kinoshita et al. 2023, Volltext).' },
@@ -3569,19 +3572,19 @@ export const ANIMATIONS = [
 
   // ---------- Runde 14: Adduktion am Kabel (Frontansicht) ----------
   {
-    ref: 'cable-hip-adduction', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht. Keine Studie zur Adduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Adduktion gegen elastischen Widerstand im Stand (Serner et al. 2013, Brandt et al. 2013; Volltext). Gezeichnet: Turm rechts, Manschette am rechten (nahen) Knöchel, Stand auf dem linken Bein; das Bein startet 28° außen und zieht bis knapp vor das Standbein (9° über die Mitte). Winkel Konvention. Im Protokoll (Serner et al. 2013) endet das Bein eine Fußbreite neben dem Standbein, etwas dahinter; das Kreuzen vor dem Standbein ist Zeichenkonvention.',
+    ref: 'cable-hip-adduction', checkedAt: '2026-10-22', view: 'front', basis: 'convention',
+    basisNote: 'Frontansicht. Keine Studie zur Adduktion am Kabel gefunden (PubMed-Suche 2026-10-21); übertragen wird die Adduktion gegen elastischen Widerstand im Stand (Serner et al. 2013, Brandt et al. 2013; Volltext). Gezeichnet: Turm rechts, Manschette am rechten (nahen) Knöchel, Stand auf dem linken Bein; das Bein startet 28° außen (Konvention) und endet wie im Protokoll von Serner et al. 2013 eine Fußbreite neben dem Standbein (Bein dann noch ≈ 3° abgespreizt, aus der Figur gelöst). Dass es dort etwa eine halbe Fußlänge hinter dem Standbein steht, zeigt die Frontansicht nicht.',
     tempo: { basis: 'convention', note: 'Gezeichnet 1 s heranziehen, kurz halten, 2 s zurück (Konvention).' },
     frames: [
       { label: 'Außen', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.add.out.lean), legs: { abdR: C(CHIP.add.out.abd, 'vom Kabel nach außen gezogen') }, armPoints: CHIP.add.out.armPoints, armL: CHIP.add.out.armL, frontLeg: 'R', props: chipProps('R') } },
-      { label: 'Innen', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.add.in.lean), legs: { abdR: C(CHIP.add.in.abd, 'knapp vor dem Standbein vorbei') }, armPoints: CHIP.add.in.armPoints, armL: CHIP.add.in.armL, frontLeg: 'R', props: chipProps('R') } }
+      { label: 'Innen', pose: { root: 'ankleL', rootPos: CHIP.AL, trunk: C(CHIP.add.in.lean), legs: { abdR: V(CHIP.add.in.abd, 'SE', 'protocol', 'Ende: eine Fußbreite zwischen den Füßen (Serner et al. 2013); Winkel aus der Figur gelöst') }, armPoints: CHIP.add.in.armPoints, armL: CHIP.add.in.armL, frontLeg: 'R', props: chipProps('R') } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Außen', kp: [3] }, { a: 0, b: 1, dur: 1.0, label: 'Heranziehen', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Innen', kp: [0, 1] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [2] }],
     keyPoints: [
       { short: 'Intensiv', anchor: 'thighR', side: 'r', status: 'single', text: 'Adduktion gegen Zug im Stand zählt zu den intensiven Adduktionsübungen.', src: ['SE'],
         explain: '40 Elitefußballer, 8 Adduktionsübungen: Spitzen-EMG des langen Adduktors 14–108 %; die Adduktion mit Gummiband nennen die Autoren als dynamische Übung mit hoher Intensität (Serner et al. 2013, Volltext). Am Kabel nicht gemessen.' },
-      { short: 'Gleich', anchor: 'kneeR', side: 'r', status: 'single', text: 'Gummiband und Maschine aktivierten die Adduktoren etwa gleich stark.', src: ['B1'],
-        explain: '16 untrainierte Frauen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich wirksam (Brandt et al. 2013, Volltext).' },
+      { short: 'Gleich', anchor: 'kneeR', side: 'r', status: 'single', text: 'Band und Maschine ohne klaren Unterschied; bei fast maximaler Last lag die Maschine höher.', src: ['B1'],
+        explain: '16 untrainierte Frauen: Für die Adduktoren waren elastischer Widerstand und Maschine ähnlich (Unterschied nicht signifikant, p = 0,07). Bei fast maximaler Last lag die Maschine im Mittel höher (82 vs. 63 %, Tabelle 1; einzeln nicht getestet) (Brandt et al. 2013, Volltext). Kabel wurde nicht untersucht.' },
       { short: 'Seiten', anchor: 'kneeL', side: 'l', status: 'single', text: 'Beide Seiten trainieren – Standbein und Zugbein arbeiten verschieden.', src: ['SE'],
         explain: 'Bei 3 der 8 Übungen war der lange Adduktor am arbeitenden Bein deutlich aktiver: Copenhagen-Adduktion, Adduktion mit Gummiband (103 % gegen 70 % am Standbein) und Adduktion in Seitenlage (Serner et al. 2013, Volltext).' },
       { short: 'Last', anchor: 'belly', side: 'l', status: 'single', text: 'Die gefühlte Anstrengung (0–10) passt gut, um den Zug zu wählen.', src: ['B1'],
@@ -3595,19 +3598,19 @@ export const ANIMATIONS = [
 
   // ---------- Runde 14: Seitliches Beinheben liegend (Frontansicht, Seitlage) ----------
   {
-    ref: 'side-lying-hip-abduction', checkedAt: '2026-10-21', view: 'front', basis: 'convention',
-    basisNote: 'Frontansicht in Seitlage (Figur gedreht, Kopf links, linke Seite auf der Matte). Unteres Bein gestreckt, oberes gezeichnet bis 40° abgespreizt (Konvention); Kopf auf dem unteren Arm. In den EMG-Studien wurde das obere Bein bis 30–35° abgespreizt, Knie gestreckt, Bein nicht eingedreht, Zehen nach vorn (Distefano et al. 2009: 30°, McBeth et al. 2012: 35°; Volltext). Dass das Bein leicht hinter der Körperlinie geführt wird, zeigt die Frontansicht nicht.',
+    ref: 'side-lying-hip-abduction', checkedAt: '2026-10-22', view: 'front', basis: 'protocol',
+    basisNote: 'Frontansicht in Seitlage (Figur gedreht, Kopf links, linke Seite auf der Matte). Unteres Bein gestreckt, oberes bis 35° abgespreizt wie im Protokoll von McBeth et al. 2012 (Distefano et al. 2009: 30°; beide Volltext), Knie gestreckt, Bein nicht eingedreht, Zehen nach vorn. Kopf auf dem unteren Arm (Konvention). Dass das Bein leicht hinter der Körperlinie geführt wird, zeigt die Frontansicht nicht.',
     tempo: { basis: 'protocol', note: 'Gezeichnet 2 s heben, 2 s senken – so in der Studie (Distefano et al. 2009, Metronom).' },
     frames: [
       { label: 'Unten', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: C(0, 'Beine übereinander') }, props: sideMatProps } },
-      { label: 'Oben', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: C(SLA.up, 'oberes Bein abgespreizt') }, props: sideMatProps } }
+      { label: 'Oben', pose: { ...SIDEL.base, rootPos: [0, SLA.y], legs: { abdR: V(SLA.up, ['MB', 'D1'], 'protocol', 'Abspreizen bis 35° (McBeth et al. 2012: Band als Anschlag; Distefano et al. 2009: 30°)') }, props: sideMatProps } }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [0] }],
     keyPoints: [
       { short: 'Gesäß', anchor: 'thighR', side: 'r', status: 'consensus', text: 'Aktiviert den mittleren Gesäßmuskel stark – mehr als der Clamshell.', src: ['D1', 'MB'],
         explain: 'Distefano et al. 2009 (21 Aktive, 12 Übungen): 81 ± 42 % der maximalen Muskelaktivität (EMG), deutlich vor beiden Clamshell-Varianten (40 und 38 %). McBeth et al. 2012 (20 Läufer, Gewichtsmanschette 5 % der Körpermasse): 79 ± 30 % gegenüber 33 ± 17 % beim Clamshell (Volltext; im Abstract steht 70 %).' },
       { short: 'Muskeln', anchor: 'hipR', side: 'r', status: 'single', text: 'Mittlerer Gesäßmuskel vor Spanner der Oberschenkelfaszie und großem Gesäßmuskel.', src: ['MB'],
-        explain: 'Mit 5 % der Körpermasse am Knöchel: mittlerer Gesäßmuskel 70 ± 30 %, Spanner 54 ± 19 %, vordere Hüftbeuger 28 ± 22 %, großer Gesäßmuskel 25 ± 25 % (McBeth et al. 2012, Volltext).' },
+        explain: 'Mit 5 % der Körpermasse am Knöchel: mittlerer Gesäßmuskel 79 ± 30 % (Ergebnisteil; das Abstract nennt 70 %), Spanner 54 ± 19 %, vordere Hüftbeuger 28 ± 22 %, großer Gesäßmuskel 25 ± 25 % (McBeth et al. 2012, Volltext).' },
       { short: 'Drehung', anchor: 'footR', side: 'r', status: 'single', text: 'Bein nicht nach außen drehen – sonst übernimmt der Spanner.', src: ['MB'],
         explain: 'Mit Außenrotation war der Spanner der Oberschenkelfaszie (71 ± 17 %) aktiver als der mittlere Gesäßmuskel (53 ± 28 %) (McBeth et al. 2012, Volltext).' },
       { short: 'Gerät', anchor: 'kneeL', side: 'l', status: 'single', text: 'Mehr Spanner-Aktivität als an der Abduktorenmaschine.', src: ['P1'],
@@ -4313,8 +4316,8 @@ function hackProps(P) {
     { type: 'line', from: r0, to: r1, w: 8 }, { type: 'line', from: r0, to: [r0[0], 0], w: 6 }, { type: 'line', from: r1, to: [r1[0], 0], w: 6 }, foot(r1[0] - 30, 70), // Schiene, Stützen, Standfuß
     benchLine(P, 20, 128, 34), // Rückenpolster auf dem Schlitten
     { type: 'line', from: along(sh, n, 10), to: along(sh, n, 22), w: 5 }, { type: 'bar', at: sh, r: 9 }, // Halter und Schulterpolster
-    { type: 'line', from: along(sole, pd, -30), to: along(sole, pd, 60), w: 8, front: true }, // Plattform (vorn 20° angehoben)
-    { type: 'line', from: along(sole, pd, 40), to: [along(sole, pd, 40)[0], 0], w: 6 }, { type: 'line', from: along(sole, pd, -30), to: r0, w: 5 } // Stütze, Verbindung zur Schiene
+    { type: 'line', from: along(sole, pd, -70), to: along(sole, pd, 22), w: 8, front: true }, // Plattform (vorn 20° angehoben); Fuß im vorderen Teil (Clark et al. 2019)
+    { type: 'line', from: along(sole, pd, 5), to: [along(sole, pd, 5)[0], 0], w: 6 }, { type: 'line', from: along(sole, pd, -70), to: r0, w: 5 } // Stütze, Verbindung zur Schiene
   ] };
 }
 function stepUpProps(P) {
