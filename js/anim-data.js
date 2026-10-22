@@ -211,6 +211,24 @@ const CGP_PULLEY_X = Math.round(solvePose({ root: 'hip', rootPos: CGP.hip, trunk
 const SAP = { tower: 240, pulley: [228, -420] };
 // Reverse Butterfly (Frontansicht): sitzend; Arme vorn auf Schulterhöhe (in der Projektion fast ein Punkt) bis seitlich in Linie mit dem Rumpf.
 const RPD = { seat: -105, start: { elbow: [6, 6], wrist: [8, 12] }, end: { elbow: [67, 6], wrist: [119, 10] } };
+// Sitzende Maschinen in der Frontansicht (v2.25.0): Reverse Butterfly, Butterfly, Seitheben an der Maschine (alle Sitzhöhe RPD.seat = MLR.seat). Bis v2.24.0 lagen die
+// Oberschenkel nur verkürzt hinter Rumpf und Sitz, die Knie waren nicht zu sehen (die Figur wirkte wie im Stehen). Jetzt wie bei den Hüftmaschinen (HIPM): Beine vor dem
+// Rumpf gezeichnet, Oberschenkel waagerecht zum Betrachter (stark verkürzt, Knie ≈ 24 Einheiten unter der Hüfte, leicht nach außen), Unterschenkel etwas verkürzt –
+// die Verkürzung ist so gewählt, dass die Füße auf dem Boden stehen (Zeichenkonvention, keine Messung).
+const SEAT_LEGS = (() => {
+  const R = Math.PI / 180, legs = { thighDir: 8, thighF: 0.28, shankDir: -3 };
+  const shankF = (-14.4 - (RPD.seat + LEN.thigh * legs.thighF * Math.cos(legs.thighDir * R))) / (LEN.shank * Math.cos(legs.shankDir * R));
+  return { ...legs, shankF: Math.round(shankF * 1000) / 1000 };
+})();
+// Butterfly mit Armpolstern (Frontansicht, v2.25.0): Oberarm Richtung az (0° = nach vorn, 90° = zur Seite, negativ = über die Mitte hinaus),
+// Unterarm senkrecht am Polster. Projektion: dx = Oberarmlänge · sin(az) – die Ellbogen laufen auf einem Bogen (Bilder gleichmäßig im Winkel) und stehen am Ende
+// vor der Brust (≈ 12 cm von der Mitte), nicht neben den Schultern wie bis v2.24.0 (dort wirkten die Arme hinter den Rücken geführt). Der Ellbogen sinkt dabei
+// von 6 auf 16 Einheiten unter die Schulter (Oberarm am Ende ≈ 14° unter der Waagerechten): bei genau waagerechtem Arm schrumpft der Oberarm im Bild zum Punkt und seine
+// Richtung dreht beim Durchgang durch die Schulterlinie sprunghaft (Stetigkeitstest: 11° pro Bild).
+const PECD = (() => {
+  const R = Math.PI / 180, r1 = (v) => Math.round(v * 10) / 10;
+  return { az: [90, 63, 37, 11, -12], arm: (az) => { const dx = r1(LEN.uarm * Math.sin(az * R)), dy = r1(6 + 10 * (90 - az) / 102); return { elbow: [dx, dy], wrist: [dx, dy - 54] }; } };
+})();
 
 // ---------- Runde 6 (v2.11): Armbeuger ----------
 // Griffmitte zwischen Handgelenk und Handende (dort sitzt Stange oder Hantel)
@@ -272,6 +290,16 @@ function armFront(e, a, b) {
   const r1 = (v) => Math.round(v * 10) / 10, E = [LEN.uarm * u[0], LEN.uarm * u[1]];
   return { elbow: E.map(r1), wrist: [E[0] + LEN.farm * f[0] / n, E[1] + LEN.farm * f[1] / n].map(r1) };
 }
+// Kabelzug von unten nach oben (v2.25.0): die Arme laufen auf einem Bogen im Raum – Hebung e von 40° auf 85° und Richtung a von 70° (seitlich) auf −12° (über die Mitte),
+// in sieben Bildern. Vorher drei Bilder: der zweite Abschnitt war fast doppelt so lang wie der erste (die Hände beschleunigten gegen Ende und bremsten vor „Oben“ ab).
+// Die 2 s des Hebens sind auf die Abschnitte im Verhältnis ihres Wegs (Ellbogen + Handgelenk im Bild) verteilt: gleichmäßige Geschwindigkeit, weicher Start und Stopp nur an den Enden.
+const LCF = (() => {
+  const r1 = (v) => Math.round(v * 10) / 10;
+  const q = Array.from({ length: 7 }, (_, i) => ({ e: r1(40 + 45 * i / 6), a: r1(70 - 82 * i / 6) }));
+  const seg = q.slice(1).map((b, i) => { const A = armFront(q[i].e, q[i].a, 15), B = armFront(b.e, b.a, 15); return Math.hypot(B.elbow[0] - A.elbow[0], B.elbow[1] - A.elbow[1]) + Math.hypot(B.wrist[0] - A.wrist[0], B.wrist[1] - A.wrist[1]); });
+  const T = seg.reduce((x, y) => x + y, 0);
+  return { q, dur: seg.map((l) => Math.round(200 * l / T) / 100) };
+})();
 // Kabelturm-Paar (Frontansicht, Konvention): Türme bei x = ±170, Rollen 10 innen; oben ≈ 1,6 m, unten ≈ 20 cm.
 const XOV = { tower: 170, high: -330, low: -40 };
 // Dip-Maschine (sitzend): Griffe seitlich, Hebel mit Drehpunkt hinter der Figur auf der Mittelsenkrechten der beiden Griffpositionen (Konvention).
@@ -2221,9 +2249,9 @@ export const ANIMATIONS = [
     basisNote: 'Frontansicht, weil die Arme in der Waagerechten nach außen gehen. Aufbau nach Schoenfeld et al. 2013 (Volltext, 19 Trainierte, Reverse-Fly-Maschine): Brust am Polster, Sitzhöhe so, dass die Griffe auf Höhe der Schulterachsen liegen; Start bei 90° Armhebung nach vorn, Ende mit dem Oberarm „parallel zum Rumpf“ (als Linie mit dem Rumpf gelesen, wie bei Bergquist et al. 2018). Leicht gebeugte Ellbogen nach Bergquist et al. 2018. Die Arme sind in die Bildebene projiziert und erscheinen vorn stark verkürzt; Hebel und Sitz sind Zeichenkonvention, das Brustpolster ist nicht gezeichnet.',
     tempo: { basis: 'protocol', note: 'Nach außen zügig ≈ 1 s, zurück ≈ 2 s (Schoenfeld et al. 2013).' },
     frames: [
-      { label: 'Vorn', pose: { rootPos: [0, RPD.seat], armPoints: RPD.start, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: rpdProps },
+      { label: 'Vorn', pose: { rootPos: [0, RPD.seat], armPoints: RPD.start, legsFront: true, legs: { hip: C(85, 'sitzend'), knee: C(85), ...SEAT_LEGS }, props: rpdProps },
         facts: [V(90, 'R1', 'protocol', 'Start: 90° Armhebung nach vorn (Sagittalebene)')] },
-      { label: 'Außen', pose: { rootPos: [0, RPD.seat], armPoints: RPD.end, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: rpdProps },
+      { label: 'Außen', pose: { rootPos: [0, RPD.seat], armPoints: RPD.end, legsFront: true, legs: { hip: C(85, 'sitzend'), knee: C(85), ...SEAT_LEGS }, props: rpdProps },
         facts: [V(1, 'R1', 'protocol', 'Ende: Oberarm „parallel zum Rumpf“')] }
     ],
     phases: [{ a: 0, b: 0, dur: 0.4, label: 'Vorn', kp: [0, 1] }, { a: 0, b: 1, dur: 1.0, label: 'Öffnen', kp: [2, 4] }, { a: 1, b: 1, dur: 0.3, label: 'Außen', kp: [2, 3] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [4] }],
@@ -2777,11 +2805,9 @@ export const ANIMATIONS = [
     basisNote: 'Keine Studie zu Kabelfliegenden von unten gefunden. Untere Rollen (≈ 20 cm), Start mit tiefen, seitlich gestreckten Armen, Ende mit den Händen vor der oberen Brust, leicht gebeugte Ellbogen und aufrechter Stand sind Zeichenkonvention; Ellbogen und Tempo wie beim Band-Fliegen von Bergquist et al. 2018 (Volltext).',
     tempo: { basis: 'protocol', note: 'Übertragen: 2 s heben, 2 s senken (Metronom 60/min, Bergquist et al. 2018, Band).' },
     frames: [
-      { label: 'Unten', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(40, 70, 15), props: crossoverProps(false) } },
-      { label: 'Heben', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(70, 35, 15), props: crossoverProps(false) } }, // Zwischenbild: Bogen im Raum
-      { label: 'Oben', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(85, -12, 15), props: crossoverProps(false) } }
+      ...LCF.q.map((q, i) => ({ label: i === 0 ? 'Unten' : i === LCF.q.length - 1 ? 'Oben' : 'Heben', pose: { legs: { planted: true, stance: C(22), toeOut: C(8), knee: C(10), shank: C(5) }, armPoints: armFront(q.e, q.a, 15), props: crossoverProps(false) } })) // Zwischenbilder: Bogen im Raum, gleichmäßig in Hebung und Richtung
     ],
-    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, { a: 0, b: 1, dur: 1.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 2, dur: 1.0, label: 'Heben', kp: [0, 1] }, { a: 2, b: 2, dur: 0.3, label: 'Oben', kp: [0] }, { a: 2, b: 1, dur: 1.0, label: 'Senken', kp: [2] }, { a: 1, b: 0, dur: 1.0, label: 'Senken', kp: [2] }],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Unten', kp: [1] }, ...LCF.dur.map((dur, i) => ({ a: i, b: i + 1, dur, label: 'Heben', kp: [0, 1] })), { a: 6, b: 6, dur: 0.3, label: 'Oben', kp: [0] }, ...LCF.dur.map((dur, i) => ({ a: 6 - i, b: 5 - i, dur: LCF.dur[5 - i], label: 'Senken', kp: [2] }))],
     keyPoints: [
       { short: 'Brust', anchor: 'chest', side: 'l', status: 'contested', text: 'Der obere Brustanteil hebt den Arm nach vorn; mehr Aktivität ist nicht gemessen.', src: ['A1', 'R1'],
         explain: 'Umstritten. Anatomisch beugt der Schlüsselbeinanteil des großen Brustmuskels den Arm nach vorn (StatPearls). Am Kabel wurde das nicht gemessen; beim Bankdrücken war der obere Brustmuskel bei 30° Schräge am aktivsten (Rodríguez-Ridao et al. 2020, Abstract).' },
@@ -2803,11 +2829,10 @@ export const ANIMATIONS = [
     basisNote: 'Keine Bewegungsstudie. Gezeichnet ist die Variante mit Armpolstern: aufrecht an der Lehne, Oberarme etwa waagerecht zur Seite, Ellbogen 90° gebeugt, Unterarme senkrecht an den Polstern; Weg von seitlich bis die Oberarme nach vorn zeigen. Diese Haltung beschreibt Marchetti et al. 2019 (isometrisch, 10 Trainierte; nur als automatische Zusammenfassung des PDFs gelesen). Maschine wie beim Reverse Butterfly, Tempo und Sitzhöhe sind Zeichenkonvention. Vorn zeigende Oberarme erscheinen von vorn stark verkürzt.',
     tempo: { basis: 'convention', note: '≈ 2 s zusammenführen, 2 s zurück (Konvention).' },
     frames: [
-      { label: 'Außen', pose: { rootPos: [0, RPD.seat], legs: { hip: C(85, 'sitzend'), knee: C(85) }, armPoints: { elbow: [68, 6], wrist: [68, -48] }, props: pecDeckProps },
-        facts: [V(90, 'M1', 'summary', 'Oberarme 90° abgespreizt, Ellbogen 90° gebeugt, auf Schulterhöhe')] },
-      { label: 'Vorn', pose: { rootPos: [0, RPD.seat], legs: { hip: C(85, 'sitzend'), knee: C(85) }, armPoints: { elbow: [4, 6], wrist: [4, -48] }, props: pecDeckProps } }
+      ...PECD.az.map((az, i) => ({ label: i === 0 ? 'Außen' : i === PECD.az.length - 1 ? 'Vorn' : 'Mitte', pose: { rootPos: [0, RPD.seat], legsFront: true, legs: { hip: C(85, 'sitzend'), knee: C(85), ...SEAT_LEGS }, armPoints: PECD.arm(az), props: pecDeckProps },
+        ...(i === 0 ? { facts: [V(90, 'M1', 'summary', 'Oberarme 90° abgespreizt, Ellbogen 90° gebeugt, auf Schulterhöhe')] } : {}) }))
     ],
-    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Außen', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Zusammen', kp: [0] }, { a: 1, b: 1, dur: 0.3, label: 'Vorn', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Zurück', kp: [1, 3] }],
+    phases: [{ a: 0, b: 0, dur: 0.3, label: 'Außen', kp: [0, 1] }, ...PECD.az.slice(1).map((_, i) => ({ a: i, b: i + 1, dur: 0.5, label: 'Zusammen', kp: [0] })), { a: PECD.az.length - 1, b: PECD.az.length - 1, dur: 0.3, label: 'Vorn', kp: [2] }, ...PECD.az.slice(1).map((_, i) => ({ a: PECD.az.length - 1 - i, b: PECD.az.length - 2 - i, dur: 0.5, label: 'Zurück', kp: [1, 3] }))],
     keyPoints: [
       { short: 'Arme', anchor: 'uarm', side: 'l', status: 'single', text: 'Oberarme etwa auf Schulterhöhe, Ellbogen rund 90° gebeugt am Polster.', src: ['M1'],
         explain: 'Haltung bei Marchetti et al. 2019: Rumpf an der Lehne, Schultern 90° abgespreizt, Ellbogen und Handgelenk auf Schulterhöhe, Ellbogen 90° gebeugt. Nur als automatische Zusammenfassung des PDFs gelesen.' },
@@ -3691,14 +3716,14 @@ export const ANIMATIONS = [
     tempo: { basis: 'protocol', note: '2 s heben / 2 s senken mit Metronom (Coratella et al. 2020); Larsen et al. 2025 etwa 1 s je Richtung.' },
     frames: {
       bent: [
-        { label: 'Unten', pose: { rootPos: [0, MLR.seat], armPoints: MLR.bent(0), legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: machineLateralProps(false) },
+        { label: 'Unten', pose: { rootPos: [0, MLR.seat], armPoints: MLR.bent(0), legsFront: true, legs: { hip: C(85, 'sitzend'), knee: C(85), ...SEAT_LEGS }, props: machineLateralProps(false) },
           facts: [V(0, 'L1', 'protocol', 'Oberarm parallel zum Rumpf')] },
-        { label: 'Oben', pose: { rootPos: [0, MLR.seat], armPoints: MLR.bent(90), legs: { hip: C(85), knee: C(85) }, props: machineLateralProps(false) },
+        { label: 'Oben', pose: { rootPos: [0, MLR.seat], armPoints: MLR.bent(90), legsFront: true, legs: { hip: C(85), knee: C(85), ...SEAT_LEGS }, props: machineLateralProps(false) },
           facts: [V(90, 'L1', 'protocol', 'bis 90° Abduktion'), V(90, 'C2', 'protocol', 'Ellbogen 90° gebeugt (Variante mit gebeugtem Arm)')] }
       ],
       straight: [
-        { label: 'Unten', pose: { rootPos: [0, MLR.seat], arm: { abd: V(0, 'L1', 'protocol', 'Oberarm parallel zum Rumpf'), elbow: C(10, 'fast gestreckt') }, legs: { hip: C(85, 'sitzend'), knee: C(85) }, props: machineLateralProps(true) } },
-        { label: 'Oben', pose: { rootPos: [0, MLR.seat], arm: { abd: V(90, 'L1', 'protocol', 'bis 90° Abduktion'), elbow: C(10) }, legs: { hip: C(85), knee: C(85) }, props: machineLateralProps(true) } }
+        { label: 'Unten', pose: { rootPos: [0, MLR.seat], arm: { abd: V(0, 'L1', 'protocol', 'Oberarm parallel zum Rumpf'), elbow: C(10, 'fast gestreckt') }, legsFront: true, legs: { hip: C(85, 'sitzend'), knee: C(85), ...SEAT_LEGS }, props: machineLateralProps(true) } },
+        { label: 'Oben', pose: { rootPos: [0, MLR.seat], arm: { abd: V(90, 'L1', 'protocol', 'bis 90° Abduktion'), elbow: C(10) }, legsFront: true, legs: { hip: C(85), knee: C(85), ...SEAT_LEGS }, props: machineLateralProps(true) } }
       ]
     },
     phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten', kp: [3] }, { a: 0, b: 1, dur: 2.0, label: 'Heben', kp: [0, 1] }, { a: 1, b: 1, dur: 0.5, label: 'Oben', kp: [0] }, { a: 1, b: 0, dur: 2.0, label: 'Senken', kp: [2] }],
