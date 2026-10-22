@@ -75,5 +75,7 @@ export function applyChanges(items, changes, createItem) {
     if (c.kind === 'sets') it.targetSets = Math.min(10, c.to);
   }
   const drop = new Set(changes.filter((x) => x.kind === 'remove').map((x) => x.itemId));
+  // v2.30.0: Supersatz-Kopplung des Vorgängers eines entfernten Eintrags lösen (wie plans.removeItem).
+  next.forEach((it, i) => { if (i > 0 && drop.has(it.id)) delete next[i - 1].supersetNext; });
   return next.filter((it) => !drop.has(it.id));
 }

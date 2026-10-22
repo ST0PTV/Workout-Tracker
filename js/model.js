@@ -10,6 +10,7 @@
 //   (ein harter Satz; alle Stufen zählen ins Volumen).
 import { uuid, nowISO } from './util.js';
 import { ITEM_BY_REF, TEMPLATES, PHASES } from './routine-data.js';
+import { chainGroups } from './superset.js';
 
 export const SCHEMA_VERSION = 2;
 
@@ -61,7 +62,8 @@ export const DEFAULT_SETTINGS = {
   keepAwake: true, // v2.26.0 (A1): Bildschirm während eines laufenden Trainings anlassen (falls das Gerät es kann)
   plateMath: true, // v2.26.0 (A4): Scheiben pro Seite bei Langhantel-Übungen anzeigen
   barKg: 20, // v2.26.0 (A4): Standard-Stangengewicht; pro Übung überschreibbar (exercise.barKg)
-  persistAsked: false // v2.26.0 (A2): einmal nach dauerhaftem Speicher gefragt (nach dem ersten beendeten Training)
+  persistAsked: false, // v2.26.0 (A2): einmal nach dauerhaftem Speicher gefragt (nach dem ersten beendeten Training)
+  lightWeek: null // v2.30.0 (B3): Montag der „leichten Woche“ als "JJJJ-MM-TT" oder null
 };
 
 // v2.26.0 (A4): Grenzen für das Stangengewicht (kg).
@@ -145,6 +147,9 @@ const isISO = (v) => isStr(v) && !Number.isNaN(Date.parse(v));
 const isNullableNum = (v, { int = false } = {}) =>
   v === null || (typeof v === 'number' && Number.isFinite(v) && v >= 0 && (!int || Number.isInteger(v)));
 const isDateKey = (v) => isStr(v) && /^\d{4}-\d{2}-\d{2}$/.test(v);
+// v2.30.0 (B2, optional): Wiederholungsbereich { min, max } mit 1 ≤ min ≤ max ≤ REP_RANGE_MAX.
+export const REP_RANGE_MAX = 50;
+const isRepRange = (v) => v === undefined || v === null || (typeof v === 'object' && Number.isInteger(v.min) && Number.isInteger(v.max) && v.min >= 1 && v.min <= v.max && v.max <= REP_RANGE_MAX);
 const isStrArray = (v) => Array.isArray(v) && v.every(isStr);
 // Optionale Pausenzeit (v1.4 an Planeintrag und Trainingseintrag): fehlt, null oder 1–3600 s.
 const isRest = (v) => v === undefined || v === null || (Number.isInteger(v) && v > 0 && v <= 3600);
@@ -194,6 +199,8 @@ export function validatePlan(p) {
       if (it.groupId !== null && !isId(it.groupId)) err.push(`Plan ${p.id}: groupId ungültig.`);
       if (it.targetSets !== null && (!Number.isInteger(it.targetSets) || it.targetSets < 0)) err.push(`Plan ${p.id}: targetSets ungültig.`);
       if (!isRest(it.restSeconds)) err.push(`Plan ${p.id}: Pausenzeit ungültig.`);
+      if (!isRepRange(it.repRange)) err.push(`Plan ${p.id}: Wiederholungsbereich ungültig.`);
+      if (it.supersetNext !== undefined && typeof it.supersetNext !== 'boolean') err.push(`Plan ${p.id}: Supersatz-Kopplung ungültig.`);
     }
   }
   if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);
@@ -255,6 +262,8 @@ export function validateSession(x) {
       if (en.groupId !== null && !isId(en.groupId)) err.push(`Training ${x.id}: groupId ungültig.`);
       if (en.targetSets !== undefined && en.targetSets !== null && !(Number.isInteger(en.targetSets) && en.targetSets > 0)) err.push(`Training ${x.id}: targetSets ungültig.`);
       if (!isRest(en.restSeconds)) err.push(`Training ${x.id}: Pausenzeit ungültig.`);
+      if (!isRepRange(en.repRange)) err.push(`Training ${x.id}: Wiederholungsbereich ungültig.`);
+      if (en.ssGroup !== undefined && en.ssGroup !== null && !isId(en.ssGroup)) err.push(`Training ${x.id}: Supersatz-Gruppe ungültig.`);
       // v2.4.0 (optional): Bewertung der Übung und Entscheidung über den Vorschlag.
       if (en.rating !== undefined && !['easy', 'right', 'hard', 'none'].includes(en.rating)) err.push(`Training ${x.id}: Bewertung ungültig.`);
       if (en.suggestion !== undefined && !['accepted', 'declined'].includes(en.suggestion)) err.push(`Training ${x.id}: Vorschlag-Status ungültig.`);
@@ -262,6 +271,8 @@ export function validateSession(x) {
       else for (const s of en.sets) err.push(...validateSet(s, `Training ${x.id}: `));
     }
   }
+  // v2.30.0 (optional): Training der „leichten Woche“ (B3) – zählt nicht als Ausgangspunkt für Vorbelegung und Vorschläge.
+  if (x.light !== undefined && typeof x.light !== 'boolean') err.push(`Training ${x.id}: light ungültig.`);
   // v2.4.0 (optional): Wiedereinstieg nach einer Pause – Tage seit dem letzten Training und Reduktion in %.
   if (x.returnAdjust !== undefined && x.returnAdjust !== null) {
     const r = x.returnAdjust;
@@ -388,10 +399,12 @@ function sessionTime(s) {
 // Gibt { sessionId, date, sets } mit den abgeschlossenen Sätzen zurück oder null.
 // Kommt die Übung in einem Training mehrfach vor, zählt der letzte Eintrag mit erledigten Sätzen
 // (Entscheidung v1.1: der spätere Durchgang ist der aktuellere).
-export function lastPerformance(exerciseId, sessions, { beforeSessionId = null } = {}) {
+// skipLight (v2.30.0): Trainings der leichten Woche überspringen – sie sind kein Ausgangspunkt fürs nächste Mal.
+export function lastPerformance(exerciseId, sessions, { beforeSessionId = null, skipLight = false } = {}) {
   const sorted = [...sessions].sort((a, b) => sessionTime(b) - sessionTime(a));
   for (const s of sorted) {
     if (s.id === beforeSessionId) continue;
+    if (skipLight && s.light === true) continue;
     for (const en of [...s.entries].reverse()) {
       if (en.exerciseId !== exerciseId) continue;
       const done = en.sets.filter((x) => x.completedAt !== null);
@@ -429,7 +442,7 @@ export function weightWarning(exerciseId, weightKg, sessions, opts = {}) {
 
 // Neue Sätze für ein Training vorbelegen: Werte vom letzten Mal, sonst leere Arbeitssätze.
 export function prefillSets(exercise, sessions, targetSets = null) {
-  const last = lastPerformance(exercise.id, sessions);
+  const last = lastPerformance(exercise.id, sessions, { skipLight: true });
   const n = targetSets ?? exercise.defaultWorkSets;
   if (last) {
     return last.sets.map((s) => createSet({
@@ -505,13 +518,16 @@ export function swapEntryExercise(entry, newExercise, sessions) {
 // Training aus einem Plan starten.
 export function startSessionFromPlan(plan, exercisesById, sessions) {
   const session = createSession({ planId: plan.id });
-  session.entries = plan.items
-    .filter((it) => exercisesById[it.exerciseId])
+  const items = plan.items.filter((it) => exercisesById[it.exerciseId]);
+  const groups = chainGroups(items, uuid); // v2.30.0 (B1): gekoppelte Einträge → gemeinsame ssGroup
+  session.entries = items
     .map((it) => createEntry(it.exerciseId, {
+      ...(groups.has(it.id) ? { ssGroup: groups.get(it.id) } : {}),
       planItemId: it.id, // v2.29.0: Plan-Platz, bleibt auch nach einem Tausch
       groupId: it.groupId,
       targetSets: it.targetSets ?? null, // v1.3: für die Vorbelegung nach einem Tausch
       restSeconds: it.restSeconds ?? null, // v1.4: Pause nur in diesem Plan (gilt für den Platz, auch nach Tausch)
+      ...(it.repRange ? { repRange: { ...it.repRange } } : {}), // v2.30.0: Bereich gilt für den Platz, auch nach Tausch
       sets: prefillSets(exercisesById[it.exerciseId], sessions, it.targetSets)
     }));
   return session;

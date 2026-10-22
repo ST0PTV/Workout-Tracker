@@ -5,9 +5,10 @@ import * as store from './store.js';
 import { formatSet } from './sets.js';
 import { nowISO } from './util.js';
 import { REST_MIN, REST_MAX } from './rest.js';
-import { createPlan, createPlanItem, validatePlan, lastPerformance } from './model.js';
+import { createPlan, createPlanItem, validatePlan, lastPerformance, REP_RANGE_MAX } from './model.js';
 import { isDayList, weekKey, dateKey, SKIP_WEEKS_KEEP } from './schedule.js';
 import { applyChanges } from './plan-sync.js';
+import { normalizeLinks } from './superset.js';
 
 export function listPlans({ includeArchived = false } = {}) {
   return store.get('plans').filter((p) => includeArchived || !p.archived);
@@ -25,6 +26,7 @@ function exerciseIds() {
 export function savePlan(input) {
   const plans = store.get('plans');
   const plan = { ...input, name: (input.name || '').trim(), updatedAt: nowISO() };
+  if (Array.isArray(plan.items)) plan.items = normalizeLinks(plan.items); // v2.30.0: Kopplung am letzten Eintrag fällt weg
   const errors = validatePlan(plan);
   const known = exerciseIds();
   if (Array.isArray(plan.items) && plan.items.some((it) => !known.has(it.exerciseId))) errors.push('Plan enthält eine unbekannte Übung.');
@@ -64,6 +66,9 @@ export function addExercises(planId, ids) {
 export function removeItem(planId, itemId) {
   return update(planId, (p) => {
     const n = p.items.length;
+    const i = p.items.findIndex((it) => it.id === itemId);
+    // v2.30.0: Kopplung des Vorgängers lösen, sonst koppelte er ungewollt an den neuen Nachbarn.
+    if (i > 0 && !p.items[i].supersetNext) delete p.items[i - 1].supersetNext;
     p.items = p.items.filter((it) => it.id !== itemId);
     if (p.items.length === n) return 'Eintrag nicht gefunden.';
   });
@@ -75,8 +80,12 @@ export function moveItem(planId, itemId, toIndex) {
     const from = p.items.findIndex((it) => it.id === itemId);
     if (from < 0) return 'Eintrag nicht gefunden.';
     const to = Math.max(0, Math.min(p.items.length - 1, toIndex));
+    // v2.30.0: Verschieben löst die Kopplungen am alten und am neuen Platz (vorhersehbar statt still neu gekoppelt).
+    if (from > 0) delete p.items[from - 1].supersetNext;
     const [it] = p.items.splice(from, 1);
+    delete it.supersetNext;
     p.items.splice(to, 0, it);
+    if (to > 0) delete p.items[to - 1].supersetNext;
   });
 }
 
@@ -97,6 +106,16 @@ export function setItemRest(planId, itemId, sec) {
     if (!it) return 'Eintrag nicht gefunden.';
     if (sec !== null && !(Number.isInteger(sec) && sec >= REST_MIN && sec <= REST_MAX)) return 'Pause ungültig.';
     it.restSeconds = sec;
+  });
+}
+
+// v2.30.0 (B2): Wiederholungsbereich { min, max } nur in diesem Plan; null = kein Bereich (Bewertung entscheidet).
+export function setItemRepRange(planId, itemId, range) {
+  return update(planId, (p) => {
+    const it = p.items.find((x) => x.id === itemId);
+    if (!it) return 'Eintrag nicht gefunden.';
+    if (range !== null && !(Number.isInteger(range.min) && Number.isInteger(range.max) && range.min >= 1 && range.min <= range.max && range.max <= REP_RANGE_MAX)) return 'Wiederholungsbereich ungültig.';
+    if (range === null) delete it.repRange; else it.repRange = { min: range.min, max: range.max };
   });
 }
 
@@ -145,6 +164,16 @@ export function applyPlanChanges(planId, changes) {
   return update(planId, (p) => {
     if (!changes.length) return 'Nichts ausgewählt.';
     p.items = applyChanges(p.items, changes, createPlanItem);
+  });
+}
+
+// v2.30.0 (B1): Eintrag mit dem nächsten zu einem Supersatz koppeln oder lösen.
+export function setLinkNext(planId, itemId, on) {
+  return update(planId, (p) => {
+    const i = p.items.findIndex((x) => x.id === itemId);
+    if (i < 0) return 'Eintrag nicht gefunden.';
+    if (on && i === p.items.length - 1) return 'Der letzte Eintrag hat keinen Nachfolger.';
+    if (on) p.items[i].supersetNext = true; else delete p.items[i].supersetNext;
   });
 }
 

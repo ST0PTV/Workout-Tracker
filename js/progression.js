@@ -7,6 +7,7 @@ import { lastPerformance } from './model.js';
 import { poolEntry } from './pool.js';
 
 export const PROGRESSION_CHECKED_AT = '2026-10-16';
+export const RANGE_LIGHT_CHECKED_AT = '2026-10-22'; // v2.30.0: Bereich und leichte Woche (Abstracts in PubMed)
 
 // Drei Stufen nach Wiederholungen in Reserve (RIR-Skala, Zourdos 2016). 'none' = gefragt, aber übersprungen.
 export const RATINGS = {
@@ -75,12 +76,15 @@ const minReps = (sets) => Math.min(...workSets(sets).map((x) => x.reps || 0));
 // Vorschlag aus den letzten zwei Ausführungen. Ergebnis null oder
 // { kind: 'weight' | 'reps', deltaKg, deltaReps, repsFrom, from, to, reason, step, smallStepNote }.
 // repsFrom: Wiederholungen je Arbeitssatz zurück auf den Stand der vorletzten Ausführung (Doppelprogression).
-export function suggestFor(exercise, sessions, { now = Date.now(), beforeSessionId = null } = {}) {
+// v2.30.0 (B2): repRange { min, max } aus dem Plan – dann entscheidet der Bereich (siehe rangeSuggestion),
+// die Bewertung bremst nur. Trainings der leichten Woche sind nie Ausgangspunkt (skipLight).
+export function suggestFor(exercise, sessions, { now = Date.now(), beforeSessionId = null, repRange = null } = {}) {
   if (!exercise || exercise.kind === 'cardio') return null;
-  const done = sessions.filter((s) => s.endedAt !== null);
+  const done = sessions.filter((s) => s.endedAt !== null && s.light !== true);
   const l1 = lastPerformance(exercise.id, done, { beforeSessionId });
   if (!l1 || daysBetween(l1.date, now) >= BREAK_MIN_DAYS) return null;
   const r1 = ratingOf(l1, done, exercise.id);
+  if (repRange) return rangeSuggestion(exercise, done, l1, r1, repRange, beforeSessionId);
   if (!r1 || r1 === 'none') return null;
   const l2 = lastPerformance(exercise.id, done.filter((s) => s.id !== l1.sessionId), { beforeSessionId });
   const r2 = l2 ? ratingOf(l2, done, exercise.id) : null;
@@ -113,6 +117,31 @@ export function suggestFor(exercise, sessions, { now = Date.now(), beforeSession
   return null; // „Schwer“ einmal: Gewicht halten, keine Karte
 }
 
+// Doppelprogression im Bereich (Konvention, keine Studie zur Regel selbst; Plotkin 2022: mehr Wiederholungen
+// oder mehr Gewicht – beides wirksam). Alle Arbeitssätze am oberen Ende → ein Gewichtsschritt mehr, Wiederholungen
+// zurück ans untere Ende; sonst +1 Wdh. je Satz bis zum oberen Ende. „Schwer“ bremst: keine Steigerung,
+// nach zweimal „Schwer“ beim gleichen Gewicht ein Schritt weniger (wie ohne Bereich).
+function rangeSuggestion(exercise, done, l1, r1, range, beforeSessionId) {
+  const ws = workSets(l1.sets);
+  const reps = ws.map((x) => x.reps).filter(Number.isInteger);
+  if (!reps.length) return null;
+  const w1 = topWeight(l1.sets);
+  const step = loadStep(exercise, done);
+  const base = { deltaKg: 0, deltaReps: 0, repsFrom: null, repsCap: null, from: w1, to: w1, step, smallStepNote: false, range: { ...range } };
+  if (r1 === 'hard') {
+    const l2 = lastPerformance(exercise.id, done.filter((s) => s.id !== l1.sessionId), { beforeSessionId });
+    const r2 = l2 ? ratingOf(l2, done, exercise.id) : null;
+    if (r2 === 'hard' && w1 > 0 && topWeight(l2.sets) === w1 && w1 - step > 0) return { ...base, kind: 'weight', deltaKg: -step, to: round2(w1 - step), reason: 'Zweimal „Schwer“' };
+    return null; // „Schwer“ bremst: Gewicht und Wiederholungen halten
+  }
+  const top = reps.every((r) => r >= range.max);
+  if (top) {
+    if (!(w1 > 0)) return null; // Körpergewicht ohne Zusatzgewicht: oberes Ende erreicht, kein Gewichtsschritt möglich
+    return { ...base, kind: 'weight', deltaKg: step, to: round2(w1 + step), repsFrom: ws.map(() => range.min), reason: `Alle Sätze bei ${range.max} Wdh. – oberes Ende erreicht` };
+  }
+  return { ...base, kind: 'reps', deltaReps: 1, repsCap: range.max, reason: `Ziel ${range.min}–${range.max} Wdh.: erst Wiederholungen bis ${range.max}` };
+}
+
 function ratingOf(perf, sessions, exerciseId) {
   const s = sessions.find((x) => x.id === perf.sessionId);
   const en = s ? [...s.entries].reverse().find((e) => e.exerciseId === exerciseId && e.sets.some((x) => x.completedAt !== null)) : null;
@@ -129,7 +158,7 @@ export function applySuggestion(sets, sug) {
     const y = { ...x };
     if (sug.deltaKg && y.weightKg !== null && y.weightKg > 0) y.weightKg = Math.max(0, round2(y.weightKg + sug.deltaKg));
     if (sug.repsFrom && Number.isInteger(sug.repsFrom[i])) y.reps = sug.repsFrom[i];
-    else if (sug.deltaReps && Number.isInteger(y.reps)) y.reps += sug.deltaReps;
+    else if (sug.deltaReps && Number.isInteger(y.reps)) y.reps = Number.isInteger(sug.repsCap) ? Math.max(y.reps, Math.min(sug.repsCap, y.reps + sug.deltaReps)) : y.reps + sug.deltaReps;
     return y;
   });
 }
@@ -143,6 +172,35 @@ export function reducedWeight(weightKg, pct, step) {
 
 export function applyReduction(sets, pct, step) {
   return sets.map((x) => (x.completedAt === null && x.weightKg > 0 ? { ...x, weightKg: reducedWeight(x.weightKg, pct, step), drops: x.drops.map((d) => ({ ...d, weightKg: d.weightKg > 0 ? reducedWeight(d.weightKg, pct, step) : d.weightKg })) } : x));
+}
+
+// ---------- v2.30.0 (B3): leichte Woche ----------
+// Vorschlag (Konvention, in der App so gekennzeichnet): Arbeitssätze halbieren (aufgerundet, mindestens 1)
+// und Gewichte um 10 % senken (ganze Schritte). Grundlage: Umfragen (Rogerson 2024: weniger Volumen und Last;
+// De Marco 2024: meist 0–25 % weniger) und zwei RCTs ohne Nachteil durch reduzierte Wochen (Pancar 2026)
+// bzw. ganz ohne Training nur bei der Kraft (Coleman 2024). Keine Studie hat eine beste Reduktion ermittelt.
+export const LIGHT_WEEK = { setShare: 0.5, pct: 10 };
+
+export const lightSetCount = (n) => Math.max(1, Math.ceil(n * LIGHT_WEEK.setShare));
+
+// Offene Arbeitssätze: nur die ersten lightSetCount(n) bleiben, Gewichte −10 %. Aufwärmsätze und erledigte bleiben.
+export function applyLight(sets, step) {
+  const work = sets.filter((x) => x.type !== 'warmup');
+  const keep = new Set(work.slice(0, lightSetCount(work.length)).map((x) => x.id));
+  return sets
+    .filter((x) => x.type === 'warmup' || x.completedAt !== null || keep.has(x.id))
+    .map((x) => (x.type === 'warmup' || x.completedAt !== null ? x : {
+      ...x,
+      weightKg: lightWeight(x.weightKg, step),
+      drops: x.drops.map((d) => ({ ...d, weightKg: lightWeight(d.weightKg, step) }))
+    }));
+}
+
+// Etwa 10 % weniger, auf ganze Schritte gerundet (mindestens ein Schritt). Unterstützung (negativ) und leere Werte bleiben.
+export function lightWeight(weightKg, step) {
+  if (!(weightKg > 0)) return weightKg;
+  const steps = Math.max(1, Math.round(round2((weightKg * LIGHT_WEEK.pct) / 100 / step)));
+  return Math.max(0, round2(weightKg - steps * step));
 }
 
 // Pause seit dem letzten beendeten Training: { days, pct } oder null (unter 21 Tagen oder ohne Historie).
@@ -176,6 +234,17 @@ export const PROGRESSION_INFO = {
     'Mehr Wiederholungen sind auch Fortschritt. Nicht jede Einheit muss schwerer werden.',
     'Schrittgröße: der kleinste Schritt, den du bei dieser Übung schon gemacht hast, sonst ein üblicher Wert für das Gerät. Schätzung, kein Studienwert.'
   ],
+  range: [
+    'Mit einem Wiederholungsbereich im Plan (z. B. 8–12) entscheidet der Bereich: Erreichen alle Arbeitssätze das obere Ende, kommt ein Gewichtsschritt dazu und die Wiederholungen gehen zurück ans untere Ende. Sonst je Satz eine Wiederholung mehr, höchstens bis zum oberen Ende.',
+    'Die Bewertung bremst nur: Nach „Schwer“ bleibt alles gleich, nach zweimal „Schwer“ beim gleichen Gewicht kommt ein Schritt weniger.',
+    'Diese „Doppelprogression“ ist eine verbreitete Trainerregel, keine in Studien getestete Methode. Eine Studie mit Trainierten fand mehr Wiederholungen und mehr Gewicht als Fortschritt etwa gleich wirksam.'
+  ],
+  light: [
+    'Eine leichte Woche (Deload) ist eine geplante Woche mit weniger Trainingsbelastung. Ihre Trainings zählen nicht als Ausgangspunkt: Danach geht es mit den Werten von vorher weiter.',
+    'Vorschlag der App: Arbeitssätze halbieren (aufgerundet) und etwa 10 % weniger Gewicht. Das ist eine Schätzung nach Umfragen unter Athleten und Trainern, kein Studienwert.',
+    'Studienlage: In einer Studie mit Untrainierten brachten zwei Wochen mit stark verringertem Umfang keinen Nachteil. Eine Woche ganz ohne Training schadete in einer Studie mit Trainierten dem Muskelaufbau nicht, die Kraft stieg aber etwas weniger.',
+    'Wann und wie oft eine leichte Woche sinnvoll ist, ist nicht geklärt. Athleten berichten im Mittel etwa alle 5–6 Wochen – das ist eine Gewohnheit, keine Empfehlung.'
+  ],
   pause: [
     'Bis etwa 3 Wochen Pause bleibt die Maximalkraft meist fast gleich. Danach wird der Verlust messbar, bei Älteren und wenig Trainierten stärker.',
     'Kraft kommt nach einer Pause meist schneller zurück, als sie aufgebaut wurde.',
@@ -197,6 +266,11 @@ export const PROGRESSION_INFO = {
     { label: 'Ogasawara et al. 2011, Clin Physiol Funct Imaging', url: 'https://doi.org/10.1111/j.1475-097X.2011.01031.x', note: '3 Wochen Pause: kein signifikanter Verlust beim 1RM (Untrainierte). Abstract geprüft.' },
     { label: 'Blocquiaux et al. 2020, Exp Gerontol', url: 'https://doi.org/10.1016/j.exger.2020.110860', note: 'Ältere Männer: 12 Wochen Pause −5 bis −15 %, nach unter 8 Wochen wieder auf altem 1RM. Abstract geprüft.' },
     { label: 'Psilander et al. 2019, J Appl Physiol', url: 'https://doi.org/10.1152/japplphysiol.00917.2018', note: 'Nach 20 Wochen Pause blieb ~60 % des Kraftzuwachses erhalten. Abstract geprüft.' },
+    { label: 'Coleman et al. 2024, PeerJ (RCT)', url: 'https://doi.org/10.7717/peerj.16777', note: '39 Trainierte, 9 Wochen: eine Woche ohne Training in der Mitte – gleicher Muskelaufbau, etwas weniger Kraftzuwachs. Abstract geprüft.' },
+    { label: 'Pancar et al. 2026, Sci Rep (RCT, innerhalb der Personen)', url: 'https://doi.org/10.1038/s41598-026-40612-5', note: '19 untrainierte Männer, 8 Wochen: Wochen 4 und 8 mit 2 statt 6–8 Sätzen und einmal statt zweimal pro Woche – kein Unterschied bei Muskeldicke und 10RM. Abstract geprüft.' },
+    { label: 'Rogerson et al. 2024, Sports Med Open (Umfrage)', url: 'https://doi.org/10.1186/s40798-024-00691-y', note: '246 Kraft- und Physique-Athleten: Deload ~6 Tage etwa alle 5–6 Wochen; weniger Volumen und Last, Häufigkeit gleich. Abstract geprüft.' },
+    { label: 'De Marco et al. 2024, J Strength Cond Res (Umfrage)', url: 'https://doi.org/10.1519/JSC.0000000000004932', note: '204 Trainer: in leichten Phasen meist 0–25 % weniger Volumen und Intensität. Abstract geprüft.' },
+    { label: 'Bell et al. 2023, Sports Med Open (Delphi-Konsens)', url: 'https://doi.org/10.1186/s40798-023-00633-0', note: 'Experten-Definition: Deload = Phase mit weniger Trainingsbelastung zur Erholung. Expertenmeinung, keine Wirksamkeitsstudie. Abstract geprüft.' },
     { label: 'Nosaka et al. 2001, Med Sci Sports Exerc', url: 'https://doi.org/10.1097/00005768-200109000-00011', note: 'Schutz vor starkem Muskelkater hält mindestens 6 Monate, nach 9–12 Monaten weg (Armbeuger). Übertragung auf die Pausenwerte ist eine Annahme. Abstract geprüft.' }
   ]
 };
