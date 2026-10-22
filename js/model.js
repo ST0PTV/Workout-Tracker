@@ -63,7 +63,8 @@ export const DEFAULT_SETTINGS = {
   plateMath: true, // v2.26.0 (A4): Scheiben pro Seite bei Langhantel-Übungen anzeigen
   barKg: 20, // v2.26.0 (A4): Standard-Stangengewicht; pro Übung überschreibbar (exercise.barKg)
   persistAsked: false, // v2.26.0 (A2): einmal nach dauerhaftem Speicher gefragt (nach dem ersten beendeten Training)
-  lightWeek: null // v2.30.0 (B3): Montag der „leichten Woche“ als "JJJJ-MM-TT" oder null
+  lightWeek: null, // v2.30.0 (B3): Montag der „leichten Woche“ als "JJJJ-MM-TT" oder null
+  equipment: null // v2.31.0: „Mein Equipment“ als Liste von Geräte-Schlüsseln (siehe pool.js GEAR) oder null = alles zeigen
 };
 
 // v2.26.0 (A4): Grenzen für das Stangengewicht (kg).
