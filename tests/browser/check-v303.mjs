@@ -50,24 +50,35 @@ for (const vp of [{ width: 390, height: 844 }, { width: 390, height: 664 }]) {
     await p.context().close();
   }
 }
-// v3.0.5: simulierter iOS-Home-Bildschirm mit zu kurzem Fenster (789 statt 844) – Leiste muss bis 844 reichen.
+// v3.0.6: simulierter iOS-Home-Bildschirm mit zu kurzem Fenster (789 statt 844): alles bleibt im Fenster,
+// Klasse .wt-gap, Leiste ohne Home-Balken-Abstand, Seitenhintergrund in Leistenfarbe. Browser-Modus unverändert.
 for (const standalone of [true, false]) {
-  const ctx = await b.newContext({ viewport: { width: 390, height: 789 }, serviceWorkers: 'block' });
-  await ctx.addInitScript((sa) => {
-    Object.defineProperty(screen, 'height', { get: () => 844 });
-    Object.defineProperty(screen, 'width', { get: () => 390 });
-    const orig = window.matchMedia.bind(window);
-    window.matchMedia = (q) => (q.includes('display-mode: standalone') ? { matches: sa, media: q, addEventListener() {}, removeEventListener() {} } : orig(q));
-  }, standalone);
-  const p = await ctx.newPage();
-  const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
-  await p.goto(srv.url + '/index.html#/settings'); await p.waitForTimeout(500);
-  const m = await p.evaluate(() => ({ bar: Math.round(document.getElementById('tabbar').getBoundingClientRect().bottom), body: Math.round(document.body.getBoundingClientRect().bottom), info: document.body.innerText.match(/Bildschirm \d+.*/)?.[0] || '' }));
-  const want = standalone ? 844 : 789;
-  ok(m.bar === want && m.body === want, `${standalone ? 'App' : 'Browser'}: Leiste/Hülle enden bei ${want} (${m.bar}/${m.body})`);
-  ok(m.info.includes(`Lücke ${standalone ? 55 : 0}`), `${standalone ? 'App' : 'Browser'}: Messzeile (${m.info})`);
-  ok(errs.length === 0, `${standalone ? 'App' : 'Browser'}: keine Fehler ${errs.join(' | ')}`);
-  await ctx.close();
+  for (const theme of ['dark', 'light']) {
+    const ctx = await b.newContext({ viewport: { width: 390, height: 789 }, serviceWorkers: 'block' });
+    await ctx.addInitScript((sa) => {
+      Object.defineProperty(screen, 'height', { get: () => 844 });
+      Object.defineProperty(screen, 'width', { get: () => 390 });
+      const orig = window.matchMedia.bind(window);
+      window.matchMedia = (q) => (q.includes('display-mode: standalone') ? { matches: sa, media: q, addEventListener() {}, removeEventListener() {} } : orig(q));
+    }, standalone);
+    const p = await ctx.newPage();
+    const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
+    await p.goto(srv.url + '/index.html#/settings'); await p.waitForTimeout(500);
+    if (theme === 'light') await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
+    const m = await p.evaluate(() => {
+      const t = document.getElementById('tabbar').getBoundingClientRect();
+      return { bar: Math.round(t.bottom), h: Math.round(t.height), body: Math.round(document.body.getBoundingClientRect().bottom),
+        gap: document.documentElement.classList.contains('wt-gap'), htmlBg: getComputedStyle(document.documentElement).backgroundColor,
+        bodyBg: getComputedStyle(document.body).backgroundColor, info: document.body.innerText.match(/Bildschirm \d+.*/)?.[0] || '' };
+    });
+    const tag = `${standalone ? 'App' : 'Browser'} ${theme}`;
+    ok(m.bar === 789 && m.body === 789, `${tag}: Leiste/Hülle im Fenster (${m.bar}/${m.body})`);
+    ok(m.gap === standalone, `${tag}: Klasse wt-gap ${standalone ? 'gesetzt' : 'nicht gesetzt'}`);
+    if (standalone) ok(m.h === 49 && m.htmlBg !== m.bodyBg && m.htmlBg !== 'rgba(0, 0, 0, 0)', `${tag}: Leiste 49 hoch, Seitenhintergrund in Leistenfarbe (${m.htmlBg} vs ${m.bodyBg})`);
+    ok(m.info.includes(`Lücke ${standalone ? 55 : 0}`), `${tag}: Messzeile (${m.info})`);
+    ok(errs.length === 0, `${tag}: keine Fehler ${errs.join(' | ')}`);
+    await ctx.close();
+  }
 }
 await b.close(); await srv.close();
 done();
