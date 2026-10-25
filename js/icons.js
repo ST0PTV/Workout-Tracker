@@ -7,6 +7,7 @@ const PATHS = {
   warn: '<path d="M12 4.5L21 19.5H3z" stroke-linejoin="round"/><path d="M12 10v4.5"/><circle cx="12" cy="17.2" r="0.6" fill="currentColor"/>',
   link: '<path d="M10 13.5a4.5 4.5 0 0 0 6.4.4l2.8-2.8a4.5 4.5 0 0 0-6.4-6.4L11.3 6.2"/><path d="M14 10.5a4.5 4.5 0 0 0-6.4-.4l-2.8 2.8a4.5 4.5 0 0 0 6.4 6.4l1.5-1.5"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
+  sparkle: '<path d="M12 4l1.8 4.9L18.5 10.5l-4.7 1.7L12 17l-1.8-4.8-4.7-1.7 4.7-1.6z" stroke-linejoin="round"/><path d="M18.5 15.5v4M16.5 17.5h4"/>', // v3.2.0: Plan vorschlagen lassen
   minus: '<path d="M5 12h14"/>',
   close: '<path d="M6 6l12 12M18 6L6 18"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
