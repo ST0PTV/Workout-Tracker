@@ -50,5 +50,24 @@ for (const vp of [{ width: 390, height: 844 }, { width: 390, height: 664 }]) {
     await p.context().close();
   }
 }
+// v3.0.5: simulierter iOS-Home-Bildschirm mit zu kurzem Fenster (789 statt 844) – Leiste muss bis 844 reichen.
+for (const standalone of [true, false]) {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 789 }, serviceWorkers: 'block' });
+  await ctx.addInitScript((sa) => {
+    Object.defineProperty(screen, 'height', { get: () => 844 });
+    Object.defineProperty(screen, 'width', { get: () => 390 });
+    const orig = window.matchMedia.bind(window);
+    window.matchMedia = (q) => (q.includes('display-mode: standalone') ? { matches: sa, media: q, addEventListener() {}, removeEventListener() {} } : orig(q));
+  }, standalone);
+  const p = await ctx.newPage();
+  const errs = []; p.on('pageerror', (e) => errs.push(String(e)));
+  await p.goto(srv.url + '/index.html#/settings'); await p.waitForTimeout(500);
+  const m = await p.evaluate(() => ({ bar: Math.round(document.getElementById('tabbar').getBoundingClientRect().bottom), body: Math.round(document.body.getBoundingClientRect().bottom), info: document.body.innerText.match(/Bildschirm \d+.*/)?.[0] || '' }));
+  const want = standalone ? 844 : 789;
+  ok(m.bar === want && m.body === want, `${standalone ? 'App' : 'Browser'}: Leiste/Hülle enden bei ${want} (${m.bar}/${m.body})`);
+  ok(m.info.includes(`Lücke ${standalone ? 55 : 0}`), `${standalone ? 'App' : 'Browser'}: Messzeile (${m.info})`);
+  ok(errs.length === 0, `${standalone ? 'App' : 'Browser'}: keine Fehler ${errs.join(' | ')}`);
+  await ctx.close();
+}
 await b.close(); await srv.close();
 done();

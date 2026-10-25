@@ -81,3 +81,45 @@ export function fmtBytes(b) {
   if (b < 1024 ** 3) return `${(b / 1024 ** 2).toLocaleString('de-DE', { maximumFractionDigits: 1 })} MB`;
   return `${(b / 1024 ** 3).toLocaleString('de-DE', { maximumFractionDigits: 1 })} GB`;
 }
+
+// ---------- v3.0.5: Lücke am unteren Rand im iOS-Home-Bildschirm ----------
+// Beobachtet (3.0.2–3.0.4, Screenshots): Solange das Dokument nicht scrollt, meldet iOS ein Fenster, das ca. 55 pt
+// kürzer ist als der Bildschirm; fixierte Elemente mit bottom: 0 hängen dann in der Luft. Ursache nicht belegt
+// (Hypothese: iOS-26-Fehler „als wäre die Safari-Leiste noch da“). Nur im Home-Bildschirm-Modus messen wir
+// Bildschirmhöhe − Fensterhöhe und schieben die Hülle per --vb-gap bis an den Rand. Im Safari-Browser bleibt 0.
+let gapNow = 0;
+const isStandalone = () => (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const fullHeight = () => (innerWidth > innerHeight ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height));
+
+export function initViewportGap() {
+  if (typeof document === 'undefined') return;
+  const upd = () => {
+    let gap = 0;
+    if (isStandalone()) {
+      gap = Math.max(0, Math.round(fullHeight() - innerHeight));
+      if (gap > 120) gap = 0; // größere Werte = Tastatur o. Ä., nicht die Leisten-Lücke
+    }
+    gapNow = gap;
+    document.documentElement.style.setProperty('--vb-gap', `${gap}px`);
+  };
+  upd();
+  addEventListener('resize', upd);
+  addEventListener('orientationchange', () => setTimeout(upd, 300));
+}
+
+// Vorübergehende Messzeile für Einstellungen → Info (bis der Fix auf dem iPhone bestätigt ist).
+export function viewportInfo() {
+  const probe = (css) => {
+    const d = document.createElement('div');
+    d.style.cssText = `position:fixed;visibility:hidden;pointer-events:none;top:0;left:0;width:1px;${css}`;
+    document.body.append(d);
+    const r = d.getBoundingClientRect();
+    d.remove();
+    return r;
+  };
+  const lvh = Math.round(probe('height:100lvh').height);
+  const dvh = Math.round(probe('height:100dvh').height);
+  const top = Math.round(probe('height:env(safe-area-inset-top,0px)').height);
+  const bottom = Math.round(probe('height:env(safe-area-inset-bottom,0px)').height);
+  return `Bildschirm ${fullHeight()} · Fenster ${innerHeight} · Lücke ${gapNow} · lvh ${lvh} · dvh ${dvh} · oben ${top} · unten ${bottom} · ${isStandalone() ? 'App' : 'Browser'}`;
+}
