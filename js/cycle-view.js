@@ -7,6 +7,7 @@ import * as store from './store.js';
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
 import { toast } from './ui.js';
+import { switchInput } from './controls.js';
 import * as C from './cycle.js';
 import { TEMPLATES } from './routine-data.js';
 import { startRun } from './routine-view.js';
@@ -129,8 +130,8 @@ export function cycleSettingsCard(rerender) {
   return h('div', { class: 'card' },
     h('div', { class: 'title-row' }, h('h2', {}, 'Zyklus (optional)'),
       h('button', { class: 'info-btn', type: 'button', 'aria-label': 'Zyklus: so funktioniert es', onclick: openCycleInfo }, icon('info', { size: 18 }))),
-    h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Zyklus' },
-      [[false, 'Aus'], [true, 'Ein']].map(([v, label]) => h('button', { type: 'button', role: 'radio', class: c.enabled === v ? 'on' : '', 'aria-checked': String(c.enabled === v), onclick: () => { if (c.enabled !== v) set({ enabled: v, checkedAt: v ? C.dayKey() : c.checkedAt }); } }, label))),
+    h('label', { class: 'set-line' }, h('span', { class: 'set-label' }, 'Zyklus berücksichtigen'),
+      switchInput('Zyklus berücksichtigen', !!c.enabled, (v) => set({ enabled: v, checkedAt: v ? C.dayKey() : c.checkedAt }))),
     c.enabled ? h('div', { class: 'cyc-fields' },
       num('Zykluslänge (Tage, ca.)', 'avgLength', C.LIMITS.avgLength),
       num('Blutung (Tage, ca.)', 'bleedDays', C.LIMITS.bleedDays),

@@ -18,3 +18,11 @@ export function stepper({ value, format = String, onStep, label = 'Wert', small 
     out,
     h('button', { type: 'button', 'aria-label': `${label} erhöhen`, onclick: () => go(1) }, icon('plus')));
 }
+
+// v3.0.0: An/Aus als iOS-Schalter (<input type="checkbox" switch>, in Safari 18 mit Haptik).
+export function switchInput(label, checked, onChange) {
+  const el = h('input', { type: 'checkbox', class: 'switch', role: 'switch', 'aria-label': label, onchange: (e) => onChange(e.target.checked) });
+  el.setAttribute('switch', '');
+  el.checked = checked;
+  return el;
+}

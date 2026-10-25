@@ -549,6 +549,17 @@ export function completionError(values, kind = 'strength') {
 
 // Platzhalter (graue Werte) für einen Satz ohne eigene Werte: der vorherige Satz gleichen Typs in diesem
 // Eintrag, sonst der Satz an gleicher Position bei der letzten Ausführung. Gibt { weightKg, reps } oder null.
+// v3.0.0: Satz aus der letzten Ausführung an derselben Stelle (gleicher Typ: Aufwärm- oder Arbeitssatz) – für die Spalte „Zuletzt“.
+// Anders als placeholderFor unabhängig vom laufenden Training; ohne passenden Satz null.
+export function lastSetFor(entry, setIndex, last) {
+  const set = entry.sets[setIndex];
+  if (!set || !last) return null;
+  const same = (x) => (x.type === 'warmup') === (set.type === 'warmup');
+  const pos = entry.sets.slice(0, setIndex).filter(same).length;
+  const ref = last.sets.filter(same)[pos];
+  return ref && ref.reps !== null ? { weightKg: ref.weightKg, reps: ref.reps } : null;
+}
+
 export function placeholderFor(entry, setIndex, last) {
   const set = entry.sets[setIndex];
   if (!set) return null;

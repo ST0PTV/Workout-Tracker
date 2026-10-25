@@ -20,7 +20,7 @@ import { WARMUP_HINT, WARMUP_INFO, WARMUP_CHECKED_AT } from './warmup-info.js';
 import { openProgress, hasHistory } from './progress-view.js';
 import { openAnimation, hasAnimation } from './anim-view.js';
 import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm, fmtPace } from './input.js';
-import { weightWarning, placeholderFor, INTENSITIES } from './model.js';
+import { weightWarning, placeholderFor, lastSetFor, INTENSITIES } from './model.js';
 import { typoText, openBackfill } from './diary-view.js';
 import * as SETS from './sets.js';
 import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
@@ -356,9 +356,40 @@ function missedCards(rerender) {
 
 // ---------- Übungsseite (A) ----------
 
-function setRow(d, set, i, workNo, rerender, isQuick = false) {
+// v3.0.0: Felder schreibgeschützt, bis man 0,5 s darauf drückt (Bewegung über 10 px bricht ab).
+// Danach sind beide Felder der Zeile bis zum nächsten Neuzeichnen frei; ein kurzer Tipp auf ein gesperrtes Feld zeigt den Hinweis.
+const LONG_PRESS_MS = 500;
+function lockUntilLongPress(inputs, onTapLocked) {
+  let timer = 0, x0 = 0, y0 = 0, unlocked = false;
+  const unlock = (target) => {
+    unlocked = true;
+    for (const el of inputs) { el.readOnly = false; el.classList.remove('locked'); }
+    target.focus(); target.select?.();
+  };
+  for (const el of inputs) {
+    el.readOnly = true;
+    el.classList.add('locked');
+    el.addEventListener('pointerdown', (e) => {
+      if (unlocked) return;
+      x0 = e.clientX; y0 = e.clientY;
+      clearTimeout(timer);
+      timer = setTimeout(() => { timer = 0; unlock(el); }, LONG_PRESS_MS);
+    });
+    el.addEventListener('pointermove', (e) => { if (timer && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) { clearTimeout(timer); timer = 0; } });
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = 0; if (!unlocked) onTapLocked(); } };
+    el.addEventListener('pointerup', cancel);
+    el.addEventListener('pointercancel', () => { clearTimeout(timer); timer = 0; });
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+}
+
+function setRow(d, set, i, workNo, rerender, isQuick = false, withPrev = false) {
   const done = set.completedAt !== null;
   const bw = d.exercise?.kind === 'bodyweight';
+  // v3.0.0: Spalte „Zuletzt“ (Werte der letzten Ausführung an dieser Stelle), nur wenn es ein letztes Training gibt.
+  const lastSet = withPrev ? lastSetFor(d.entry, i, d.last) : null;
+  const prevText = lastSet ? `${bw ? (lastSet.weightKg ? fmtAdded(lastSet.weightKg) : 'KG') : fmtNum(lastSet.weightKg)}\u2009×\u2009${fmtNum(lastSet.reps)}` : '–';
+  const prev = withPrev ? h('span', { class: 'prev', 'aria-label': lastSet ? `Zuletzt ${prevText}` : 'Zuletzt kein Satz' }, prevText) : null;
   // v1.4 (Entscheidung 6 A): graue Platzhalter = vorheriger Satz bzw. letzte Ausführung; der Haken übernimmt sie.
   const ph = done ? null : placeholderFor(d.entry, i, d.last);
   const phW = ph ? (bw ? (ph.weightKg ? fmtAdded(ph.weightKg) : 'KG') : fmtNum(ph.weightKg)) : (bw ? 'KG' : '–');
@@ -389,6 +420,8 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
   const onChange = () => { const v = commit(); if (v) S.updateSet(d.entry.id, set.id, v); };
   w.addEventListener('change', onChange);
   r.addEventListener('change', onChange);
+  // v3.0.0: Erledigte Sätze sind gesperrt, damit ein Daumen im Vorbeigehen nichts ändert; langes Drücken (0,5 s) gibt sie frei.
+  if (done) lockUntilLongPress([w, r], () => toast('Zum Ändern lange drücken.'));
   const label = SETS.setLabel(set, workNo);
   const eid = d.entry.id;
   const current = () => S.activeSession()?.entries.find((e) => e.id === eid)?.sets.find((x) => x.id === set.id) || null;
@@ -410,7 +443,7 @@ function setRow(d, set, i, workNo, rerender, isQuick = false) {
   });
   const row = h('div', { class: `setrow${done ? ' done' : ''}${set.type === 'warmup' ? ' warm' : ''}${SETS.hasStages(set.type) ? ' staged' : ''}` },
     h('button', { class: 'sn', type: 'button', 'aria-label': `Satz ${label}: Typ und Markierungen`, onclick: openMenu }, label),
-    w, r,
+    prev, w, r,
     h('button', { class: `ck${done ? ' on' : ''}`, type: 'button', 'aria-pressed': String(done), 'aria-label': done ? 'Satz wieder öffnen' : 'Satz erledigt', onclick: () => {
       if (done) { S.uncompleteSet(d.entry.id, set.id); rerender(); return; }
       const v = commit();
@@ -527,7 +560,8 @@ function exercisePage(v, d, rerender) {
   let workNo = 0;
   const quickAt = lastCompletedIndex(d.entry.sets);
   const cardio = ex?.kind === 'cardio';
-  const rows = cardio ? [] : d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt)).filter(Boolean);
+  const withPrev = !cardio && !!d.last?.sets?.some((x) => x.reps !== null); // v3.0.0: Spalte „Zuletzt“
+  const rows = cardio ? [] : d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt, withPrev)).filter(Boolean);
   const lastSets = d.last ? d.last.sets.filter((x) => x.type !== 'warmup') : [];
   const isLast = d.index === n - 1;
   const perSide = isPerSide(ex);
@@ -557,8 +591,8 @@ function exercisePage(v, d, rerender) {
         ex?.source?.ref && hasAnimation(ex.source.ref) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openAnimation(ex.source.ref) }, icon('motion', { size: 16, cls: 'inline' }), ' Technik') : null,
         ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null)),
     suggestionCard(d, rerender),
-    cardio ? cardioCard(d, rerender) : h('div', { class: 'card sets' },
-      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, perSide ? 'Wdh./S.' : 'Wdh.'), h('span', {}, '')),
+    cardio ? cardioCard(d, rerender) : h('div', { class: `card sets${withPrev ? ' with-prev' : ''}` },
+      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), withPrev ? h('span', {}, 'Zuletzt') : null, h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, perSide ? 'Wdh./S.' : 'Wdh.'), h('span', {}, '')),
       rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.'),
       plate.el),
     cardio ? null : h('div', { class: 'nav2' },

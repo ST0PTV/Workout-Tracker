@@ -4,8 +4,10 @@ import { trainingView, plansView, exercisesView, progressView, settingsView } fr
 import { runnerView } from './routine-view.js';
 import { activeSession } from './session.js';
 import { setKeepAwake } from './device.js';
+import { applyTheme, appearanceOf } from './theme.js';
 
 const boot = store.init();
+applyTheme(appearanceOf(store.get('settings')));
 
 // v2.26.0 (A3): Schlägt ein Speichern fehl, bleibt oben ein Banner, bis das nächste Speichern klappt.
 const saveBar = document.getElementById('savebar');

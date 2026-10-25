@@ -43,7 +43,7 @@ const px = await p.evaluate(() => {
   const c = document.querySelector('.start-card.today canvas.body3d');
   const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
   let filled = 0; let accent = 0;
-  for (let i = 0; i < d.length; i += 4) { if (d[i + 3] > 200) { filled++; if (d[i + 1] > 150 && d[i + 2] > 140 && d[i] < 160) accent++; } }
+  for (let i = 0; i < d.length; i += 4) { if (d[i + 3] > 200) { filled++; if ((d[i] + d[i + 1] + d[i + 2]) / 3 > 170) accent++; /* v3.0.0: Akzent Anthrazit = im Dunkeln fast weiß, Grundfigur dunkelgrau */ } }
   return { filled, accent, total: d.length / 4 };
 });
 ok(px.filled > px.total * 0.1 && px.accent > 50, `K: Figur gezeichnet (${px.filled} Pixel, ${px.accent} in Akzentfarbe)`);

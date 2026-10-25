@@ -126,7 +126,7 @@ await shot('8-settings');
 await p.locator('.card', { hasText: 'Backup' }).first().locator('.info-btn').click(); await p.waitForTimeout(300);
 ok((await p.locator('.sheet').last().innerText()).includes('nur auf diesem Gerät'), 'E: Backup-Info über (i)');
 await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-await p.locator('.set-line', { hasText: 'Hinweise anzeigen' }).locator('button', { hasText: 'Aus' }).click(); await p.waitForTimeout(300);
+await p.locator('.set-line', { hasText: 'Hinweise anzeigen' }).locator('input.switch').uncheck(); // v3.0.0: iOS-Schalter await p.waitForTimeout(300);
 await go('#/progress');
 ok(await p.locator('.hint-line').count() === 0, 'E: Hinweise aus → keine Hinweiszeilen');
 await go('#/');

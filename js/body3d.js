@@ -240,8 +240,24 @@ export function gradientField(D, w = FIG_W, h = FIG_H) {
 
 // ---------- Texturen (Browser) ----------
 
-const COLORS = { base: '#4b5688', line: 'rgba(11, 16, 32, 0.55)', sec: '#4669c8' };
-const accent = () => (typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() : '') || '#6ee7d8';
+// v3.0.0: Farben aus den CSS-Tokens (css/glass.css), damit Dunkel/Hell und der Akzent stimmen. Ersatzwerte = Dunkel.
+const FALLBACK = { base: '#3A3F45', rest: '#454B52', line: 'rgba(0, 0, 0, 0.45)', accent: '#ECEEF0', sec: '#7A7E83' };
+function colors() {
+  if (typeof getComputedStyle !== 'function') return FALLBACK;
+  const cs = getComputedStyle(document.documentElement);
+  const v = (n, d) => cs.getPropertyValue(n).trim() || d;
+  const out = { base: v('--fig3d-base', FALLBACK.base), rest: v('--fig3d-rest', FALLBACK.rest), line: v('--fig3d-line', FALLBACK.line), accent: v('--accent', FALLBACK.accent) };
+  out.sec = mixHex(out.accent, out.base, 0.4) || FALLBACK.sec; // wie --sec in CSS: 40 % Akzent
+  return out;
+}
+// Mischt zwei #rrggbb-Farben (t = Anteil von a); andere Formate → null.
+function mixHex(a, b, t) {
+  const p = (x) => /^#[0-9a-f]{6}$/i.test(x) ? [1, 3, 5].map((i) => parseInt(x.slice(i, i + 2), 16)) : null;
+  const A = p(a), B = p(b);
+  if (!A || !B) return null;
+  return '#' + A.map((c, i) => Math.round(c * t + B[i] * (1 - t)).toString(16).padStart(2, '0')).join('');
+}
+const themeKey = () => { const c = colors(); return `${c.base}|${c.accent}`; };
 
 function maskFor(sex) {
   const c = document.createElement('canvas');
@@ -264,15 +280,16 @@ function colorCanvas(view, sex, classOf, scale = 2) {
   c.width = FIG_W * scale; c.height = FIG_H * scale;
   const g = c.getContext('2d');
   g.scale(scale, scale);
-  g.fillStyle = COLORS.base;
+  const col = colors();
+  g.fillStyle = col.base;
   g.fillRect(0, 0, FIG_W, FIG_H);
-  const prim = accent();
+  const prim = col.accent;
   g.lineWidth = 0.9;
-  g.strokeStyle = COLORS.line;
+  g.strokeStyle = col.line;
   for (const { m, d } of figureData(view, sex).muscles) {
     const p = new Path2D(d);
     const k = classOf(m);
-    g.fillStyle = k === 'prim' ? prim : k === 'sec' ? COLORS.sec : '#55619a';
+    g.fillStyle = k === 'prim' ? prim : k === 'sec' ? col.sec : col.rest;
     g.fill(p);
     g.stroke(p);
   }
@@ -405,7 +422,7 @@ export const webglAvailable = () => !!getShared();
 // Farbtexturen je Figur und Einfärbung zwischenspeichern (die Startseite wird oft neu gezeichnet).
 const TEX_KEEP = 12;
 function colorTextures(S, sex, classOf, key) {
-  const k = `${sex}|${key}`;
+  const k = `${sex}|${themeKey()}|${key}`; // v3.0.0: Erscheinung gehört zum Schlüssel
   if (S.colorTex.has(k)) { const t = S.colorTex.get(k); S.colorTex.delete(k); S.colorTex.set(k, t); return t; }
   const t = { front: texFrom(S.gl, colorCanvas('front', sex, classOf)), back: texFrom(S.gl, colorCanvas('back', sex, classOf)) };
   S.colorTex.set(k, t);

@@ -6,7 +6,7 @@ import * as store from './store.js';
 import * as backup from './backup.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
-import { stepper } from './controls.js';
+import { stepper, switchInput } from './controls.js';
 import { stepRest, formatDuration } from './rest.js';
 import { wakeLockSupported, storageStatus } from './device.js';
 import { BAR_KG_MIN, BAR_KG_MAX } from './model.js';
@@ -16,17 +16,15 @@ import { openSheet } from './sheet.js';
 import { infoBody, cardHead } from './info.js';
 import { openGlossary } from './glossary.js';
 import { openOnboarding } from './onboarding.js';
+import { APPEARANCES, appearanceOf, applyTheme } from './theme.js';
 
-// v2.26.0: An/Aus-Schalter für eine Einstellung (gleiche Form wie beim Zyklus).
 function onOff(label, key, rerender) {
   const cur = store.get('settings')[key] !== false;
-  return h('div', { class: 'set-line' }, h('span', { class: 'set-label' }, label),
-    h('div', { class: 'seg seg-sm', role: 'radiogroup', 'aria-label': label },
-      [[false, 'Aus'], [true, 'Ein']].map(([v, l]) => h('button', { type: 'button', role: 'radio', class: cur === v ? 'on' : '', 'aria-checked': String(cur === v), onclick: () => {
-        if (cur === v) return;
-        if (!store.set('settings', { ...store.get('settings'), [key]: v })) { toast('Speichern fehlgeschlagen.', { error: true }); return; }
-        rerender();
-      } }, l))));
+  return h('label', { class: 'set-line' }, h('span', { class: 'set-label' }, label),
+    switchInput(label, cur, (v) => {
+      if (!store.set('settings', { ...store.get('settings'), [key]: v })) { toast('Speichern fehlgeschlagen.', { error: true }); rerender(); return; }
+      rerender();
+    }));
 }
 
 // v2.26.0 (A2): Speicherstatus wird nachgeladen (die Browser-Schnittstelle ist asynchron).
@@ -166,10 +164,21 @@ export function settingsView(rerender) {
       gearPicker()),
     h('div', { class: 'card' },
       cardHead('Anzeige', cardInfo('Anzeige', [
+        'Erscheinung: Dunkel ist Standard. Hell liest sich bei viel Licht oft besser; die Statusleiste passt sich nach dem nächsten Öffnen an.',
         'Figur: Nur die Darstellung ändert sich; Muskeln, Bewegungen und Zählung sind gleich.',
         'Hinweise: kurze Erklärzeilen auf den Bildschirmen. Warnhinweise zu Übungen bleiben immer sichtbar.',
         'Die Info-Tasten (i) sind immer erreichbar.'
       ])),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Erscheinung', style: 'margin-bottom: 12px' },
+        APPEARANCES.map(([k, label]) => {
+          const on = appearanceOf(settings) === k;
+          return h('button', { type: 'button', role: 'radio', class: on ? 'on' : '', 'aria-checked': String(on), onclick: () => {
+            if (on) return;
+            if (!store.set('settings', { ...store.get('settings'), appearance: k })) { toast('Speichern fehlgeschlagen.', { error: true }); return; }
+            applyTheme(k);
+            rerender();
+          } }, label);
+        })),
       h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Figur' },
         [['male', 'Männlich'], ['female', 'Weiblich']].map(([k, label]) => {
           const on = (settings.figure || 'male') === k;

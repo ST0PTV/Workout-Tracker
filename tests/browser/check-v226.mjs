@@ -98,7 +98,7 @@ ok(!BAD_TEXT.test(t), 'Einstellungen: kein null/undefined/NaN');
 await p.locator('.card', { hasText: 'Training' }).first().screenshot({ path: join(out, '7-settings-training.png') });
 await p.locator('.card', { hasText: 'Datenschema' }).first().screenshot({ path: join(out, '8-settings-info.png') });
 // Bildschirm-Sperre aus → beim Training wird sie freigegeben
-await p.locator('.set-line', { hasText: 'Bildschirm' }).locator('button', { hasText: 'Aus' }).click(); await p.waitForTimeout(200);
+await p.locator('.set-line', { hasText: 'Bildschirm' }).locator('input.switch').uncheck(); // v3.0.0: iOS-Schalter await p.waitForTimeout(200);
 await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
 ok((await p.evaluate(() => window.__wl.rel)) >= 1, 'A1: Schalter aus → Sperre freigegeben');
 
