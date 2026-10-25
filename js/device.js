@@ -106,20 +106,3 @@ export function initViewportGap() {
   addEventListener('resize', upd);
   addEventListener('orientationchange', () => setTimeout(upd, 300));
 }
-
-// Vorübergehende Messzeile für Einstellungen → Info (bis der Fix auf dem iPhone bestätigt ist).
-export function viewportInfo() {
-  const probe = (css) => {
-    const d = document.createElement('div');
-    d.style.cssText = `position:fixed;visibility:hidden;pointer-events:none;top:0;left:0;width:1px;${css}`;
-    document.body.append(d);
-    const r = d.getBoundingClientRect();
-    d.remove();
-    return r;
-  };
-  const lvh = Math.round(probe('height:100lvh').height);
-  const dvh = Math.round(probe('height:100dvh').height);
-  const top = Math.round(probe('height:env(safe-area-inset-top,0px)').height);
-  const bottom = Math.round(probe('height:env(safe-area-inset-bottom,0px)').height);
-  return `Bildschirm ${fullHeight()} · Fenster ${innerHeight} · Lücke ${gapNow} · lvh ${lvh} · dvh ${dvh} · oben ${top} · unten ${bottom} · ${isStandalone() ? 'App' : 'Browser'}`;
-}
