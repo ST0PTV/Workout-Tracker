@@ -93,10 +93,10 @@ ok(await p.locator('#savebar[hidden]').count() === 1, 'A3: Banner nach erfolgrei
 await p.goto(srv.url + '/index.html#/settings'); await p.waitForTimeout(700);
 t = await text();
 ok(t.includes('Bildschirm anlassen') && t.includes('Scheiben pro Seite') && t.includes('Stange'), 'Einstellungen: Schalter da (Beschriftungen ab 2.34.0 kürzer)');
-ok(t.includes('Speicher geschützt') && !t.includes('…'), 'A2: Speicherstatus geladen');
+ok(!t.includes('Speicher geschützt') && !t.includes('Datenschema'), 'v3.0.1: Info-Karte zeigt nur die Version');
 ok(!BAD_TEXT.test(t), 'Einstellungen: kein null/undefined/NaN');
 await p.locator('.card', { hasText: 'Training' }).first().screenshot({ path: join(out, '7-settings-training.png') });
-await p.locator('.card', { hasText: 'Datenschema' }).first().screenshot({ path: join(out, '8-settings-info.png') });
+await p.locator('.card', { hasText: 'Version' }).first().screenshot({ path: join(out, '8-settings-info.png') });
 // Bildschirm-Sperre aus → beim Training wird sie freigegeben
 await p.locator('.set-line', { hasText: 'Bildschirm' }).locator('input.switch').uncheck(); // v3.0.0: iOS-Schalter await p.waitForTimeout(200);
 await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
