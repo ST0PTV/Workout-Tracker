@@ -1159,3 +1159,38 @@ input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: ce
 .play-next { display: flex; flex-direction: column; gap: 4px; }
 .play-next .pn-name { font-size: 22px; }
 .play-next .btn { margin-top: 10px; }
+
+/* v3.2.0: Plan-Assistent (Variante A: eine Frage pro Seite, große Antwortkarten, Weiter unten) */
+.assist { display: flex; flex-direction: column; min-height: 100%; }
+.as-top { display: flex; align-items: center; justify-content: space-between; min-height: 44px; }
+.as-link { appearance: none; border: 0; background: none; color: var(--accent); font: inherit; font-size: 17px; min-height: 44px; padding: 0; cursor: pointer; }
+.as-prog { display: flex; gap: 6px; margin: 4px 0 18px; }
+.as-prog span { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-3); }
+.as-prog span.on { background: var(--accent); }
+.as-h { font-size: 30px; margin: 0 0 6px; }
+.as-opts { display: flex; flex-direction: column; }
+.as-opt { min-height: 72px; color: var(--text); font: inherit; }
+.as-opt.on { box-shadow: inset 0 0 0 2px var(--accent); }
+.as-opt .as-t { flex: 1; min-width: 0; }
+.as-opt b { font-size: 17px; font-weight: 600; }
+.as-opt small { margin-top: 3px; }
+.as-num { width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; font-size: 18px; font-weight: 700; flex: none; font-variant-numeric: tabular-nums; }
+.as-opt.on .as-num { background: var(--accent); color: var(--on-accent); }
+.as-chk { width: 24px; height: 24px; flex: none; color: var(--accent); }
+.as-bottom { position: sticky; bottom: 0; margin-top: auto; padding: 12px 0 calc(var(--safe-bottom) + 8px); background: var(--sheet-bg); box-shadow: 0 -16px 16px -4px var(--sheet-bg), 0 40px 0 0 var(--sheet-bg); z-index: 1; }
+.as-bottom.two { display: flex; gap: 8px; }
+.as-bottom.two .btn { flex: 1; }
+.as-seg { margin: 4px 0 8px; }
+.as-days { margin: 4px 4px 8px; }
+.as-list .row { min-height: 48px; cursor: default; }
+.as-n { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.as-bar { display: grid; grid-template-columns: 112px 1fr 32px; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; }
+.as-bar span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.as-bar i { display: block; height: 8px; border-radius: 4px; background: var(--surface-3); position: relative; overflow: hidden; }
+.as-bar i em { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 4px; }
+.as-v { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.as-note { margin: 8px 0 0; }
+.as-miss b { display: block; margin-bottom: 4px; }
+.est-tag { display: inline-block; font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0 7px; vertical-align: 1px; }
+.empty .row-btns { display: flex; flex-direction: column; gap: 8px; }
+.assist-cta { margin-bottom: 12px; }

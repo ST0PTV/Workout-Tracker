@@ -13,6 +13,7 @@ import { miniFigure } from './figure.js';
 import { routinesPanel, planSlots, openNewRoutine } from './routine-view.js';
 import { DAY_LABELS, formatDays, isWeekSkipped } from './schedule.js';
 import { openProgressionInfo } from './progression-view.js';
+import { openAssistant } from './assistant-view.js';
 
 // v2.30.0 (B2): Wiederholungsbereich pro Planeintrag (optional). Standard beim Einschalten 8–12 (Konvention).
 const rrText = (it) => (it.repRange ? ` × ${it.repRange.min === it.repRange.max ? it.repRange.min : `${it.repRange.min}–${it.repRange.max}`} Wdh.` : '');
@@ -104,7 +105,8 @@ function openCreate(rerender) {
     rerender();
     openPlan(r.plan.id, rerender, { edit: true });
   } },
-  h('div', { class: 'field' }, h('label', {}, 'Name'), input),
+  h('button', { class: 'btn block assist-cta', type: 'button', onclick: () => { sheet.close(); openAssistant(rerender); } }, icon('sparkle', { size: 18 }), 'Plan vorschlagen lassen'),
+  h('div', { class: 'field' }, h('label', {}, 'Oder selbst anlegen: Name'), input),
   h('button', { class: 'btn primary block', type: 'submit' }, 'Plan anlegen')), { title: 'Neuer Plan' });
   setTimeout(() => input.focus(), 250);
 }
@@ -307,8 +309,10 @@ export function plansView(rerender) {
       ? plans.map((p) => card(p))
       : h('div', { class: 'card empty' },
         h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
-        h('p', { class: 'muted' }, 'Stelle Übungen in deiner Reihenfolge zusammen, z. B. Push, Pull, Beine.'),
-        h('div', { class: 'row-btns' }, h('button', { class: 'btn primary', type: 'button', onclick: () => openCreate(rerender) }, 'Ersten Plan anlegen'))),
+        h('p', { class: 'muted' }, 'Lass dir einen Plan vorschlagen oder stelle Übungen selbst zusammen.'),
+        h('div', { class: 'row-btns' },
+          h('button', { class: 'btn primary', type: 'button', onclick: () => openAssistant(rerender) }, 'Plan vorschlagen lassen'),
+          h('button', { class: 'btn', type: 'button', onclick: () => openCreate(rerender) }, 'Selbst anlegen'))),
     archived.length ? h('div', {}, h('div', { class: 'sec' }, `Archiviert (${archived.length})`), archived.map((p) => card(p, true))) : null,
     h('button', { class: 'fab', type: 'button', 'aria-label': 'Plan anlegen', onclick: () => openCreate(rerender) }, icon('plus', { size: 30 })));
 }
