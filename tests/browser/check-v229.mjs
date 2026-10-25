@@ -1,7 +1,7 @@
 // v2.29.0: Browser-Prüfung – Trainingstage pro Plan (Hinweis am Folgetag, OK, Woche aussetzen, Tage im Editor)
 // und „Plan anpassen?“ nach dem Training (keine Vorauswahl, nur Gewähltes wird übernommen).
 // Nur erfundene Testdaten. Aufruf: node tests/browser/check-v229.mjs   (Screenshots in WT_OUT/v229)
-import { launch, startServer, checker, outDir, BAD_TEXT } from './lib.mjs';
+import { launch, startServer, checker, outDir, BAD_TEXT, startPlan } from './lib.mjs';
 import { join } from 'node:path';
 
 const srv = await startServer();
@@ -36,7 +36,7 @@ await p.reload(); await p.waitForTimeout(400);
 let t = await text();
 ok(/Gestern \(\w+\) war „Testplan“ eingeplant/.test(t), 'A: Hinweis für gestern sichtbar');
 ok(!/verpasst|Serie|Streak|Tage in Folge/i.test(t), 'A: neutral – kein „verpasst“, keine Serie');
-ok(/Mo|Di|Mi|Do|Fr|Sa|So/.test(await p.locator('.start-card .pc-top').first().innerText()), 'A: Tage auf der Startkarte');
+ok(/Mo|Di|Mi|Do|Fr|Sa|So/.test(await p.locator('.start-card .pc-top, .start-row .t').first().innerText()), 'A: Tage auf der Startkarte');
 await shot('1-hint');
 await p.locator('.hint-box button', { hasText: 'OK' }).click(); await p.waitForTimeout(300);
 ok(await p.locator('.hint-box', { hasText: 'eingeplant' }).count() === 0, 'A: OK → Hinweis weg');
@@ -53,7 +53,7 @@ await p.locator('.hint-box button', { hasText: 'Diese Woche aussetzen' }).click(
 t = await text();
 ok(!t.includes('eingeplant') && t.includes('Diese Woche ausgesetzt'), 'A: Woche ausgesetzt → Hinweis weg, Startkarte zeigt es');
 await shot('2-skipped');
-await p.locator('.start-card button.link', { hasText: 'rückgängig' }).click(); await p.waitForTimeout(300);
+await p.locator('.start-card button.link, .start-row button.link', { hasText: 'rückgängig' }).click(); await p.waitForTimeout(300);
 ok(!(await text()).includes('Diese Woche ausgesetzt'), 'A: rückgängig');
 
 // Tage im Plan-Editor
@@ -71,7 +71,7 @@ await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 
 // B: Training mit Abweichungen → „Plan anpassen?“
 await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
-await p.locator('.start-card', { hasText: 'Testplan' }).locator('button', { hasText: 'Starten' }).click(); await p.waitForTimeout(500);
+await startPlan(p, 'Testplan'); await p.waitForTimeout(500);
 if (await p.locator('.sheet', { hasText: 'Aufwärm' }).count()) { await p.locator('.sheet button', { hasText: /Nein|Ohne/ }).first().click(); await p.waitForTimeout(300); }
 await p.evaluate(async () => {
   const S = await import('./js/session.js');

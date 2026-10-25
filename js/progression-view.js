@@ -1,5 +1,7 @@
 // v2.4.0: Bewertungs-Sheet beim Tippen auf „Weiter“ (Variante 1B), Vorschlagskarte (2B),
 // „Willkommen zurück“ beim Start nach einer Pause (3A) und Info mit Quellen.
+import { infoBody } from './info.js';
+import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import { openSheet } from './sheet.js';
 import { icon } from './icons.js';
@@ -20,12 +22,13 @@ export function openProgressionInfo(section = 'rating') {
       : section === 'range'
         ? [['Wiederholungsbereich', I.range], ['Die Bewertung', I.rating], ['Leichte Woche', I.light]]
         : [['Die Bewertung', I.rating], ['So entsteht der Vorschlag', I.rules], ['Wiederholungsbereich', I.range], ['Leichte Woche', I.light], ['Nach einer Pause', I.pause]];
-  openSheet(h('div', { class: 'info' },
-    ...blocks.flatMap(([t, lines], i) => [i ? h('h3', {}, t) : null, h('ul', {}, lines.map((x) => h('li', {}, x)))]),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, I.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(PR.PROGRESSION_CHECKED_AT).toLocaleDateString('de-DE')}, Bereich und leichte Woche am ${new Date(PR.RANGE_LIGHT_CHECKED_AT).toLocaleDateString('de-DE')} (Abstracts in PubMed). Schätzungen, keine medizinische Beratung.`)
-  ), { title: section === 'pause' ? 'Wiedereinstieg' : section === 'light' ? 'Leichte Woche' : 'Bewertung & Vorschlag' });
+  const key = ['pause', 'light', 'range'].includes(section) ? section : 'rating';
+  openSheet(infoBody({
+    short: I.short[key],
+    details: [...blocks.flatMap(([t, lines]) => [h('h3', {}, t), h('ul', {}, lines.map((x) => h('li', {}, x)))]),
+      h('p', { class: 'muted small' }, `Bereich und leichte Woche geprüft am ${new Date(PR.RANGE_LIGHT_CHECKED_AT).toLocaleDateString('de-DE')} (Abstracts in PubMed). Schätzungen, keine medizinische Beratung.`)],
+    sources: I.sources, checked: PR.PROGRESSION_CHECKED_AT, glossary: openGlossary
+  }), { title: section === 'pause' ? 'Wiedereinstieg' : section === 'light' ? 'Leichte Woche' : 'Bewertung & Vorschlag' });
 }
 
 // Braucht diese Übung noch eine Bewertung? (Kraft/Körpergewicht, mindestens ein erledigter Arbeitssatz, noch nicht gefragt)
@@ -101,7 +104,7 @@ export function askBreak(plan, exercisesById, sessions, info, { onReduce, onKeep
   let sheet = null;
   sheet = openSheet(h('div', { class: 'break-sheet' },
     h('p', {}, `Dein letztes Training ist ${PR.fmtBreak(info.days)} her. Nach einer Pause ist es sinnvoll, etwas leichter einzusteigen.`),
-    h('p', { class: 'muted small' }, `Vorschlag: Gewichte um ${info.pct} % senken (Schätzung). Ab dem nächsten Training gilt wieder deine Bewertung.`),
+    h('p', { class: 'muted small' }, `Vorschlag: Gewichte um ${info.pct} % senken (Schätzung).`),
     shown.length ? h('div', { class: 'card list break-list' },
       shown.map((r) => h('div', { class: 'row' }, h('span', { class: 't' }, r.name), h('span', { class: 'old' }, fmtNum(r.from)), h('span', { class: 'muted' }, '→'), h('b', { class: 'new' }, kg(r.to)))),
       rows.length > shown.length ? h('div', { class: 'row muted small' }, `+ ${rows.length - shown.length} weitere`) : null) : null,
@@ -127,7 +130,7 @@ export function askLight(plan, exercisesById, sessions, { onLight, onNormal }) {
   let sheet = null;
   sheet = openSheet(h('div', { class: 'break-sheet' },
     h('p', {}, 'Diese Woche ist als leichte Woche markiert.'),
-    h('p', { class: 'muted small' }, `Vorschlag: Arbeitssätze halbieren und etwa ${PR.LIGHT_WEEK.pct} % weniger Gewicht (Schätzung nach Umfragen, kein Studienwert). Leichte Trainings sind danach kein Ausgangspunkt für Vorbelegung und Vorschläge.`),
+    h('p', { class: 'muted small' }, `Vorschlag: Sätze halbieren, etwa ${PR.LIGHT_WEEK.pct} % weniger Gewicht (Schätzung).`),
     shown.length ? h('div', { class: 'card list break-list' },
       shown.map((r) => h('div', { class: 'row' }, h('span', { class: 't' }, h('b', {}, r.name), h('small', {}, r.sets)), r.weight ? h('span', { class: 'muted' }, r.weight) : null)),
       rows.length > shown.length ? h('div', { class: 'row muted small' }, `+ ${rows.length - shown.length} weitere`) : null) : null,

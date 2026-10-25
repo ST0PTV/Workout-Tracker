@@ -1,5 +1,7 @@
 // Routinen-Oberfläche (v2.3.0, Variante C + Ablauf aus A): Liste im Pläne-Tab, Detail, Editor,
 // Katalog, Plan-Verknüpfung, Startfrage und Ablauf-Screen (#/routine) mit Countdown ohne Ton.
+import { infoBody } from './info.js';
+import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import * as R from './routines.js';
@@ -20,14 +22,12 @@ const figure = (item, width = 24) => h('span', { class: 'fig-ic' }, miniFigure({
 
 export function openRoutineInfo(phase = 'warmup') {
   const lines = phase === 'cooldown' ? ROUTINE_INFO.cooldown : ROUTINE_INFO.warmup;
-  openSheet(h('div', { class: 'info' },
-    h('ul', {}, lines.map((t) => h('li', {}, t))),
-    h('h3', {}, 'Gut zu wissen'),
-    h('ul', {}, ROUTINE_INFO.rules.map((t) => h('li', {}, t))),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, ROUTINE_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(ROUTINES_CHECKED_AT).toLocaleDateString('de-DE')} (Abstracts in PubMed). Keine medizinische Beratung.`)
-  ), { title: phase === 'cooldown' ? 'Cool-down' : 'Aufwärmen' });
+  openSheet(infoBody({
+    short: ROUTINE_INFO.short[phase === 'cooldown' ? 'cooldown' : 'warmup'],
+    details: [h('ul', {}, lines.map((t) => h('li', {}, t))), h('h3', {}, 'Gut zu wissen'), h('ul', {}, ROUTINE_INFO.rules.map((t) => h('li', {}, t))),
+      h('p', { class: 'muted small' }, 'Abstracts in PubMed geprüft. Keine medizinische Beratung.')],
+    sources: ROUTINE_INFO.sources, checked: ROUTINES_CHECKED_AT, glossary: openGlossary
+  }), { title: phase === 'cooldown' ? 'Cool-down' : 'Aufwärmen' });
 }
 
 // ---------- Detail ----------
@@ -82,7 +82,7 @@ function openCatalog(phase, onPick) {
     } }, label)));
   draw();
   openSheet(h('div', {}, chips, list,
-    h('p', { class: 'muted small' }, 'Katalog-Übungen sind keine Kraftübungen: sie zählen nicht als Sätze, nicht ins Volumen und nicht in die Muskelkarte.')),
+    h('p', { class: 'muted small' }, 'Zählen nicht als Sätze und nicht in die Muskelkarte.')),
   { title: 'Übung hinzufügen', full: true });
 }
 
@@ -176,7 +176,7 @@ export function routinesPanel(rerender) {
         icon('chevron', { size: 18 })))));
   };
   return h('div', { class: 'routines' },
-    h('p', { class: 'muted small' }, 'Optional vor oder nach dem Training. Zählt nicht als Sätze und nicht in die Muskelkarte.'),
+    h('p', { class: 'muted small' }, 'Optional, zählt nicht als Sätze.'),
     section('warmup'), section('cooldown'),
     h('button', { class: 'addline', type: 'button', onclick: () => openNewRoutine(rerender) }, icon('plus', { size: 18 }), 'Eigene Routine'));
 }

@@ -94,6 +94,18 @@ export const TEMPLATES = [
 ];
 
 export const ROUTINE_INFO = {
+  short: {
+    warmup: [
+      'Kurz und locker aufwärmen – länger ist nicht automatisch besser.',
+      'Dann 1–3 leichte Sätze der ersten Übung.',
+      'Optional: zählt nicht als Sätze und nicht in die Muskelkarte.'
+    ],
+    cooldown: [
+      'Optional: für Erholung und Muskelkater bringt es kaum etwas.',
+      'Dehnen verbessert über Wochen die Beweglichkeit.',
+      'Bis zum Zuggefühl dehnen, nicht in den Schmerz.'
+    ]
+  },
   warmup: [
     'Wärmere Muskeln verbessern in Studien schnelle Kraft und Leistung, aber nicht die Maximalkraft.',
     'In einer Studie mit 16 Kraftsportlern senkten 15 min Aufwärmen bei mittlerer Intensität das 1RM leicht; 15 min locker erhöhten es leicht, 5 min änderten nichts. Darum ist das Aufwärmen hier locker angelegt – länger heißt nicht automatisch besser.',

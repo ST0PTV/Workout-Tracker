@@ -29,7 +29,8 @@ await p.evaluate(async () => {
 });
 await p.reload(); await p.waitForTimeout(800);
 
-const cards = await p.evaluate(() => [...document.querySelectorAll('.start-card')].map((c) => ({ name: c.querySelector('.pc-top b').textContent, today: c.classList.contains('today'), canvas: !!c.querySelector('canvas.body3d'), svg: !!c.querySelector('.plan-fig svg') })));
+// ab 2.34.0 (Startseite A): Plan von heute als große Karte, übrige als kompakte Zeilen
+const cards = await p.evaluate(() => [...document.querySelectorAll('.start-card, .start-row')].map((c) => ({ name: c.querySelector('.pc-top b, .t > b').textContent, today: c.classList.contains('today'), canvas: !!c.querySelector('canvas.body3d'), svg: !!c.querySelector('.plan-fig svg') })));
 ok(cards[0]?.name === 'Push' && cards[0].today, `T: Plan des Tages oben und markiert (${cards.map((c) => c.name).join(', ')})`);
 ok(cards.filter((c) => c.today).length === 1, 'T: nur ein Plan als „Heute“');
 ok((await text()).includes('Heute'), 'T: Label „Heute“');
@@ -78,7 +79,7 @@ await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 // Weibliche Figur
 await p.evaluate(async () => { const s = await import('./js/store.js'); s.set('settings', { ...s.get('settings'), figure: 'female' }); });
 await p.reload(); await p.waitForTimeout(800);
-ok(await p.locator('.start-card canvas.body3d').count() === 3, 'K: weibliche Figur ebenfalls 3D');
+ok(await p.locator('.start-card canvas.body3d, .start-row canvas.body3d').count() === 3, 'K: weibliche Figur ebenfalls 3D');
 await shot('6-female');
 
 // Starten funktioniert weiter

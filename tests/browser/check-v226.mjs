@@ -1,7 +1,7 @@
 // v2.26.0: Browser-Prüfung der Quick Wins – Scheiben-Zeile, „je Seite“, Pausen-Leiste mit nächstem Satz
 // und Aufleuchten, Rückgängig nach dem Löschen, Banner bei Speicherfehler, Einstellungen, Bildschirm-Sperre.
 // Nur erfundene Testdaten. Aufruf: node tests/browser/check-v226.mjs   (Screenshots in WT_OUT/v226)
-import { launch, startServer, checker, outDir, BAD_TEXT } from './lib.mjs';
+import { launch, startServer, checker, outDir, BAD_TEXT, startPlan } from './lib.mjs';
 import { join } from 'node:path';
 
 const srv = await startServer();
@@ -37,7 +37,7 @@ await p.evaluate(async () => {
 });
 await p.reload(); await p.waitForTimeout(400);
 ok((await p.evaluate(() => window.__wl.req)) === 0, 'A1: ohne Training keine Bildschirm-Sperre');
-await p.click('text=Starten'); await p.waitForTimeout(400);
+await startPlan(p); await p.waitForTimeout(400);
 ok((await p.evaluate(() => window.__wl.req)) >= 1, 'A1: Training läuft → Bildschirm-Sperre angefordert');
 
 // A4: Scheiben-Zeile folgt dem Gewichtsfeld
@@ -92,7 +92,7 @@ ok(await p.locator('#savebar[hidden]').count() === 1, 'A3: Banner nach erfolgrei
 // Einstellungen: Schalter, Stange, Speicherstatus
 await p.goto(srv.url + '/index.html#/settings'); await p.waitForTimeout(700);
 t = await text();
-ok(t.includes('Bildschirm im Training anlassen') && t.includes('Scheiben pro Seite anzeigen') && t.includes('Standard-Stange'), 'Einstellungen: neue Schalter da');
+ok(t.includes('Bildschirm anlassen') && t.includes('Scheiben pro Seite') && t.includes('Stange'), 'Einstellungen: Schalter da (Beschriftungen ab 2.34.0 kürzer)');
 ok(t.includes('Speicher geschützt') && !t.includes('…'), 'A2: Speicherstatus geladen');
 ok(!BAD_TEXT.test(t), 'Einstellungen: kein null/undefined/NaN');
 await p.locator('.card', { hasText: 'Training' }).first().screenshot({ path: join(out, '7-settings-training.png') });

@@ -3,6 +3,8 @@
 // C: Unter dem zuletzt abgehakten Arbeitssatz stehen Schnellknöpfe „+ Drop“ / „+ Rest-Pause“.
 // Die Daten-Aktionen kommen als Callbacks herein, damit dieselbe Oberfläche sofort speichern (Training)
 // oder einen Entwurf ändern kann (Tagebuch, gespeichert erst mit „Fertig“).
+import { infoBody } from './info.js';
+import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import { SET_TAGS } from './model.js';
 import * as SETS from './sets.js';
@@ -15,15 +17,12 @@ import { icon } from './icons.js';
 const TYPES = ['warmup', 'work', 'drop', 'restpause'];
 
 export function openSetInfo() {
-  openSheet(h('div', { class: 'info' },
-    h('ul', {}, SET_INFO.what.map((t) => h('li', {}, t))),
-    h('h3', {}, 'So zählt die App'),
-    h('ul', {}, SET_INFO.counting.map((t) => h('li', {}, t))),
-    h('p', { class: 'muted small' }, SET_INFO.evidence),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, SET_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(SET_INFO_CHECKED_AT).toLocaleDateString('de-DE')}.`)
-  ), { title: 'Drop- und Rest-Pause-Sätze' });
+  openSheet(infoBody({
+    short: SET_INFO.short,
+    details: [h('ul', {}, SET_INFO.what.map((t) => h('li', {}, t))), h('h3', {}, 'So zählt die App'),
+      h('ul', {}, SET_INFO.counting.map((t) => h('li', {}, t))), h('p', { class: 'muted small' }, SET_INFO.evidence)],
+    sources: SET_INFO.sources, checked: SET_INFO_CHECKED_AT, glossary: openGlossary
+  }), { title: 'Drop- und Rest-Pause-Sätze' });
 }
 
 // Sheet für einen Satz. act = { setType(type), toggleTag(tag), remove() }; jede Aktion gibt true/false zurück.

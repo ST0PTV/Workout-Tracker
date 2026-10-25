@@ -2,9 +2,15 @@
 // Bewusst vorsichtig formuliert: Leistungseffekt uneinheitlich, kein Beleg für Verletzungsschutz im Krafttraining.
 export const WARMUP_CHECKED_AT = '2026-10-13';
 
-export const WARMUP_HINT = 'Erste Übung für diese Muskelgruppe heute: 1–2 kurze, leichte Aufwärmsätze können helfen, besonders vor schweren Sätzen.';
+// v2.34.0: einzeilig (Ebene 1); Begründung im Info-Sheet.
+export const WARMUP_HINT = 'Erste Übung für diese Muskeln: 1–2 leichte Aufwärmsätze.';
 
 export const WARMUP_INFO = {
+  short: [
+    '1–2 leichte Sätze, nur vor der ersten Übung je Muskelgruppe.',
+    'Der Nutzen ist uneinheitlich, am ehesten vor schweren Sätzen.',
+    'Kurz halten – zu viel Aufwärmen kann Leistung kosten.'
+  ],
   summary: [
     'Spezifische Aufwärmsätze verbessern die folgenden Arbeitssätze nur uneinheitlich; am ehesten vor schweren Sätzen mit wenigen Wiederholungen.',
     'Für Verletzungsschutz durch Aufwärmen im Krafttraining wurden keine Studien gefunden.',

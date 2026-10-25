@@ -18,6 +18,9 @@ import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import * as store from './store.js';
 import { progressPanel, hasHistory } from './progress-view.js';
 import { animationCard, hasAnimation } from './anim-view.js';
+import { warningsFor, warningSources, EVIDENCE, WARN_CHECKED_AT } from './warnings.js';
+import { infoBody } from './info.js';
+import { openGlossary } from './glossary.js';
 
 const KIND_LABEL = { strength: 'Kraft', bodyweight: 'Körpergewicht', cardio: 'Cardio' };
 const VERIF_LABEL = {
@@ -49,23 +52,43 @@ function searchField(value, placeholder, onInput) {
 
 // ---------- Info: Muskelgruppen ----------
 
-function sourceList(sources) {
+function sourceList(sources, numbered = null) {
   return h('ul', { class: 'sources' }, sources.map((s) =>
-    h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), s.note ? h('span', { class: 'muted' }, ` – ${s.note}`) : null)));
+    h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' },
+      numbered?.has(s.url) ? h('b', { class: 'src-num' }, `[${numbered.get(s.url)}] `) : null, s.label), s.note ? h('span', { class: 'muted' }, ` – ${s.note}`) : null)));
+}
+
+// v2.34.0 (Variante B): „Worauf achten“ – belegte Hauptrisiken als Box oben im Info-Sheet.
+// Ebene 1: je Hinweis eine Zeile mit Belegart und Nummer [n]; ausführlich in „Details und Quellen“.
+// num: Map url → Nummer in der Quellenliste.
+function warnBox(ref, num) {
+  const ws = warningsFor(ref);
+  if (!ws.length) return null;
+  return h('div', { class: 'warn-box', role: 'note' },
+    h('b', { class: 'wb-title' }, icon('warn', { size: 18 }), 'Worauf achten'),
+    h('ul', { class: 'warn-list' }, ws.map((w) => h('li', {}, w.short, ' ',
+      w.evidence.map((e) => h('span', { class: 'wtag' }, EVIDENCE[e])),
+      h('sup', { class: 'muted' }, w.sources.map((s) => `[${num.get(s.url)}]`).join(''))))));
+}
+
+function warnDetails(ref) {
+  const ws = warningsFor(ref);
+  if (!ws.length) return null;
+  return h('div', {}, h('h3', {}, 'Worauf achten – ausführlich'),
+    h('ul', {}, ws.map((w) => h('li', {}, w.text))),
+    h('p', { class: 'muted small' }, `Belegt ist das beschriebene Risiko; die Tipps sind Empfehlungen der App, kein Grenzwert. Bei Schmerzen abbrechen und abklären lassen. Hinweise geprüft am ${fmtDate(WARN_CHECKED_AT)}.`));
 }
 
 export function openMuscleInfo(key) {
   const info = MUSCLE_INFO[key];
   if (!info) return;
-  openSheet(h('div', { class: 'info' },
-    h('p', {}, h('b', {}, 'Muskeln: '), info.includes),
-    h('p', {}, h('b', {}, 'Lage: '), info.location),
-    h('h3', {}, 'Funktion'),
-    h('ul', {}, info.functions.map((f) => h('li', {}, f))),
-    h('h3', {}, 'Quellen'),
-    sourceList(info.sources),
-    h('p', { class: 'muted small' }, `Geprüft am ${fmtDate(MUSCLE_INFO_CHECKED_AT)}. Eigene Zusammenfassung, kein medizinischer Rat.`)
-  ), { title: MUSCLES[key] });
+  openSheet(infoBody({
+    lead: h('div', {}, h('p', {}, h('b', {}, 'Muskeln: '), info.includes), h('p', {}, h('b', {}, 'Lage: '), info.location)),
+    short: info.functions.slice(0, 3),
+    details: [info.functions.length > 3 ? h('ul', {}, info.functions.slice(3).map((f) => h('li', {}, f))) : null,
+      h('p', { class: 'muted small' }, 'Eigene Zusammenfassung, kein medizinischer Rat.')],
+    sources: info.sources, checked: MUSCLE_INFO_CHECKED_AT
+  }), { title: MUSCLES[key] });
 }
 
 export function openMuscleOverview() {
@@ -92,19 +115,29 @@ export function openEvidence(ref) {
   const m = p.involved || p.muscles;
   // v2.0: Animation mit Kernpunkten, wenn für die Übung vorhanden
   const anim = hasAnimation(ref) ? animationCard(ref) : null;
+  // Quellen der Hinweise kommen ans Ende der Liste und bekommen Nummern [1], [2] …
+  const known = new Set(p.sources.map((s) => s.url));
+  const extra = warningSources(ref).filter((s) => !known.has(s.url));
+  const allSources = [...p.sources, ...extra];
+  const num = new Map(warningSources(ref).map((s) => [s.url, allSources.findIndex((x) => x.url === s.url) + 1]));
   openSheet(h('div', { class: 'info' },
+    warnBox(ref, num),
     anim ? anim.el : null,
     anim ? h('h3', {}, 'Muskeln') : null,
     p.involved ? h('p', { class: 'muted small' }, 'Cardio zählt nicht für die Muskelkarte. Die Muskeln unten sind nur zur Information.') : null,
     h('p', {}, h('b', {}, p.involved ? 'Hauptsächlich beteiligt: ' : 'Primär: '), muscleLinks(m.primary)),
     h('p', {}, h('b', {}, p.involved ? 'Mitbeteiligt: ' : 'Sekundär: '), muscleLinks(m.secondary)),
-    p.others.length ? h('p', {}, h('b', {}, 'Außerdem beteiligt: '), p.others.join('; ')) : null,
     h('p', {}, h('b', {}, 'Braucht: '), gearOf(p).map((k) => GEAR[k]).join(', ') || 'kein Zubehör'),
-    h('p', {}, h('b', {}, 'Belastbarkeit: '), h('span', { class: `conf ${p.confidence}` }, CONFIDENCE[p.confidence]), ` · ${p.basis}`),
-    p.note ? h('p', {}, p.note) : null,
-    h('h3', {}, 'Quellen'),
-    sourceList(p.sources),
-    h('p', { class: 'muted small' }, `Geprüft am ${fmtDate(POOL_CHECKED_AT)}. Muskelaktivität im EMG sagt nicht direkt etwas über Muskelwachstum aus; Technik und Variante verändern die Verteilung.`)
+    // v2.34.0: alles Weitere eingeklappt (Ebene 3)
+    h('details', { class: 'more' }, h('summary', {}, 'Details und Quellen', icon('down', { size: 16, cls: 'inline' })),
+      warnDetails(ref),
+      p.others.length ? h('p', {}, h('b', {}, 'Außerdem beteiligt: '), p.others.join('; ')) : null,
+      h('p', {}, h('b', {}, 'Belastbarkeit: '), h('span', { class: `conf ${p.confidence}` }, CONFIDENCE[p.confidence]), ` · ${p.basis}`),
+      p.note ? h('p', {}, p.note) : null,
+      h('h3', {}, 'Quellen'),
+      sourceList(allSources, num.size ? num : null),
+      h('p', { class: 'muted small' }, `Geprüft am ${fmtDate(POOL_CHECKED_AT)}. Muskelaktivität im EMG sagt nicht direkt etwas über Muskelwachstum aus; Technik und Variante verändern die Verteilung.`)),
+    h('button', { class: 'link small glossary-link', type: 'button', onclick: openGlossary }, 'Begriffe erklärt')
   ), { title: p.name, full: !!anim, onClose: anim ? anim.stop : null });
 }
 
@@ -122,8 +155,8 @@ function confirmAddAll(rerender) {
   const todo = open.filter((p) => fitsGear(p, owned));
   const cardio = todo.filter((p) => p.kind === 'cardio').length;
   const sheet = openSheet(h('div', { class: 'confirm-all' },
-    h('p', { class: 'muted' }, 'Die Liste wird lang. Übungen, die du nicht brauchst, kannst du später archivieren. Muskeln und Quellen bleiben je Übung abrufbar.'),
-    owned && open.length > todo.length ? h('p', { class: 'muted small' }, `Nach „Mein Equipment“ gefiltert: ${open.length - todo.length} Übungen, die dein Equipment nicht abdeckt, bleiben im Pool.`) : null,
+    h('p', { class: 'muted' }, 'Was du nicht brauchst, kannst du später archivieren.'),
+    owned && open.length > todo.length ? h('p', { class: 'muted small' }, `${open.length - todo.length} Übungen passen nicht zu deinem Equipment und bleiben im Pool.`) : null,
     h('div', { class: 'card sum' },
       h('span', {}, 'Kraft und Körpergewicht', h('b', {}, String(todo.length - cardio))),
       h('span', {}, 'Cardio-Geräte', h('b', {}, String(cardio)))),
@@ -216,7 +249,7 @@ function openPool(rerender) {
       owned ? h('button', { class: `chip small${local.mine ? ' on' : ''}`, type: 'button', 'aria-pressed': String(local.mine),
         onclick: () => { local.mine = !local.mine; drawMine(); draw(); } }, 'Nur mein Equipment') : '',
       h('button', { class: 'link', type: 'button', onclick: () => {
-        openSheet(h('div', {}, h('p', { class: 'muted small' }, 'Was du zur Verfügung hast. Körpergewicht ohne Zubehör ist immer dabei. Gilt für diese Liste und „Alle übernehmen“.'),
+        openSheet(h('div', {}, h('p', { class: 'muted small' }, 'Körpergewicht ohne Zubehör ist immer dabei.'),
           gearPicker(() => { drawMine(); draw(); })), { title: 'Mein Equipment' });
       } }, owned ? 'Equipment ändern' : 'Mein Equipment festlegen'));
   };

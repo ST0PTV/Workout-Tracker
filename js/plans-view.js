@@ -170,7 +170,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
           const r = P.renamePlan(planId, e.target.value);
           if (!r.ok) { toast(r.errors[0], { error: true }); e.target.value = P.getPlan(planId).name; } else { draw(); rerender(); }
         } })
-        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Arbeitssätze` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
+        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Sätze` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
       h('button', { class: `pill${mode.edit ? ' on' : ''}`, type: 'button', onclick: () => { mode.edit = !mode.edit; draw(); } },
         mode.edit ? 'Fertig' : h('span', { class: 'pill-in' }, icon('edit', { size: 16 }), 'Bearbeiten')));
 
@@ -252,7 +252,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
       mode.edit ? daysBlock(plan, () => { draw(); rerender(); }) : null,
       slots.before,
       ...steps.flat(),
-      details.some((x) => x.item.supersetNext) ? h('p', { class: 'muted small' }, 'Supersatz: abwechselnd ein Satz pro Übung, Pause erst nach der Runde (die längste Pause der Gruppe). Sätze und Volumen zählen wie bisher.') : null,
+      details.some((x) => x.item.supersetNext) ? h('p', { class: 'muted small' }, 'Supersatz: je ein Satz pro Übung, Pause nach der Runde.') : null,
       mode.edit || !details.length ? h('button', { class: 'addline', type: 'button', onclick: () => openExercisePicker(P.getPlan(planId), (ids) => {
         if (!ids.length) return;
         const r = P.addExercises(planId, ids);
@@ -289,7 +289,7 @@ export function plansView(rerender) {
     const s = planSummary(plan, ctx);
     return h('button', { class: `pcard${dim ? ' dim-list' : ''}`, type: 'button', onclick: () => openPlan(plan.id, rerender) },
       h('span', { class: 'pc-top' }, h('b', {}, plan.name), icon('chevron', { size: 18 })),
-      h('small', {}, `${s.count} ${s.count === 1 ? 'Übung' : 'Übungen'} · ${s.sets} Arbeitssätze${formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''}`),
+      h('small', {}, `${s.count} ${s.count === 1 ? 'Übung' : 'Übungen'} · ${s.sets} Sätze${formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''}`),
       s.count ? h('span', { class: 'ex' }, s.names.join(' · ')) : h('span', { class: 'ex muted' }, 'Noch leer – tippen zum Befüllen'));
   };
   const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },

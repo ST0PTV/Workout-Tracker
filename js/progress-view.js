@@ -1,6 +1,8 @@
 // Fortschritt (Variante A + B, ab v1.1 mit Tagebuch „Trainings“): eigener Tab mit allen trainierten Übungen (Mini-Verlauf, Trend),
 // Detail pro Übung als Sheet – erreichbar aus dem Tab, aus dem Übungs-Editor und aus dem Training.
 // Gemessene Werte (bester Satz) und Schätzwerte (e1RM) sind immer getrennt und als solche beschriftet.
+import { infoBody, hintLine } from './info.js';
+import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import * as lib from './exercises.js';
@@ -38,13 +40,12 @@ export function hasHistory(exerciseId) {
 // ---------- Info ----------
 
 export function openProgressInfo() {
-  openSheet(h('div', { class: 'info' },
-    h('p', {}, h('b', {}, `${E1RM_LABEL}: `), E1RM_EXPLAIN),
-    h('ul', {}, PROGRESS_INFO.summary.map((t) => h('li', {}, t))),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, PROGRESS_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(PROGRESS_CHECKED_AT).toLocaleDateString('de-DE')}. Schätzwerte ersetzen keinen gemessenen Maximaltest.`)
-  ), { title: 'So wird Fortschritt berechnet' });
+  openSheet(infoBody({
+    short: PROGRESS_INFO.short,
+    details: [h('p', {}, h('b', {}, `${E1RM_LABEL}: `), E1RM_EXPLAIN), h('ul', {}, PROGRESS_INFO.summary.map((t) => h('li', {}, t))),
+      h('p', { class: 'muted small' }, 'Schätzwerte ersetzen keinen gemessenen Maximaltest.')],
+    sources: PROGRESS_INFO.sources, checked: PROGRESS_CHECKED_AT, glossary: openGlossary
+  }), { title: 'So wird Fortschritt berechnet' });
 }
 
 // ---------- Mini-Verlauf (Liste) ----------
@@ -130,7 +131,7 @@ function e1rmChart(points, onSelect) {
 export function progressPanel(exercise) {
   const rows = exerciseProgress(exercise.id, finished(), { kind: exercise.kind });
   if (!rows.length) {
-    return h('div', { class: 'progress-panel' }, h('p', { class: 'muted' }, 'Noch kein abgeschlossenes Training mit dieser Übung. Der Verlauf erscheint nach dem ersten Training.'));
+    return h('div', { class: 'progress-panel' }, h('p', { class: 'muted' }, 'Der Verlauf erscheint nach dem ersten Training.'));
   }
   if (exercise.kind === 'cardio') return cardioPanel(rows);
   const sum = progressSummary(rows);
@@ -143,7 +144,7 @@ export function progressPanel(exercise) {
       h('b', {}, isStrength ? `${fmtKg(sum.bestTop.weightKg)} × ${sum.bestTop.reps}` : setText({ weightKg: sum.bestTop.weightKg || null, reps: sum.bestTop.reps, drops: [] }, 'bodyweight')),
       h('span', {}, `gemessen · ${fmtDate(sum.bestTop.date)}`)),
     isStrength
-      ? h('div', { class: 'tile' }, h('small', {}, 'e1RM ', h('span', { class: 'est' }, 'Schätzung')),
+      ? h('div', { class: 'tile' }, h('small', {}, 'Max-Kraft ', h('span', { class: 'est' }, 'Schätzung')),
         h('b', {}, lastEst ? `≈ ${fmtKg(lastEst.e1rm.value)} kg` : '–'),
         h('span', {}, lastEst ? `zuletzt · ±${NOISE_PCT} %` : 'nur Sätze ≤ 10 Wdh.'))
       : h('div', { class: 'tile' }, h('small', {}, 'Trainings'), h('b', {}, String(sum.sessions)), h('span', {}, 'abgeschlossen')));
@@ -152,32 +153,32 @@ export function progressPanel(exercise) {
   if (isStrength && est.length) {
     const readout = h('div', { class: 'ch-read', 'aria-live': 'polite' });
     const onSelect = (p) => {
-      const ch = p.change ? ` · ${fmtPct(p.change.pct)}${p.change.withinNoise ? ' (Rauschen)' : ''}` : '';
+      const ch = p.change ? ` · ${fmtPct(p.change.pct)}${p.change.withinNoise ? ' (Tagesform)' : ''}` : '';
       readout.textContent = `${fmtDate(p.date)} · ${fmtKg(p.e1rm.weightKg)} kg × ${p.e1rm.reps} → ≈ ${fmtKg(p.e1rm.value)} kg${ch}`;
     };
     chartBlock = h('div', {},
-      h('div', { class: 'ctitle' }, h('span', {}, `${E1RM_LABEL} pro Training, kg`), h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So wird Fortschritt berechnet', onclick: openProgressInfo }, icon('info', { size: 18 }))),
+      h('div', { class: 'ctitle' }, h('span', {}, `${E1RM_LABEL}, kg`), h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So wird Fortschritt berechnet', onclick: openProgressInfo }, icon('info', { size: 18 }))),
       h('div', { class: 'card chart-card' }, e1rmChart(est, onSelect), readout,
-        h('div', { class: 'ch-legend muted small' }, h('span', { class: 'band-swatch' }), `Band = ±${NOISE_PCT} % typische Ungenauigkeit der Formel`)),
-      sum.trend ? h('p', { class: 'muted small' }, `Seit ${fmtDate(sum.trend.from)}: ${fmtPct(sum.trend.pct)}${sum.trend.withinNoise ? ' – im Rauschbereich, noch kein klarer Trend.' : '.'}`)
+        h('div', { class: 'ch-legend muted small' }, h('span', { class: 'band-swatch' }), `Band = ±${NOISE_PCT} % Ungenauigkeit`)),
+      sum.trend ? h('p', { class: 'muted small' }, `Seit ${fmtDate(sum.trend.from)}: ${fmtPct(sum.trend.pct)}${sum.trend.withinNoise ? ' – Tagesform, noch kein klarer Trend.' : '.'}`)
         : h('p', { class: 'muted small' }, 'Ab zwei Trainings mit Schätzwert entsteht ein Verlauf.'));
   } else if (isStrength) {
-    chartBlock = h('p', { class: 'muted small' }, 'Kein Schätzwert: Alle Arbeitssätze hatten mehr als 10 Wiederholungen. Für die Schätzung braucht es einen Satz mit höchstens 10 Wiederholungen.');
+    chartBlock = h('p', { class: 'muted small' }, 'Kein Schätzwert: Dafür braucht es einen Satz mit höchstens 10 Wiederholungen.');
   }
 
   const table = h('table', { class: 'tbl' },
-    h('thead', {}, h('tr', {}, h('th', {}, 'Datum'), h('th', {}, 'Arbeitssätze'), h('th', { class: 'n' }, isStrength ? h('span', {}, 'e1RM ', h('span', { class: 'est' }, '≈')) : 'Wdh.'))),
+    h('thead', {}, h('tr', {}, h('th', {}, 'Datum'), h('th', {}, 'Sätze'), h('th', { class: 'n' }, isStrength ? h('span', {}, 'Max ', h('span', { class: 'est' }, '≈')) : 'Wdh.'))),
     h('tbody', {}, [...rows].reverse().map((r) => h('tr', {},
       h('td', {}, fmtDay(r.date)),
       h('td', {}, fmtSets(r.sets, exercise.kind)),
       h('td', { class: 'n' }, isStrength
-        ? (r.e1rm ? [fmtKg(r.e1rm.value), r.change ? h('small', {}, `${fmtPct(r.change.pct)}${r.change.withinNoise ? ' · Rauschen' : ''}`) : null] : h('span', { class: 'muted' }, '–'))
+        ? (r.e1rm ? [fmtKg(r.e1rm.value), r.change ? h('small', {}, `${fmtPct(r.change.pct)}${r.change.withinNoise ? ' · Tagesform' : ''}`) : null] : h('span', { class: 'muted' }, '–'))
         : String(r.totalReps))))));
 
   return h('div', { class: 'progress-panel' }, tiles, chartBlock,
     h('div', { class: 'sec' }, 'Alle Trainings'),
     h('div', { class: 'card tbl-card' }, table),
-    h('p', { class: 'muted small' }, 'Ohne Aufwärmsätze. Werte nur innerhalb dieser Übung vergleichen.'));
+    h('p', { class: 'muted small' }, 'Ohne Aufwärmsätze.'));
 }
 
 // v1.4 Cardio: gemessene Werte (Dauer, Strecke) und daraus berechnetes Tempo; kein Diagramm, keine Kalorien.
@@ -192,7 +193,7 @@ function cardioPanel(rows) {
     h('div', { class: 'card tbl-card' }, h('table', { class: 'tbl' },
       h('thead', {}, h('tr', {}, h('th', {}, 'Datum'), h('th', {}, 'Einheit'), h('th', { class: 'n' }, 'Tempo'))),
       h('tbody', {}, [...rows].reverse().map((r) => h('tr', {}, h('td', {}, fmtDay(r.date)), h('td', {}, fmt(r)), h('td', { class: 'n' }, fmtPace(r.durationSec, r.distanceM) || '–')))))),
-    h('p', { class: 'muted small' }, 'Tempo = Dauer ÷ Strecke (pro km). Werte nur innerhalb dieser Übung vergleichen.'));
+    h('p', { class: 'muted small' }, 'Tempo = Dauer ÷ Strecke (pro km).'));
 }
 
 export function openProgress(exerciseId) {
@@ -203,13 +204,15 @@ export function openProgress(exerciseId) {
 
 // ---------- Tab ----------
 
+// v2.34.0 (Vorschlag 5): in der Liste nur Pfeil; die Prozentzahl steht im Detail (Antippen der Zeile).
 function trendLabel(ex) {
-  if (ex.kind !== 'strength') return h('span', { class: 'trend noise' }, ex.kind === 'bodyweight' ? 'Körpergewicht' : 'Cardio');
+  if (ex.kind !== 'strength') return h('span', { class: 'trend noise', 'aria-label': 'kein Kraft-Trend' }, '');
   const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
   const sum = progressSummary(rows);
-  if (!sum.estimatePoints) return h('span', { class: 'trend noise' }, 'nur Wdh. > 10');
-  if (!sum.trend) return h('span', { class: 'trend noise' }, 'erst 1 Wert');
-  return h('span', { class: `trend${sum.trend.withinNoise ? ' noise' : ''}` }, fmtPct(sum.trend.pct), sum.trend.withinNoise ? h('small', {}, 'Rauschen') : null);
+  if (!sum.estimatePoints || !sum.trend) return h('span', { class: 'trend noise', 'aria-label': 'noch kein Trend' }, '–');
+  const t = sum.trend;
+  const arrow = t.withinNoise ? '→' : t.pct > 0 ? '↑' : '↓';
+  return h('span', { class: `trend arrow${t.withinNoise ? ' noise' : t.pct < 0 ? ' down' : ''}`, 'aria-label': `${fmtPct(t.pct)}${t.withinNoise ? ', Tagesform' : ''}`, title: fmtPct(t.pct) }, arrow);
 }
 
 // v1.1: Umschalter „Übungen | Trainings“ (Variante C). Der Modus bleibt beim Neu-Rendern erhalten.
@@ -219,7 +222,7 @@ function exerciseList() {
   const all = lib.listExercises({ includeArchived: true });
   const list = exercisesWithHistory(all, finished());
   return list.length
-    ? [h('p', { class: 'sub' }, `Trend der geschätzten Maximalkraft (e1RM, Schätzung) seit dem ersten Training. Unter ±${NOISE_PCT} % ist normales Tagesrauschen.`),
+    ? [hintLine('Trend der geschätzten Max-Kraft.', openProgressInfo),
       h('div', { class: 'card list' }, list.map(({ exercise: ex, sessions }) => {
         const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
         const lastRow = rows[rows.length - 1];
@@ -233,7 +236,7 @@ function exerciseList() {
           trendLabel(ex));
       }))]
     : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('progress', { size: 44 })), h('h2', {}, 'Noch kein Verlauf'),
-      h('p', { class: 'muted' }, 'Nach dem ersten abgeschlossenen Training siehst du hier für jede Übung deinen besten Satz und den Verlauf.'));
+      h('p', { class: 'muted' }, 'Erscheint nach dem ersten Training.'));
 }
 
 export function progressView(rerender = () => {}) {

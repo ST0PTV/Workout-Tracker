@@ -1,5 +1,7 @@
 // Fortschritt → 4 Wochen (v2.23.0, Variante B mit Ø-Spalte, Wahl des Nutzers): Heatmap Muskeln × Kalenderwochen,
 // Ø Sätze pro Woche, Kraft-Trend (e1RM, Schätzung) der Hauptübung, darunter „Zuletzt wenig trainiert“ (relativ, ohne Soll).
+import { infoBody, hintLine } from './info.js';
+import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import { level, fmtSets, LEVEL_LABELS, INDIRECT_FACTOR } from './week.js';
@@ -16,6 +18,11 @@ const fmtPct = (p) => `${p > 0 ? '+' : p < 0 ? '−' : '±'}${Math.abs(Math.roun
 
 export const ANALYSIS_INFO = {
   checkedAt: '2026-10-22',
+  short: [
+    'Letzte 4 abgeschlossene Wochen; Sätze gezählt wie in der Muskelkarte.',
+    '„Zuletzt wenig trainiert“ vergleicht nur mit deinen anderen Muskeln – kein Ziel.',
+    'Der Kraft-Trend ist eine grobe Schätzung; unter ±5 % ist Tagesform.'
+  ],
   points: [
     `Zeitraum: die letzten ${WEEKS} abgeschlossenen Kalenderwochen (Mo–So). Die laufende Woche fehlt, damit eine halbe Woche den Schnitt nicht drückt – sie steht unter „Muskeln“.`,
     `Gezählt wird wie in der Muskelkarte: harte Sätze aus abgeschlossenen Trainings, direkt 1, indirekt ${String(INDIRECT_FACTOR).replace('.', ',')}. Diese Zählweise sagte in einer Meta-Regression (67 Studien) Muskelzuwachs und Kraft am besten vorher. Ø ist die Summe geteilt durch ${WEEKS}; Wochen ohne Training zählen als 0 und senken den Schnitt aller Muskeln gleich.`,
@@ -35,12 +42,10 @@ export const ANALYSIS_INFO = {
 };
 
 function openAnalysisInfo() {
-  openSheet(h('div', { class: 'info' },
-    h('ul', {}, ANALYSIS_INFO.points.map((t) => h('li', {}, t))),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, ANALYSIS_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(ANALYSIS_INFO.checkedAt).toLocaleDateString('de-DE')}. Zählweise und e1RM-Grenzen: Infoblätter „Muskeln“ und „Fortschritt“.`)
-  ), { title: 'So entsteht die 4-Wochen-Ansicht' });
+  openSheet(infoBody({
+    short: ANALYSIS_INFO.short, details: [h('ul', {}, ANALYSIS_INFO.points.map((t) => h('li', {}, t)))],
+    sources: ANALYSIS_INFO.sources, checked: ANALYSIS_INFO.checkedAt, glossary: openGlossary
+  }), { title: 'So entsteht die 4-Wochen-Ansicht' });
 }
 
 function trendCell(m) {
@@ -59,7 +64,7 @@ export function analysisPanel(rerender) {
 
   if (!a.sessions) {
     return [head, h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('progress', { size: 44 })), h('h2', {}, 'Noch keine abgeschlossene Woche'),
-      h('p', { class: 'muted' }, `Hier erscheinen deine Sätze pro Muskel aus den letzten ${WEEKS} abgeschlossenen Kalenderwochen.`))];
+      h('p', { class: 'muted' }, `Noch keine Trainings in den letzten ${WEEKS} abgeschlossenen Wochen.`))];
   }
 
   const rows = a.muscles.filter((m) => m.avg > 0).sort((x, y) => y.avg - x.avg || x.name.localeCompare(y.name, 'de'));
@@ -68,7 +73,7 @@ export function analysisPanel(rerender) {
     h('span', { class: 'a4h' }),
     a.weeks.map((w) => h('span', { class: 'a4h', title: `${fmtD(w.start)} – ${fmtD(w.end)}` }, `KW ${w.kw}`)),
     h('span', { class: 'a4h' }, 'Ø/Wo'),
-    h('span', { class: 'a4h' }, 'e1RM'),
+    h('span', { class: 'a4h' }, 'Kraft'),
     rows.flatMap((m) => [
       h('span', { class: 'a4n' }, m.name),
       ...m.weeks.map((v) => h('span', { class: `a4c lv${level(v)}` }, fmtSets(v))),
@@ -77,7 +82,7 @@ export function analysisPanel(rerender) {
     ]));
   const legend = h('div', { class: 'legend' }, LEVEL_LABELS.map((t, i) => h('span', {}, h('i', { class: `sw lv${i}` }), t)), h('span', {}, 'Sätze'));
   const table = h('div', { class: 'card a4-card' },
-    h('p', { class: 'sub' }, `Harte Sätze je Woche (direkt + ${String(INDIRECT_FACTOR).replace('.', ',')} × indirekt). e1RM = Kraft-Trend der Hauptübung, Schätzung; unter ±${NOISE_PCT} % ist Rauschen.`),
+    hintLine(`Sätze je Woche · Kraft = Trend der Hauptübung (Schätzung)`, openAnalysisInfo),
     grid,
     zero.length ? h('p', { class: 'muted small a4zero' }, `Nicht trainiert: ${zero.map((m) => m.name).join(', ')}`) : null);
 
@@ -91,7 +96,7 @@ export function analysisPanel(rerender) {
   if (a.hints.length) {
     hintCard = h('div', { class: 'card a4-hint' },
       h('h3', {}, 'Zuletzt wenig trainiert'),
-      h('p', { class: 'sub' }, `Im Vergleich zu deinen anderen Muskelgruppen (Ø unter ${String(LOW_SHARE * 100)} % deines Medians von ${fmtSets(a.median)} Sätzen/Woche). Kein Soll – nur eine Orientierung.`),
+      h('p', { class: 'sub' }, `Weniger als die Hälfte deines Medians (${fmtSets(a.median)} Sätze/Woche). Kein Soll.`),
       a.hints.map((m) => {
         const c = candidatesFor(m.id, exercises);
         const opts = [...c.own.map((e) => ({ name: e.name, arg: { exerciseId: e.id } })), ...c.pool.map((p) => ({ name: p.name, arg: { poolRef: p.ref }, pool: true }))].slice(0, 3);
@@ -101,7 +106,7 @@ export function analysisPanel(rerender) {
       }),
       h('small', { class: 'muted' }, activeSession() ? 'Antippen fügt die Übung dem laufenden Training hinzu.' : 'Antippen startet ein freies Training mit dieser Übung.'));
   } else if (!a.enough) {
-    hintCard = h('p', { class: 'muted small center' }, `Für einen Vergleich braucht es mindestens ${MIN_TRAINED} trainierte Muskelgruppen in diesem Zeitraum.`);
+    hintCard = h('p', { class: 'muted small center' }, `Vergleich ab ${MIN_TRAINED} trainierten Muskelgruppen.`);
   }
   return [head, table, legend, hintCard].filter(Boolean);
 }

@@ -2,6 +2,7 @@
 // Karten nach Monat, Detail als Sheet. Bearbeiten in einem eigenen Modus mit „Abbrechen | Fertig“:
 // Änderungen landen erst beim Tipp auf „Fertig“ im Speicher – anders als im laufenden Training,
 // damit ein versehentlicher Tipp beim Durchsehen nichts verändert.
+import { hintLine } from './info.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import * as H from './history.js';
@@ -39,10 +40,10 @@ export function diaryList(rerender) {
   const rows = H.diaryRows();
   if (!rows.length) {
     return h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('list', { size: 44 })), h('h2', {}, 'Noch keine Trainings'),
-      h('p', { class: 'muted' }, 'Abgeschlossene Trainings erscheinen hier. Du kannst sie ansehen und Tippfehler korrigieren.'),
+      h('p', { class: 'muted' }, 'Abgeschlossene Trainings erscheinen hier.'),
       backfillButton(rerender));
   }
-  const out = [h('p', { class: 'sub' }, 'Alle abgeschlossenen Trainings, neueste zuerst. Antippen zum Ansehen und Korrigieren.'), backfillButton(rerender)];
+  const out = [hintLine('Antippen zum Ansehen und Korrigieren.'), backfillButton(rerender)];
   let month = null;
   for (const r of rows) {
     const m = fmtMonth(r.session.startedAt);
@@ -50,7 +51,7 @@ export function diaryList(rerender) {
     const line = H.exerciseLine(r.exercises);
     out.push(h('button', { class: 'pcard diary-card', type: 'button', onclick: () => openDiaryEntry(r.session.id, rerender) },
       h('span', { class: 'pc-top' }, h('b', {}, r.name), h('span', { class: 'muted small' }, fmtLong(r.session.startedAt))),
-      h('small', {}, r.hardSets ? `${durText(r.durationMin)} · ${r.hardSets} ${r.hardSets === 1 ? 'Arbeitssatz' : 'Arbeitssätze'}` : durText(r.durationMin)), // ohne Arbeitssätze (nur Cardio) nur die Dauer
+      h('small', {}, r.hardSets ? `${durText(r.durationMin)} · ${r.hardSets} ${r.hardSets === 1 ? 'Satz' : 'Sätze'}` : durText(r.durationMin)), // ohne Arbeitssätze (nur Cardio) nur die Dauer
       line ? h('span', { class: 'ex' }, line) : null));
   }
   return out;
@@ -101,7 +102,7 @@ function readView(s) {
   return [
     h('div', { class: 'stats' },
       h('div', { class: 'stat' }, h('b', {}, durText(H.durationMin(s))), h('span', {}, 'Dauer')),
-      h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Arbeitssätze')),
+      h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Sätze')),
       h('div', { class: 'stat' }, h('b', {}, Math.round(sum.volume).toLocaleString('de-DE')), h('span', {}, 'Volumen kg'))),
     // v2.3.0: erledigte Routinen nur als Protokoll (zählen nicht mit).
     (s.routines || []).length ? h('p', { class: 'muted small' }, s.routines.map((r) => `${r.phase === 'cooldown' ? 'Cool-down' : 'Aufwärmen'}: ${r.name}${r.done < r.total ? ' (teilweise)' : ''}`).join(' · ')) : null,
@@ -156,7 +157,7 @@ export function openBackfill(rerender) {
   };
   a.addEventListener('input', upd); b.addEventListener('input', upd); upd(); drawPlans();
   const sheet = openSheet(h('div', { class: 'editor' },
-    h('p', { class: 'muted small' }, 'Für ein Training, das du nicht live eingetragen hast. Die Sätze sind mit den Werten vom letzten Mal vorbelegt (nur frühere Trainings) und zählen beim Speichern als gemacht – ändere oder lösche, was nicht stimmt.'),
+    h('p', { class: 'muted small' }, 'Werte vom letzten Mal sind vorbelegt und zählen beim Speichern als gemacht – ändere, was nicht stimmt.'),
     h('div', { class: 'field' }, h('label', {}, 'Beginn'), a),
     h('div', { class: 'field' }, h('label', {}, 'Ende'), b),
     info,
@@ -266,7 +267,7 @@ export function openDiaryEntry(id, rerender, opts = {}) {
       h('button', { class: 'card time-line', type: 'button', 'aria-label': 'Beginn und Ende ändern', onclick: () => openTimeSheet(d, draw) },
         h('span', { class: 't' }, h('b', {}, `${fmtLong(d.startedAt)} · ${fmtClock(d.startedAt)}–${fmtClock(d.endedAt)}`), h('small', {}, durText(H.durationMin(d)))),
         icon('edit', { size: 18 })),
-      h('p', { class: 'muted small' }, 'Tipp auf die Zeit: Beginn und Ende ändern. Tipp auf die Satznummer: Satztyp und Markierungen.'),
+      h('p', { class: 'muted small' }, 'Zeit oder Satznummer antippen zum Ändern.'),
       d.entries.map((en) => {
         const ex = byId[en.exerciseId];
         const kind = ex?.kind || 'strength';

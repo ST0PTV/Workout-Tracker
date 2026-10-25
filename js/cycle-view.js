@@ -1,6 +1,7 @@
 // Zyklus (v2.24.0, Variante C, Nutzerwahl): Einstellungen, eine kleine Zeile auf dem Trainings-Start, Details im Sheet.
 // Beschwerden statt Phasen: keine Trainingsempfehlung nach Zyklusphase, kein Eisprung-Datum, keine Diagnosen,
 // keine Verletzungs- oder Kalorienaussagen. Der „leichte Tag“ ist jederzeit frei wählbar und kommt nie automatisch.
+import { infoBody } from './info.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import { openSheet } from './sheet.js';
@@ -17,6 +18,11 @@ const save = (c) => { if (!store.set('cycle', c)) { toast('Speichern fehlgeschla
 
 export const CYCLE_INFO = {
   checkedAt: '2026-10-22',
+  short: [
+    'Freiwillig, nur auf diesem Gerät. Kein Verhütungs- oder Fruchtbarkeitsmittel.',
+    'Keine Trainingsregeln je Phase – Studien zeigen dafür keinen Vorteil.',
+    'Die nächste Periode ist nur ein grobes Zeitfenster; Arzt-Hinweise sind keine Diagnose.'
+  ],
   points: [
     'Die Funktion ist freiwillig und speichert alles nur auf diesem Gerät (auch im Backup). Sie ersetzt keine ärztliche Beratung und ist kein Verhütungs- oder Fruchtbarkeitsmittel.',
     'Warum keine Trainingstipps je Phase: In einer randomisierten Studie mit hormonell bestätigten Phasen (24 Frauen, 3 Zyklen) brachte Training mit Schwerpunkt in der ersten oder zweiten Zyklushälfte keinen Vorteil für Muskelaufbau oder Kraft gegenüber gleichmäßigem Training; entscheidend war das Trainingsvolumen. Eine Übersicht über mehrere Meta-Analysen kam zum selben Schluss.',
@@ -38,12 +44,11 @@ export const CYCLE_INFO = {
 };
 
 function openCycleInfo() {
-  openSheet(h('div', { class: 'info' },
-    h('ul', {}, CYCLE_INFO.points.map((t) => h('li', {}, t))),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, CYCLE_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(CYCLE_INFO.checkedAt).toLocaleDateString('de-DE')}.`)
-  ), { title: 'Zyklus: so funktioniert es' });
+  openSheet(infoBody({
+    short: CYCLE_INFO.short, details: [h('ul', {}, CYCLE_INFO.points.map((t) => h('li', {}, t))),
+      h('p', { class: 'muted small' }, 'Den ersten Periodentag trägst du im Training-Tab über die Zeile „Zyklus“ ein. Ausschalten behält deine Einträge; löschen kannst du sie dort einzeln.')],
+    sources: CYCLE_INFO.sources, checked: CYCLE_INFO.checkedAt
+  }), { title: 'Zyklus: so funktioniert es' });
 }
 
 function statusText(st) {
@@ -87,7 +92,7 @@ export function openCycleSheet(rerender) {
       nextLine ? h('p', { class: 'muted small' }, nextLine) : null,
       h('h3', {}, 'Wie fühlst du dich heute?'),
       h('div', { class: 'chips wrap' }, Object.entries(C.SYMPTOMS).map(([k, label]) => h('button', { type: 'button', class: `chip${tags.includes(k) ? ' on' : ''}`, 'aria-pressed': String(tags.includes(k)), onclick: () => update(C.toggleSymptom(c, k, today)) }, label))),
-      h('p', { class: 'muted small' }, 'Phase und Muskelaufbau: In gut kontrollierten Studien kein klarer Zusammenhang. Entscheidend sind Regelmäßigkeit und Trainingsvolumen – und wie du dich fühlst.'),
+      h('p', { class: 'muted small' }, 'Trainiere so, wie du dich fühlst – die Phase allein ändert nichts am Aufbau.'),
       flags.length ? h('div', { class: 'card cyc-flag', role: 'note' }, h('b', {}, 'Hinweis'), flags.map((f) => h('p', { class: 'small' }, C.RED_FLAG_TEXT[f]))) : null,
       h('button', { class: 'btn block', type: 'button', onclick: () => {
         const r = TEMPLATES.find((t) => t.id === LIGHT_ROUTINE);
@@ -103,7 +108,7 @@ export function openCycleSheet(rerender) {
         h('div', { class: 'card list' }, recent.map((p) => h('div', { class: 'row' },
           h('span', { class: 't' }, `${fmt(p.start)}${p.end ? ` – ${fmt(p.end)}` : ''}`),
           h('button', { class: 'link small', type: 'button', 'aria-label': `Eintrag ${fmt(p.start)} löschen`, onclick: () => update(C.removePeriod(c, p.start)) }, 'Löschen'))))) : null,
-      st.checkDue ? h('div', { class: 'card' }, h('p', { class: 'small' }, `Passen deine Angaben noch? Zykluslänge ca. ${c.avgLength} Tage, Blutung ca. ${c.bleedDays} Tage, ${C.CONTRACEPTION[c.contraception]}. Ändern unter Einstellungen → Zyklus.`),
+      st.checkDue ? h('div', { class: 'card' }, h('p', { class: 'small' }, `Angaben noch aktuell? ${c.avgLength} Tage Zyklus, ${c.bleedDays} Tage Blutung, ${C.CONTRACEPTION[c.contraception]}.`),
         h('button', { class: 'btn block', type: 'button', onclick: () => update({ ...c, checkedAt: today }) }, 'Passt')) : null,
       h('button', { class: 'link small center-btn', type: 'button', onclick: openCycleInfo }, 'So funktioniert es · Quellen'));
   };
@@ -124,7 +129,6 @@ export function cycleSettingsCard(rerender) {
   return h('div', { class: 'card' },
     h('div', { class: 'title-row' }, h('h2', {}, 'Zyklus (optional)'),
       h('button', { class: 'info-btn', type: 'button', 'aria-label': 'Zyklus: so funktioniert es', onclick: openCycleInfo }, icon('info', { size: 18 }))),
-    h('p', { class: 'muted small' }, 'Periodentage und Beschwerden eintragen, grobe Schätzung der nächsten Periode. Keine Trainingsregeln nach Zyklusphase. Alles bleibt auf diesem Gerät.'),
     h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Zyklus' },
       [[false, 'Aus'], [true, 'Ein']].map(([v, label]) => h('button', { type: 'button', role: 'radio', class: c.enabled === v ? 'on' : '', 'aria-checked': String(c.enabled === v), onclick: () => { if (c.enabled !== v) set({ enabled: v, checkedAt: v ? C.dayKey() : c.checkedAt }); } }, label))),
     c.enabled ? h('div', { class: 'cyc-fields' },
@@ -133,5 +137,5 @@ export function cycleSettingsCard(rerender) {
       h('div', { class: 'field' }, h('label', { for: 'cyc-contra' }, 'Verhütung'),
         h('select', { id: 'cyc-contra', class: 'input', onchange: (e) => set({ contraception: e.target.value }) },
           Object.entries(C.CONTRACEPTION).map(([k, label]) => h('option', { value: k, selected: c.contraception === k }, label)))),
-      h('p', { class: 'muted small' }, 'Den ersten Periodentag trägst du im Training-Tab über die Zeile „Zyklus“ ein. Ausschalten behält deine Einträge; löschen kannst du sie dort einzeln.')) : null);
+      h('p', { class: 'muted small' }, 'Periodentage trägst du im Training-Tab ein.')) : null);
 }

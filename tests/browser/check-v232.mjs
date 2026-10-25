@@ -1,6 +1,6 @@
 // v2.32.0: Browser-Prüfung – Training nachtragen (Dialog, Editor, Speichern, Abbrechen, Einstiege).
 // Nur erfundene Testdaten. Aufruf: node tests/browser/check-v232.mjs   (Screenshots in WT_OUT/v232)
-import { launch, startServer, checker, outDir, BAD_TEXT } from './lib.mjs';
+import { launch, startServer, checker, outDir, BAD_TEXT, moreAction } from './lib.mjs';
 import { join } from 'node:path';
 
 const srv = await startServer();
@@ -32,9 +32,9 @@ await p.evaluate(async () => {
 await p.reload(); await p.waitForTimeout(500);
 
 // Einstieg auf dem Training-Tab
-ok(await p.locator('button', { hasText: 'Training nachtragen' }).count() === 1, 'N: Taste auf dem Training-Tab');
 await shot('1-start-tab');
-await p.locator('button', { hasText: 'Training nachtragen' }).click(); await p.waitForTimeout(400);
+await moreAction(p, 'Training nachtragen'); await p.waitForTimeout(100); // ab 2.34.0 im ⋯-Menü
+ok(await p.locator('.sheet').count() >= 1, 'N: Einstieg über das ⋯-Menü des Training-Tabs');
 let t = await sheetText();
 ok(t.toLowerCase().includes('beginn') && t.toLowerCase().includes('ende') && t.includes('Dauer 1 h 00 min'), 'N: Dialog mit Beginn, Ende, Dauer 1 h');
 ok(t.includes('Freies Training') && t.includes('Testplan'), 'N: Plan-Auswahl');
@@ -93,7 +93,7 @@ await shot('5-after-save');
 
 // Vorbelegung: zweiter Nachtrag nach dem ersten übernimmt die Werte vom letzten Mal (nur frühere Trainings)
 await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
-await p.locator('button', { hasText: 'Training nachtragen' }).click(); await p.waitForTimeout(400);
+await moreAction(p, 'Training nachtragen');
 const e2 = new Date(); e2.setHours(e2.getHours() - 1, 0, 0, 0);
 await p.locator('.sheet input[aria-label="Beginn"]').fill(local(new Date(e2.getTime() - 3600000)));
 await p.locator('.sheet input[aria-label="Ende"]').fill(local(e2));

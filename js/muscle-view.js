@@ -1,6 +1,8 @@
 // Fortschritt → Muskeln (v1.4, Variante C): eine große Figur mit „Vorne | Hinten“, eingefärbt nach harten Sätzen
 // dieser Woche (Mo–So), darunter die meistbelasteten Muskeln; „Alle Muskeln“ klappt die ganze Liste auf.
 // Reine Zählung ohne Zielwerte oder Bewertung (Projektregel). Zählweise und Quellen im Info-Sheet.
+import { infoBody } from './info.js';
+import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import { MUSCLES } from './model.js';
@@ -17,6 +19,11 @@ const fmtD = (d) => d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-di
 
 export const WEEK_INFO = {
   checkedAt: '2026-10-13',
+  short: [
+    'Zahl rechts = Sätze dieser Woche: direkt 1, indirekt (mitbeteiligt) 0,5.',
+    'Nur harte Sätze aus abgeschlossenen Trainings; Aufwärmen und Cardio zählen nicht.',
+    'Farben sind Darstellungsstufen, keine Ziele.'
+  ],
   points: [
     'So liest du die Liste: Die Zahl rechts ist die Summe. Der volle Teil des Balkens sind direkte Sätze, der gestreifte Teil indirekte Sätze, die nur halb zählen. Beispiel: 6 direkte und 11 indirekte Sätze ergeben 6 + 5,5 = 11,5. Der Balken ist am höchsten Wert der Woche ausgerichtet und kein Ziel.',
     'Gezählt werden harte Sätze aus abgeschlossenen Trainings: Arbeits-, Drop- und Rest-Pause-Sätze (je 1). Aufwärmsätze und Cardio zählen nicht.',
@@ -32,12 +39,10 @@ export const WEEK_INFO = {
 };
 
 function openWeekInfo() {
-  openSheet(h('div', { class: 'info' },
-    h('ul', {}, WEEK_INFO.points.map((t) => h('li', {}, t))),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, WEEK_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(WEEK_INFO.checkedAt).toLocaleDateString('de-DE')}.`)
-  ), { title: 'So werden Sätze gezählt' });
+  openSheet(infoBody({
+    short: WEEK_INFO.short, details: [h('ul', {}, WEEK_INFO.points.map((t) => h('li', {}, t)))],
+    sources: WEEK_INFO.sources, checked: WEEK_INFO.checkedAt, glossary: openGlossary
+  }), { title: 'So werden Sätze gezählt' });
 }
 
 function bar(row, max) {

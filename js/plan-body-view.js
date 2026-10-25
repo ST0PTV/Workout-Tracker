@@ -19,14 +19,14 @@ function flat(muscles, sex, width) {
 const names = (list) => list.map((m) => MUSCLES[m]).filter(Boolean).sort((a, b) => a.localeCompare(b, 'de')).join(', ');
 
 // Figur für die Plankarte oder null (Plan ohne gezählte Muskeln, z. B. nur Cardio).
-export function planFigure(plan, exercisesById, sex = 'male') {
+export function planFigure(plan, exercisesById, sex = 'male', width = 58) {
   const muscles = planMuscles(plan, exercisesById);
   if (!muscles.primary.length && !muscles.secondary.length) return null;
   const label = `Muskeln von ${plan.name}: ${names(muscles.primary)}`;
   const open = () => openPlanBody(plan, muscles, sex);
-  const v = createBodyView({ muscles, sex, width: 58, yaw: START_YAW, label, onTap: open });
-  const el = v ? v.el : flat(muscles, sex, 52);
-  return h('button', { class: 'plan-fig', type: 'button', 'aria-label': `${plan.name}: Muskeln ansehen`, onclick: v ? null : open }, el);
+  const v = createBodyView({ muscles, sex, width, yaw: START_YAW, label, onTap: open });
+  const el = v ? v.el : flat(muscles, sex, Math.round(width * 0.9));
+  return h('button', { class: `plan-fig${width < 50 ? ' small' : ''}`, type: 'button', 'aria-label': `${plan.name}: Muskeln ansehen`, onclick: v ? null : open }, el);
 }
 
 // Große Ansicht: drehbar, mit festen Ansichten und Legende.
@@ -43,6 +43,6 @@ export function openPlanBody(plan, muscles, sex = 'male') {
       h('span', {}, h('i', { class: 'sw sec' }), 'Mitbeteiligt')),
     muscles.primary.length ? h('p', {}, h('b', {}, 'Hauptmuskeln: '), names(muscles.primary)) : null,
     muscles.secondary.length ? h('p', {}, h('b', {}, 'Mitbeteiligt: '), names(muscles.secondary)) : null,
-    h('p', { class: 'muted small' }, 'Zusammengefasst aus allen Übungen des Plans, gleiche Zuordnung wie die Muskelkarte. Die Figur ist stilisiert, keine anatomische Abbildung.')),
+    h('p', { class: 'muted small' }, 'Aus allen Übungen des Plans. Stilisierte Figur.')),
   { title: plan.name });
 }

@@ -76,3 +76,17 @@ export function checker() {
 }
 
 export const BAD_TEXT = /\bnull\b|undefined|NaN/;
+
+// v2.34.0 (Startseite A): Plan starten – große Karte („Starten“) oder kompakte Zeile (runde Start-Taste).
+export async function startPlan(p, name = null) {
+  const big = name ? p.locator('.start-card', { hasText: name }).locator('button', { hasText: 'Starten' }) : p.locator('.start-card button', { hasText: 'Starten' });
+  if (await big.count()) { await big.first().click(); return; }
+  const row = name ? p.locator('.start-row', { hasText: name }).locator('button.play') : p.locator('.start-row button.play');
+  await row.first().click();
+}
+
+// v2.34.0: Nebenaktion aus dem ⋯-Menü des Training-Tabs (z. B. „Training nachtragen“).
+export async function moreAction(p, label) {
+  await p.locator('button.dots').click(); await p.waitForTimeout(300);
+  await p.locator('.sheet button.row', { hasText: label }).first().click(); await p.waitForTimeout(300);
+}

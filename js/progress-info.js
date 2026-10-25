@@ -1,10 +1,16 @@
 // Fortschritt: Erklärung und Evidenz (Recherche 2026-10-13, Details in Drive → Research & Sources, Abschnitt 3; e1RM-Nachrecherche 2026-10-14).
 export const PROGRESS_CHECKED_AT = '2026-10-14';
 
-export const E1RM_LABEL = 'e1RM (Schätzung)';
-export const E1RM_EXPLAIN = 'Rechnerisch geschätztes Maximalgewicht für eine Wiederholung (Epley-Formel, nur Arbeitssätze mit höchstens 10 Wiederholungen) – kein gemessener Wert. In Studien liegt die Abweichung beim Bankdrücken meist im Bereich von ±5 %, bei Beinübungen wie Beinpresse oder Kniebeuge oft darüber. Endete der Satz vor dem Muskelversagen, fällt die Schätzung zu niedrig aus – auch Sätze, die sich wie „bis zum Versagen“ anfühlen, enden oft noch 1–2 Wiederholungen davor. Schwankungen unter ca. 5 % sind normales Tagesrauschen.';
+export const E1RM_LABEL = 'Max-Kraft (Schätzung)'; // v2.34.0 (Vorschlag 7): statt „e1RM“ in Beschriftungen
+export const E1RM_EXPLAIN = 'Auch e1RM genannt. Rechnerisch geschätztes Maximalgewicht für eine Wiederholung (Epley-Formel, nur Arbeitssätze mit höchstens 10 Wiederholungen) – kein gemessener Wert. In Studien liegt die Abweichung beim Bankdrücken meist im Bereich von ±5 %, bei Beinübungen wie Beinpresse oder Kniebeuge oft darüber. Endete der Satz vor dem Muskelversagen, fällt die Schätzung zu niedrig aus – auch Sätze, die sich wie „bis zum Versagen“ anfühlen, enden oft noch 1–2 Wiederholungen davor. Schwankungen unter ca. 5 % sind normales Tagesrauschen.';
 
 export const PROGRESS_INFO = {
+  // v2.34.0: Kurzfassung (Ebene 2); die Punkte unten bleiben als Details.
+  short: [
+    'Max-Kraft (Schätzung): geschätztes Gewicht für 1 Wiederholung – kein Messwert.',
+    'Berechnet aus deinem besten Satz mit 1–10 Wiederholungen.',
+    'Pfeil ↑ ↓ = Trend; → heißt unter ±5 %, also Tagesform. Verlässlicher ist der gemessene beste Satz.'
+  ],
   summary: [
     'Gemessen: der beste Satz (Gewicht × Wiederholungen) – das ist der verlässlichste Wert.',
     'Geschätzt: e1RM nach Epley, Gewicht × (1 + Wdh./30), aus dem besten Arbeitssatz mit 1–10 Wiederholungen. Über 10 Wiederholungen weichen die Formeln stark ab, deshalb gibt es dann keinen Schätzwert.',

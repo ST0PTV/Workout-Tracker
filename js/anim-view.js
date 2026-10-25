@@ -238,7 +238,7 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
     h('div', { class: 'anim-top' }, badge, seg),
     stage,
     list,
-    h('p', { class: 'muted small' }, 'Gruppenmittel aus kleinen Studien, Seitenansicht vereinfacht – eine Orientierung, keine Vorgabe für die eigene Technik.'));
+    h('p', { class: 'muted small' }, 'Mittelwerte aus kleinen Studien – Orientierung, keine Vorgabe.'));
   setViewBox();
   draw(0);
   if (st.playing) { st.playing = false; play(); } else pause();
@@ -277,6 +277,8 @@ export function openDataSheet(anim, frames, pool) {
   openSheet(h('div', { class: 'info' },
     h('p', {}, h('span', { class: `anim-badge ${anim.basis}` }, basis.label), ' ', basis.text),
     h('p', {}, anim.basisNote),
+    // v2.34.0: Winkel, Tempo und Quellen eingeklappt (Ebene 3)
+    h('details', { class: 'more' }, h('summary', {}, 'Werte, Tempo und Quellen', icon('down', { size: 16, cls: 'inline' })),
     h('h3', {}, 'Werte je Position'),
     ...frameBlocks,
     h('p', { class: 'muted small' }, anim.view === 'back' ? 'Rückansicht: Schulter seitlich 0° = Arm hängt, 90° = waagerecht; Ellbogen als Beugung ab gestreckt. Was vor dem Körper liegt (Stange, Hände), verdecken Kopf und Rücken; Arme, die aus der Bildebene zeigen, sind verkürzt dargestellt.' : anim.view === 'front' ? 'Frontansicht: Schulter seitlich 0° = Arm hängt, 90° = waagerecht; Ellbogen als Beugung ab gestreckt. Arme und Beine, die aus der Bildebene zeigen, sind verkürzt dargestellt; Beugungen in der Sagittalebene (z. B. angewinkelte Beine) erscheinen nur als Verkürzung.' : 'Winkel: Knie, Hüfte und Ellbogen als Beugung ab gestreckt (0°); Rumpf- und Schienbeinneigung aus der Senkrechten; Schulter 0° = Arm hängt. Arme außerhalb der Bildebene sind in der Seitenansicht verkürzt dargestellt.'),
@@ -285,7 +287,7 @@ export function openDataSheet(anim, frames, pool) {
     hidden.length ? h('p', { class: 'muted small' }, `Nicht als Fläche sichtbar (${anim.view === 'back' ? 'Rückansicht' : anim.view === 'front' ? 'Frontansicht' : 'Seitenansicht'}): ${hidden.map((m) => MUSCLES[m]).join(', ')}.`) : null,
     h('h3', {}, 'Quellen'),
     h('ul', { class: 'small' }, Object.entries(anim.sources).map(([id, s]) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), ` – ${READ[s.read] || s.read}`, s.note ? h('small', { class: 'muted' }, ` · ${s.note}`) : null))),
-    h('p', { class: 'muted small' }, `Recherche vom ${fmtDate(anim.checkedAt || ANIM_CHECKED_AT)}. Werte mit „automatische Seitenzusammenfassung“ sind noch nicht am PDF geprüft.`)
+    h('p', { class: 'muted small' }, `Recherche vom ${fmtDate(anim.checkedAt || ANIM_CHECKED_AT)}. Werte mit „automatische Seitenzusammenfassung“ sind noch nicht am PDF geprüft.`))
   ), { title: 'Datenbasis der Animation', full: true });
 }
 
@@ -294,9 +296,9 @@ export function openKeyPointSheet(anim, i, pool) {
   openSheet(h('div', { class: 'info' },
     h('p', {}, h('span', { class: `anim-status ${kp.status}` }, STATUS[kp.status]), kp.status === 'contested' ? h('span', { class: 'muted small' }, ' – es gibt Belege für mehr als eine Ausführung') : null),
     h('p', {}, kp.explain),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'small' }, kp.src.map((id) => { const s = anim.sources[id]; return s ? h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), ` – ${READ[s.read] || s.read}`) : h('li', {}, id); })),
-    h('p', { class: 'muted small' }, 'Kein Versprechen zur Verletzungsvorbeugung: dazu gibt es für diese Punkte keine Verlaufsdaten.')
+    h('details', { class: 'more' }, h('summary', {}, 'Quellen', icon('down', { size: 16, cls: 'inline' })),
+      h('ul', { class: 'small' }, kp.src.map((id) => { const s = anim.sources[id]; return s ? h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), ` – ${READ[s.read] || s.read}`) : h('li', {}, id); })),
+      h('p', { class: 'muted small' }, 'Kein Versprechen zur Verletzungsvorbeugung: dazu gibt es für diese Punkte keine Verlaufsdaten.'))
   ), { title: `${i + 1}. ${kp.text}` });
 }
 

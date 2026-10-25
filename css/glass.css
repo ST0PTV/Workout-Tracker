@@ -277,6 +277,7 @@ body.sheet-open { overflow: hidden; }
 .ctl-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-left: 2px; }
 .addline { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; margin-top: 6px; cursor: pointer;
   border-radius: 16px; border: 1px dashed rgba(110, 231, 216, 0.55); background: transparent; color: var(--accent); font-weight: 600; font-size: 15px; }
+.addline + .slot { margin-top: 12px; } /* v2.33.1: gleicher Abstand unter „Übungen hinzufügen“ wie darüber (Rand der Aufwärm-Karte 12 px) */
 .center { text-align: center; }
 .accent { color: var(--accent) !important; }
 .row.pick.on { background: rgba(110, 231, 216, 0.08); }
@@ -790,3 +791,60 @@ body { overflow-wrap: anywhere; }
 .pb-legend { justify-content: center; margin-bottom: 8px; }
 .legend .sw.prim { background: var(--accent); }
 .legend .sw.sec { background: #4669c8; }
+
+/* v2.34.0: Warnhinweise im Info-Sheet (Variante B) */
+.warn-box { border-radius: 14px; background: rgba(255, 207, 122, 0.10); border: 1px solid rgba(255, 207, 122, 0.35); padding: 10px 12px 2px; margin: 8px 0 14px; }
+.warn-box .wb-title { display: flex; gap: 8px; align-items: center; color: var(--warn); margin-bottom: 6px; font-size: 15px; }
+.warn-box .warn-list { margin: 0 0 6px; padding-left: 20px; line-height: 1.45; }
+.warn-box .warn-list li { margin-bottom: 8px; }
+.wtag { display: inline-block; font-size: 11px; padding: 1px 7px; margin-right: 4px; border-radius: 999px; border: 1px solid rgba(255, 207, 122, 0.45); color: var(--warn); vertical-align: 1px; white-space: nowrap; }
+.src-num { color: var(--warn); }
+.sources a:has(.src-num) { display: inline; } /* v2.34.0: lange nummerierte Quelle bricht im Fließtext um */
+
+/* v2.34.0: Texte in drei Ebenen – Kurz, eingeklappte Details, Glossar, Hinweiszeile */
+.info .kurz { margin: 0 0 6px; padding-left: 20px; line-height: 1.45; font-size: 15px; }
+.info .kurz li { margin-bottom: 6px; }
+details.more { margin-top: 10px; border-top: 1px solid var(--glass-border); }
+details.more > summary { list-style: none; display: flex; align-items: center; gap: 6px; min-height: 44px; color: var(--accent); font-weight: 600; cursor: pointer; }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more[open] > summary .icon { transform: rotate(180deg); }
+details.more > :not(summary) { font-size: 14px; }
+.glossary-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 4px; }
+.glossary dt { font-weight: 700; margin-top: 12px; }
+.glossary dd { margin: 2px 0 0; color: var(--muted); line-height: 1.45; }
+.hint-line { margin: 6px 0 10px; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
+.hint-line .link { padding: 0 0 0 6px; min-height: 0; font-size: 13.5px; }
+.hint-line.warm { color: var(--warn); }
+.card-head { margin-bottom: 8px; }
+.card-head h2 { margin: 0; }
+
+/* v2.34.0: Startseite A – Kopf mit ⋯, kompakte Planzeilen mit ▶ */
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.page-head h1 { margin: 4px 0; }
+.dots { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--chip-bg); color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; }
+.start-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: default; }
+.start-row .t { flex: 1; min-width: 0; }
+.start-row .t b { font-size: 17px; }
+.start-row.today { border-color: rgba(110, 231, 216, 0.6); }
+.plan-fig.small { width: 38px; min-height: 0; margin: 0; flex: none; }
+.plan-fig.small.empty { height: 40px; }
+.today-tag.inline { display: inline; margin-left: 8px; }
+.play { flex: none; width: 52px; height: 52px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #0b1020; }
+.play:disabled { opacity: 0.4; cursor: default; }
+.play .icon { margin-left: 3px; }
+.trend.arrow { min-width: 32px; font-size: 20px; font-weight: 700; color: var(--accent); }
+.trend.arrow.down { color: var(--warn); }
+.trend.arrow.noise { color: var(--muted); font-size: 20px; }
+
+/* v2.34.0: Einführung und Willkommenskarte */
+.onboarding { text-align: center; padding: 4px 4px 8px; }
+.onboarding .ob-icon { display: grid; place-items: center; width: 84px; height: 84px; margin: 6px auto 10px; border-radius: 50%; background: var(--chip-bg); color: var(--accent); }
+.onboarding h2 { margin: 6px 0; }
+.onboarding p { color: var(--muted); line-height: 1.45; margin: 0 0 14px; }
+.ob-dots { display: flex; justify-content: center; gap: 8px; margin: 4px 0 16px; }
+.ob-dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--glass-border); }
+.ob-dots i.on { background: var(--accent); }
+.onboarding .btn + .btn { margin-top: 8px; }
+.welcome b { font-size: 17px; }
+.welcome p { margin: 4px 0 10px; }

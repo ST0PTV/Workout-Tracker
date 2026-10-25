@@ -220,6 +220,29 @@ export function fmtBreak(days) {
 }
 
 export const PROGRESSION_INFO = {
+  // v2.34.0: Kurzfassung je Abschnitt (Ebene 2)
+  short: {
+    rating: [
+      'Leicht (4+ Wdh. übrig) → nächstes Mal ein Gewichtsschritt mehr.',
+      'Passend (1–3) → erst eine Wiederholung mehr, nach zweimal mehr Gewicht.',
+      'Schwer (keine) → Gewicht halten. Bis zum Versagen musst du nicht.'
+    ],
+    range: [
+      'Alle Sätze am oberen Ende → mehr Gewicht, Wiederholungen zurück ans untere Ende.',
+      'Sonst je Satz eine Wiederholung mehr.',
+      '„Schwer“ bremst: Dann bleibt alles gleich.'
+    ],
+    light: [
+      'Eine Woche mit weniger Sätzen und Gewicht.',
+      'Vorschlag: Sätze halbieren, etwa 10 % weniger Gewicht (Schätzung).',
+      'Danach geht es mit den Werten von vorher weiter.'
+    ],
+    pause: [
+      'Bis etwa 3 Wochen Pause bleibt die Kraft meist fast gleich.',
+      'Danach schlägt die App etwas weniger Gewicht vor (Schätzung).',
+      'Nach Krankheit oder Verletzung: so starten, wie es sich gut anfühlt.'
+    ]
+  },
   rating: [
     'Nach der Übung schätzt du ein, wie viele Wiederholungen beim letzten Arbeitssatz noch gegangen wären. Leicht: 4 oder mehr · Passend: 1–3 · Schwer: keine mehr.',
     'Die Einschätzung ist eine Schätzung. Im Mittel liegt man etwa eine Wiederholung daneben, bei hohen Wiederholungszahlen und weit weg vom Versagen deutlich mehr.',

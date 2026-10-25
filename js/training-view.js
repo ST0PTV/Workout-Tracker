@@ -1,6 +1,9 @@
 // Training-Tab (Kombination A + B): eine Übung pro Seite mit Satztabelle und Pausen-Leiste (A),
 // Übersicht aller Übungen als Sheet zum Springen, Umsortieren, Hinzufügen und Entfernen (B).
 // Pausen-Timer ohne Ton, Alarm oder Vibration – das Ende wird nur angezeigt.
+import { infoBody, hintLine, hintsOn } from './info.js';
+import { openGlossary, TERMS } from './glossary.js';
+import { welcomeCard } from './onboarding.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import * as S from './session.js';
@@ -153,13 +156,12 @@ function undoToast(message, restore, after) {
 // ---------- Hilfs-Sheets ----------
 
 function openWarmupInfo() {
-  openSheet(h('div', { class: 'info' },
-    h('ul', {}, WARMUP_INFO.summary.map((t) => h('li', {}, t))),
-    h('p', { class: 'muted small' }, WARMUP_INFO.rule),
-    h('h3', {}, 'Quellen'),
-    h('ul', { class: 'sources' }, WARMUP_INFO.sources.map((s) => h('li', {}, h('a', { href: s.url, target: '_blank', rel: 'noopener' }, s.label), h('span', { class: 'muted' }, ` – ${s.note}`)))),
-    h('p', { class: 'muted small' }, `Geprüft am ${new Date(WARMUP_CHECKED_AT).toLocaleDateString('de-DE')}. Keine medizinische Beratung.`)
-  ), { title: 'Aufwärmsätze' });
+  openSheet(infoBody({
+    short: WARMUP_INFO.short,
+    details: [h('ul', {}, WARMUP_INFO.summary.map((t) => h('li', {}, t))), h('p', { class: 'muted small' }, WARMUP_INFO.rule),
+      h('p', { class: 'muted small' }, 'Keine medizinische Beratung.')],
+    sources: WARMUP_INFO.sources, checked: WARMUP_CHECKED_AT, glossary: openGlossary
+  }), { title: 'Aufwärmsätze' });
 }
 
 function openNoteEditor(exercise, rerender) {
@@ -219,7 +221,7 @@ function openOverview(rerender) {
             undoToast(`${d.exercise?.name || 'Übung'} entfernt.`, () => S.restoreEntry(res.removed), () => { draw(); rerender(); });
           } }, icon('trash')))))),
       h('button', { class: 'addline', type: 'button', onclick: () => openAddExercise(rerender, () => { const s = S.activeSession(); ui.current = s.entries.length - 1; draw(); }) }, icon('plus', { size: 18 }), 'Übung hinzufügen'),
-      h('p', { class: 'muted small center' }, `${v.summary.hardSets} Arbeitssätze erledigt`),
+      h('p', { class: 'muted small center' }, `${v.summary.hardSets} Sätze erledigt`),
       h('button', { class: 'btn primary block', type: 'button', onclick: () => { sheet.close(); rateThen(v.entries[ui.current] || null, () => finishFlow(rerender)); } }, 'Training beenden'),
       h('button', { class: 'btn block subtle danger-text', type: 'button', onclick: () => {
         if (!confirm('Training verwerfen? Alle Einträge dieses Trainings gehen verloren.')) return;
@@ -258,9 +260,9 @@ function finishFlow(rerender) {
   summarySheet = openSheet(h('div', { class: 'info' },
     h('div', { class: 'stats' },
       h('div', { class: 'stat' }, h('b', {}, dur), h('span', {}, 'Dauer')),
-      h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Arbeitssätze')),
+      h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Sätze')),
       h('div', { class: 'stat' }, h('b', {}, `${Math.round(sum.volume).toLocaleString('de-DE')}`), h('span', {}, 'Volumen kg'))),
-    h('p', { class: 'muted small' }, 'Volumen = Gewicht × Wiederholungen der Arbeitssätze (ohne Aufwärmsätze, ohne Körpergewichtsübungen). Die Werte sind die Vorbelegung fürs nächste Training.'),
+    h('p', { class: 'muted small' }, 'Volumen = Gewicht × Wiederholungen, ohne Aufwärmsätze.'),
     sync,
     cooldownOffer(r.session, () => summarySheet?.close())
   ), { title: 'Training gespeichert' });
@@ -286,7 +288,7 @@ function planSyncCard(session, rerender) {
     } }, chosen.size ? `${chosen.size} in den Plan übernehmen` : 'Auswählen, was in den Plan soll');
     box.replaceChildren(
       h('div', { class: 'sec' }, `Plan „${plan.name}“ anpassen?`),
-      h('p', { class: 'muted small' }, 'Heute lief es anders als im Plan. Nichts ist vorausgewählt – was du nicht antippst, bleibt im Plan, wie es ist. Gewichte stehen nicht im Plan, sie kommen wie immer vom letzten Training.'),
+      h('p', { class: 'muted small' }, 'Heute lief es anders als im Plan. Was du antippst, kommt in den Plan.'),
       h('div', { class: 'card list' }, changes.map((c) => {
         const on = chosen.has(c.id);
         return h('button', { class: `row pick${on ? ' on' : ''}`, type: 'button', 'aria-pressed': String(on), onclick: () => {
@@ -333,7 +335,7 @@ function lightWeekCard(active, rerender) {
   if (active) {
     return h('div', { class: 'card hint-box light-week' },
       h('div', { class: 'sug-top' }, h('b', {}, 'Leichte Woche bis Sonntag'), info),
-      h('p', { class: 'small' }, 'Beim Start schlägt die App weniger Sätze und Gewicht vor. Diese Trainings sind kein Ausgangspunkt für Vorbelegung und Vorschläge.'),
+      h('p', { class: 'small' }, 'Weniger Sätze und Gewicht beim Start.'),
       h('button', { class: 'btn block', type: 'button', onclick: () => setWeek(null) }, 'Leichte Woche beenden'));
   }
   return h('div', { class: 'light-line' },
@@ -532,13 +534,8 @@ function exercisePage(v, d, rerender) {
   // v2.26.0 (A4): Startwert = nächster offener Satz (Eintrag oder Platzhalter), sonst der letzte Satz.
   plate.bar = cardio ? null : barFor(ex, store.get('settings'));
   plate.el = plate.bar === null ? null : h('p', { class: 'plates muted small', 'aria-live': 'polite' });
-  if (plate.el) {
-    const sets = d.entry.sets;
-    const i = sets.findIndex((x) => x.completedAt === null);
-    const kg = i >= 0 ? (sets[i].weightKg ?? placeholderFor(d.entry, i, d.last)?.weightKg ?? null) : (sets[sets.length - 1]?.weightKg ?? null);
-    showPlates(kg);
-    if (kg === null) plate.el.hidden = true;
-  }
+  // v2.34.0 (Vorschlag 4): Scheiben-Zeile erst beim Antippen eines Gewichtsfelds (focus/input in setRow).
+  if (plate.el) plate.el.hidden = true;
   const letter = SS.letterOf(v.session, d.entry.id);
   const banner = ui.ssBanner?.entryId === d.entry.id ? h('div', { class: 'ss-banner', role: 'status' }, ui.ssBanner.text) : null;
   return h('div', { class: 'ex-page' },
@@ -552,9 +549,10 @@ function exercisePage(v, d, rerender) {
       ...swapLine(d, rerender),
       h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
         icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
-    d.warmupHint ? h('div', { class: 'hint' }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}, WARMUP_HINT),
-      h('button', { class: 'link', type: 'button', onclick: openWarmupInfo }, 'Mehr')) : null,
-    h('div', { class: 'lastl' }, h('span', {}, lastSets.length ? `Zuletzt ${fmtDay(d.last.date)}: ${P.formatLastSets(lastSets, ex?.kind)}` : 'Noch nicht trainiert'),
+    // v2.34.0: Aufwärm-Hinweis einzeilig, nur mit „Hinweise anzeigen“
+    d.warmupHint ? hintLine(WARMUP_HINT, openWarmupInfo, { tone: 'warm' }) : null,
+    // v2.34.0 (Vorschlag 3): Die Werte vom letzten Mal stehen schon in den Feldern; hier nur noch das Datum.
+    h('div', { class: 'lastl' }, h('span', {}, lastSets.length ? `Werte vom ${fmtDay(d.last.date)}` : 'Noch nicht trainiert'),
       h('span', { class: 'lastl-links' },
         ex?.source?.ref && hasAnimation(ex.source.ref) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openAnimation(ex.source.ref) }, icon('motion', { size: 16, cls: 'inline' }), ' Technik') : null,
         ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null)),
@@ -639,73 +637,98 @@ function startView(rerender) {
   const settings = store.get('settings');
   const light = settings.lightWeek === weekKey(new Date());
   const start = (fn) => () => { const r = fn(); if (!r.ok) { toast(r.errors[0], { error: true }); return; } ui.current = null; rerender(); };
+  // v2.34.0 (Startseite A, Nutzerwahl): Plan von heute als große Karte, übrige Pläne kompakt mit runder Start-Taste.
+  // Nebenaktionen (Nachtragen, leichte Woche) im ⋯-Menü; freies Training bleibt sichtbar.
+  let bigUsed = false;
+  const cards = plans.map((p) => {
+    const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
+    const warm = RT.planRoutine(p, 'warmup');
+    // v2.3.0: Plan mit Aufwärm-Routine fragt vor dem Start; „Nein“ startet ohne weiteren Hinweis.
+    // v2.4.0 (3A): nach ≥ 21 Tagen Pause erst „Willkommen zurück“, dann wie gewohnt (Aufwärm-Frage, Start).
+    const launch = (reduce, lighter = false) => {
+      const begin = () => {
+        const r = S.startFromPlan(p.id);
+        if (r.ok && reduce) S.applyBreakReduction(pause.pct, pause.days);
+        if (r.ok && lighter) { const l = S.applyLightWeek(); return l.ok && l.session ? l : r; }
+        return r;
+      };
+      if (!warm) { start(begin)(); return; }
+      askWarmup(warm, {
+        onNo: () => start(begin)(),
+        onYes: () => {
+          const r = begin();
+          if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+          ui.current = null;
+          startRun(warm, { sessionId: r.session.id, returnTo: '#/' });
+        }
+      });
+    };
+    const go = () => {
+      // v2.30.0 (B3): leichte Woche aktiv → Vorschlag statt „Willkommen zurück“ (die Reduktion ist ohnehin größer).
+      if (light) {
+        askLight(p, byId, past, {
+          onLight: () => launch(false, true),
+          onNormal: () => launch(false)
+        });
+        return;
+      }
+      if (!pause) { launch(false); return; }
+      askBreak(p, byId, past, pause, { onReduce: () => launch(true), onKeep: () => launch(false) });
+    };
+    const days = formatDays(p.days);
+    const skipped = days && isWeekSkipped(p);
+    const today = !skipped && isPlanDay(p);
+    const count = `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}`;
+    const skippedLine = skipped ? h('small', { class: 'muted' }, 'Diese Woche ausgesetzt · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.unskipWeek(p.id); rerender(); } }, 'rückgängig')) : null;
+    if (today && !bigUsed && names.length) {
+      bigUsed = true;
+      const fig = planFigure(p, byId, settings.figure || 'male');
+      return h('div', { class: 'pcard start-card today' },
+        h('div', { class: 'pc-body' },
+          fig,
+          h('div', { class: 'pc-text' },
+            h('span', { class: 'pc-top' }, h('b', {}, p.name), days ? h('small', { class: 'muted' }, days) : null),
+            h('small', { class: 'today-tag' }, 'Heute'),
+            h('small', {}, `${count}${warm ? ` · Aufwärmen: ${warm.name}` : ''}`),
+            h('span', { class: 'ex' }, names.join(' · ')))),
+        h('button', { class: 'btn primary block', type: 'button', onclick: go }, 'Starten'));
+    }
+    const fig = names.length ? planFigure(p, byId, settings.figure || 'male', 34) : null;
+    return h('div', { class: `pcard start-row${today ? ' today' : ''}` },
+      fig || h('span', { class: 'plan-fig small empty', 'aria-hidden': 'true' }),
+      h('span', { class: 't' }, h('b', {}, p.name), today ? h('small', { class: 'today-tag inline' }, 'Heute') : null,
+        h('small', {}, [days, count].filter(Boolean).join(' · ')), skippedLine),
+      h('button', { class: 'play', type: 'button', 'aria-label': `${p.name} starten`, disabled: !names.length, onclick: go }, icon('play', { size: 22 })));
+  });
+  const moreMenu = () => {
+    let sheet = null;
+    const item = (label, fn) => h('button', { class: 'row', type: 'button', onclick: () => { sheet.close(); fn(); } },
+      h('span', { class: 't' }, h('b', {}, label)), h('span', { class: 'chev' }, icon('chevron', { size: 18 })));
+    sheet = openSheet(h('div', { class: 'card list' },
+      item('Training nachtragen', () => openBackfill(rerender)),
+      light
+        ? item('Leichte Woche beenden', () => { store.set('settings', { ...store.get('settings'), lightWeek: null }); rerender(); })
+        : item('Diese Woche leicht trainieren', () => { store.set('settings', { ...store.get('settings'), lightWeek: weekKey(new Date()) }); toast('Leichte Woche bis Sonntag.'); rerender(); }),
+      item('Was ist eine leichte Woche?', () => openProgressionInfo('light'))), { title: 'Mehr' });
+  };
   return h('section', {},
-    h('h1', {}, 'Training'),
-    h('p', { class: 'sub' }, 'Plan wählen und loslegen. Alle Daten bleiben auf diesem Gerät.'),
+    h('div', { class: 'page-head' }, h('h1', {}, 'Training'),
+      h('button', { class: 'dots', type: 'button', 'aria-label': 'Mehr: Training nachtragen, leichte Woche', onclick: moreMenu }, '⋯')),
+    welcomeCard(rerender),
     ...cycleStartCards(rerender),
     ...missedCards(rerender),
+    light ? lightWeekCard(true, rerender) : null,
     plans.length
-      ? plans.map((p) => {
-        const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
-        const warm = RT.planRoutine(p, 'warmup');
-        // v2.3.0: Plan mit Aufwärm-Routine fragt vor dem Start; „Nein“ startet ohne weiteren Hinweis.
-        // v2.4.0 (3A): nach ≥ 21 Tagen Pause erst „Willkommen zurück“, dann wie gewohnt (Aufwärm-Frage, Start).
-        const launch = (reduce, lighter = false) => {
-          const begin = () => {
-            const r = S.startFromPlan(p.id);
-            if (r.ok && reduce) S.applyBreakReduction(pause.pct, pause.days);
-            if (r.ok && lighter) { const l = S.applyLightWeek(); return l.ok && l.session ? l : r; }
-            return r;
-          };
-          if (!warm) { start(begin)(); return; }
-          askWarmup(warm, {
-            onNo: () => start(begin)(),
-            onYes: () => {
-              const r = begin();
-              if (!r.ok) { toast(r.errors[0], { error: true }); return; }
-              ui.current = null;
-              startRun(warm, { sessionId: r.session.id, returnTo: '#/' });
-            }
-          });
-        };
-        const go = () => {
-          // v2.30.0 (B3): leichte Woche aktiv → Vorschlag statt „Willkommen zurück“ (die Reduktion ist ohnehin größer).
-          if (light) {
-            askLight(p, byId, past, {
-              onLight: () => launch(false, true),
-              onNormal: () => launch(false)
-            });
-            return;
-          }
-          if (!pause) { launch(false); return; }
-          askBreak(p, byId, past, pause, { onReduce: () => launch(true), onKeep: () => launch(false) });
-        };
-        const days = formatDays(p.days);
-        const skipped = days && isWeekSkipped(p);
-        const today = !skipped && isPlanDay(p);
-        const fig = names.length ? planFigure(p, byId, settings.figure || 'male') : null;
-        return h('div', { class: `pcard start-card${today ? ' today' : ''}` },
-          h('div', { class: 'pc-body' },
-            fig,
-            h('div', { class: 'pc-text' },
-              h('span', { class: 'pc-top' }, h('b', {}, p.name), days ? h('small', { class: 'muted' }, days) : null),
-              today ? h('small', { class: 'today-tag' }, 'Heute') : null,
-              skipped ? h('small', { class: 'muted' }, 'Diese Woche ausgesetzt · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.unskipWeek(p.id); rerender(); } }, 'rückgängig')) : null,
-              h('small', {}, `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}${warm ? ` · Aufwärmen: ${warm.name}` : ''}`),
-              names.length ? h('span', { class: 'ex' }, names.join(' · ')) : null)),
-          h('button', { class: 'btn primary block', type: 'button', disabled: !names.length, onclick: go }, 'Starten'));
-      })
+      ? cards
       : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
-        h('p', { class: 'muted' }, 'Lege im Tab „Pläne“ einen Plan an – oder starte ein freies Training.')),
-    h('button', { class: 'btn block', type: 'button', onclick: start(() => S.startEmpty()) }, 'Freies Training starten'),
-    h('button', { class: 'btn block subtle', type: 'button', onclick: () => openBackfill(rerender) }, 'Training nachtragen'),
-    lightWeekCard(light, rerender),
+        h('p', { class: 'muted' }, 'Lege im Tab „Pläne“ einen Plan an – oder starte frei.')),
+    h('button', { class: 'btn block subtle', type: 'button', onclick: start(() => S.startEmpty()) }, 'Freies Training starten'),
     recent.length ? h('div', {}, h('div', { class: 'sec' }, 'Letzte Trainings'),
       h('div', { class: 'card list' }, recent.map((s) => {
         const sum = S.sessionView(s).summary;
         const name = s.planId ? (P.getPlan(s.planId)?.name || 'Plan') : 'Freies Training';
         return h('div', { class: 'row' }, h('span', { class: 't' }, h('b', {}, name),
-          h('small', {}, `${new Date(s.startedAt).toLocaleDateString('de-DE')} · ${sum.hardSets} Arbeitssätze`)));
+          h('small', {}, `${new Date(s.startedAt).toLocaleDateString('de-DE')} · ${sum.hardSets} ${TERMS.workSets}`)));
       }))) : null);
 }
 

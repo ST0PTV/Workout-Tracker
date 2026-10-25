@@ -50,7 +50,7 @@ export function groupField(ex) {
           draw();
         } }, icon('plus', { size: 12, cls: 'inline' }), ' Neue Gruppe')),
       ...others,
-      groups.length ? null : h('p', { class: 'muted small' }, 'Ähnliche Übungen in eine Gruppe legen (z. B. Beinpresse, Hack Squat, Kniebeuge), dann lässt sich im Training mit einem Tipp tauschen.')
+      groups.length ? null : h('p', { class: 'muted small' }, 'Ähnliche Übungen gruppieren, um sie im Training mit einem Tipp zu tauschen.')
     ].filter(Boolean));
   };
   draw();

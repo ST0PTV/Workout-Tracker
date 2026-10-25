@@ -5,6 +5,11 @@
 export const SET_INFO_CHECKED_AT = '2026-10-13';
 
 export const SET_INFO = {
+  short: [
+    'Drop-Satz: ohne Pause mit weniger Gewicht weiter.',
+    'Rest-Pause: kurze Pause, dann Mini-Sätze mit gleichem Gewicht.',
+    'Beide zählen als 1 Satz; im Volumen zählen alle Stufen.'
+  ],
   what: [
     'Drop-Satz: Satz bis kurz vor oder bis zum Versagen, dann ohne Pause mit weniger Gewicht weiter (Stufen).',
     'Rest-Pause-Satz: Satz, kurze Pause, dann mit dem gleichen Gewicht weitere Mini-Sätze.'

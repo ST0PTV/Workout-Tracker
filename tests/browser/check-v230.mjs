@@ -1,7 +1,7 @@
 // v2.30.0: Browser-Prüfung – Wiederholungsbereich im Plan-Editor und in der Vorschlagskarte, leichte Woche
 // (Karte auf dem Start, Vorschlag beim Start, „leicht“ im Training, Info mit Quellen).
 // Nur erfundene Testdaten. Aufruf: node tests/browser/check-v230.mjs   (Screenshots in WT_OUT/v230)
-import { launch, startServer, checker, outDir, BAD_TEXT } from './lib.mjs';
+import { launch, startServer, checker, outDir, BAD_TEXT, startPlan, moreAction } from './lib.mjs';
 import { join } from 'node:path';
 
 const srv = await startServer();
@@ -54,7 +54,7 @@ await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 
 // Normales Training: Vorschlagskarte aus dem Bereich
 await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
-await p.locator('.start-card', { hasText: 'Testplan' }).locator('button', { hasText: 'Starten' }).click(); await p.waitForTimeout(500);
+await startPlan(p, 'Testplan'); await p.waitForTimeout(500);
 t = await text();
 ok(t.includes('Ziel 8–12 Wdh.'), 'B2: „Ziel 8–12 Wdh.“ in der Übung');
 ok(/62,5 kg/.test(t) && t.includes('Alle Sätze bei 12 Wdh.') && t.includes('zurück auf 8'), 'B2: Vorschlag 62,5 kg, Wdh. zurück auf 8');
@@ -64,11 +64,11 @@ await p.evaluate(async () => (await import('./js/session.js')).discard());
 
 // Leichte Woche
 await p.reload(); await p.waitForTimeout(400);
-await p.locator('button', { hasText: 'Diese Woche leicht trainieren' }).click(); await p.waitForTimeout(400);
+await moreAction(p, 'Diese Woche leicht trainieren'); await p.waitForTimeout(400);
 t = await text();
 ok(t.includes('Leichte Woche bis Sonntag'), 'B3: Karte „Leichte Woche bis Sonntag“');
 await shot('3-light-card');
-await p.locator('.start-card', { hasText: 'Testplan' }).locator('button', { hasText: 'Starten' }).click(); await p.waitForTimeout(500);
+await startPlan(p, 'Testplan'); await p.waitForTimeout(500);
 t = await sheetText();
 ok(t.includes('4 → 2 Sätze') && /60 → 55 kg/.test(t), `B3: Vorschlag 4 → 2 Sätze, 60 → 55 kg`);
 ok(t.includes('Schätzung'), 'B3: als Schätzung gekennzeichnet');
@@ -85,13 +85,14 @@ await p.evaluate(async () => (await import('./js/session.js')).discard());
 // Info mit Quellen
 await p.reload(); await p.waitForTimeout(400);
 await p.locator('.light-week button.info-btn').click(); await p.waitForTimeout(400);
+await p.locator('.sheet details.more summary').last().click(); await p.waitForTimeout(200); // ab 2.34.0 eingeklappt
 t = await sheetText();
 ok(t.includes('Coleman et al. 2024') && t.includes('Pancar et al. 2026') && t.includes('Rogerson et al. 2024') && t.includes('Plotkin et al. 2022'), 'Info: neue Quellen gelistet');
 ok(t.includes('kein Studienwert') || t.includes('keine in Studien getestete'), 'Info: Konvention gekennzeichnet');
 await shot('6-light-info');
 await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 await p.locator('button', { hasText: 'Leichte Woche beenden' }).click(); await p.waitForTimeout(300);
-ok((await text()).includes('Diese Woche leicht trainieren'), 'B3: leichte Woche beendet');
+ok(await p.locator('.light-week').count() === 0 && (await p.evaluate(async () => (await import('./js/store.js')).get('settings').lightWeek)) === null, 'B3: leichte Woche beendet (ab 2.34.0 Einstieg im ⋯-Menü)');
 
 // ---------- B1: Supersätze (Variante B) ----------
 await p.evaluate(async () => {
@@ -115,7 +116,7 @@ await p.locator('.sheet button.pill', { hasText: 'Fertig' }).click(); await p.wa
 ok((await sheetText()).toLowerCase().includes('supersatz'), 'B1: Ansicht zeigt „Supersatz“');
 await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 await p.goto(srv.url + '/index.html#/'); await p.waitForTimeout(400);
-await p.locator('.start-card', { hasText: 'Arme SS' }).locator('button', { hasText: 'Starten' }).click(); await p.waitForTimeout(500);
+await startPlan(p, 'Arme SS'); await p.waitForTimeout(500);
 if (await p.locator('.sheet', { hasText: 'Leichte Woche' }).count()) { await p.locator('.sheet button', { hasText: 'Heute normal' }).click(); await p.waitForTimeout(400); }
 ok(await p.locator('.ss-seg button').count() === 2, 'B1: Umschalter A | B');
 const fillAndCheck = async () => {
