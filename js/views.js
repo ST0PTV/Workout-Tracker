@@ -8,7 +8,7 @@ import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { stepper, switchInput } from './controls.js';
 import { stepRest, formatDuration } from './rest.js';
-import { wakeLockSupported, storageStatus } from './device.js';
+import { wakeLockSupported } from './device.js';
 import { BAR_KG_MIN, BAR_KG_MAX } from './model.js';
 import { fmtNum } from './input.js';
 import { gearPicker } from './gear-view.js';
@@ -25,18 +25,6 @@ function onOff(label, key, rerender) {
       if (!store.set('settings', { ...store.get('settings'), [key]: v })) { toast('Speichern fehlgeschlagen.', { error: true }); rerender(); return; }
       rerender();
     }));
-}
-
-// v2.26.0 (A2): Speicherstatus wird nachgeladen (die Browser-Schnittstelle ist asynchron).
-// Die Belegungs-Schätzung des Browsers wird bewusst nicht gezeigt: Sie zählt localStorage meist nicht mit
-// (im Test 0 KB) – die eigene Messung „Belegter Speicher“ steht schon darüber.
-// v2.34.0: Erklärung zu „geschützt“ im ⓘ der Info-Karte.
-function storageLine() {
-  const persisted = kv('Speicher geschützt', '…');
-  storageStatus().then((st) => {
-    persisted.lastChild.textContent = st.persisted === null ? 'unbekannt' : st.persisted ? 'ja' : 'nein';
-  });
-  return persisted;
 }
 
 export { trainingView } from './training-view.js';
@@ -163,12 +151,7 @@ export function settingsView(rerender) {
       ])),
       gearPicker()),
     h('div', { class: 'card' },
-      cardHead('Anzeige', cardInfo('Anzeige', [
-        'Erscheinung: Dunkel ist Standard. Hell liest sich bei viel Licht oft besser; die Statusleiste passt sich nach dem nächsten Öffnen an.',
-        'Figur: Nur die Darstellung ändert sich; Muskeln, Bewegungen und Zählung sind gleich.',
-        'Hinweise: kurze Erklärzeilen auf den Bildschirmen. Warnhinweise zu Übungen bleiben immer sichtbar.',
-        'Die Info-Tasten (i) sind immer erreichbar.'
-      ])),
+      cardHead('Anzeige'),
       h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Erscheinung', style: 'margin-bottom: 12px' },
         APPEARANCES.map(([k, label]) => {
           const on = appearanceOf(settings) === k;
@@ -194,14 +177,8 @@ export function settingsView(rerender) {
         h('button', { class: 'btn', type: 'button', onclick: openGlossary }, 'Begriffe'))),
     cycleSettingsCard(rerender),
     h('div', { class: 'card' },
-      cardHead('Info', cardInfo('Speicher', [
-        '„Geschützt“: Der Browser hat zugesagt, die Daten nicht von sich aus zu löschen, wenn Speicher knapp wird.',
-        'Ein Backup ersetzt das nicht.'
-      ])),
-      kv('Version', APP_VERSION),
-      kv('Datenschema', `v${store.SCHEMA_VERSION}`),
-      kv('Belegter Speicher', `${store.usageKB()} KB`),
-      storageLine())
+      cardHead('Info'),
+      kv('Version', APP_VERSION))
   );
 }
 
