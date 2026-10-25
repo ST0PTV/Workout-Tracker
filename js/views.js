@@ -8,7 +8,7 @@ import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { stepper, switchInput } from './controls.js';
 import { stepRest, formatDuration } from './rest.js';
-import { wakeLockSupported } from './device.js';
+import { wakeLockSupported, viewportInfo } from './device.js';
 import { BAR_KG_MIN, BAR_KG_MAX } from './model.js';
 import { fmtNum } from './input.js';
 import { gearPicker } from './gear-view.js';
@@ -178,7 +178,8 @@ export function settingsView(rerender) {
     cycleSettingsCard(rerender),
     h('div', { class: 'card' },
       cardHead('Info'),
-      kv('Version', APP_VERSION))
+      kv('Version', APP_VERSION),
+      h('p', { class: 'muted small' }, viewportInfo())) // v3.0.5: vorübergehende Messzeile (Leisten-Lücke)
   );
 }
 
