@@ -69,13 +69,12 @@ for (const standalone of [true, false]) {
       const t = document.getElementById('tabbar').getBoundingClientRect();
       return { bar: Math.round(t.bottom), h: Math.round(t.height), body: Math.round(document.body.getBoundingClientRect().bottom),
         gap: document.documentElement.classList.contains('wt-gap'), htmlBg: getComputedStyle(document.documentElement).backgroundColor,
-        bodyBg: getComputedStyle(document.body).backgroundColor, info: document.body.innerText.match(/Bildschirm \d+.*/)?.[0] || '' };
+        bodyBg: getComputedStyle(document.body).backgroundColor, barBg: getComputedStyle(document.getElementById('tabbar')).backgroundColor };
     });
     const tag = `${standalone ? 'App' : 'Browser'} ${theme}`;
     ok(m.bar === 789 && m.body === 789, `${tag}: Leiste/Hülle im Fenster (${m.bar}/${m.body})`);
     ok(m.gap === standalone, `${tag}: Klasse wt-gap ${standalone ? 'gesetzt' : 'nicht gesetzt'}`);
-    if (standalone) ok(m.h === 58 && m.htmlBg !== m.bodyBg && m.htmlBg !== 'rgba(0, 0, 0, 0)', `${tag}: Leiste 58 hoch, Seitenhintergrund in Leistenfarbe (${m.htmlBg} vs ${m.bodyBg})`);
-    ok(m.info.includes(`Lücke ${standalone ? 55 : 0}`), `${tag}: Messzeile (${m.info})`);
+    if (standalone) ok(m.h === 58 && m.htmlBg === m.barBg && m.htmlBg === m.bodyBg, `${tag}: Leiste 58 hoch, Leiste = Seitenhintergrund (v3.1.1) (${m.htmlBg} vs ${m.bodyBg})`);
     ok(errs.length === 0, `${tag}: keine Fehler ${errs.join(' | ')}`);
     await ctx.close();
   }

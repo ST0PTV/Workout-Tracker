@@ -43,13 +43,13 @@
   --tap: 50px;
   --tap-s: 44px;
   --safe-top: env(safe-area-inset-top, 0px);
-  --strip: #141416; /* v3.0.6: Farbe der Leiste über dem Hintergrund (Streifen unter dem Fenster) */
+  --strip: #000000; /* v3.1.1: Leiste = Streifen unter dem Fenster = theme-color (iOS malt den Streifen selbst, hier schwarz) */
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --tabbar-h: 58px; /* v3.1.0: Höhe der Leiste ohne Sicherheitsbereich (Variante B, Proportionen wie Calorie Tracker) */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 :root[data-theme="light"] {
-  --strip: #FBFBFD;
+  --strip: #F2F2F7;
   color-scheme: light;
   --bg: #F2F2F7;
   --surface: #FFFFFF;
