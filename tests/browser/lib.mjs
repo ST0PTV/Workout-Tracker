@@ -88,5 +88,5 @@ export async function startPlan(p, name = null) {
 // v2.34.0: Nebenaktion aus dem ⋯-Menü des Training-Tabs (z. B. „Training nachtragen“).
 export async function moreAction(p, label) {
   await p.locator('button.dots').click(); await p.waitForTimeout(300);
-  await p.locator('.sheet button.row', { hasText: label }).first().click(); await p.waitForTimeout(300);
+  await p.locator('.sheet :is(button.row, .row > button.t)', { hasText: label }).first().click(); await p.waitForTimeout(300);
 }

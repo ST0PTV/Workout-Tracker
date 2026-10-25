@@ -42,7 +42,7 @@ body {
   max-width: 640px; margin: 0 auto; outline: none;
 }
 
-h1 { font-size: 28px; margin: 4px 0 4px; letter-spacing: -0.02em; }
+h1 { font-size: 28px; margin: 4px 0 8px; letter-spacing: -0.02em; }
 h2 { font-size: 17px; margin: 0 0 8px; }
 .sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; line-height: 1.4; }
 .muted { color: var(--muted); }
@@ -215,6 +215,7 @@ body.sheet-open { overflow: hidden; }
 .step-val { width: 54px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; background: rgba(255, 255, 255, 0.14); }
 .src { font-size: 13px; color: var(--muted); margin: 8px 4px 0; line-height: 1.5; }
 .btn.subtle { background: transparent; margin: 6px 0 12px; color: var(--muted); }
+.btn.block.subtle { margin: 16px 0 0; } /* v2.34.1: ein Abstand über jeder Nebenaktion */
 .sticky-bottom { position: sticky; bottom: 0; margin-top: 8px; box-shadow: 0 -8px 24px rgba(10, 14, 32, 0.9); }
 
 /* ---------- v0.3.1: Linien-Icons statt Zeichen/Emoji ---------- */
@@ -342,7 +343,6 @@ body:has(.restbar:not([hidden]) .rt-next:not([hidden])) .toast { bottom: calc(va
 /* ---------- v1.0: Fortschritt ---------- */
 .tabbar .tab { font-size: 10.5px; letter-spacing: -0.01em; white-space: nowrap; }
 .title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.title-row h1 { margin-bottom: 8px; }
 .row.prow { gap: 10px; }
 .spark { flex: none; overflow: visible; }
 .sp-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
@@ -357,7 +357,7 @@ body:has(.restbar:not([hidden]) .rt-next:not([hidden])) .toast { bottom: calc(va
 .tile span { font-size: 12px; color: var(--muted); }
 .est { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 6px; background: rgba(255, 207, 122, 0.15); color: #ffe2a8; vertical-align: 1px; text-transform: none; letter-spacing: 0; font-weight: 500; }
 .ctitle { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: #d8def5; margin: 0 2px 6px; }
-.ctitle .info-btn { width: 32px; height: 32px; }
+.ctitle .info-btn { width: 30px; height: 30px; }
 .chart-card { padding: 8px 6px 10px; margin-bottom: 8px; }
 .chart { display: block; width: 100%; height: auto; font-family: inherit; touch-action: manipulation; }
 .ch-grid { stroke: rgba(255, 255, 255, 0.08); stroke-width: 1; }
@@ -768,7 +768,7 @@ body { overflow-wrap: anywhere; }
 .ss-seg button.on { background: linear-gradient(135deg, var(--accent-2), var(--accent)); color: #06101f; border-color: transparent; }
 .ss-seg small { font-weight: 600; opacity: 0.8; }
 .ss-banner { border-radius: 14px; padding: 10px 12px; margin: 0 0 8px; background: rgba(122, 162, 255, 0.16); border: 1px solid rgba(122, 162, 255, 0.35); font-size: 14px; line-height: 1.4; }
-.ss-link { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: -2px 0 -2px 38px; border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.25); background: none; color: var(--muted, #9aa6c7); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; width: calc(100% - 38px); }
+.ss-link { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; margin: 0 0 10px 38px; border-radius: 12px; border: 1px dashed rgba(255, 255, 255, 0.25); background: none; color: var(--muted, #9aa6c7); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; width: calc(100% - 38px); }
 .ss-link.on { border-color: rgba(110, 231, 216, 0.6); color: var(--accent); background: rgba(110, 231, 216, 0.06); }
 .ss-line { margin: -4px 0 -4px 38px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
 
@@ -848,3 +848,12 @@ details.more > :not(summary) { font-size: 14px; }
 .onboarding .btn + .btn { margin-top: 8px; }
 .welcome b { font-size: 17px; }
 .welcome p { margin: 4px 0 10px; }
+
+/* v2.34.1: Vereinheitlichung. Abstandsraster 8 / 12 / 16: 8 unter Kartenköpfen, 12 zwischen Blöcken und Tasten, 16 über Nebenaktionen.
+   :where() hält die Spezifität niedrig, damit bewusste Einzelwerte (z. B. .routine > .btn-row) weiter gelten. */
+:where(.card, .sheet-body, .info) > :where(.addline, .empty-line, .chips, .wrap, .field, p) + .btn-row { margin-top: 12px; }
+.set-line + .btn-row { margin-top: 16px; }
+.card > .title-row { margin-bottom: 8px; }
+.card > .title-row h2 { margin: 0; }
+:where(.wrap, .chips, .seg) + p.muted.small { margin-top: 8px; }
+.glossary-link { margin-top: 10px; }

@@ -1,7 +1,7 @@
 // Training-Tab (Kombination A + B): eine Übung pro Seite mit Satztabelle und Pausen-Leiste (A),
 // Übersicht aller Übungen als Sheet zum Springen, Umsortieren, Hinzufügen und Entfernen (B).
 // Pausen-Timer ohne Ton, Alarm oder Vibration – das Ende wird nur angezeigt.
-import { infoBody, hintLine, hintsOn } from './info.js';
+import { infoBody, hintLine, hintsOn, infoBtn } from './info.js';
 import { openGlossary, TERMS } from './glossary.js';
 import { welcomeCard } from './onboarding.js';
 import { h } from './util.js';
@@ -706,10 +706,14 @@ function startView(rerender) {
       h('span', { class: 't' }, h('b', {}, label)), h('span', { class: 'chev' }, icon('chevron', { size: 18 })));
     sheet = openSheet(h('div', { class: 'card list' },
       item('Training nachtragen', () => openBackfill(rerender)),
-      light
-        ? item('Leichte Woche beenden', () => { store.set('settings', { ...store.get('settings'), lightWeek: null }); rerender(); })
-        : item('Diese Woche leicht trainieren', () => { store.set('settings', { ...store.get('settings'), lightWeek: weekKey(new Date()) }); toast('Leichte Woche bis Sonntag.'); rerender(); }),
-      item('Was ist eine leichte Woche?', () => openProgressionInfo('light'))), { title: 'Mehr' });
+      h('div', { class: 'row' },
+        h('button', { class: 't plain', type: 'button', onclick: () => {
+          sheet.close();
+          if (light) store.set('settings', { ...store.get('settings'), lightWeek: null });
+          else { store.set('settings', { ...store.get('settings'), lightWeek: weekKey(new Date()) }); toast('Leichte Woche bis Sonntag.'); }
+          rerender();
+        } }, h('b', {}, light ? 'Leichte Woche beenden' : 'Diese Woche leicht trainieren')),
+        infoBtn(() => openProgressionInfo('light'), 'Was ist eine leichte Woche?'))), { title: 'Mehr' });
   };
   return h('section', {},
     h('div', { class: 'page-head' }, h('h1', {}, 'Training'),
