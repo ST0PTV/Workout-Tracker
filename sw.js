@@ -3,7 +3,7 @@
  * Strategie: Precache der App-Shell, danach cache-first für gleiche Origin (offlinefähig),
  * Netzwerk-Fallback und Update im Hintergrund (stale-while-revalidate).
  */
-const CACHE_VERSION = 70;
+const CACHE_VERSION = 71;
 const CACHE_NAME = `wt-cache-v${CACHE_VERSION}`;
 
 const PRECACHE = [
@@ -78,6 +78,8 @@ const PRECACHE = [
   'js/diary-view.js',
   'js/views.js',
   'js/theme.js',
+  'js/next-plan.js',
+  'js/play-view.js',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',

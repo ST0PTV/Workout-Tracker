@@ -23,7 +23,7 @@ await go('#/');
 let l = await look();
 ok(l.theme === null && l.bg === 'rgb(0, 0, 0)', `Standard: Dunkel (${l.theme}, ${l.bg})`);
 ok(l.meta === '#000000', 'Standard: Browserfarbe schwarz');
-ok(/blur/.test(l.bar || ''), 'Tab-Leiste ist die Glasfläche (blur)');
+ok(!/blur/.test(l.bar || ''), 'Tab-Leiste deckend ohne Glas (seit 3.1.0, Variante B)');
 await p.screenshot({ path: join(out, '1-dark-start.png') });
 
 // Einstellungen: Erscheinung „Hell“

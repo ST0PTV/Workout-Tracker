@@ -45,7 +45,7 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --strip: #141416; /* v3.0.6: Farbe der Leiste über dem Hintergrund (Streifen unter dem Fenster) */
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tabbar-h: 49px; /* v3.0.4: Höhe der Leiste ohne Sicherheitsbereich (iOS-Standard) */
+  --tabbar-h: 58px; /* v3.1.0: Höhe der Leiste ohne Sicherheitsbereich (Variante B, Proportionen wie Calorie Tracker) */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 :root[data-theme="light"] {
@@ -1139,3 +1139,23 @@ input.input[type="datetime-local"], input.input[type="date"], input.input[type="
   text-align: center; font-size: 16px; /* mindestens 16 px, sonst zoomt iOS beim Antippen */
 }
 input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: center; min-width: 0; margin: 0; }
+
+/* v3.1.0 (Variante B, Nutzerwahl): Leiste wie im Calorie Tracker – volle Breite, deckend in der Streifenfarbe (wirkt mit
+   dem iOS-Streifen darunter wie eine Fläche), vier Tabs, in der Mitte ein erhöhter Play-Knopf. */
+.tabbar { background: var(--strip); -webkit-backdrop-filter: none; backdrop-filter: none; padding-top: 4px; overflow: visible; }
+.tab { gap: 3px; font-size: 11px; }
+.tabbar .tab { font-size: 11px; }
+.tab svg { width: 24px; height: 24px; }
+.tab[aria-current="page"] svg { stroke-width: 2.1; }
+.tb-mid { flex: 1; display: grid; place-items: center; }
+.tb-play { width: 58px; height: 58px; margin-top: -30px; border-radius: 20px; border: 0; padding: 0; cursor: pointer;
+  background: var(--accent); color: var(--on-accent); display: grid; place-items: center;
+  box-shadow: 0 0 0 5px var(--bg), 0 8px 24px rgba(0, 0, 0, 0.3); transition: transform .12s; }
+.tb-play svg { width: 26px; height: 26px; margin-left: 3px; fill: currentColor; stroke: currentColor; }
+.tb-play:active { transform: scale(0.94); }
+.tb-play:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.head-btns { display: flex; gap: 8px; }
+.head-btns a.dots { display: grid; place-items: center; text-decoration: none; }
+.play-next { display: flex; flex-direction: column; gap: 4px; }
+.play-next .pn-name { font-size: 22px; }
+.play-next .btn { margin-top: 10px; }
