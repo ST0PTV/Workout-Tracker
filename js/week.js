@@ -64,7 +64,7 @@ export function weeklyMuscleSets(sessions, exercisesById, start = weekStart()) {
 
 // Stufe für die Einfärbung (0 = nichts, 1 = 1–4, 2 = 5–8, 3 = 9+ Sätze, direkt + indirekt).
 // Reine Darstellungsstufen, keine Empfehlung.
-export const LEVEL_LABELS = ['0', 'unter 5', '5–8', '9+'];
+export const LEVEL_LABELS = ['0', '<5', '5–8', '≥9'];
 export function level(total) {
   if (!(total > 0)) return 0;
   if (total < 5) return 1;
