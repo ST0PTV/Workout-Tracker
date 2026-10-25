@@ -1,4 +1,4 @@
-// v3.0.3: App-Hülle. Tab-Leiste auf allen Tabs gleich hoch, Dokument scrollt nicht, nur #view; Datumsfelder im Nachtragen-Sheet bleiben im Sheet.
+// v3.0.3: App-Hülle (v3.0.4: klassische Leiste am Rand). Tab-Leiste auf allen Tabs gleich hoch, Dokument scrollt nicht, nur #view; Datumsfelder im Nachtragen-Sheet bleiben im Sheet.
 // Aufruf: node tests/browser/check-v303.mjs
 import { launch, startServer, checker } from './lib.mjs';
 
@@ -37,6 +37,9 @@ for (const vp of [{ width: 390, height: 844 }, { width: 390, height: 664 }]) {
       }
     }
     ok(new Set(bottoms).size === 1, `${tag}: Tab-Leiste überall gleich hoch (${bottoms.join(', ')})`);
+    // v3.0.4: klassische Leiste – liegt am unteren Rand und reicht über die ganze Breite
+    const bar = await p.evaluate(() => { const r = document.getElementById('tabbar').getBoundingClientRect(); return { b: Math.round(r.bottom), l: Math.round(r.left), w: Math.round(r.width) }; });
+    ok(bar.b === vp.height && bar.l === 0 && bar.w === vp.width, `${tag}: Tab-Leiste am Rand, volle Breite (${JSON.stringify(bar)})`);
     // Nachtragen-Sheet
     await p.evaluate(() => { location.hash = '#/'; }); await p.waitForTimeout(350);
     await p.getByRole('button', { name: /Mehr: Training nachtragen/ }).click();

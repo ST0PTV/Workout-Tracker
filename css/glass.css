@@ -44,7 +44,7 @@
   --tap-s: 44px;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --tabbar-h: 78px;
+  --tabbar-h: 49px; /* v3.0.4: Höhe der Leiste ohne Sicherheitsbereich (iOS-Standard) */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 :root[data-theme="light"] {
@@ -156,22 +156,23 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 8px; }
 .empty { text-align: center; padding: 28px 16px; }
 .empty .big { font-size: 40px; margin-bottom: 6px; }
 
-/* Tab-Leiste: schwebende Glaskapsel (iOS 26) – die einzige Glasfläche der App */
+/* Tab-Leiste: v3.0.4 klassische iOS-Leiste über die ganze Breite bis zum Rand (Nutzerwunsch), darunter der Sicherheitsbereich. Glas (Unschärfe) bleibt – die einzige Glasfläche der App. */
 .tabbar {
-  position: fixed; z-index: 10; left: 12px; right: 12px; bottom: calc(var(--safe-bottom) + 8px);
-  max-width: 616px; margin: 0 auto; height: 62px; padding: 0 6px;
-  display: flex; justify-content: space-around; align-items: center; border-radius: 999px;
+  position: fixed; z-index: 10; left: 0; right: 0; bottom: 0;
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding: 0 max(0px, calc(50% - 320px)) var(--safe-bottom);
+  display: flex; justify-content: space-around; align-items: stretch;
   background: color-mix(in srgb, var(--surface) 72%, transparent);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 0 0 0 0.5px var(--line), 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -0.5px 0 var(--line);
 }
 .tab {
   flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  color: var(--faint); text-decoration: none; font-size: 10px; font-weight: 500; height: 50px; border-radius: 999px;
+  color: var(--faint); text-decoration: none; font-size: 10px; font-weight: 500;
 }
 .tab svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.tab[aria-current="page"] { color: var(--accent); font-weight: 600; background: var(--fill); }
+.tab[aria-current="page"] { color: var(--accent); font-weight: 600; }
 @media (prefers-reduced-transparency: reduce) { .tabbar { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 
 .toast {
