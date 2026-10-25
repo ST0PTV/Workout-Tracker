@@ -95,7 +95,9 @@
 .sheet { --surface: var(--sheet-surface); --surface-2: var(--sheet-surface-2); }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; }
+/* v3.0.3: App-Hülle. Das Dokument scrollt nicht mehr, nur #view. Sonst richtet iOS (Home-Bildschirm) fixierte Elemente an der Dokumenthöhe aus, und die Tab-Leiste saß auf kurzen Seiten (Training, Pläne) höher. */
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { position: fixed; inset: 0; }
 body {
   font-family: var(--font);
   font-size: 17px;
@@ -107,10 +109,11 @@ body {
 .bg { display: none; }
 
 .view {
-  /* v3.0.1: +1px, damit jede Seite scrollbar ist; sonst zeigt iOS-Safari bei kurzen Seiten (Training, Pläne) die untere Browserleiste und die Tab-Leiste sitzt dort höher. */
-  min-height: calc(100% + 1px);
-  padding: calc(var(--safe-top) + 12px) 16px calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
-  max-width: 640px; margin: 0 auto; outline: none;
+  /* v3.0.3: einziger Scrollbereich der App (siehe html, body). Inhalt bleibt mittig max. 608 px breit. */
+  position: absolute; inset: 0;
+  overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+  padding: calc(var(--safe-top) + 12px) max(16px, calc(50% - 304px)) calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+  outline: none;
 }
 
 h1 { font-size: 34px; font-weight: 700; margin: 4px 0 8px; letter-spacing: 0.01em; line-height: 1.15; }

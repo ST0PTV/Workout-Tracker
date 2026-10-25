@@ -57,10 +57,10 @@ export function startRouter(routes) {
     const path = currentPath();
     const samePage = path === lastPath;
     lastPath = path;
-    const y = window.scrollY;
+    const y = view.scrollTop; // v3.0.3: #view scrollt, nicht das Fenster
     renderTabbar(tabbar, path);
     view.replaceChildren(routes[path]());
-    window.scrollTo(0, samePage ? y : 0); // Neu-Rendern derselben Seite behält die Scrollposition
+    view.scrollTop = samePage ? y : 0; // Neu-Rendern derselben Seite behält die Scrollposition
   };
   window.addEventListener('hashchange', () => { closeAllSheets(); render(); });
   render();
