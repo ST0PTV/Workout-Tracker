@@ -775,3 +775,18 @@ body { overflow-wrap: anywhere; }
 .pool-mine { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 10px; }
 .pool-mine .link { min-height: 36px; }
 .gear-picker .wrap { margin-bottom: 8px; }
+
+/* v2.33.0: Körper-Piktogramm auf den Plankarten (drehbare 3D-Figur) */
+.pc-body { display: flex; gap: 12px; align-items: flex-start; }
+.pc-text { flex: 1; min-width: 0; }
+.plan-fig { flex: none; display: flex; align-items: center; justify-content: center; width: 62px; min-height: 120px; padding: 0; margin: -2px 0 0 -4px; background: none; border: 0; color: inherit; cursor: pointer; }
+.plan-fig canvas, .plan-fig svg { display: block; }
+.start-card.today { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.today-tag { color: var(--accent) !important; font-weight: 600; }
+.plan-body .pb-stage { display: flex; justify-content: center; padding: 6px 0 2px; }
+.plan-body .pb-stage canvas { cursor: grab; }
+.plan-body .body-seg { margin: 10px auto 12px; max-width: 320px; }
+.plan-body .body-seg button { min-height: 44px; }
+.pb-legend { justify-content: center; margin-bottom: 8px; }
+.legend .sw.prim { background: var(--accent); }
+.legend .sw.sec { background: #4669c8; }

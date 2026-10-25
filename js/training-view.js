@@ -29,6 +29,8 @@ import * as RT from './routines.js';
 import * as PR from './progression.js';
 import { missedHints, formatDays, isWeekSkipped, weekKey } from './schedule.js';
 import { planChanges } from './plan-sync.js';
+import { todayFirst, isPlanDay } from './plan-body.js';
+import { planFigure } from './plan-body-view.js';
 import * as SS from './superset.js';
 import { askRating, needsRating, ratingLine, suggestionCard, askBreak, askLight, openProgressionInfo } from './progression-view.js';
 
@@ -628,7 +630,8 @@ function activeView(v, rerender) {
 // ---------- Start ----------
 
 function startView(rerender) {
-  const plans = P.listPlans().sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  // v2.33.0: Pläne des Tages (Trainingstag heute) nach oben, sonst alphabetisch
+  const plans = todayFirst(P.listPlans().sort((a, b) => a.name.localeCompare(b.name, 'de')));
   const byId = Object.fromEntries(lib.listExercises({ includeArchived: true }).map((e) => [e.id, e]));
   const past = S.finishedSessions();
   const recent = past.slice(0, 3);
@@ -679,11 +682,17 @@ function startView(rerender) {
         };
         const days = formatDays(p.days);
         const skipped = days && isWeekSkipped(p);
-        return h('div', { class: 'pcard start-card' },
-          h('span', { class: 'pc-top' }, h('b', {}, p.name), days ? h('small', { class: 'muted' }, days) : null),
-          skipped ? h('small', { class: 'muted' }, 'Diese Woche ausgesetzt · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.unskipWeek(p.id); rerender(); } }, 'rückgängig')) : null,
-          h('small', {}, `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}${warm ? ` · Aufwärmen: ${warm.name}` : ''}`),
-          names.length ? h('span', { class: 'ex' }, names.join(' · ')) : null,
+        const today = !skipped && isPlanDay(p);
+        const fig = names.length ? planFigure(p, byId, settings.figure || 'male') : null;
+        return h('div', { class: `pcard start-card${today ? ' today' : ''}` },
+          h('div', { class: 'pc-body' },
+            fig,
+            h('div', { class: 'pc-text' },
+              h('span', { class: 'pc-top' }, h('b', {}, p.name), days ? h('small', { class: 'muted' }, days) : null),
+              today ? h('small', { class: 'today-tag' }, 'Heute') : null,
+              skipped ? h('small', { class: 'muted' }, 'Diese Woche ausgesetzt · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.unskipWeek(p.id); rerender(); } }, 'rückgängig')) : null,
+              h('small', {}, `${names.length} ${names.length === 1 ? 'Übung' : 'Übungen'}${warm ? ` · Aufwärmen: ${warm.name}` : ''}`),
+              names.length ? h('span', { class: 'ex' }, names.join(' · ')) : null)),
           h('button', { class: 'btn primary block', type: 'button', disabled: !names.length, onclick: go }, 'Starten'));
       })
       : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
