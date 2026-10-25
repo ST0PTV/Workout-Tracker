@@ -8,7 +8,7 @@ import { applyTheme, appearanceOf } from './theme.js';
 
 const boot = store.init();
 applyTheme(appearanceOf(store.get('settings')));
-initViewportGap(); // v3.0.5: Leiste bis an den Rand im iOS-Home-Bildschirm
+initViewportGap(); // v3.0.6: Streifen unter dem Fenster im iOS-Home-Bildschirm (Klasse .wt-gap)
 
 // v2.26.0 (A3): Schlägt ein Speichern fehl, bleibt oben ein Banner, bis das nächste Speichern klappt.
 const saveBar = document.getElementById('savebar');

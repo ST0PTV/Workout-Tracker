@@ -43,12 +43,13 @@
   --tap: 50px;
   --tap-s: 44px;
   --safe-top: env(safe-area-inset-top, 0px);
+  --strip: #141416; /* v3.0.6: Farbe der Leiste über dem Hintergrund (Streifen unter dem Fenster) */
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --vb-gap: 0px; /* v3.0.5: Lücke unter dem gemeldeten Fenster (iOS-Home-Bildschirm), setzt js/device.js */
   --tabbar-h: 49px; /* v3.0.4: Höhe der Leiste ohne Sicherheitsbereich (iOS-Standard) */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
 }
 :root[data-theme="light"] {
+  --strip: #FBFBFD;
   color-scheme: light;
   --bg: #F2F2F7;
   --surface: #FFFFFF;
@@ -98,7 +99,12 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 /* v3.0.3: App-Hülle. Das Dokument scrollt nicht mehr, nur #view. Sonst richtet iOS (Home-Bildschirm) fixierte Elemente an der Dokumenthöhe aus, und die Tab-Leiste saß auf kurzen Seiten (Training, Pläne) höher. */
 html, body { margin: 0; height: 100%; overflow: hidden; }
-body { position: fixed; inset: 0 0 calc(-1 * var(--vb-gap)) 0; height: auto; } /* v3.0.5: bis zum echten Bildschirmrand */
+body { position: fixed; inset: 0; }
+/* v3.0.6: iOS-Home-Bildschirm mit zu kurzem Fenster (js/device.js setzt .wt-gap): Unter dem Fenster liegt ein Streifen
+   in Höhe der Statusleiste, den die Seite nicht zeichnen kann; dort sitzt auch der Home-Balken. Darum kein Abstand
+   für den Home-Balken in der Leiste, und der Seitenhintergrund (daraus färbt iOS laut WebKit-Bug 301994 den Streifen)
+   bekommt die Farbe der Leiste, damit Leiste und Streifen wie eine Fläche wirken. Inhalte behalten --bg über body. */
+html.wt-gap { --safe-bottom: 0px; background: var(--strip); } /* --strip = Leiste (Fläche 72 %) über --bg, als feste Farbe */
 body {
   font-family: var(--font);
   font-size: 17px;
@@ -159,7 +165,7 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 8px; }
 
 /* Tab-Leiste: v3.0.4 klassische iOS-Leiste über die ganze Breite bis zum Rand (Nutzerwunsch), darunter der Sicherheitsbereich. Glas (Unschärfe) bleibt – die einzige Glasfläche der App. */
 .tabbar {
-  position: fixed; z-index: 10; left: 0; right: 0; bottom: calc(-1 * var(--vb-gap));
+  position: fixed; z-index: 10; left: 0; right: 0; bottom: 0;
   height: calc(var(--tabbar-h) + var(--safe-bottom));
   padding: 0 max(0px, calc(50% - 320px)) var(--safe-bottom);
   display: flex; justify-content: space-around; align-items: stretch;
@@ -177,7 +183,7 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 8px; }
 @media (prefers-reduced-transparency: reduce) { .tabbar { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 
 .toast {
-  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + var(--safe-bottom) - var(--vb-gap) + 16px);
+  position: fixed; left: 50%; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px);
   transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 20;
   max-width: calc(100% - 32px); padding: 12px 16px; border-radius: 14px; font-size: 15px;
   background: var(--surface-3); color: var(--text); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
@@ -242,14 +248,14 @@ button.row:active { background: color-mix(in srgb, var(--text) 5%, transparent);
 .link { background: none; border: 0; padding: 4px 0; color: var(--accent); cursor: pointer; font-size: 14px; }
 .archived-toggle { margin: 14px 4px 6px; }
 
-.fab { position: fixed; z-index: 9; right: max(18px, calc(50% - 302px)); bottom: calc(var(--tabbar-h) + var(--safe-bottom) - var(--vb-gap) + 16px);
+.fab { position: fixed; z-index: 9; right: max(18px, calc(50% - 302px)); bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 16px);
   width: 60px; height: 60px; border-radius: 20px; border: 0; cursor: pointer; font-size: 32px; line-height: 1;
   background: var(--accent); color: var(--on-accent); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
 .exercises { padding-bottom: 80px; }
 
 /* Sheets */
 body.sheet-open { overflow: hidden; }
-.sheet-overlay { position: fixed; inset: 0 0 calc(-1 * var(--vb-gap)) 0; z-index: 30; background: rgba(0, 0, 0, 0.5); }
+.sheet-overlay { position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, 0.5); }
 .sheet { position: fixed; z-index: 31; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 640px; max-height: 88vh;
   display: flex; flex-direction: column; border-radius: 26px 26px 0 0; background: var(--sheet-bg);
   border-top: 1px solid var(--glass-border); transform: translateY(100%); transition: transform 0.22s ease-out;
@@ -395,7 +401,7 @@ body.sheet-open { overflow: hidden; }
 .nav2 .btn { flex: 1; }
 .nav2 .btn:first-child:has(.flip) { flex: 0 0 56px; }
 .icon.flip { transform: rotate(180deg); }
-.restbar { position: fixed; z-index: 9; left: 12px; right: 12px; margin: 0 auto; max-width: 616px; bottom: calc(var(--tabbar-h) + var(--safe-bottom) - var(--vb-gap) + 10px);
+.restbar { position: fixed; z-index: 9; left: 12px; right: 12px; margin: 0 auto; max-width: 616px; bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 10px);
   display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 20px; background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
 .restbar[hidden] { display: none; }
 .restbar.done { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); border-color: color-mix(in srgb, var(--accent) 90%, transparent); }
@@ -413,8 +419,8 @@ body.sheet-open { overflow: hidden; }
 .start-card { cursor: default; }
 .start-card .btn { margin-top: 12px; }
 /* Toast über der Pausen-Leiste, damit beide lesbar bleiben */
-body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) - var(--vb-gap) + 96px); }
-body:has(.restbar:not([hidden]) .rt-next:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) - var(--vb-gap) + 126px); }
+body:has(.restbar:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 96px); }
+body:has(.restbar:not([hidden]) .rt-next:not([hidden])) .toast { bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 126px); }
 
 /* ---------- v1.0: Fortschritt ---------- */
 .tabbar .tab { font-size: 10.5px; letter-spacing: -0.01em; white-space: nowrap; }
@@ -1000,7 +1006,7 @@ button.row:active, .pickrow:active { background: var(--fill); }
 .set-label { font-size: 17px; }
 
 /* Sheets: schwebend mit großem Radius (iOS 26) */
-.sheet { left: 8px; right: 8px; bottom: calc(8px + var(--safe-bottom) - var(--vb-gap)); max-width: 624px; max-height: calc(100% - var(--safe-top) - var(--safe-bottom) - 48px);
+.sheet { left: 8px; right: 8px; bottom: calc(8px + var(--safe-bottom)); max-width: 624px; max-height: calc(100% - var(--safe-top) - var(--safe-bottom) - 48px);
   border-radius: 38px; background: var(--sheet-bg); border-top: 0; padding-bottom: 8px; box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.3);
   transform: translateY(calc(100% + 80px)); }
 .sheet.full { height: calc(100% - var(--safe-top) - var(--safe-bottom) - 48px); max-height: none; }

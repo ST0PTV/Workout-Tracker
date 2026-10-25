@@ -82,11 +82,11 @@ export function fmtBytes(b) {
   return `${(b / 1024 ** 3).toLocaleString('de-DE', { maximumFractionDigits: 1 })} GB`;
 }
 
-// ---------- v3.0.5: Lücke am unteren Rand im iOS-Home-Bildschirm ----------
-// Beobachtet (3.0.2–3.0.4, Screenshots): Solange das Dokument nicht scrollt, meldet iOS ein Fenster, das ca. 55 pt
-// kürzer ist als der Bildschirm; fixierte Elemente mit bottom: 0 hängen dann in der Luft. Ursache nicht belegt
-// (Hypothese: iOS-26-Fehler „als wäre die Safari-Leiste noch da“). Nur im Home-Bildschirm-Modus messen wir
-// Bildschirmhöhe − Fensterhöhe und schieben die Hülle per --vb-gap bis an den Rand. Im Safari-Browser bleibt 0.
+// ---------- v3.0.5/3.0.6: Lücke am unteren Rand im iOS-Home-Bildschirm ----------
+// Gemessen am iPhone (3.0.5, Messzeile): Bildschirm 932, Fenster 873, Lücke 59 = Safe-Area oben. Unter dem Fenster
+// liegt ein Streifen, den die Seite nicht zeichnen kann (3.0.5 schob die Leiste hinein, sie wurde abgeschnitten).
+// Seit 3.0.6 bleibt alles im Fenster; bei Lücke setzt diese Funktion nur die Klasse .wt-gap (siehe css/glass.css).
+// Ursache nicht belegt (Hypothese: iOS/WebKit-Fehler, WebKit-Bug 301994). Im Safari-Browser bleibt die Lücke 0.
 let gapNow = 0;
 const isStandalone = () => (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const fullHeight = () => (innerWidth > innerHeight ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height));
@@ -97,10 +97,10 @@ export function initViewportGap() {
     let gap = 0;
     if (isStandalone()) {
       gap = Math.max(0, Math.round(fullHeight() - innerHeight));
-      if (gap > 120) gap = 0; // größere Werte = Tastatur o. Ä., nicht die Leisten-Lücke
+      if (gap > 120) gap = 0; // größere Werte = Tastatur o. Ä., nicht der Streifen
     }
     gapNow = gap;
-    document.documentElement.style.setProperty('--vb-gap', `${gap}px`);
+    document.documentElement.classList.toggle('wt-gap', gap >= 20);
   };
   upd();
   addEventListener('resize', upd);
