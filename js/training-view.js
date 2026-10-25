@@ -659,23 +659,15 @@ function activeView(v, rerender) {
   return page;
 }
 
-// ---------- Start ----------
-
-function startView(rerender) {
-  // v2.33.0: Pläne des Tages (Trainingstag heute) nach oben, sonst alphabetisch
-  const plans = todayFirst(P.listPlans().sort((a, b) => a.name.localeCompare(b.name, 'de')));
+// v3.1.0: Start eines Plans mit allen Rückfragen (leichte Woche, Pause ≥ 21 Tage, Aufwärm-Routine) – genutzt von der
+// Startseite und vom Play-Knopf der Tab-Leiste. onStarted läuft nach erfolgreichem Start (z. B. zur Training-Seite).
+export function planStarter(rerender, onStarted = () => {}) {
   const byId = Object.fromEntries(lib.listExercises({ includeArchived: true }).map((e) => [e.id, e]));
   const past = S.finishedSessions();
-  const recent = past.slice(0, 3);
   const pause = PR.breakInfo(past);
-  const settings = store.get('settings');
-  const light = settings.lightWeek === weekKey(new Date());
-  const start = (fn) => () => { const r = fn(); if (!r.ok) { toast(r.errors[0], { error: true }); return; } ui.current = null; rerender(); };
-  // v2.34.0 (Startseite A, Nutzerwahl): Plan von heute als große Karte, übrige Pläne kompakt mit runder Start-Taste.
-  // Nebenaktionen (Nachtragen, leichte Woche) im ⋯-Menü; freies Training bleibt sichtbar.
-  let bigUsed = false;
-  const cards = plans.map((p) => {
-    const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
+  const light = store.get('settings').lightWeek === weekKey(new Date());
+  const start = (fn) => () => { const r = fn(); if (!r.ok) { toast(r.errors[0], { error: true }); return; } ui.current = null; onStarted(); rerender(); };
+  return (p) => {
     const warm = RT.planRoutine(p, 'warmup');
     // v2.3.0: Plan mit Aufwärm-Routine fragt vor dem Start; „Nein“ startet ohne weiteren Hinweis.
     // v2.4.0 (3A): nach ≥ 21 Tagen Pause erst „Willkommen zurück“, dann wie gewohnt (Aufwärm-Frage, Start).
@@ -709,6 +701,38 @@ function startView(rerender) {
       if (!pause) { launch(false); return; }
       askBreak(p, byId, past, pause, { onReduce: () => launch(true), onKeep: () => launch(false) });
     };
+    go();
+  };
+}
+
+// v3.1.0: freies Training starten (Play-Sheet).
+export function startFree(rerender) {
+  const r = S.startEmpty();
+  if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+  ui.current = null;
+  rerender();
+}
+
+// ---------- Start ----------
+
+function startView(rerender) {
+  // v2.33.0: Pläne des Tages (Trainingstag heute) nach oben, sonst alphabetisch
+  const plans = todayFirst(P.listPlans().sort((a, b) => a.name.localeCompare(b.name, 'de')));
+  const byId = Object.fromEntries(lib.listExercises({ includeArchived: true }).map((e) => [e.id, e]));
+  const past = S.finishedSessions();
+  const recent = past.slice(0, 3);
+  const pause = PR.breakInfo(past);
+  const settings = store.get('settings');
+  const light = settings.lightWeek === weekKey(new Date());
+  const start = (fn) => () => { const r = fn(); if (!r.ok) { toast(r.errors[0], { error: true }); return; } ui.current = null; rerender(); };
+  // v2.34.0 (Startseite A, Nutzerwahl): Plan von heute als große Karte, übrige Pläne kompakt mit runder Start-Taste.
+  // Nebenaktionen (Nachtragen, leichte Woche) im ⋯-Menü; freies Training bleibt sichtbar.
+  const startPlan = planStarter(rerender);
+  let bigUsed = false;
+  const cards = plans.map((p) => {
+    const names = p.items.map((it) => byId[it.exerciseId]?.name).filter(Boolean);
+    const warm = RT.planRoutine(p, 'warmup');
+    const go = () => startPlan(p); // v3.1.0: Start-Ablauf in planStarter() (auch für den Play-Knopf)
     const days = formatDays(p.days);
     const skipped = days && isWeekSkipped(p);
     const today = !skipped && isPlanDay(p);
@@ -751,7 +775,9 @@ function startView(rerender) {
   };
   return h('section', {},
     h('div', { class: 'page-head' }, h('h1', {}, 'Training'),
-      h('button', { class: 'dots', type: 'button', 'aria-label': 'Mehr: Training nachtragen, leichte Woche', onclick: moreMenu }, '⋯')),
+      h('div', { class: 'head-btns' },
+        h('a', { class: 'dots', href: '#/settings', 'aria-label': 'Einstellungen' }, icon('settings', { size: 20 })), // v3.1.0: Einstellungen nicht mehr in der Tab-Leiste
+        h('button', { class: 'dots', type: 'button', 'aria-label': 'Mehr: Training nachtragen, leichte Woche', onclick: moreMenu }, '⋯'))),
     welcomeCard(rerender),
     ...cycleStartCards(rerender),
     ...missedCards(rerender),

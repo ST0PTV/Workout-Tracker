@@ -74,7 +74,7 @@ for (const standalone of [true, false]) {
     const tag = `${standalone ? 'App' : 'Browser'} ${theme}`;
     ok(m.bar === 789 && m.body === 789, `${tag}: Leiste/Hülle im Fenster (${m.bar}/${m.body})`);
     ok(m.gap === standalone, `${tag}: Klasse wt-gap ${standalone ? 'gesetzt' : 'nicht gesetzt'}`);
-    if (standalone) ok(m.h === 49 && m.htmlBg !== m.bodyBg && m.htmlBg !== 'rgba(0, 0, 0, 0)', `${tag}: Leiste 49 hoch, Seitenhintergrund in Leistenfarbe (${m.htmlBg} vs ${m.bodyBg})`);
+    if (standalone) ok(m.h === 58 && m.htmlBg !== m.bodyBg && m.htmlBg !== 'rgba(0, 0, 0, 0)', `${tag}: Leiste 58 hoch, Seitenhintergrund in Leistenfarbe (${m.htmlBg} vs ${m.bodyBg})`);
     ok(m.info.includes(`Lücke ${standalone ? 55 : 0}`), `${tag}: Messzeile (${m.info})`);
     ok(errs.length === 0, `${tag}: keine Fehler ${errs.join(' | ')}`);
     await ctx.close();

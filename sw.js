@@ -78,6 +78,8 @@ const PRECACHE = [
   'js/diary-view.js',
   'js/views.js',
   'js/theme.js',
+  'js/next-plan.js',
+  'js/play-view.js',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',

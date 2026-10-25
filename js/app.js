@@ -5,6 +5,7 @@ import { runnerView } from './routine-view.js';
 import { activeSession } from './session.js';
 import { setKeepAwake, initViewportGap } from './device.js';
 import { applyTheme, appearanceOf } from './theme.js';
+import { openPlaySheet } from './play-view.js';
 
 const boot = store.init();
 applyTheme(appearanceOf(store.get('settings')));
@@ -29,6 +30,10 @@ const router = startRouter({
   '/settings': withDevice(settingsView),
   '/routine': withDevice(runnerView) // v2.3.0: Ablauf einer Aufwärm-/Cool-down-Routine
 });
+
+// v3.1.0: Play-Knopf in der Tab-Leiste (ui.js sendet wt-play)
+document.addEventListener('wt-play', () => openPlaySheet(() => router()));
+
 
 if (!boot.ok) {
   // Daten bleiben unverändert; Hinweis, damit vor weiteren Änderungen ein Backup gezogen wird.
