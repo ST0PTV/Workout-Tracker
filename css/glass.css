@@ -1120,3 +1120,11 @@ details.more > summary { color: var(--accent); }
 /* Platzhalter (Vorschlagswerte) deutlich grau statt fast weiß, damit sie nicht wie eingetragene Werte wirken */
 .setrow .val::placeholder, .big-in::placeholder, .input::placeholder, .area::placeholder { color: var(--faint); font-weight: 400; opacity: 1; }
 .hdrrow { font-size: 11px; }
+
+/* v3.0.3: Datumsfelder (Training nachtragen, Zeit-Sheet). iOS-Safari gibt datetime-local eine eigene Mindestbreite und ignoriert width: 100%; das Feld ragte über den Sheet-Rand. */
+input.input[type="datetime-local"], input.input[type="date"], input.input[type="time"] {
+  -webkit-appearance: none; appearance: none;
+  display: block; width: 100%; min-width: 0; max-width: 100%;
+  text-align: center; font-size: 16px; /* mindestens 16 px, sonst zoomt iOS beim Antippen */
+}
+input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: center; min-width: 0; margin: 0; }
