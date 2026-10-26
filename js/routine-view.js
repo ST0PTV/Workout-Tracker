@@ -15,7 +15,7 @@ import { stepper } from './controls.js';
 import { miniFigure } from './figure.js';
 
 const sex = () => store.get('settings').figure;
-const minutes = (routine) => `≈ ${Math.max(1, Math.round(R.estimateSeconds(routine) / 60))} min`;
+const minutes = (routine) => `${Math.max(1, Math.round(R.estimateSeconds(routine) / 60))} min`;
 const figure = (item, width = 24) => h('span', { class: 'fig-ic' }, miniFigure({ muscles: item.muscles }, sex(), width));
 
 // ---------- Info ----------
@@ -151,8 +151,8 @@ export function openEditor(draft, rerender, { isNew = false } = {}) {
     // v3.5.0: Gesamtdauer per −/+ ändern; Wiederholungen und Zeiten werden anteilig angepasst.
     const est = Math.max(1, Math.round(R.estimateSeconds(r) / 60));
     foot.replaceChildren(
-      r.items.length ? h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Gesamtdauer', h('small', { class: 'muted' }, ' · Schätzung')),
-        stepper({ value: est, small: true, format: (v) => `≈ ${v} min`, label: 'Gesamtdauer', onStep: (v, delta) => {
+      r.items.length ? h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Gesamtdauer'),
+        stepper({ value: est, small: true, format: (v) => `${v} min`, label: 'Gesamtdauer', onStep: (v, delta) => {
           Object.assign(r, R.scaleRoutine(r, R.nextMinutes(v, delta) * 60));
           draw();
           return Math.max(1, Math.round(R.estimateSeconds(r) / 60));

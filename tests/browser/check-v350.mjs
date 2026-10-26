@@ -31,11 +31,11 @@ for (const theme of ['dark', 'light']) {
   const copyBtn = p.getByRole('button', { name: /Kopie|bearbeiten/i }).first();
   await copyBtn.click(); await p.waitForTimeout(400);
   const dur0 = await p.evaluate(() => document.querySelector('.rt-total .step')?.innerText || document.querySelector('.rt-total')?.innerText || '');
-  ok(/≈ 15 min/.test(dur0), `${tag}: Gesamtdauer ≈ 15 min (${dur0.replace(/\n/g, ' ')})`);
+  ok(/(^|\s)15 min/.test(dur0) && !/≈|Schätzung/.test(dur0), `${tag}: Gesamtdauer 15 min ohne ≈ und Schätzung (${dur0.replace(/\n/g, ' ')})`);
   await p.getByRole('button', { name: /Gesamtdauer.*(weniger|minus|−)/i }).first().click().catch(async () => { await p.locator('.rt-total button').first().click(); });
   await p.waitForTimeout(300);
   const dur1 = await p.evaluate(() => document.querySelector('.rt-total')?.innerText || '');
-  ok(/≈ (9|10|11) min/.test(dur1), `${tag}: nach − etwa 10 min (${dur1.replace(/\n/g, ' ')})`);
+  ok(/(^|\s)(9|10|11) min/.test(dur1) && !/≈|Schätzung/.test(dur1), `${tag}: nach − etwa 10 min (${dur1.replace(/\n/g, ' ')})`);
   const reps = await p.evaluate(() => [...document.querySelectorAll('.rt-item .step')].map((x) => x.innerText.replace(/\s+/g, ' ')).slice(0, 3));
   ok(reps.some((t) => /1[0-4]×/.test(t)), `${tag}: Wiederholungen anteilig kleiner ${JSON.stringify(reps)}`);
   const gap = await p.evaluate(() => {
@@ -63,12 +63,12 @@ for (const theme of ['dark', 'light']) {
   await p.getByRole('tab', { name: 'Pläne' }).click().catch(() => {}); await p.waitForTimeout(200);
   await p.getByText('Dauer-Test').first().click(); await p.waitForTimeout(300);
   const head = await p.evaluate(lastSheet);
-  const m0 = Number((head.match(/≈ (\d+) min/) || [])[1]);
-  ok(m0 > 0, `${tag}: Plan zeigt ≈ ${m0} min`);
+  const m0 = Number((head.match(/· (\d+) min/) || [])[1]);
+  ok(m0 > 0, `${tag}: Plan zeigt ${m0} min`);
   await p.getByRole('button', { name: /Bearbeiten/ }).first().click(); await p.waitForTimeout(300);
   ok(await p.locator('.plan-dur').count() === 1, `${tag}: Gesamtdauer im Bearbeiten-Modus`);
   await p.locator('.plan-dur button').first().click(); await p.waitForTimeout(300);
-  const m1 = Number(((await p.evaluate(() => document.querySelector('.plan-dur').innerText)).match(/≈ (\d+) min/) || [])[1]);
+  const m1 = Number(((await p.evaluate(() => document.querySelector('.plan-dur').innerText)).match(/(\d+) min/) || [])[1]);
   ok(m1 < m0, `${tag}: Plan kürzer (${m0} → ${m1} min)`);
   const sets = await p.evaluate((id) => import('./js/plans.js').then((P) => P.getPlan(id).items.map((it) => it.targetSets)), planId);
   ok(sets[0] === 3 && sets.every((s) => s >= 1) && sets.some((s) => s < 3), `${tag}: Einzelgelenk zuerst gekürzt ${JSON.stringify(sets)}`);
