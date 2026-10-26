@@ -44,8 +44,11 @@ test('Figur lässt sich in allen Keyframes lösen (Gelenke endlich), Füße fest
       for (const j of Object.values(P.joints)) assert.ok(j.every(Number.isFinite), `${ref}: NaN`);
     }
   }
-  const toes = M.resolveFrames(D.framesOf(D.animationFor('door-frame-push-up'))).map((f) => M.solvePose(f.pose).joints.toe[1]);
-  assert.ok(toes.every((y) => Math.abs(y) < 1.5), 'Türrahmen: Zehen am Boden');
+  // v3.6.2: Fuß flach auf dem Boden (nicht auf den Zehenspitzen): Fußrichtung waagerecht, Fußsohle auf Bodenhöhe (Zehenpunkt liegt 2 über der Sohle)
+  const feet = M.resolveFrames(D.framesOf(D.animationFor('door-frame-push-up'))).map((f) => M.solvePose(f.pose));
+  assert.ok(feet.every((P) => Math.abs(P.F.foot.d[1]) < 0.01 && P.F.foot.d[0] > 0.99), 'Türrahmen: Fuß waagerecht (flach)');
+  assert.ok(feet.every((P) => Math.abs(P.joints.toe[1] + 2) < 1.5), 'Türrahmen: Fußsohle am Boden');
+  assert.ok(feet.every((P) => P.joints.ankle[1] < -8), 'Türrahmen: Sprunggelenk über dem Boden, Ferse unten');
 });
 
 test('Routine-Katalog verknüpft die vier Übungen mit ihren Animationen', () => {

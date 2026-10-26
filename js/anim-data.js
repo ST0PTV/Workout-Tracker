@@ -809,15 +809,15 @@ const SSQ = { post: 66, hand: [60, -200], ball: [30, -2] }; // Pfosten seitlich 
 // ---------- v3.6.0: Animationen für die Mobilitätsroutine (Türrahmen-Push-up, Stuhl-Kniebeuge, Balanceboard-Wadenheben, Hüftkreisen) ----------
 // Für diese Übungen gibt es keine gelesene Messstudie mit Gelenkwinkeln; Winkel sind übertragen oder Zeichenkonvention (so in den Datensätzen benannt).
 // Türrahmen-Push-up (Seitenansicht): Hände fest am Türrahmen auf Brusthöhe (≈ 1,3 m, Konvention), Füße am Boden. Die Armbewegung ist die des Liegestützes
-// (Suprak et al. 2013, Volltext) um 90° in die Waagerechte gedreht; die Körperneigung folgt daraus (Zehen auf dem Boden). Unten reicht die Brust bis auf die Höhe der Hände.
+// (Suprak et al. 2013, Volltext) um 90° in die Waagerechte gedreht; die Körperneigung folgt daraus (Füße flach auf dem Boden, Fersen unten). Unten reicht die Brust bis auf die Höhe der Hände.
 const DPU = (() => {
-  const HY = -260, base = { root: 'wrist', rootPos: [0, HY], hip: 0, knee: 0, foot: 165, handFlat: 1 };
+  const HY = -260, base = { root: 'wrist', rootPos: [0, HY], hip: 0, knee: 0, foot: 90, handFlat: 1 }; // foot 90: Fuß flach, Ferse und Ballen am Boden (v3.6.2, vorher 165 = Zehenspitzen)
   const rot = (v) => [v[1], -v[0]]; // Liegestütz-Armgeometrie (Hände unter der Schulter) in die Waagerechte gedreht
   const top = { elbow: rot(FEPU.top.elbow).map(r1), wrist: [-104, -6].map((v) => -v).map(r1) };
   const fe = (a) => ({ elbow: rot(a.elbow).map(r1), wrist: rot(a.wrist).map(r1) });
   const t0 = { elbow: [52, 3], wrist: [104, 6] }, b0 = fe(FEPU.bottom);
   const mix = (u) => ({ elbow: t0.elbow.map((v, i) => r1(v + (b0.elbow[i] - v) * u)), wrist: t0.wrist.map((v, i) => r1(v + (b0.wrist[i] - v) * u)) });
-  const sp = (arm) => ({ ...base, armPoints: arm, solve: { param: 'trunk', joint: 'toe', y: 0, range: [20, 150] } });
+  const sp = (arm) => ({ ...base, armPoints: arm, solve: { param: 'trunk', joint: 'toe', y: -2, range: [20, 150] } }); // toe y −2: Fußsohle genau auf dem Boden (Zehenpunkt liegt 2 über der Sohle)
   const frontX = (P) => { let m = -1e9; for (const sh of shapesFor('male')) if (sh.id === 'body' && sh.seg === 'trunk') for (const q of sh.pts) m = Math.max(m, tf(P, sh.seg, q)[0]); return m; };
   const u = bisect((x) => frontX(solvePose(sp(mix(x)))) - 4, 0, 1);
   const P0 = solvePose(sp(t0)), P1 = solvePose(sp(mix(u)));
