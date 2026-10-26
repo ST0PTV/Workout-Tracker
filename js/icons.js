@@ -29,6 +29,7 @@ const PATHS = {
   dumbbell: '<g transform="rotate(-45 12 12)" fill="currentColor" stroke="none"><rect x="6.5" y="11" width="11" height="2" rx="1"/><rect x="4.6" y="7.2" width="2.6" height="9.6" rx="1.1"/><rect x="16.8" y="7.2" width="2.6" height="9.6" rx="1.1"/><rect x="2" y="9.2" width="2.2" height="5.6" rx="1"/><rect x="19.8" y="9.2" width="2.2" height="5.6" rx="1"/></g>',
   play: '<path d="M8 5.5v13l10-6.5z" fill="currentColor" stroke-linejoin="round"/>',
   pause: '<path d="M8 6v12M16 6v12" stroke-width="2.6"/>',
+  cardio: '<path d="M3 12h4l2.5-6 4 12 2.5-6H21" stroke-linejoin="round"/>', // v3.8.0: Cardio-Tag im Assistenten
   motion: '<circle cx="12" cy="5" r="1.6" fill="currentColor"/><path d="M9 20l2.5-6 2.5 2 2.5-6M7 11l4-2.5 3 1.5 3-1"/>'
 };
 

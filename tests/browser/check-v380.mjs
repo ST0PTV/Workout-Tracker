@@ -1,11 +1,15 @@
-// v3.8.0: Plan-Assistent mit Wochentage-Auswahl. Tasten, Grenzen 2–5, Split-Anzeige, Hinweis, Vorschau mit den Tagen. Dunkel und hell.
+// v3.8.0: Plan-Assistent, Wochentage mit Kraft/Cardio (Variante A): Tippen schaltet frei → Kraft → Cardio → frei,
+// höchstens 6 Krafttage, Hinweise, Vorschau mit Cardio-Plan und Ausdauer-Minuten. Dunkel und hell.
 // Aufruf: node tests/browser/check-v380.mjs [Ordner für Screenshots]
 import { launch, startServer, checker, BAD_TEXT } from './lib.mjs';
 const shots = process.argv[2] || null;
 const srv = await startServer(); const b = await launch(); const { ok, done } = checker();
 const sheetText = (p) => p.evaluate(() => [...document.querySelectorAll('.sheet')].pop()?.innerText || '');
-const pressed = (p) => p.evaluate(() => [...document.querySelectorAll('.as-day')].map((e) => e.getAttribute('aria-pressed') === 'true'));
-const disabled = (p) => p.evaluate(() => [...document.querySelectorAll('.as-day')].map((e) => e.disabled));
+const states = (p) => p.evaluate(() => [...document.querySelectorAll('.as-day')].map((e) => (e.classList.contains('k') ? 'k' : e.classList.contains('c') ? 'c' : '-')).join(''));
+const tap = async (p, d, n = 1) => { for (let i = 0; i < n; i++) await p.locator('.as-day').nth(d).click(); };
+const setWeek = async (p, want) => { // want z. B. 'k-k-kc-'
+  for (let d = 0; d < 7; d++) for (let i = 0; i < 3 && (await states(p))[d] !== want[d]; i++) await tap(p, d);
+};
 for (const theme of ['dark', 'light']) {
   const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block' })).newPage();
   const errs = [];
@@ -15,48 +19,58 @@ for (const theme of ['dark', 'light']) {
   if (theme === 'light') await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
   await p.evaluate(async () => { const v = await import('./js/assistant-view.js'); v.openAssistant(() => {}); });
   await p.waitForTimeout(400);
-  // Frage 1: Ziel → weiter
   await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(200);
-  // Frage 2: Wochentage
   let t = await sheetText(p);
   ok(/An welchen Tagen trainierst du\?/.test(t), `${theme}: Frage „An welchen Tagen“`);
-  ok(JSON.stringify(await pressed(p)) === JSON.stringify([true, false, true, false, true, false, false]), `${theme}: Standard Mo · Mi · Fr`);
-  ok(/3 Tage/.test(t) && /Ganzkörper · guter Start/.test(t), `${theme}: zeigt „3 Tage“ und den Split`);
+  ok(await states(p) === 'k-k-k--', `${theme}: Standard Mo · Mi · Fr Kraft (${await states(p)})`);
+  ok(!/frei/.test(await p.evaluate(() => document.querySelector('.as-week').innerText)), `${theme}: freie Tage ohne Beschriftung`);
   const box = await p.locator('.as-day').first().boundingBox();
   ok(box.height >= 44 && box.width >= 44, `${theme}: Taste groß genug (${Math.round(box.width)}×${Math.round(box.height)})`);
-  if (shots) await p.screenshot({ path: `${shots}/v380-${theme}-3.png` });
-  // Mo, Di, Mi → Hinweis; Fr abwählen
-  await p.locator('.as-day').nth(1).click(); await p.locator('.as-day').nth(4).click();
+  // Zyklus: frei → Kraft → Cardio → frei
+  await tap(p, 1); ok((await states(p))[1] === 'k', `${theme}: 1× tippen = Kraft`);
+  await tap(p, 1); ok((await states(p))[1] === 'c', `${theme}: 2× tippen = Cardio`);
+  await tap(p, 1); ok((await states(p))[1] === '-', `${theme}: 3× tippen = frei`);
+  // 3 Kraft + 2 Cardio
+  await setWeek(p, 'kck-kc-');
   t = await sheetText(p);
-  ok(/Ganzkörper-Training ist ein freier Tag dazwischen üblich/.test(t), `${theme}: Hinweis bei direkt hintereinander`);
-  if (shots) await p.screenshot({ path: `${shots}/v380-${theme}-hint.png` });
-  // auf 1 Tag → Weiter gesperrt
-  await p.locator('.as-day').nth(0).click(); await p.locator('.as-day').nth(1).click();
+  ok(/3 × Kraft · 2 × Cardio/.test(t) && /Ganzkörper · guter Start/.test(t), `${theme}: Zusammenfassung 3 × Kraft · 2 × Cardio`);
+  ok(await p.locator('.as-day.c svg').count() === 2 && await p.locator('.as-day.k svg').count() === 3, `${theme}: Icons Hantel/Cardio auf den Tasten`);
+  if (shots) await p.screenshot({ path: `${shots}/v380-${theme}-mix.png` });
+  // 6 Krafttage → siebter freier Tag springt auf Cardio
+  await setWeek(p, 'kkkkkk-');
   t = await sheetText(p);
-  ok(/Noch 1 Tag wählen/.test(t), `${theme}: „Noch 1 Tag wählen“ bei einem Tag`);
-  ok(await p.getByRole('button', { name: 'Weiter' }).isDisabled(), `${theme}: Weiter gesperrt unter 2 Tagen`);
-  // auf 5 Tage → übrige gesperrt
-  for (const d of [0, 1, 3, 4]) await p.locator('.as-day').nth(d).click();
-  t = await sheetText(p);
-  ok(JSON.stringify(await disabled(p)) === JSON.stringify([false, false, true, false, false, true, true]) || (await disabled(p)).filter(Boolean).length === 2, `${theme}: bei 5 Tagen sind die übrigen zwei gesperrt`);
-  ok(/5 Tage/.test(t) && /Drücken \/ Ziehen \/ Beine/.test(t) && /höchstens 5 Tage/.test(t), `${theme}: 5 Tage zeigt Split und Grenze`);
-  if (shots) await p.screenshot({ path: `${shots}/v380-${theme}-5.png` });
-  // Di, Do, Sa (3 Tage): zuerst Mi (2) abwählen und Tage umstellen
-  await p.evaluate(() => { for (const i of [0, 1, 2, 3, 4, 5, 6]) { const e = document.querySelectorAll('.as-day')[i]; if (e.getAttribute('aria-pressed') === 'true') e.click(); } });
-  for (const d of [1, 3, 5]) await p.locator('.as-day').nth(d).click();
-  ok(JSON.stringify(await pressed(p)) === JSON.stringify([false, true, false, true, false, true, false]), `${theme}: Di · Do · Sa gewählt`);
-  // weiter bis zur Vorschau: Dauer, Geräte, Erfahrung, dann Vorschlag
+  ok(/Höchstens 6 Krafttage/.test(t), `${theme}: Hinweis höchstens 6 Krafttage`);
+  await tap(p, 6); ok((await states(p))[6] === 'c', `${theme}: bei 6 Krafttagen wird ein weiterer Tag Cardio`);
+  // nichts gewählt → Weiter gesperrt
+  await setWeek(p, '-------');
+  ok(await p.getByRole('button', { name: 'Weiter' }).isDisabled() && /Noch keinen Tag gewählt/.test(await sheetText(p)), `${theme}: ohne Tag ist Weiter gesperrt`);
+  // 1 Krafttag → Hinweis; Ganzkörper an Folgetagen → Hinweis
+  await setWeek(p, '--k----');
+  ok(/einmal pro Woche dran/.test(await sheetText(p)), `${theme}: Hinweis bei einem Krafttag`);
+  await setWeek(p, 'kk-----');
+  ok(/freier Tag dazwischen üblich/.test(await sheetText(p)), `${theme}: Hinweis Ganzkörper an Folgetagen`);
+  // Di · Do · Sa Kraft, Mo · Mi Cardio → Vorschau
+  await setWeek(p, 'ckck-k-');
   for (let i = 0; i < 3; i++) { await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(150); }
   await p.getByRole('button', { name: 'Vorschlag ansehen' }).click(); await p.waitForTimeout(300);
   t = await sheetText(p);
-  ok(/Ganzkörper A · Di · Sa/.test(t), `${theme}: Vorschau zeigt Ganzkörper A · Di · Sa`);
-  await p.getByRole('tab').nth(1).click(); await p.waitForTimeout(150);
-  ok(/Ganzkörper B · Do/.test(await sheetText(p)), `${theme}: Ganzkörper B · Do`);
+  ok(/3 Krafttage · 2 Cardio-Tage/.test(t), `${theme}: Kopfzeile Krafttage und Cardio-Tage`);
+  ok(/Ganzkörper A · Di · Sa/.test(t), `${theme}: Ganzkörper A · Di · Sa`);
+  ok(/Ausdauer pro Woche/.test(t) && /ca\. 90 min/.test(t) && /WHO/.test(t), `${theme}: Ausdauer pro Woche ca. 90 min mit WHO-Orientierung`);
+  await p.getByRole('tab', { name: 'Ausdauer' }).click(); await p.waitForTimeout(150);
+  t = await sheetText(p);
+  ok(/Ausdauer · Mo · Mi/.test(t) && /Gehen \(zügig, draußen\)/.test(t) && /ca\. 45 min/.test(t), `${theme}: Cardio-Plan Mo · Mi mit zügigem Gehen, ca. 45 min`);
   ok(!BAD_TEXT.test(t) && !t.includes('[object'), `${theme}: kein null/undefined/[object]`);
-  // Zurück bewahrt die Auswahl
-  await p.getByRole('button', { name: 'Zurück' }).first().click();
-  for (let i = 0; i < 3; i++) { await p.getByRole('button', { name: 'Zurück' }).first().click(); await p.waitForTimeout(100); }
-  ok(JSON.stringify(await pressed(p)) === JSON.stringify([false, true, false, true, false, true, false]), `${theme}: Auswahl bleibt beim Zurückgehen`);
+  if (shots) await p.screenshot({ path: `${shots}/v380-${theme}-preview.png` });
+  // Nur Cardio
+  await p.getByRole('button', { name: 'Anpassen' }).click(); await p.waitForTimeout(150);
+  await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(150);
+  await setWeek(p, 'ccccccc');
+  for (let i = 0; i < 3; i++) { await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(150); }
+  await p.getByRole('button', { name: 'Vorschlag ansehen' }).click(); await p.waitForTimeout(300);
+  t = await sheetText(p);
+  ok(/7 Cardio-Tage/.test(t) && !/Sätze pro Muskel/.test(t) && /ca\. 315 min/.test(t), `${theme}: nur Cardio – keine Muskelsätze, 315 min`);
+  ok(await p.getByRole('button', { name: 'So entsteht der Vorschlag' }).count() === 1, `${theme}: Info-Knopf auch ohne Krafttage`);
   ok(errs.length === 0, `${theme}: keine Konsolenfehler ${errs.join(' | ')}`);
 }
 await b.close(); await srv.close(); done();

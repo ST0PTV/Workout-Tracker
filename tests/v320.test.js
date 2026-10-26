@@ -23,7 +23,7 @@ test('alle Kandidaten existieren im Pool', () => {
 
 test('Antworten werden geprüft (unbekannt → Standard)', () => {
   const a = B.normalizeAnswers({ goal: 'x', days: 9, minutes: 1, gear: 'y', level: 'z' });
-  assert.deepEqual(a, { goal: 'muscle', weekdays: null, days: 3, minutes: 45, gear: null, level: 'new' }); // weekdays seit 3.8.0
+  assert.deepEqual(a, { goal: 'muscle', weekdays: null, cardioDays: [], days: 3, minutes: 45, gear: null, level: 'new' }); // weekdays, cardioDays seit 3.8.0
 });
 
 test('Split je Tage; jeder Plan mit Wochentagen, Summe = Tage', () => {
@@ -71,9 +71,9 @@ test('geschätzte Dauer bleibt im Zeitrahmen (außer Mindestumfang von 3 Übunge
   }
 });
 
-test('jeder große Muskel mind. 2× pro Woche (Studio, 2–5 Tage)', () => {
+test('jeder große Muskel mind. 2× pro Woche (Studio, 2–6 Krafttage; 1 Tag bekommt einen Hinweis, v3.8.0)', () => {
   const big = ['chest', 'lats', 'quads', 'hamstrings', 'glutes'];
-  for (const d of B.DAY_OPTIONS) {
+  for (const d of B.DAY_OPTIONS.filter((n) => n >= 2)) {
     const p = B.buildProgram({ ...gym, days: d, minutes: 60 });
     for (const m of big) {
       const times = p.plans.reduce((n, plan) => n + (plan.items.some((it) => poolEntry(it.ref).muscles.primary.includes(m) || poolEntry(it.ref).muscles.secondary.includes(m)) ? plan.days.length : 0), 0);

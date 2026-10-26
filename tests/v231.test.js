@@ -15,12 +15,13 @@ test('GEAR: Schlüssel eindeutig, kein Körpergewicht, alle Haupt-Geräte enthal
   for (const k of Object.keys(EQUIPMENT)) if (k !== 'bodyweight') assert.ok(k in GEAR, k);
 });
 
-test('gearOf: nur bekannte Schlüssel, eigenes Gerät dabei, Cardio = cardio', () => {
+test('gearOf: nur bekannte Schlüssel, eigenes Gerät dabei, Cardio am Gerät = cardio, draußen ohne (Rad = bike)', () => {
   for (const p of POOL) {
     const g = gearOf(p);
     assert.ok(g.every((k) => k in GEAR), p.ref);
     assert.equal(new Set(g).size, g.length, p.ref);
-    if (p.kind === 'cardio') assert.deepEqual(g, ['cardio'], p.ref);
+    // v3.8.0: Cardio draußen (equipment 'bodyweight') ohne Cardiogerät; Radfahren draußen braucht ein Fahrrad.
+    if (p.kind === 'cardio') assert.deepEqual(g, p.equipment === 'bodyweight' ? (p.ref === 'outdoor-cycling' ? ['bike'] : []) : ['cardio'], p.ref);
     else if (p.equipment !== 'bodyweight') assert.ok(g.includes(p.equipment), p.ref);
   }
 });

@@ -34,7 +34,8 @@ export const GEAR = {
   dipbars: 'Dipbarren',
   band: 'Widerstandsband',
   wheel: 'Ab-Rad',
-  balance: 'Balanceboard'
+  balance: 'Balanceboard',
+  bike: 'Fahrrad' // v3.8.0: für Radfahren draußen
 };
 
 // Zusätzlich nötiges Zubehör je Übung (neben dem eigenen Gerät aus equipment). Zuordnung selbst vorgenommen,
@@ -50,14 +51,16 @@ const EXTRA_GEAR = {
   wheel: ['ab-wheel-rollout'],
   balance: ['balance-board-calf-raise'],
   barbell: ['inverted-row'], // Stange im Rack auf Hüfthöhe; mit Ringen oder TRX geht es auch (dann Filter aus)
-  machine: ['back-extension-45']
+  machine: ['back-extension-45'],
+  bike: ['outdoor-cycling']
 };
 const EXTRA_BY_REF = new Map();
 for (const [gear, refs] of Object.entries(EXTRA_GEAR)) for (const r of refs) EXTRA_BY_REF.set(r, [...(EXTRA_BY_REF.get(r) || []), gear]);
 
 // Alle Geräte, die eine Pool-Übung braucht (leer = ohne Zubehör machbar).
 export function gearOf(p) {
-  const own = p.kind === 'cardio' ? 'cardio' : p.equipment === 'bodyweight' ? null : p.equipment;
+  // v3.8.0: Cardio draußen (equipment 'bodyweight') braucht kein Cardiogerät.
+  const own = p.equipment === 'bodyweight' ? null : p.kind === 'cardio' ? 'cardio' : p.equipment;
   return [...new Set([own, ...(EXTRA_BY_REF.get(p.ref) || [])].filter(Boolean))];
 }
 
@@ -1301,6 +1304,37 @@ export const POOL = [
     sources: [
       S('Harber et al. 2012, J Appl Physiol', '10.1152/japplphysiol.00786.2012', 'Reines Beinkurbeln (Ergometer) vergrößert den Quadrizeps im MRT. Übertragung auf das Air Bike ist eine Ableitung.'),
       S('Vegter et al. 2021, Front Physiol', '10.3389/fphys.2021.599514', 'Beim Armkurbeln nutzen Personen v. a. die Armbeuger (Ziehen), die Armstrecker (Drücken) oder beides, je nach individueller Strategie.')
+    ]
+  }, 'cardio'),
+
+  // v3.8.0: Cardio draußen, ohne Cardiogerät (für Cardio-Tage im Plan-Assistenten). Quellen per PubMed geprüft (Abstracts).
+  P('outdoor-walking', 'Gehen (zügig, draußen)', 'bodyweight', [], [], {
+    confidence: 'medium', basis: 'Modell + EMG',
+    note: 'Zügig heißt hier: schneller als dein gewohntes Gehtempo. Eingetragen werden Dauer oder Strecke.',
+    involved: { primary: ['glutes', 'quads', 'calves'], secondary: ['abductors', 'lower-back'] },
+    sources: [
+      S('Lim, Lin & Pandy 2013, Gait Posture', '10.1016/j.gaitpost.2012.11.020', 'Modell beim Gehen: großer und mittlerer Gesäßmuskel, Vasti, Gastrocnemius und Soleus tragen den Körper und treiben ihn an; Rückenstrecker helfen beim Gleichgewicht.'),
+      S('Escalona et al. 2021, Motor Control', '10.1123/mc.2020-0008', 'EMG von acht Beinmuskeln bei langsamem, normalem und schnellem Gehen (20 Erwachsene): Mit dem Tempo ändert sich, wie die Muskeln zusammenarbeiten.')
+    ]
+  }, 'cardio'),
+  P('outdoor-running', 'Laufen (draußen)', 'bodyweight', [], [], {
+    confidence: 'medium', basis: 'Modell + EMG (Laufband übertragen)',
+    note: 'Eingetragen werden Dauer oder Strecke.',
+    involved: { primary: ['calves', 'quads', 'glutes'], secondary: ['hamstrings', 'hip-flexors'] },
+    sources: [
+      S('Hamner & Delp 2013, J Biomech', '10.1016/j.jbiomech.2012.11.024', 'Muskelgetriebene Simulation (10 Läufer, 2–5 m/s): Der Soleus liefert bei allen Tempi den größten Beitrag nach oben und nach vorn.'),
+      S('Dorn, Schache & Pandy 2012, J Exp Biol', '10.1242/jeb.064527', 'Bis 7 m/s tragen Soleus und Gastrocnemius am meisten zur Stützkraft bei; schneller treiben Hüftbeuger, großer Gesäßmuskel und Beinbeuger den Beinschwung.'),
+      S('Esculier et al. 2015, Gait Posture', '10.1016/j.gaitpost.2015.02.020', 'EMG beim Laufbandlaufen von Gesäß, Quadrizeps und Soleus; auf Laufen draußen übertragen.')
+    ]
+  }, 'cardio'),
+  P('outdoor-cycling', 'Radfahren (draußen)', 'bodyweight', [], [], {
+    confidence: 'medium', basis: 'MRT + EMG (Ergometer übertragen)',
+    note: 'Welche Muskeln wie stark arbeiten, hängt von Leistung, Trittfrequenz und Sitzposition ab.',
+    involved: { primary: ['quads'], secondary: ['glutes', 'hamstrings', 'calves'] },
+    sources: [
+      S('Hug & Dorel 2009, J Electromyogr Kinesiol', '10.1016/j.jelekin.2007.10.010', 'Review zur EMG beim Pedalieren: Das Muster der Beinmuskeln hängt u. a. von Leistung, Trittfrequenz, Körperposition, Trainingsstand und Ermüdung ab.'),
+      S('Harber et al. 2012, J Appl Physiol', '10.1152/japplphysiol.00786.2012', '12 Wochen Ergometertraining: Quadrizepsvolumen im MRT um ca. 5–6 % größer. Übertragung aufs Rad draußen ist eine Ableitung.'),
+      S('Bouillon et al. 2016, Int J Sports Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/27104052/', 'Vergleich von Ergometer, Liegerad, Laufband und ElliptiGO: Gesäß und Beinbeuger nur gering bis mäßig aktiv, Wade am aufrechten Rad am höchsten.')
     ]
   }, 'cardio'),
 ];
