@@ -14,6 +14,7 @@ import { routinesPanel, planSlots, openNewRoutine } from './routine-view.js';
 import { DAY_LABELS, formatDays, isWeekSkipped } from './schedule.js';
 import { openProgressionInfo } from './progression-view.js';
 import { openAssistant } from './assistant-view.js';
+import { openPlanAnalysis } from './plan-analysis-view.js';
 
 // v2.30.0 (B2): Wiederholungsbereich pro Planeintrag (optional). Standard beim Einschalten 8–12 (Konvention).
 const rrText = (it) => (it.repRange ? ` × ${it.repRange.min === it.repRange.max ? it.repRange.min : `${it.repRange.min}–${it.repRange.max}`} Wdh.` : '');
@@ -302,9 +303,11 @@ export function plansView(rerender) {
     return h('section', { class: 'plans' }, h('h1', {}, 'Pläne'), seg, routinesPanel(rerender),
       h('button', { class: 'fab', type: 'button', 'aria-label': 'Routine anlegen', onclick: () => openNewRoutine(rerender) }, icon('plus', { size: 30 })));
   }
+  const analysable = plans.some((p) => p.items.length);
   return h('section', { class: 'plans' },
     h('h1', {}, 'Pläne'),
     seg,
+    analysable ? h('button', { class: 'btn block plans-ana', type: 'button', onclick: () => openPlanAnalysis(rerender) }, icon('progress', { size: 18 }), 'Pläne analysieren') : null,
     plans.length
       ? plans.map((p) => card(p))
       : h('div', { class: 'card empty' },
