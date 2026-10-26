@@ -68,6 +68,9 @@ export const ROUTINE_ITEMS = [
   I('stretch-side', 'Seitliche Rumpfdehnung', 'stretch', 'cooldown', ['obliques', 'lats'], [], H(30, 2), 'Stehend einen Arm über den Kopf, sanft zur Seite neigen.')
 ];
 
+// v3.6.0: Routine-Übungen mit Technik-Animation (Referenz in js/anim-data.js). Nur Übungen, die ohne Zusatzgewicht gezeigt werden.
+export const ANIM_REF = { 'chair-squat-mob': 'chair-squat', 'door-push-up-mob': 'door-frame-push-up', 'balance-calf-raise-mob': 'balance-board-calf-raise', 'hip-circles': 'hip-circles' };
+
 export const ITEM_BY_REF = Object.fromEntries(ROUTINE_ITEMS.map((x) => [x.ref, x]));
 
 // Vorlagen: Zeiten sind Konvention (Recherche Teil C), nicht Studienvorgabe. Aufwärmen bewusst locker.

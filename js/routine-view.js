@@ -6,7 +6,8 @@ import { h } from './util.js';
 import * as store from './store.js';
 import * as R from './routines.js';
 import * as S from './session.js';
-import { PHASES, ITEM_TYPES, ROUTINE_INFO, ROUTINES_CHECKED_AT } from './routine-data.js';
+import { PHASES, ITEM_TYPES, ROUTINE_INFO, ROUTINES_CHECKED_AT, ANIM_REF } from './routine-data.js';
+import { openAnimation } from './anim-view.js';
 import { ROUTINE_LIMITS } from './model.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
@@ -35,7 +36,8 @@ export function openRoutineInfo(phase = 'warmup') {
 
 function itemRows(routine) {
   return h('div', { class: 'card list' }, routine.items.map(R.resolveItem).filter(Boolean).map((x) =>
-    h('div', { class: 'row' }, figure(x), h('span', { class: 't' }, h('b', {}, x.name), h('small', {}, `${ITEM_TYPES[x.type]} · ${R.doseText(x.dose)}`)))));
+    h('div', { class: 'row' }, figure(x), h('span', { class: 't' }, h('b', {}, x.name), h('small', {}, `${ITEM_TYPES[x.type]} · ${R.doseText(x.dose)}`)),
+      ANIM_REF[x.ref] ? h('button', { class: 'info-btn', type: 'button', 'aria-label': `Technik: ${x.name}`, onclick: () => openAnimation(ANIM_REF[x.ref]) }, icon('play', { size: 20 })) : null)));
 }
 
 export function openRoutine(id, rerender) {
@@ -317,6 +319,7 @@ export function runnerView(rerender) {
       h('div', { class: 'run-fig' }, miniFigure({ muscles: item.muscles }, sex(), 64)),
       h('h2', {}, item.name),
       h('p', { class: 'muted' }, item.cue),
+      ANIM_REF[item.ref] ? h('button', { class: 'btn small', type: 'button', onclick: () => openAnimation(ANIM_REF[item.ref]) }, 'Technik ansehen') : null,
       st.label ? h('p', { class: 'run-label' }, st.label) : null,
       ring,
       pauseBtn,
