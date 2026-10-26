@@ -1110,6 +1110,51 @@ export const POOL = [
     ]
   }, 'bodyweight'),
 
+  // ---------- Ohne Geräte (v3.4.0, Recherche 2026-10-26, Drive → Research - Bodyweight Pool 2026-10-26) ----------
+  P('bodyweight-squat', 'Kniebeuge ohne Gewicht', 'bodyweight', ['quads', 'glutes'], ['adductors'], {
+    confidence: 'medium', basis: 'Trainingsstudie (Programm aus 3 Übungen) + MRT (Langhantel, übertragen)',
+    note: 'Füße etwa schulterbreit, so tief wie sauber möglich. Wird es zu leicht: langsamer (z. B. 4 s ab, 4 s auf), Pause unten oder einbeinig.',
+    sources: [
+      S('Tsuzuku et al. 2018, Scand J Med Sci Sports', '10.1111/sms.13039', 'RCT, ab 70 J.: 12 Wochen langsam (4 s je Phase) Kniebeuge, Tisch-Liegestütz, Sit-up – Oberschenkel dicker, Kniestreckkraft höher. Wirkung des ganzen Programms.'),
+      S('Kubo et al. 2019, Eur J Appl Physiol', '10.1007/s00421-019-04181-y', 'MRT, Kniebeuge mit Langhantel: Quadrizeps, Adduktoren und großer Gesäßmuskel wuchsen. Für die Kniebeuge ohne Gewicht übertragen.')
+    ]
+  }, 'bodyweight'),
+  P('bodyweight-reverse-lunge', 'Ausfallschritte rückwärts ohne Gewicht', 'bodyweight', ['quads', 'glutes'], ['adductors', 'abductors', 'hamstrings'], {
+    confidence: 'medium', basis: 'Modell + EMG (Varianten, übertragen)',
+    note: 'Schritt nach hinten, das vordere Bein trägt. Oberkörper leicht nach vorn geneigt verschiebt die Arbeit Richtung Gesäß und Beinbeuger.',
+    sources: [
+      S('Goulette et al. 2021, Phys Ther Sport', '10.1016/j.ptsp.2020.12.001', 'Modell: Rückwärts-Ausfallschritt mit geringerer Quadrizepskraft und Kniescheibenlast als vorwärts.'),
+      S('Muyor et al. 2020, PLoS One', '10.1371/journal.pone.0230841', 'EMG, Ausfallschritt vorwärts (mit Zusatzlast): Vasti am aktivsten, dann Gesäßmuskeln. Rückwärts nicht gemessen.'),
+      S('Farrokhi et al. 2008, J Orthop Sports Phys Ther', '10.2519/jospt.2008.2634', 'EMG, Ausfallschritt vorwärts: Oberkörper nach vorn erhöhte Aktivität von großem Gesäßmuskel und Bizeps femoris.')
+    ]
+  }, 'bodyweight'),
+  P('bodyweight-glute-bridge', 'Glute Bridge ohne Gewicht', 'bodyweight', ['glutes'], ['hamstrings', 'abductors'], {
+    confidence: 'medium', basis: 'EMG',
+    note: 'Rücken am Boden, Füße nah am Gesäß, oben kurz halten. Steigern: einbeinig. Knie stärker gebeugt → weniger Beinbeuger, Gesäß bleibt.',
+    sources: [
+      S('Khaiyat & Norris 2018, J Phys Ther Sci', '10.1589/jpts.30.642', 'Körpergewichts-Bridge: höchste Gesäß- und Bizeps-femoris-Aktivität unter fünf Reha-Übungen, aber nur moderate Werte.'),
+      S('Lehecka et al. 2017, Int J Sports Phys Ther', 'https://pubmed.ncbi.nlm.nih.gov/28900560/', 'EMG, einbeinige Bridge (n = 28): Gesäßmuskeln etwa 47–58 % MVIC; mit 135° statt 90° Kniebeugung sank die Beinbeuger-Aktivität deutlich (≈ 23 % vs. 75 % MVIC).')
+    ]
+  }, 'bodyweight'),
+  P('pike-push-up', 'Pike Push-up', 'bodyweight', ['front-delts'], ['triceps', 'side-delts'], {
+    confidence: 'low', basis: 'Übertragung vom Schulterdrücken (keine Studie zur Übung gefunden)',
+    note: 'Hüfte hoch, Kopf zwischen die Hände senken. Füße höher (z. B. Stufe) bringt mehr Gewicht auf die Schultern – Mechanik, nicht gemessen.',
+    others: ['Serratus anterior'],
+    sources: [
+      S('Saeterbakken & Fimland 2013, J Strength Cond Res', '10.1519/JSC.0b013e318276b873', 'EMG beim Schulterdrücken: alle Schulteranteile und Trizeps aktiv. Für den Pike Push-up nur übertragen.'),
+      S('Kohler et al. 2010, J Strength Cond Res', '10.1519/JSC.0b013e3181c8655a', 'EMG beim Schulterdrücken: vordere und seitliche Schulter sowie Trizeps als Hauptbeweger. Übertragen.')
+    ]
+  }, 'bodyweight'),
+  P('prone-y-t-raise', 'Y/T-Heben in Bauchlage', 'bodyweight', ['upper-back'], ['rear-delts', 'side-delts'], {
+    confidence: 'medium', basis: 'EMG (Trapezius) + Anatomie (Delta)',
+    note: 'Bäuchlings Arme als Y über den Kopf oder als T zur Seite heben, Daumen oben. Ersetzt kein Rudern (dafür Band oder Stange).',
+    others: ['unterer und mittlerer Trapezius (Schwerpunkt)'],
+    sources: [
+      S('Ekstrom et al. 2003, J Orthop Sports Phys Ther', '10.2519/jospt.2003.33.5.247', 'EMG (n = 30): Armheben über Kopf in Bauchlage (Y) mit maximalem unteren Trapezius; Armheben zur Seite mit Außenrotation (T) und Y mit stärkstem mittleren.'),
+      S('Elzanie & Varacallo 2024, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK537056/', 'Anatomie: hinterer und mittlerer Delta beim Armheben beteiligt; hier nur abgeleitet.')
+    ]
+  }, 'bodyweight'),
+
   // ---------- Cardio ----------
   // v1.8 Runde 3: Muskeln nur in `involved` (Infoblatt), nicht in `muscles` – Cardio zählt nicht für die Muskelkarte.
   P('treadmill-running', 'Laufband (Laufen)', 'machine', [], [], {

@@ -88,7 +88,10 @@ test('Geräte: nur passende Übungen; fehlende Muster werden gemeldet', () => {
   assert.ok(refs.every((r) => ['dumbbell', 'bodyweight'].includes(poolEntry(r).equipment)), refs.join(','));
   assert.ok(p.missing.includes('vpull'));
   const body = B.buildProgram({ ...gym, gear: [] });
-  assert.ok(body.missing.includes('squat'));
+  // v3.4.0: Kniebeuge, Ausfallschritt, Hüftstreckung und Drücken über Kopf gehen jetzt ohne Geräte; Rudern nicht.
+  for (const s of ['squat', 'lunge', 'hinge']) assert.ok(!body.missing.includes(s), s);
+  assert.ok(body.missing.includes('hpull'));
+  assert.ok(body.plans.flatMap((x) => x.items.map((it) => it.ref)).includes('bodyweight-squat'));
 });
 
 test('Wochensätze: direkt 1, indirekt 0,5', () => {
