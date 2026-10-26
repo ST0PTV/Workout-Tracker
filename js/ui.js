@@ -5,8 +5,8 @@ import { icon } from './icons.js';
 
 
 export const TABS = [
-  { path: '/', label: 'Training', icon: 'train' },
-  { path: '/plans', label: 'Pläne', icon: 'plans' },
+  { path: '/', label: 'Training', icon: 'workout' },
+  { path: '/plans', label: 'Pläne', icon: 'calendar' },
   { path: '/exercises', label: 'Übungen', icon: 'exercises' },
   { path: '/progress', label: 'Fortschritt', icon: 'progress' },
   { path: '/settings', label: 'Einstellungen', icon: 'settings', bar: false } // v3.1.0: Zahnrad auf der Training-Seite
@@ -18,7 +18,7 @@ export function renderTabbar(container, current) {
   const tab = (t) => h('a', { class: 'tab', href: `#${t.path}`, 'aria-current': t.path === current ? 'page' : false }, icon(t.icon, { size: 24 }), t.label);
   const shown = TABS.filter((t) => t.bar !== false);
   const play = h('div', { class: 'tb-mid' },
-    h('button', { class: 'tb-play', type: 'button', 'aria-label': 'Training starten', onclick: () => document.dispatchEvent(new CustomEvent('wt-play')) }, icon('play', { size: 28 })));
+    h('button', { class: 'tb-play', type: 'button', 'aria-label': 'Training starten', onclick: () => document.dispatchEvent(new CustomEvent('wt-play')) }, icon('dumbbell', { size: 28 })));
   container.replaceChildren(...shown.slice(0, 2).map(tab), play, ...shown.slice(2).map(tab));
 }
 

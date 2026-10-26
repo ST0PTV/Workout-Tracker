@@ -1151,7 +1151,7 @@ input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: ce
 .tb-play { width: 58px; height: 58px; margin-top: -30px; border-radius: 20px; border: 0; padding: 0; cursor: pointer;
   background: var(--accent); color: var(--on-accent); display: grid; place-items: center;
   box-shadow: 0 0 0 5px var(--bg), 0 8px 24px rgba(0, 0, 0, 0.3); transition: transform .12s; }
-.tb-play svg { width: 26px; height: 26px; margin-left: 3px; fill: currentColor; stroke: currentColor; }
+.tb-play svg { width: 28px; height: 28px; fill: currentColor; stroke: currentColor; }
 .tb-play:active { transform: scale(0.94); }
 .tb-play:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 .head-btns { display: flex; gap: 8px; }
