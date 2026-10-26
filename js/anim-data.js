@@ -25,7 +25,7 @@ export const BASIS = {
   convention: { label: 'Zeichenkonvention', text: 'Keine Studie hat die Bewegung gemessen oder Winkel vorgegeben. Gerät und Winkel folgen einem üblichen Aufbau und sind Zeichenkonvention.' },
   transfer: { label: 'Übertragen', text: 'Die Winkel stammen aus einer anderen Variante oder einem anderen Gerät und sind übertragen.' }
 };
-export const STATUS = { consensus: 'Konsens', contested: 'umstritten', single: 'Einzelstudie' };
+export const STATUS = { consensus: 'Konsens', contested: 'umstritten', single: 'Einzelstudie', convention: 'Konvention' };
 export const TEMPO_BASIS = { measured: 'gemessen', protocol: 'Studienprotokoll', computed: 'aus Studienwerten berechnet', convention: 'Konvention' };
 
 const V = (v, src, read, raw) => ({ v, src: [].concat(src || []), read, raw: raw || null });
@@ -805,6 +805,45 @@ const BSQ = (() => {
 // Sissy Squat (Seitenansicht): Fußballen fest (Wurzel Ballen), Fersen heben sich, Knie wandern weit nach vorn, Hüfte gestreckt (Rumpf und
 // Oberschenkel in einer Linie, Rücklage). Eine Hand hält einen Pfosten seitlich neben dem Körper. Keine Studie gefunden: alle Winkel Zeichenkonvention.
 const SSQ = { post: 66, hand: [60, -200], ball: [30, -2] }; // Pfosten seitlich neben der Figur (hinter ihr gezeichnet), Hand in allen Bildern erreichbar
+
+// ---------- v3.6.0: Animationen für die Mobilitätsroutine (Türrahmen-Push-up, Stuhl-Kniebeuge, Balanceboard-Wadenheben, Hüftkreisen) ----------
+// Für diese Übungen gibt es keine gelesene Messstudie mit Gelenkwinkeln; Winkel sind übertragen oder Zeichenkonvention (so in den Datensätzen benannt).
+// Türrahmen-Push-up (Seitenansicht): Hände fest am Türrahmen auf Brusthöhe (≈ 1,3 m, Konvention), Füße am Boden. Die Armbewegung ist die des Liegestützes
+// (Suprak et al. 2013, Volltext) um 90° in die Waagerechte gedreht; die Körperneigung folgt daraus (Zehen auf dem Boden). Unten reicht die Brust bis auf die Höhe der Hände.
+const DPU = (() => {
+  const HY = -260, base = { root: 'wrist', rootPos: [0, HY], hip: 0, knee: 0, foot: 165, handFlat: 1 };
+  const rot = (v) => [v[1], -v[0]]; // Liegestütz-Armgeometrie (Hände unter der Schulter) in die Waagerechte gedreht
+  const top = { elbow: rot(FEPU.top.elbow).map(r1), wrist: [-104, -6].map((v) => -v).map(r1) };
+  const fe = (a) => ({ elbow: rot(a.elbow).map(r1), wrist: rot(a.wrist).map(r1) });
+  const t0 = { elbow: [52, 3], wrist: [104, 6] }, b0 = fe(FEPU.bottom);
+  const mix = (u) => ({ elbow: t0.elbow.map((v, i) => r1(v + (b0.elbow[i] - v) * u)), wrist: t0.wrist.map((v, i) => r1(v + (b0.wrist[i] - v) * u)) });
+  const sp = (arm) => ({ ...base, armPoints: arm, solve: { param: 'trunk', joint: 'toe', y: 0, range: [20, 150] } });
+  const frontX = (P) => { let m = -1e9; for (const sh of shapesFor('male')) if (sh.id === 'body' && sh.seg === 'trunk') for (const q of sh.pts) m = Math.max(m, tf(P, sh.seg, q)[0]); return m; };
+  const u = bisect((x) => frontX(solvePose(sp(mix(x)))) - 4, 0, 1);
+  const P0 = solvePose(sp(t0)), P1 = solvePose(sp(mix(u)));
+  return { HY, base, top: t0, bottom: mix(u), depth: r1(u), trunkTop: r1(P0.angles.trunk), trunkBottom: r1(P1.angles.trunk), sp };
+})();
+// Kniebeuge auf den Stuhl (Seitenansicht): Sitzhöhe ≈ Unterschenkellänge (Anan et al. 2017: Sitz auf die Länge des Unterschenkels eingestellt);
+// Knie und Hüfte im Sitz sind Zeichenkonvention (Oberschenkel fast waagerecht, Rumpf ≈ 20° vor), der Sitz liegt unter dem tiefsten Punkt von Rumpf und Oberschenkel.
+const CHSQ = (() => {
+  const seat = { shank: 5, knee: 90, hip: 105, ankle: 5 }, stand = { shank: 0, knee: 3, hip: 3, ankle: 0 };
+  const P = solvePose(seat);
+  const sy = r1(lowSeg(P, ['trunk', 'thigh'])), hip = P.joints.hip.map(r1), knee = P.joints.knee.map(r1);
+  return { seat, stand, seatY: sy, hip, knee };
+})();
+// Balanceboard-Wadenheben (Seitenansicht): Bewegung des Sprunggelenks wie beim stehenden Wadenheben (Larsen et al. 2025), Board als flache Platte
+// unter beiden Füßen (Konvention: ≈ 40 cm breit, Kippachse mitten unter dem Fuß). Die Kippbewegung selbst wird nicht gezeigt: sie ist unregelmäßig und nicht gemessen.
+const BAL = { w: 80, h: 6, axisR: 7, hand: [92, -255] }; // Fuß steht unten flach auf der Platte (Plattenoberkante y = −20) // Board, Rolle darunter, Hand an der Wand (Wand steht vor der Figur)
+// Hüftkreisen (Frontansicht): Hände an der Hüfte, Becken verschiebt sich seitlich im Kreis; die Kreisbewegung nach vorn und hinten bleibt in der Frontansicht unsichtbar.
+const HCIRC = (() => {
+  const arms = { elbow: [16, 52], wrist: [-2, 102] }, A = 13; // Knöchel bleiben bei x = ±13 (Füße fest), das Becken wandert um ±12 (≈ 6 cm je Seite, Konvention)
+  const at = (dx) => {
+    const aR = bisect((a) => solveFront({ view: 'front', root: 'pelvis', rootPos: [dx, -183], legs: { abdR: a, abdL: 0 } }).joints.ankleR[0] - A, -20, 20);
+    const aL = bisect((a) => solveFront({ view: 'front', root: 'pelvis', rootPos: [dx, -183], legs: { abdR: 0, abdL: a } }).joints.ankleL[0] + A, -20, 20);
+    return { root: 'pelvis', rootPos: [dx, -183], legs: { abdR: C(r1(aR), 'Füße bleiben stehen'), abdL: C(r1(aL), 'Füße bleiben stehen') }, armPoints: arms };
+  };
+  return { arms, left: at(-12), right: at(12) };
+})();
 
 export const ANIMATIONS = [
   // ---------- Kniebeuge ----------
@@ -4140,6 +4179,108 @@ export const ANIMATIONS = [
     }
   }
 
+,
+  // ---------- v3.6.0: Türrahmen-Push-up ----------
+  {
+    ref: 'door-frame-push-up', checkedAt: '2026-10-26', view: 'side', basis: 'transfer',
+    basisNote: 'Für den Push-up am Türrahmen fand ich keine Studie mit Ellbogenwinkeln. Die Armbewegung ist vom Liegestütz übertragen (Suprak et al. 2013, Volltext; Bereich 105° → 35°) und um 90° in die Waagerechte gedreht. Beim Wand-Push-up wurde nur die Schulter gemessen (Lunden et al. 2009, 12 Gesunde, Knochenpins, Abstract). Hände auf Brusthöhe (≈ 1,3 m), Körperneigung aus dem Boden-Kontakt der Zehen und die Tiefe (Brust bis auf Höhe der Hände) sind Zeichenkonvention. Der Rahmen steht im Bild als Linie an den Händen; in Wirklichkeit liegt je eine Hand links und rechts davon.',
+    tempo: { basis: 'protocol', note: 'Übertragen vom Liegestütz: 2 s ab, 2 s auf (Suprak et al. 2013).' },
+    frames: [
+      { label: 'Oben', pose: { ...DPU.sp(DPU.top), props: dpuProps }, facts: [C(130, 'Handhöhe ≈ 1,3 m (Konvention)')] },
+      { label: 'Unten', pose: { ...DPU.sp(DPU.bottom), props: dpuProps }, facts: [V(105, 'P1', 'fulltext', 'Ellbogen beim Liegestütz im Bereich 105° → 35° (übertragen)')] }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.4, label: 'Oben', kp: [0, 1] }, { a: 0, b: 1, dur: 2.0, label: 'Brust nach vorn', kp: [2] }, { a: 1, b: 1, dur: 0.15, label: 'Unten', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Wegdrücken', kp: [3] }],
+    keyPoints: [
+      { short: 'Hände', anchor: 'wrist', side: 'r', status: 'single', text: 'Hände links und rechts am Rahmen auf Brusthöhe, die Arme sind oben fast gestreckt.', src: ['P1'],
+        explain: 'Die Handhöhe ist Zeichenkonvention. Für den Türrahmen gibt es keine gelesene Messung; die Armbewegung ist vom Liegestütz übertragen (Suprak et al. 2013).' },
+      { short: 'Linie', anchor: 'hip', side: 'l', status: 'single', text: 'Körper gerade von Kopf bis Ferse nach vorn kippen, Hüfte nicht abknicken.', src: ['P2'],
+        explain: 'Anweisung im Liegestütz-Protokoll von San Juan et al. 2015 (Volltext), hier übertragen; für den Türrahmen nicht eigens gemessen.' },
+      { short: 'Tiefe', anchor: 'chest', side: 'r', status: 'single', text: 'Brust zwischen die Hände führen, so weit es angenehm ist; Schultern nicht hochziehen.', src: ['L1'],
+        explain: 'Die gezeigte Tiefe ist Konvention. Beim Wand-Push-up mit Plus-Phase stand das Schulterblatt in einer Lage, die mit Einklemmen verbunden sein kann (Lunden et al. 2009, 12 Gesunde, Abstract); bei Schulterproblemen vorsichtig anfangen.' },
+      { short: 'Zurück', anchor: 'hand', side: 'l', status: 'single', text: 'Gleichmäßig zurückdrücken, ohne den Rücken ins Hohlkreuz zu ziehen.', src: ['P1'],
+        explain: 'Takt vom Liegestütz übertragen (Suprak et al. 2013); Hohlkreuz-Hinweis ist Konvention.' }
+    ],
+    sources: {
+      P1: { label: 'Suprak et al. 2013, J Athl Train', url: 'https://doi.org/10.4085/1062-6050-48.5.08', read: 'fulltext', note: 'Liegestütz, übertragen' },
+      P2: { label: 'San Juan et al. 2015, BMC Musculoskelet Disord', url: 'https://doi.org/10.1186/s12891-015-0486-5', read: 'fulltext' },
+      L1: { label: 'Lunden et al. 2009, J Shoulder Elbow Surg', url: 'https://doi.org/10.1016/j.jse.2009.06.003', read: 'abstract' }
+    }
+  }
+,
+  // ---------- v3.6.0: Kniebeuge auf den Stuhl ----------
+  {
+    ref: 'chair-squat', checkedAt: '2026-10-26', view: 'side', basis: 'convention',
+    basisNote: 'Keine gelesene Studie nennt Gelenkwinkel für das Hinsetzen und Aufstehen vom Stuhl bei dieser Übung. Gezeichnet: Sitz auf Höhe des Unterschenkels (Anan et al. 2017 stellten den Sitz so ein, Abstract), im Sitz Knie 90°, Oberschenkel fast waagerecht und Rumpf ≈ 20° nach vorn; die Arme zeigen zum Gleichgewicht nach vorn. Alle Winkel sind Zeichenkonvention, die Studien gelten für das Aufstehen aus dem Sitz, nicht für die Übung mit Antippen.',
+    tempo: { basis: 'convention', note: 'Je ≈ 2 s ab und auf, im Sitz nur antippen (Konvention).' },
+    frames: [
+      { label: 'Stand', pose: { ...CHSQ.stand, shoulder: C(80), elbow: C(5), props: chairProps } },
+      { label: 'Sitz', pose: { ...CHSQ.seat, shoulder: C(80), elbow: C(5), props: chairProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Stand', kp: [0] }, { a: 0, b: 1, dur: 2.0, label: 'Hinsetzen', kp: [1, 2] }, { a: 1, b: 1, dur: 0.2, label: 'Antippen', kp: [2] }, { a: 1, b: 0, dur: 2.0, label: 'Aufstehen', kp: [3] }],
+    keyPoints: [
+      { short: 'Stuhl', anchor: 'hip', side: 'l', status: 'single', text: 'Sitzhöhe etwa wie der Unterschenkel; der Stuhl steht fest, eventuell an die Wand.', src: ['A1'],
+        explain: 'Anan et al. 2017 (39 Ältere, 21 Jüngere, Abstract): Sitz auf die Länge des Unterschenkels eingestellt. Ein Stuhl an der Wand ist Sicherheitskonvention.' },
+      { short: 'Rumpf', anchor: 'chest', side: 'r', status: 'single', text: 'Beim Hinsetzen und Aufstehen den Oberkörper vorneigen, Gesäß nach hinten.', src: ['K1'],
+        explain: 'Handläufe veränderten Hüftbeugung und Rumpfneigung beim Abheben vom Sitz (Kinoshita et al. 2015, 16 Junge, 25 Ältere, Abstract); die gezeigte Vorneigung ist Zeichenkonvention.' },
+      { short: 'Antippen', anchor: 'thigh', side: 'r', status: 'single', text: 'Nur kurz antippen, nicht fallen lassen oder ganz entspannen.', src: ['I1'],
+        explain: 'In einer Computersimulation wuchs die Hüftgelenkkraft ungefähr linear mit der Hüftbeugung beim Abheben (Inai et al. 2018, Abstract). Eine Simulation, keine Messung an der Übung.' },
+      { short: 'Aufstehen', anchor: 'knee', side: 'r', status: 'single', text: 'Über die ganzen Füße aufstehen, Knie in Richtung der Zehen.', src: ['S1'],
+        explain: 'Ein niedriger Sitz verlangte mehr Beugung von Rumpf, Hüfte und Knie und dauerte länger (dos Santos et al. 2019, Kinder mit und ohne Zerebralparese, Abstract) – Population und Übung unterscheiden sich, daher nur ein Hinweis.' }
+    ],
+    sources: {
+      A1: { label: 'Anan et al. 2017, Phys Ther Res', url: 'https://doi.org/10.1298/ptr.E9923', read: 'abstract' },
+      K1: { label: 'Kinoshita et al. 2015, PLoS One', url: 'https://doi.org/10.1371/journal.pone.0133747', read: 'abstract' },
+      I1: { label: 'Inai et al. 2018, Biomed Eng Online', url: 'https://doi.org/10.1186/s12938-018-0610-5', read: 'abstract', note: 'Computersimulation' },
+      S1: { label: 'dos Santos et al. 2019, Clin Biomech', url: 'https://doi.org/10.1016/j.clinbiomech.2019.11.007', read: 'abstract', note: 'Kinder' }
+    }
+  }
+,
+  // ---------- v3.6.0: Balanceboard-Wadenheben ----------
+  {
+    ref: 'balance-board-calf-raise', checkedAt: '2026-10-26', view: 'side', basis: 'transfer',
+    basisNote: 'Zum Wadenheben auf dem Balanceboard fand ich keine Studie mit Gelenkwinkeln (PubMed-Suche ohne Treffer). Spitzen-Plantarflexion vom stehenden Wadenheben übertragen (Larsen et al. 2025, Volltext: 33,6°; dort mit Goniometer eingestellt, keine Bewegung unter Last). Unten steht der Fuß flach auf dem Board (Konvention; das Board hat keine Stufenkante, deshalb keine Dorsalflexion wie dort). Das Board liegt als flache Platte unter den Füßen, die Hand liegt zur Sicherheit an der Wand. Das Kippen des Boards ist unregelmäßig und wird nicht gezeigt; der Bewegungsumfang auf dem Board kann kleiner sein.',
+    tempo: { basis: 'protocol', note: '1 s hoch, 2 s runter, unten kurz halten (Konvention, wie beim stehenden Wadenheben).' },
+    frames: [
+      { label: 'Unten', pose: { root: 'toe', rootPos: [30, -BAL.h - 2 * BAL.axisR - 2], shank: C(0), knee: C(0), hip: C(0), ankle: C(0, 'Fuß flach auf dem Board'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: balProps } },
+      { label: 'Oben', pose: { root: 'toe', rootPos: [30, -BAL.h - 2 * BAL.axisR - 2], shank: C(0), knee: C(0), hip: C(0), ankle: V(-33.6, 'S1', 'fulltext', '+33,6 ± 7,8° Plantarflexion, übertragen'), shoulder: C(25), elbow: C(95), armScale: [1, 0.9], props: balProps } }
+    ],
+    phases: [{ a: 0, b: 0, dur: 0.5, label: 'Unten', kp: [0, 3] }, { a: 0, b: 1, dur: 1.0, label: 'Hochdrücken', kp: [1] }, { a: 1, b: 1, dur: 0.3, label: 'Oben', kp: [1] }, { a: 1, b: 0, dur: 2.0, label: 'Absenken', kp: [2] }],
+    keyPoints: [
+      { short: 'Board', anchor: 'foot', side: 'r', status: 'single', text: 'Mit beiden Füßen mittig auf das Board, das Board möglichst ruhig halten.', src: ['S1'],
+        explain: 'Die Position auf dem Board ist Konvention. Gemessen wurde nur das Wadenheben auf festem Boden (Larsen et al. 2025).' },
+      { short: 'Hoch', anchor: 'toe', side: 'r', status: 'single', text: 'Gleichmäßig auf die Zehenspitzen, ohne dass das Board seitlich ausschlägt.', src: ['S1'],
+        explain: 'Spitzen-Plantarflexion 33,6 ± 7,8° (Larsen et al. 2025, festes Wadenheben, übertragen).' },
+      { short: 'Ab', anchor: 'heel', side: 'l', status: 'single', text: 'Langsam wieder absenken, nicht fallen lassen.', src: ['S1'],
+        explain: 'Das Tempo ist Konvention, angelehnt an das stehende Wadenheben (Larsen et al. 2025); auf dem Board nicht gemessen.' },
+      { short: 'Wand', anchor: 'hand', side: 'l', status: 'convention', text: 'Hand an der Wand zur Sicherheit, nicht zum Hochziehen.', src: [],
+        explain: 'Die Hand an der Wand ist Sicherheitskonvention; ob sie die Bewegung auf dem Board verändert, ist nicht untersucht.' }
+    ],
+    sources: {
+      S1: { label: 'Larsen et al. 2025, Eur J Sport Sci', url: 'https://doi.org/10.1002/ejsc.70030', read: 'fulltext', note: 'festes Wadenheben, übertragen' }
+    }
+  }
+,
+  // ---------- v3.6.0: Hüftkreisen ----------
+  {
+    ref: 'hip-circles', checkedAt: '2026-10-26', view: 'front', basis: 'convention',
+    basisNote: 'Zum Hüftkreisen im Stand fand ich keine Studie mit Bewegungsdaten. Alles ist Zeichenkonvention: Stand hüftbreit, Hände an der Hüfte, das Becken wandert seitlich ≈ 12 cm insgesamt (±6 cm), die Füße bleiben stehen; die Gegenbewegung des Oberkörpers ist klein gezeichnet. In der Frontansicht sieht man nur die seitliche Hälfte des Kreises, die Bewegung nach vorn und hinten ist nicht sichtbar.',
+    tempo: { basis: 'convention', note: 'Ein voller Kreis in etwa 3 s, Richtung nach der Hälfte der Zeit wechseln (Konvention).' },
+    frames: [
+      { label: 'Links', pose: { ...HCIRC.left, props: hcProps } },
+      { label: 'Rechts', pose: { ...HCIRC.right, props: hcProps } }
+    ],
+    phases: [{ a: 0, b: 1, dur: 1.5, label: 'Nach rechts', kp: [0, 1] }, { a: 1, b: 0, dur: 1.5, label: 'Nach links', kp: [2] }],
+    keyPoints: [
+      { short: 'Stand', anchor: 'footL', side: 'l', status: 'convention', text: 'Hüftbreit stehen, Knie weich, Füße bleiben fest am Boden.', src: [],
+        explain: 'Stand, Kniebeugung und Fußstellung sind Zeichenkonvention; ich habe keine Studie mit Bewegungsdaten dazu gelesen.' },
+      { short: 'Kreis', anchor: 'pelvis', side: 'r', status: 'convention', text: 'Becken zeichnet einen großen, ruhigen Kreis: seitlich, vor, zur Seite, zurück.', src: [],
+        explain: 'In der Frontansicht ist nur die seitliche Verschiebung sichtbar; die Bewegung nach vorn und hinten findet in der Tiefe statt und ist nicht zu sehen.' },
+      { short: 'Richtung', anchor: 'chest', side: 'r', status: 'convention', text: 'Nach der Hälfte die Richtung wechseln, Oberkörper möglichst ruhig.', src: [],
+        explain: 'Ablauf wie in der Übungsbeschreibung der Routine (Konvention).' }
+    ],
+    sources: {}
+  }
+
 ];
 
 // ---------- Szenen (Geräte) ----------
@@ -4790,6 +4931,19 @@ function sissyProps(P) {
 }
 
 export function animationFor(ref) { return ANIMATIONS.find((a) => a.ref === ref) || null; }
+
+// ---------- Szenen v3.6.0 ----------
+function dpuProps(P) { const x = P.joints.wrist[0] + 2; return { anchors: {}, scene: [{ type: 'rect', x: x, y: -420, w: 10, h: 420, rx: 2 }, foot(x - 20, x + 30)] }; }
+function chairProps(P) {
+  const hx = CHSQ.hip[0], kx = CHSQ.knee[0], sy = CHSQ.seatY;
+  return { anchors: {}, scene: [{ type: 'rect', x: hx - 30, y: sy, w: kx - hx + 36, h: 6, rx: 3 }, { type: 'line', from: [hx - 24, sy + 6], to: [hx - 24, 0], w: 5 }, { type: 'line', from: [kx + 2, sy + 6], to: [kx + 2, 0], w: 5 }, { type: 'line', from: [hx - 30, sy], to: [hx - 30, sy - 70], w: 5 }] };
+}
+function balProps(P) {
+  const x0 = 30 - 44, y = -BAL.axisR * 2;
+  return { anchors: {}, scene: [{ type: 'rect', x: x0, y: y - BAL.h, w: BAL.w, h: BAL.h, rx: 3 }, { type: 'rect', x: 30 - BAL.axisR - 4, y: -BAL.axisR * 2, w: BAL.axisR * 2, h: BAL.axisR * 2, rx: BAL.axisR },
+    { type: 'line', from: [BAL.hand[0] + 14, 0], to: [BAL.hand[0] + 14, -420], w: 8 }, { type: 'line', from: [P.joints.hand[0], P.joints.hand[1]], to: [BAL.hand[0] + 10, P.joints.hand[1]], w: 3 }] };
+}
+function hcProps() { return { anchors: {}, scene: [{ type: 'line', from: [-70, 0], to: [70, 0], w: 3 }] }; }
 
 // ---------- Szenen Runde 11 (v2.16) ----------
 function plankProps(P) { return { anchors: {}, scene: [{ type: 'rect', x: PLANK.mat[0], y: -MAT, w: PLANK.mat[1] - PLANK.mat[0], h: MAT, rx: 3 }] }; }

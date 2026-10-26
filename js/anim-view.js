@@ -7,7 +7,8 @@ import { openSheet } from './sheet.js';
 import * as M from './motion.js';
 import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F, MUSCLE_SHAPE_B, HIDDEN_MUSCLES_B } from './motion-front.js';
 import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT, dumbbellPath, dumbbellBox } from './anim-data.js';
-import { poolEntry } from './pool.js';
+import { poolEntry as poolOnly } from './pool.js';
+import { ITEM_BY_REF } from './routine-data.js';
 import { segmentsOf, segmentIndexAt, jumpTime, labelPlan } from './anim-bar.js';
 import { MUSCLES } from './model.js';
 import * as store from './store.js';
@@ -105,6 +106,9 @@ function sceneNodes(scene, behind) {
   }
   return out;
 }
+
+// v3.6.0: Name und Muskeln aus dem Übungspool, sonst aus dem Routine-Katalog (Mobility-Übungen ohne Poolplatz, z. B. Hüftkreisen).
+const poolEntry = (ref) => poolOnly(ref) || ITEM_BY_REF[ref] || null;
 
 // Karte mit Figur und Steuerung. Rückgabe: { el, stop }.
 export function animationCard(ref, { onKeyPoint = null } = {}) {

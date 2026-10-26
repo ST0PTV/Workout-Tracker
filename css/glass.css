@@ -659,7 +659,7 @@ body:has(.restbar:not([hidden]) .rt-next:not([hidden])) .toast { bottom: calc(va
 .anim-kp .info-mark { color: var(--muted); margin-top: 3px; }
 .anim-status { display: inline-block; border-radius: 999px; padding: 3px 10px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
 .anim-status.contested { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
-.anim-status.single { background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); }
+.anim-status.single, .anim-status.convention { background: color-mix(in srgb, var(--muted) 14%, transparent); color: var(--muted); }
 .info h4 { margin: 12px 0 4px; font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .an-mark, .anim-kp .plain { transition: none; } }
 

@@ -6,6 +6,8 @@ const M = await import('../js/motion.js');
 const MF = await import('../js/motion-front.js');
 const D = await import('../js/anim-data.js');
 const { POOL } = await import('../js/pool.js');
+const { ITEM_BY_REF } = await import('../js/routine-data.js');
+const metaOf = (ref) => POOL.find((p) => p.ref === ref) || ITEM_BY_REF[ref]; // v3.6.0: Mobility-Übungen ohne Poolplatz (Hüftkreisen)
 const { test, done } = runner();
 console.log('# Animationen (v2.0)');
 
@@ -120,7 +122,7 @@ test('Jede Animation gehört zu einer Pool-Übung und hat vollständige Daten', 
   assert.ok(D.ANIMATIONS.length >= 11, 'mindestens 11 Übungen');
   const refs = new Set();
   for (const a of D.ANIMATIONS) {
-    assert.ok(POOL.some((p) => p.ref === a.ref), `Pool-Ref ${a.ref}`);
+    assert.ok(metaOf(a.ref), `Pool- oder Routine-Ref ${a.ref}`);
     assert.ok(!refs.has(a.ref), `doppelt: ${a.ref}`); refs.add(a.ref);
     assert.ok(D.BASIS[a.basis], `Datenbasis ${a.ref}`);
     assert.ok(a.basisNote.length > 40, `basisNote ${a.ref}`);
@@ -163,7 +165,7 @@ test('Kernpunkte: ≤ 90 Zeichen, Status gültig, Quellen vorhanden, Erklärung 
       assert.ok(kp.text.length <= 90, `${a.ref}: „${kp.text}“ (${kp.text.length})`);
       assert.ok(kp.short.length <= 10, `${a.ref}: Kurzlabel ${kp.short}`);
       assert.ok(D.STATUS[kp.status], `${a.ref} Status ${kp.status}`);
-      assert.ok(kp.src.length && kp.src.every((id) => a.sources[id]), `${a.ref} Kernpunkt-Quellen`);
+      assert.ok((kp.src.length || kp.status === 'convention') && kp.src.every((id) => a.sources[id]), `${a.ref} Kernpunkt-Quellen`); // v3.6.0: reine Konvention darf ohne Quelle stehen, wenn so gekennzeichnet
       assert.ok(kp.explain.length > 40, `${a.ref} Erklärung`);
       if (kp.status === 'contested') assert.match(kp.explain, /Umstritten/, `${a.ref}: ${kp.short}`);
       assert.ok(!/verhindert Verletzung|schützt vor Verletzung|verletzungsfrei/i.test(kp.text + kp.explain), `${a.ref}: kein Verletzungsversprechen`);
@@ -202,10 +204,11 @@ test('Gezeichnete Muskeln: jede Pool-Muskelgruppe ist zugeordnet oder als nicht 
   for (const [m, shape] of Object.entries(MF.MUSCLE_SHAPE_F)) assert.ok(idsF.has(shape), `front ${m} → ${shape}`);
   for (const sex of ['male', 'female']) { const idsB = new Set(MF.shapesForB(sex).map((s) => s.id)); for (const [m, shape] of Object.entries(MF.MUSCLE_SHAPE_B)) assert.ok(idsB.has(shape), `back ${sex} ${m} → ${shape}`); }
   for (const a of D.ANIMATIONS) {
-    const p = POOL.find((x) => x.ref === a.ref);
+    const p = metaOf(a.ref);
     const map = a.view === 'back' ? MF.MUSCLE_SHAPE_B : a.view === 'front' ? MF.MUSCLE_SHAPE_F : M.MUSCLE_SHAPE, hidden = a.view === 'back' ? MF.HIDDEN_MUSCLES_B : a.view === 'front' ? MF.HIDDEN_MUSCLES_F : M.HIDDEN_MUSCLES;
     for (const m of [...p.muscles.primary, ...p.muscles.secondary]) assert.ok(map[m] || hidden.includes(m), `${a.ref}: ${m}`);
     const prim = p.muscles.primary.filter((m) => map[m]);
+    if (!POOL.some((x) => x.ref === a.ref)) continue; // v3.6.0: Hüftkreisen (Frontansicht): Hüftbeuger und Gesäß sind dort nicht sichtbar, kein Poolplatz
     assert.ok(prim.length, `${a.ref}: mindestens ein primärer Muskel ist sichtbar`);
   }
 });
