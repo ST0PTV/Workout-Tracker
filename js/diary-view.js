@@ -12,6 +12,7 @@ import { miniFigure } from './figure.js';
 import { weightWarning, sessionSummary } from './model.js';
 import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm } from './input.js';
 import { INTENSITIES } from './model.js';
+import { PHASES } from './routine-data.js';
 import { openSheet } from './sheet.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
@@ -105,7 +106,7 @@ function readView(s) {
       h('div', { class: 'stat' }, h('b', {}, String(sum.hardSets)), h('span', {}, 'Sätze')),
       h('div', { class: 'stat' }, h('b', {}, Math.round(sum.volume).toLocaleString('de-DE')), h('span', {}, 'Volumen kg'))),
     // v2.3.0: erledigte Routinen nur als Protokoll (zählen nicht mit).
-    (s.routines || []).length ? h('p', { class: 'muted small' }, s.routines.map((r) => `${r.phase === 'cooldown' ? 'Cool-down' : 'Aufwärmen'}: ${r.name}${r.done < r.total ? ' (teilweise)' : ''}`).join(' · ')) : null,
+    (s.routines || []).length ? h('p', { class: 'muted small' }, s.routines.map((r) => `${PHASES[r.phase] || 'Routine'}: ${r.name}${r.done < r.total ? ' (teilweise)' : ''}`).join(' · ')) : null,
     s.entries.map((en) => {
       const ex = byId[en.exerciseId];
       let workNo = 0;

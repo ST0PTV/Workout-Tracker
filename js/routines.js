@@ -2,7 +2,7 @@
 // Verknüpfung mit Plänen und Protokoll im Training. Routinen zählen nie als Sätze/Volumen/Muskelkarte.
 import * as store from './store.js';
 import { uuid, nowISO } from './util.js';
-import { validateRoutine, validatePlan, validateSession } from './model.js';
+import { validateRoutine, validatePlan, validateSession, ROUTINE_LIMITS } from './model.js';
 import { ROUTINE_ITEMS, ITEM_BY_REF, TEMPLATES, PHASES } from './routine-data.js';
 
 // Konventionen für die Zeitschätzung (keine Messwerte): Sekunden pro Wiederholung und Wechselzeit pro Übung.
@@ -32,6 +32,31 @@ export function itemSeconds(dose) {
 export function estimateSeconds(routine) {
   const items = (routine?.items || []).map(resolveItem).filter(Boolean);
   return items.reduce((n, x) => n + itemSeconds(x.dose) + TRANSITION_SEC, 0);
+}
+
+// v3.5.0: Gesamtdauer einer Routine ändern – Wiederholungen und Zeiten anteilig skalieren (Wechselzeiten bleiben),
+// gerundet auf die Stufen des Editors und innerhalb der Grenzen. Runden bleiben gleich.
+const SCALE_STEP = { reps: 1, time: 5, hold: 5 };
+export function scaleRoutine(routine, targetSec) {
+  const rows = (routine?.items || []).map((ri) => ({ ri, x: resolveItem(ri) })).filter((r) => r.x);
+  const work = rows.reduce((n, r) => n + itemSeconds(r.x.dose), 0);
+  if (!rows.length || work <= 0) return routine;
+  const f = Math.max(0.05, (targetSec - rows.length * TRANSITION_SEC) / work);
+  const lim = (v, [lo, hi]) => Math.max(lo, Math.min(hi, v));
+  const items = routine.items.map((ri) => {
+    const x = resolveItem(ri);
+    if (!x) return ri;
+    const d = x.dose; const step = SCALE_STEP[d.mode];
+    if (d.mode === 'reps') return { ...ri, reps: lim(Math.round(d.reps * f), ROUTINE_LIMITS.reps) };
+    return { ...ri, seconds: lim(Math.round((d.seconds * f) / step) * step, ROUTINE_LIMITS.seconds) };
+  });
+  return { ...routine, items };
+}
+
+/** Nächste Zielzeit in Minuten für die Dauer-Taste: unter 5 min in 1er-, darüber in 5er-Schritten. */
+export function nextMinutes(cur, delta) {
+  if (delta > 0) return Math.min(120, cur < 5 ? cur + 1 : Math.floor(cur / 5) * 5 + 5);
+  return Math.max(1, cur <= 5 ? cur - 1 : Math.ceil(cur / 5) * 5 - 5);
 }
 
 export function fmtClock(sec) {
@@ -134,7 +159,7 @@ export function planRoutine(plan, phase) {
 }
 
 export function setPlanRoutine(planId, phase, routineId) {
-  if (!(phase in PHASES)) return { ok: false, errors: ['Phase ungültig.'] };
+  if (!(phase in PLAN_KEY)) return { ok: false, errors: ['Phase ungültig.'] };
   if (routineId && getRoutine(routineId)?.phase !== phase) return { ok: false, errors: ['Routine passt nicht zur Phase.'] };
   const plans = store.get('plans');
   const i = plans.findIndex((p) => p.id === planId);

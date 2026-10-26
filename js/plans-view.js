@@ -15,6 +15,8 @@ import { DAY_LABELS, formatDays, isWeekSkipped } from './schedule.js';
 import { openProgressionInfo } from './progression-view.js';
 import { openAssistant } from './assistant-view.js';
 import { openPlanAnalysis } from './plan-analysis-view.js';
+import { planSeconds, fitPlanToSeconds } from './plan-duration.js';
+import { nextMinutes } from './routines.js';
 
 // v2.30.0 (B2): Wiederholungsbereich pro Planeintrag (optional). Standard beim Einschalten 8–12 (Konvention).
 const rrText = (it) => (it.repRange ? ` × ${it.repRange.min === it.repRange.max ? it.repRange.min : `${it.repRange.min}–${it.repRange.max}`} Wdh.` : '');
@@ -77,6 +79,25 @@ function daysBlock(plan, onChange) {
 const tab = { mode: 'plans' };
 
 const fmtDate = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+
+// v3.5.0: Gesamtdauer des Plans (Schätzung) per −/+ ändern – passt nur die Satzzahl an (plan-duration.js).
+function durationCtl(planId, onChange) {
+  const exercises = store.get('exercises');
+  const settings = store.get('settings');
+  const plan = P.getPlan(planId);
+  const sec = planSeconds(plan, exercises, settings);
+  if (!sec) return null;
+  return h('div', { class: 'ctl plan-dur' }, h('span', { class: 'ctl-label' }, 'Gesamtdauer', h('small', { class: 'muted' }, ' · Schätzung')),
+    stepper({ value: Math.round(sec / 60), small: true, format: (v) => `≈ ${v} min`, label: 'Gesamtdauer des Plans', onStep: (v, delta) => {
+      const cur = P.getPlan(planId);
+      const res = fitPlanToSeconds(cur, exercises, settings, nextMinutes(v, delta) * 60);
+      if (!res.changed) { toast(delta < 0 ? 'Kürzer geht nicht: jede Übung hat schon 1 Satz.' : 'Länger geht nicht: höchstens 5 Sätze pro Übung.'); return null; }
+      const r = P.savePlan({ ...cur, items: res.items });
+      if (!r.ok) { toast(r.errors[0], { error: true }); return null; }
+      onChange();
+      return Math.round(res.seconds / 60);
+    } }));
+}
 
 function context() {
   const exercises = lib.listExercises({ includeArchived: true });
@@ -173,7 +194,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
           const r = P.renamePlan(planId, e.target.value);
           if (!r.ok) { toast(r.errors[0], { error: true }); e.target.value = P.getPlan(planId).name; } else { draw(); rerender(); }
         } })
-        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Sätze` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
+        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Sätze${(() => { const sec = planSeconds(plan, store.get('exercises'), ctx.settings); return sec ? ` · ≈ ${Math.round(sec / 60)} min` : ''; })()}` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
       h('button', { class: `pill${mode.edit ? ' on' : ''}`, type: 'button', onclick: () => { mode.edit = !mode.edit; draw(); } },
         mode.edit ? 'Fertig' : h('span', { class: 'pill-in' }, icon('edit', { size: 16 }), 'Bearbeiten')));
 
@@ -253,6 +274,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
     body.replaceChildren(...[
       head,
       mode.edit ? daysBlock(plan, () => { draw(); rerender(); }) : null,
+      mode.edit ? durationCtl(planId, () => { draw(); rerender(); }) : null,
       slots.before,
       ...steps.flat(),
       details.some((x) => x.item.supersetNext) ? h('p', { class: 'muted small' }, 'Supersatz: je ein Satz pro Übung, Pause nach der Runde.') : null,

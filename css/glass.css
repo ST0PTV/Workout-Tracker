@@ -936,7 +936,7 @@ details.more > :not(summary) { font-size: 14px; }
 
 /* v2.34.1: Vereinheitlichung. Abstandsraster 8 / 12 / 16: 8 unter Kartenköpfen, 12 zwischen Blöcken und Tasten, 16 über Nebenaktionen.
    :where() hält die Spezifität niedrig, damit bewusste Einzelwerte (z. B. .routine > .btn-row) weiter gelten. */
-:where(.card, .sheet-body, .info) > :where(.addline, .empty-line, .chips, .wrap, .field, p) + .btn-row { margin-top: 12px; }
+:where(.card, .sheet-body, .info, .editor) > :where(.addline, .empty-line, .chips, .wrap, .field, p) + .btn-row { margin-top: 12px; } /* v3.5.0: auch in Editoren (Routine bearbeiten) */
 .set-line + .btn-row { margin-top: 16px; }
 .card > .title-row { margin-bottom: 8px; }
 .card > .title-row h2 { margin: 0; }
@@ -1234,3 +1234,8 @@ input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: ce
 .ana-two .btn:disabled { opacity: .45; }
 .plans-ana { margin: 0 0 12px; }
 @media (prefers-reduced-motion: reduce) { .an-overlay .fig .fm, .an-scan, .an-step { animation: none; } .an-step { opacity: 1; } }
+
+/* v3.5.0: Gesamtdauer (Routine, Plan) als Zeile: Beschriftung links, Stepper rechts */
+.plan-dur, .rt-total > .ctl { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+.plan-dur > .step, .rt-total > .ctl > .step { flex: 0 0 auto; width: auto; }
+.routine-edit > .seg + .rt-total, .routine-edit > p + .rt-total { margin-top: 12px; }

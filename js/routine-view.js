@@ -21,13 +21,14 @@ const figure = (item, width = 24) => h('span', { class: 'fig-ic' }, miniFigure({
 // ---------- Info ----------
 
 export function openRoutineInfo(phase = 'warmup') {
-  const lines = phase === 'cooldown' ? ROUTINE_INFO.cooldown : ROUTINE_INFO.warmup;
+  const key = phase in PHASES ? phase : 'warmup';
+  const lines = ROUTINE_INFO[key];
   openSheet(infoBody({
-    short: ROUTINE_INFO.short[phase === 'cooldown' ? 'cooldown' : 'warmup'],
+    short: ROUTINE_INFO.short[key],
     details: [h('ul', {}, lines.map((t) => h('li', {}, t))), h('h3', {}, 'Gut zu wissen'), h('ul', {}, ROUTINE_INFO.rules.map((t) => h('li', {}, t))),
       h('p', { class: 'muted small' }, 'Abstracts in PubMed geprüft. Keine medizinische Beratung.')],
     sources: ROUTINE_INFO.sources, checked: ROUTINES_CHECKED_AT, glossary: openGlossary
-  }), { title: phase === 'cooldown' ? 'Cool-down' : 'Aufwärmen' });
+  }), { title: PHASES[key] });
 }
 
 // ---------- Detail ----------
@@ -144,10 +145,19 @@ export function openEditor(draft, rerender, { isNew = false } = {}) {
         } }, 'Fertig')));
     drawFoot();
   };
-  const foot = h('div', { class: 'sec rt-total' });
+  const foot = h('div', { class: 'rt-total' });
   const hint = h('div', { class: 'hint-box' });
   const drawFoot = () => {
-    foot.textContent = `Übungen · ${minutes(r)}`;
+    // v3.5.0: Gesamtdauer per −/+ ändern; Wiederholungen und Zeiten werden anteilig angepasst.
+    const est = Math.max(1, Math.round(R.estimateSeconds(r) / 60));
+    foot.replaceChildren(
+      r.items.length ? h('div', { class: 'ctl' }, h('span', { class: 'ctl-label' }, 'Gesamtdauer', h('small', { class: 'muted' }, ' · Schätzung')),
+        stepper({ value: est, small: true, format: (v) => `≈ ${v} min`, label: 'Gesamtdauer', onStep: (v, delta) => {
+          Object.assign(r, R.scaleRoutine(r, R.nextMinutes(v, delta) * 60));
+          draw();
+          return Math.max(1, Math.round(R.estimateSeconds(r) / 60));
+        } })) : null,
+      h('div', { class: 'sec' }, 'Übungen'));
     const long = R.longHoldsInWarmup(r);
     hint.hidden = !long.length;
     hint.replaceChildren(...(long.length ? [
@@ -177,7 +187,7 @@ export function routinesPanel(rerender) {
   };
   return h('div', { class: 'routines' },
     h('p', { class: 'muted small' }, 'Optional, zählt nicht als Sätze.'),
-    section('warmup'), section('cooldown'),
+    section('warmup'), section('cooldown'), section('mobility'),
     h('button', { class: 'addline', type: 'button', onclick: () => openNewRoutine(rerender) }, icon('plus', { size: 18 }), 'Eigene Routine'));
 }
 
