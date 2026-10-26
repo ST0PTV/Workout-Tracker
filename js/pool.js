@@ -33,7 +33,8 @@ export const GEAR = {
   pullbar: 'Klimmzugstange',
   dipbars: 'Dipbarren',
   band: 'Widerstandsband',
-  wheel: 'Ab-Rad'
+  wheel: 'Ab-Rad',
+  balance: 'Balanceboard'
 };
 
 // Zusätzlich nötiges Zubehör je Übung (neben dem eigenen Gerät aus equipment). Zuordnung selbst vorgenommen,
@@ -47,6 +48,7 @@ const EXTRA_GEAR = {
   dipbars: ['dips', 'l-sit', 'captains-chair-knee-raise'],
   band: ['clamshell-band'],
   wheel: ['ab-wheel-rollout'],
+  balance: ['balance-board-calf-raise'],
   barbell: ['inverted-row'], // Stange im Rack auf Hüfthöhe; mit Ringen oder TRX geht es auch (dann Filter aus)
   machine: ['back-extension-45']
 };
@@ -1152,6 +1154,33 @@ export const POOL = [
     sources: [
       S('Ekstrom et al. 2003, J Orthop Sports Phys Ther', '10.2519/jospt.2003.33.5.247', 'EMG (n = 30): Armheben über Kopf in Bauchlage (Y) mit maximalem unteren Trapezius; Armheben zur Seite mit Außenrotation (T) und Y mit stärkstem mittleren.'),
       S('Elzanie & Varacallo 2024, StatPearls', 'https://www.ncbi.nlm.nih.gov/books/NBK537056/', 'Anatomie: hinterer und mittlerer Delta beim Armheben beteiligt; hier nur abgeleitet.')
+    ]
+  }, 'bodyweight'),
+
+  P('door-frame-push-up', 'Türrahmen-Push-up', 'bodyweight', ['chest'], ['triceps', 'front-delts'], {
+    confidence: 'low', basis: 'Kraftmessung (erhöhte Hände, übertragen) + EMG (Standard-Liegestütz)',
+    note: 'Stehend, Hände am Türrahmen auf Brusthöhe, Körper gerade nach vorn kippen. Füße weiter weg = schwerer. Leichteste Liegestütz-Stufe.',
+    others: ['Serratus anterior'],
+    sources: [
+      S('Ebben et al. 2011, J Strength Cond Res', '10.1519/JSC.0b013e31820c8587', 'Kraftmessplatte (n = 23): Hände erhöht (30/61 cm) → weniger Last als beim normalen Liegestütz. Stehend am Türrahmen nicht gemessen, übertragen.'),
+      S('Kowalski et al. 2021, Shoulder & Elbow (Scoping Review)', '10.1177/17585732211019373', 'Übersicht: Trizeps und großer Brustmuskel mit der höchsten EMG beim Standard-Liegestütz. Für die Türrahmen-Variante übertragen.')
+    ]
+  }, 'bodyweight'),
+  P('chair-squat', 'Kniebeuge auf den Stuhl', 'bodyweight', ['quads', 'glutes'], ['adductors'], {
+    confidence: 'medium', basis: 'EMG (Aufstehen vom Stuhl) + MRT (Langhantel, übertragen)',
+    note: 'Stuhl hinter dir: Gesäß nach hinten, kurz antippen statt absitzen, wieder aufstehen. Niedrigerer Stuhl = schwerer. Gut zum Einstieg.',
+    sources: [
+      S('Bryanton & Bilodeau 2019, Eur J Appl Physiol', '10.1007/s00421-018-3999-4', 'EMG beim Aufstehen vom Stuhl (jung und älter): Quadrizeps, großer Gesäßmuskel und Waden arbeiten; bei müdem Quadrizeps helfen Hüfte und Sprunggelenk mehr.'),
+      S('Kubo et al. 2019, Eur J Appl Physiol', '10.1007/s00421-019-04181-y', 'MRT, Kniebeuge mit Langhantel: Quadrizeps, Adduktoren und großer Gesäßmuskel wuchsen. Für die Stuhl-Kniebeuge übertragen.')
+    ]
+  }, 'bodyweight'),
+  P('balance-board-calf-raise', 'Balanceboard-Wadenheben', 'bodyweight', ['calves'], [], {
+    confidence: 'low', basis: 'EMG (instabile Unterlage, gemischte Ergebnisse)',
+    note: 'Beidbeinig auf dem Board, Hand an der Wand. Das Board fordert vor allem das Gleichgewicht; mehr Wadenreiz bringt einbeinig auf einer Stufe.',
+    others: ['Gastrocnemius und Soleus', 'Fußstabilisatoren'],
+    sources: [
+      S('Wahl & Behm 2008, J Strength Cond Res', '10.1519/JSC.0b013e318175ca3c', 'EMG, trainierte Männer: Wadenheben auf weichem Kissen (Dyna Disc) ohne Unterschied zum Boden; Stehen auf dem Wackelbrett erhöhte die Soleus-Aktivität.'),
+      S('Sara et al. 2021, PLoS One', '10.1371/journal.pone.0253276', 'Einbeiniges Fersenheben bis zur Erschöpfung ermüdet Gastrocnemius und Soleus deutlich (EMG). Auf dem Board nicht gemessen.')
     ]
   }, 'bodyweight'),
 

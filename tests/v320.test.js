@@ -94,6 +94,14 @@ test('Geräte: nur passende Übungen; fehlende Muster werden gemeldet', () => {
   assert.ok(body.plans.flatMap((x) => x.items.map((it) => it.ref)).includes('bodyweight-squat'));
 });
 
+test('v3.4.0: Balanceboard ist eigenes Gerät, Stuhl-Kniebeuge und Türrahmen-Push-up ohne Zubehör', async () => {
+  const { gearOf, GEAR } = await import('../js/pool.js');
+  assert.equal(GEAR.balance, 'Balanceboard');
+  assert.deepEqual(gearOf(poolEntry('balance-board-calf-raise')), ['balance']);
+  assert.deepEqual(gearOf(poolEntry('chair-squat')), []);
+  assert.deepEqual(gearOf(poolEntry('door-frame-push-up')), []);
+});
+
 test('Wochensätze: direkt 1, indirekt 0,5', () => {
   const w = B.weeklyMuscleSets([{ days: [0, 3], items: [{ ref: 'bench-press-barbell', sets: 3 }] }]);
   assert.equal(w.chest, 6);

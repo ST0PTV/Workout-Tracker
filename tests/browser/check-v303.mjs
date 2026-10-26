@@ -14,7 +14,7 @@ for (const vp of [{ width: 390, height: 844 }, { width: 390, height: 664 }]) {
     p.on('pageerror', (e) => errs.push(String(e)));
     p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); });
     await p.goto(srv.url + '/index.html#/exercises'); await p.waitForTimeout(500);
-    await p.getByRole('button', { name: /Startpool-Übungen übernehmen/ }).click(); await p.waitForTimeout(400); await p.getByRole('button', { name: /^130 übernehmen/ }).click(); await p.waitForTimeout(400); // lange Seite für den Scrolltest
+    await p.getByRole('button', { name: /Startpool-Übungen übernehmen/ }).click(); await p.waitForTimeout(400); await p.getByRole('button', { name: /^133 übernehmen/ }).click(); await p.waitForTimeout(400); // lange Seite für den Scrolltest
     await p.evaluate(() => { location.hash = '#/'; }); await p.waitForTimeout(300);
     const tag = `${vp.height} ${theme}`;
     const bottoms = [];
