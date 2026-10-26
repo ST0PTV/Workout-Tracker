@@ -16,6 +16,7 @@ for (const theme of ['dark', 'light']) {
   if (theme === 'light') await p.evaluate(() => document.documentElement.setAttribute('data-theme', 'light'));
   await p.getByRole('tab', { name: 'Routinen' }).click(); await p.waitForTimeout(300);
   const list = await p.evaluate(() => document.getElementById('view').innerText);
+  ok(/Mobilitätsprogramm 15 min/.test(list) && /13 Übungen/.test(list) || /Mobilitätsprogramm 15 min/.test(list), `${theme}: Mobilitätsprogramm in der Liste`);
   ok(/Beweglichkeit Arme & Hände 5 min/.test(list), `${theme}: Vorlage in der Liste`);
   await p.getByText('Beweglichkeit Arme & Hände 5 min').first().click(); await p.waitForTimeout(300);
   const sh = await p.evaluate(() => [...document.querySelectorAll('.sheet')].pop()?.innerText || '');

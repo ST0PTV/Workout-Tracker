@@ -42,6 +42,13 @@ export const ROUTINE_ITEMS = [
   I('triceps-back-bw', 'Trizeps nach hinten ohne Gewicht', 'dynamic', 'both', ['triceps'], ['rear-delts'], R(10), 'Oberkörper leicht vor, Arme gestreckt nach hinten führen, kurz halten.'),
   I('wrist-curl-bw', 'Unterarm-Curl ohne Gewicht', 'dynamic', 'both', ['forearms'], [], R(10), 'Unterarme auf den Oberschenkeln, Handflächen oben: Hände heben und senken.'),
   I('reverse-wrist-curl-bw', 'Umgekehrter Unterarm-Curl ohne Gewicht', 'dynamic', 'both', ['forearms'], [], R(10), 'Wie Unterarm-Curl, Handrücken oben: Hände langsam heben und senken.'),
+  // v3.4.0: weitere Übungen fürs Mobilitätsprogramm (Nutzerwunsch, 20 Wdh.); zählen wie alle Katalog-Übungen nicht als Sätze
+  I('biceps-curl-bw', 'Bizeps-Curl ohne Gewicht', 'dynamic', 'both', ['biceps'], ['forearms'], R(10), 'Ellbogen am Körper, Hände langsam zur Schulter beugen und senken.'),
+  I('chair-squat-mob', 'Kniebeuge auf den Stuhl', 'dynamic', 'both', ['quads', 'glutes'], ['adductors'], R(10), 'Stuhl hinter dir, Gesäß nach hinten, kurz antippen, wieder aufstehen.', 'chair'),
+  I('lunge-mob', 'Ausfallschritt', 'dynamic', 'both', ['quads', 'glutes'], ['hamstrings'], R(10), 'Abwechselnd links und rechts nach hinten treten, bei Bedarf festhalten.'),
+  I('crunch-mob', 'Crunch (Rumpfbeuge)', 'dynamic', 'both', ['abs'], ['obliques'], R(10), 'Rückenlage, Knie gebeugt, Schultern langsam etwas anheben und senken.', 'mat'),
+  I('balance-calf-raise-mob', 'Balanceboard-Wadenheben', 'activation', 'both', ['calves'], [], R(10), 'Auf dem Board, Hand an der Wand, langsam auf die Zehen und ab.', 'balance board'),
+  I('door-push-up-mob', 'Türrahmen-Push-up', 'dynamic', 'both', ['chest'], ['triceps', 'front-delts'], R(10), 'Hände am Türrahmen auf Brusthöhe, Körper gerade nach vorn kippen.', 'wall'),
   // Aktivierung
   I('glute-bridge', 'Glute Bridge', 'activation', 'warmup', ['glutes'], ['hamstrings'], R(12), 'Rückenlage, Becken anheben, oben kurz halten.', 'mat'),
   I('calf-raise-bw', 'Wadenheben ohne Gewicht', 'activation', 'warmup', ['calves'], [], R(15), 'Auf die Zehenspitzen und langsam wieder ab.'),
@@ -98,6 +105,12 @@ export const TEMPLATES = [
     it('arm-circles'), it('shoulder-press-bw'), it('lateral-raise-bw'), it('front-raise-bw'), it('triceps-back-bw'),
     it('wrist-curl-bw'), it('reverse-wrist-curl-bw')
   ], 'Sanft und ohne Gewicht, im Stehen oder Sitzen. Auch allein startbar. Hält beweglich, ist aber kein Krafttraining.'),
+  tpl('mob-full-15', 'Mobilitätsprogramm 15 min', 'cooldown', 15, 'full', [
+    it('biceps-curl-bw', { reps: 20 }), it('shoulder-press-bw', { reps: 20 }), it('lateral-raise-bw', { reps: 20 }), it('chair-squat-mob', { reps: 20 }),
+    it('lunge-mob', { reps: 20 }), it('crunch-mob', { reps: 20 }), it('hip-circles', { seconds: 60 }), it('balance-calf-raise-mob', { reps: 20 }),
+    it('triceps-back-bw', { reps: 20 }), it('door-push-up-mob', { reps: 20 }), it('wrist-curl-bw', { reps: 20 }), it('reverse-wrist-curl-bw', { reps: 20 }),
+    it('front-raise-bw', { reps: 20 })
+  ], 'Je 20 Wiederholungen, Hüftkreisen 1 min. Ruhig und ohne Gewicht, bei Bedarf festhalten. Zählt nicht als Krafttraining.'),
   tpl('cd-mobility-15', 'Beweglichkeit 15 min', 'cooldown', 15, 'full', [
     it('cardio-walk', { seconds: 120 }), it('stretch-hamstring', { rounds: 3 }), it('stretch-hip-flexor', { rounds: 3 }),
     it('stretch-figure4', { rounds: 3 }), it('stretch-chest-door', { rounds: 3 })
