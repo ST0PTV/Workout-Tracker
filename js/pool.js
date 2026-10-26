@@ -76,6 +76,42 @@ export function fitsGear(p, owned) {
 
 export const CONFIDENCE = { high: 'hoch', medium: 'mittel', low: 'niedrig' };
 
+// v3.7.0 (#303): Einordnung jeder Kraftübung als mehrgelenkig (Grundübung) oder eingelenkig – ausdrücklich statt Heuristik.
+// Regel (App-Konvention, keine Studienaussage): mehrgelenkig = die Hauptbewegung läuft in mindestens zwei Gelenken
+// (z. B. Schulter + Ellbogen beim Drücken). Dort, wo der Plan-Assistent Hüftstrecker (Hip Thrust, Glute Bridge,
+// Rückenstrecken, Good Morning) schon als mehrgelenkig führt, gilt dieselbe Einordnung. Grenzfälle stehen in der Doku
+// (Unverified 309). Cardio ist nicht eingeordnet (compound = false). Neue Einträge müssen in genau eine Liste (Test).
+export const COMPOUND_REFS = [
+  'bench-press-barbell', 'incline-press-dumbbell', 'chest-press-machine', 'dips', 'push-up', 'dumbbell-bench-press',
+  'incline-barbell-bench-press', 'decline-barbell-bench-press', 'smith-machine-incline-bench-press',
+  'incline-machine-chest-press', 'feet-elevated-push-up', 'shoulder-press-dumbbell',
+  'standing-barbell-overhead-press', 'machine-shoulder-press', 'barbell-upright-row', 'pull-up', 'lat-pulldown',
+  'barbell-row', 'seated-cable-row', 'chest-supported-row', 'deadlift', 'chin-up', 'close-grip-lat-pulldown',
+  'one-arm-dumbbell-row', 't-bar-row', 'machine-row', 'inverted-row', 'back-squat', 'leg-press', 'hack-squat',
+  'bulgarian-split-squat', 'romanian-deadlift', 'hip-thrust', 'sumo-squat', 'good-morning', 'back-extension-45',
+  'reverse-hyperextension', 'glute-bridge', 'single-leg-romanian-deadlift', 'dumbbell-step-up', 'walking-lunge',
+  'front-squat', 'goblet-squat', 'smith-machine-squat', 'belt-squat', 'dumbbell-forward-lunge',
+  'dumbbell-reverse-lunge', 'close-grip-bench-press', 'bench-dips', 'machine-triceps-dip', 'farmers-walk',
+  'ab-wheel-rollout', 'bodyweight-squat', 'bodyweight-reverse-lunge', 'bodyweight-glute-bridge', 'pike-push-up',
+  'door-frame-push-up', 'chair-squat'
+];
+export const ISOLATION_REFS = [
+  'pec-deck', 'cable-crossover', 'dumbbell-fly', 'low-to-high-cable-fly', 'lateral-raise-dumbbell',
+  'reverse-pec-deck', 'face-pull', 'cable-lateral-raise', 'machine-lateral-raise', 'dumbbell-front-raise',
+  'dumbbell-reverse-fly', 'cable-reverse-fly', 'incline-prone-y-raise', 'straight-arm-pulldown', 'dumbbell-shrug',
+  'leg-extension', 'lying-leg-curl', 'seated-leg-curl', 'hip-adduction-machine', 'hip-abduction-machine',
+  'standing-calf-raise', 'seated-calf-raise', 'leg-press-calf-raise', 'single-leg-calf-raise',
+  'cable-hip-abduction-standing', 'side-lying-hip-abduction', 'clamshell-band', 'copenhagen-plank',
+  'cable-hip-adduction', 'nordic-hamstring-curl', 'cable-kickback', 'sissy-squat', 'dumbbell-curl', 'hammer-curl',
+  'triceps-pushdown', 'overhead-triceps-extension', 'barbell-curl-ez', 'incline-dumbbell-curl', 'preacher-curl',
+  'cable-curl', 'concentration-curl', 'reverse-curl', 'wrist-curl', 'reverse-wrist-curl',
+  'overhead-dumbbell-triceps-extension', 'ez-bar-skullcrusher', 'dumbbell-triceps-kickback', 'cable-crunch',
+  'cable-woodchop', 'hanging-leg-raise', 'floor-crunch', 'machine-crunch', 'reverse-crunch', 'plank',
+  'lying-leg-raise', 'sit-up', 'captains-chair-knee-raise', 'side-plank', 'pallof-press', 'dumbbell-side-bend',
+  'russian-twist', 'bicycle-crunch', 'standing-cable-hip-flexion', 'dead-bug', 'l-sit', 'prone-y-t-raise',
+  'balance-board-calf-raise'
+];
+
 // Quelle: kurze Angabe, Link (DOI oder URL), was sie für die Zuordnung zeigt (eigene Worte).
 const S = (label, link, note) => ({
   label,
@@ -83,8 +119,11 @@ const S = (label, link, note) => ({
   note
 });
 
+const COMPOUND_SET = new Set(COMPOUND_REFS);
+
 const P = (ref, name, equipment, primary, secondary, info, kind = 'strength') => ({
   ref, name, equipment, kind,
+  compound: kind !== 'cardio' && COMPOUND_SET.has(ref),
   muscles: { primary, secondary },
   defaultWorkSets: 3,
   verification: 'verified',

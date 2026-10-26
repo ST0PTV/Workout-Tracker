@@ -26,8 +26,13 @@ export const LONG_SESSION_MIN = 75; // Konvention
 export const MAX_SUGGESTIONS = 3;
 export const MIN_DATA_WEEKS = 2;
 
-const COMPOUND_REFS = new Set(Object.values(SLOTS).filter((s) => s.compound).flatMap((s) => s.refs));
-const isCompound = (ex) => (ex?.source?.ref && COMPOUND_REFS.has(ex.source.ref)) || ((ex?.muscles?.primary?.length || 0) + (ex?.muscles?.secondary?.length || 0) >= 3);
+// v3.7.0 (#303): Pool-Übungen tragen eine ausdrückliche Einordnung (`compound`, siehe pool.js). Nur eigene Übungen ohne
+// Pool-Bezug behalten die Heuristik „mindestens 3 beteiligte Muskeln“ (Konvention).
+export const isCompound = (ex) => {
+  const entry = ex?.source?.ref ? poolEntry(ex.source.ref) : null;
+  if (entry) return entry.compound === true;
+  return (ex?.muscles?.primary?.length || 0) + (ex?.muscles?.secondary?.length || 0) >= 3;
+};
 
 const groupOf = (m) => (m === 'lats' || m === 'upper-back' ? 'back' : m);
 const PUSH = ['chest', 'front-delts', 'triceps'];
