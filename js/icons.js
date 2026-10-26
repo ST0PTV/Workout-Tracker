@@ -23,6 +23,10 @@ const PATHS = {
   progress: '<path d="M4 20h16"/><path d="M5 16l4.5-4.5 3 3L19 8"/><path d="M15 8h4v4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   swap: '<path d="M4 8h14l-3.5-3.5M20 16H6l3.5 3.5"/>',
+  // v3.5.2: Tab-Leiste – Training = Klemmbrett mit Haken, Pläne = Kalender, Mitte = gefüllte, schräge Hantel
+  workout: '<rect x="5" y="4.5" width="14" height="16.5" rx="2"/><path d="M9 4.5h6v3H9z"/><path d="M8.8 14l2.2 2.2 4.2-4.4"/>',
+  calendar: '<rect x="4" y="5.5" width="16" height="15" rx="2.2"/><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"/><circle cx="8.5" cy="14" r="0.7" fill="currentColor"/><circle cx="12" cy="14" r="0.7" fill="currentColor"/><circle cx="15.5" cy="14" r="0.7" fill="currentColor"/><circle cx="8.5" cy="17.2" r="0.7" fill="currentColor"/><circle cx="12" cy="17.2" r="0.7" fill="currentColor"/>',
+  dumbbell: '<g transform="rotate(-45 12 12)" fill="currentColor" stroke="none"><rect x="6.5" y="11" width="11" height="2" rx="1"/><rect x="4.6" y="7.2" width="2.6" height="9.6" rx="1.1"/><rect x="16.8" y="7.2" width="2.6" height="9.6" rx="1.1"/><rect x="2" y="9.2" width="2.2" height="5.6" rx="1"/><rect x="19.8" y="9.2" width="2.2" height="5.6" rx="1"/></g>',
   play: '<path d="M8 5.5v13l10-6.5z" fill="currentColor" stroke-linejoin="round"/>',
   pause: '<path d="M8 6v12M16 6v12" stroke-width="2.6"/>',
   motion: '<circle cx="12" cy="5" r="1.6" fill="currentColor"/><path d="M9 20l2.5-6 2.5 2 2.5-6M7 11l4-2.5 3 1.5 3-1"/>'
