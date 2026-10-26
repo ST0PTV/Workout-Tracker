@@ -34,18 +34,18 @@ export const GEAR_PRESETS = {
 // Bewegungsmuster → Kandidaten in Reihenfolge der Vorliebe (Konvention: geführte Geräte zuerst, weil leichter zu lernen;
 // laut ACSM 2026 hat die Geräteart keinen durchgehenden Effekt). compound = mehrgelenkig (kommt zuerst).
 export const SLOTS = {
-  squat: { compound: true, refs: ['leg-press', 'goblet-squat', 'back-squat', 'smith-machine-squat', 'hack-squat', 'belt-squat', 'bulgarian-split-squat', 'dumbbell-reverse-lunge'] },
-  lunge: { compound: true, refs: ['bulgarian-split-squat', 'dumbbell-reverse-lunge', 'goblet-squat', 'hack-squat', 'leg-press', 'dumbbell-step-up'] },
-  hinge: { compound: true, refs: ['romanian-deadlift', 'single-leg-romanian-deadlift', 'hip-thrust', 'back-extension-45', 'glute-bridge', 'good-morning'] },
+  squat: { compound: true, refs: ['leg-press', 'goblet-squat', 'back-squat', 'smith-machine-squat', 'hack-squat', 'belt-squat', 'bulgarian-split-squat', 'dumbbell-reverse-lunge', 'bodyweight-squat'] },
+  lunge: { compound: true, refs: ['bulgarian-split-squat', 'dumbbell-reverse-lunge', 'goblet-squat', 'hack-squat', 'leg-press', 'dumbbell-step-up', 'bodyweight-reverse-lunge'] },
+  hinge: { compound: true, refs: ['romanian-deadlift', 'single-leg-romanian-deadlift', 'hip-thrust', 'back-extension-45', 'glute-bridge', 'good-morning', 'bodyweight-glute-bridge'] },
   hpush: { compound: true, refs: ['chest-press-machine', 'dumbbell-bench-press', 'bench-press-barbell', 'push-up'] },
   ipush: { compound: true, refs: ['incline-machine-chest-press', 'incline-press-dumbbell', 'incline-barbell-bench-press', 'smith-machine-incline-bench-press', 'feet-elevated-push-up', 'push-up'] },
-  vpush: { compound: true, refs: ['machine-shoulder-press', 'shoulder-press-dumbbell', 'standing-barbell-overhead-press'] },
+  vpush: { compound: true, refs: ['machine-shoulder-press', 'shoulder-press-dumbbell', 'standing-barbell-overhead-press', 'pike-push-up'] },
   hpull: { compound: true, refs: ['seated-cable-row', 'machine-row', 'chest-supported-row', 'one-arm-dumbbell-row', 'barbell-row', 'inverted-row'] },
   vpull: { compound: true, refs: ['lat-pulldown', 'close-grip-lat-pulldown', 'pull-up', 'chin-up'] },
   legcurl: { compound: false, refs: ['seated-leg-curl', 'lying-leg-curl'] },
   legext: { compound: false, refs: ['leg-extension'] },
   lateral: { compound: false, refs: ['lateral-raise-dumbbell', 'cable-lateral-raise', 'machine-lateral-raise'] },
-  reardelt: { compound: false, refs: ['face-pull', 'reverse-pec-deck', 'dumbbell-reverse-fly', 'cable-reverse-fly'] },
+  reardelt: { compound: false, refs: ['face-pull', 'reverse-pec-deck', 'dumbbell-reverse-fly', 'cable-reverse-fly', 'prone-y-t-raise'] },
   biceps: { compound: false, refs: ['dumbbell-curl', 'cable-curl', 'barbell-curl-ez', 'hammer-curl'] },
   triceps: { compound: false, refs: ['triceps-pushdown', 'overhead-dumbbell-triceps-extension', 'overhead-triceps-extension', 'machine-triceps-dip', 'bench-dips'] },
   calves: { compound: false, refs: ['standing-calf-raise', 'leg-press-calf-raise', 'seated-calf-raise', 'single-leg-calf-raise'] },
@@ -173,6 +173,12 @@ export const SLOT_LABELS = {
   squat: 'Kniebeuge-Muster', lunge: 'Ausfallschritt-Muster', hinge: 'Hüftstreckung', hpush: 'Drücken waagerecht', ipush: 'Schrägdrücken',
   vpush: 'Drücken über Kopf', hpull: 'Rudern', vpull: 'Ziehen von oben', legcurl: 'Beinbeuger', legext: 'Beinstrecker',
   lateral: 'Seitheben', reardelt: 'Hintere Schulter', biceps: 'Bizeps', triceps: 'Trizeps', calves: 'Waden', core: 'Rumpf'
+};
+
+// v3.4.0: Was für ein Muster ohne passende Übung fehlt (Hinweis im Assistenten).
+export const SLOT_NEEDS = {
+  hpull: 'Band oder Stange', vpull: 'Stange oder Kabel', lateral: 'Hanteln oder Band',
+  legcurl: 'Maschine', legext: 'Maschine', calves: 'Stufe oder Maschine'
 };
 
 // Alle Pool-Refs, die der Assistent nutzen kann (für Tests: müssen im Pool existieren).

@@ -15,7 +15,7 @@ for (const theme of ['dark', 'light']) {
   p.on('dialog', (d) => d.accept());
   await p.goto(srv.url + '/index.html#/exercises'); await p.waitForTimeout(400);
   await p.getByRole('button', { name: /Startpool-Übungen übernehmen/ }).click(); await p.waitForTimeout(250);
-  await p.getByRole('button', { name: /^125 übernehmen/ }).click(); await p.waitForTimeout(400);
+  await p.getByRole('button', { name: /^133 übernehmen/ }).click(); await p.waitForTimeout(400);
   // drei Pläne anlegen; Beine wurde am längsten nicht trainiert (nur Push hat einen Verlauf-Eintrag ist nicht nötig: nie trainiert → alphabetisch)
   await p.evaluate(async () => {
     const P = await import('/js/plans.js'); const L = await import('/js/exercises.js');

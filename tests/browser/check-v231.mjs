@@ -41,7 +41,7 @@ await p.goto(srv.url + '/index.html#/exercises'); await p.waitForTimeout(500);
 await p.locator('button', { hasText: 'Startpool durchsehen' }).click(); await p.waitForTimeout(500);
 t = await sheetText();
 ok(await p.locator('.sheet button.chip', { hasText: 'Nur mein Equipment' }).count() === 1, 'E: Schalter „Nur mein Equipment“ sichtbar');
-ok(/\d+ von 125 Übungen · Mein Equipment/.test(t), `E: Zähler „x von 125 · Mein Equipment“ (${t.match(/\d+ von \d+ Übungen[^\n]*/)?.[0]})`);
+ok(/\d+ von 133 Übungen · Mein Equipment/.test(t), `E: Zähler „x von 133 · Mein Equipment“ (${t.match(/\d+ von \d+ Übungen[^\n]*/)?.[0]})`);
 let r = await refs();
 ok(r.includes('pull-up') && r.includes('dumbbell-bench-press') && r.includes('push-up') && r.includes('plank') && r.includes('bench-dips'), 'E: passende Übungen (Klimmzug, KH-Bankdrücken, Liegestütz, Plank, Bankdips)');
 ok(!r.includes('dips') && !r.includes('lat-pulldown') && !r.includes('back-squat') && !r.includes('ab-wheel-rollout') && !r.includes('clamshell-band'), 'E: nicht passende fehlen (Dips, Latzug, Kniebeuge, Ab-Rad, Band)');
@@ -54,7 +54,7 @@ await shot('4-evidence-needs');
 await p.keyboard.press('Escape'); await p.waitForTimeout(300);
 // Schalter aus → alles
 await p.locator('.sheet button.chip', { hasText: 'Nur mein Equipment' }).click(); await p.waitForTimeout(300);
-ok(await rows() === 125 || (await sheetText()).includes('125 Übungen'), 'E: Schalter aus → 125 Übungen');
+ok(await rows() === 133 || (await sheetText()).includes('133 Übungen'), 'E: Schalter aus → 133 Übungen');
 await p.locator('.sheet button.chip', { hasText: 'Nur mein Equipment' }).click(); await p.waitForTimeout(300);
 // Auswahl im Pool ändern
 await p.locator('.sheet button.link', { hasText: 'Equipment ändern' }).click(); await p.waitForTimeout(400);
@@ -83,7 +83,7 @@ await shot('6-add-matching');
 const expected = await p.evaluate(async () => { const m = await import('./js/pool.js'); const st = await import('./js/store.js'); const o = m.ownedGear(st.get('settings')); return m.POOL.filter((x) => m.fitsGear(x, o)).length; });
 await p.locator('.sheet button.btn.primary').click(); await p.waitForTimeout(600);
 const added = await p.evaluate(async () => (await import('./js/exercises.js')).listExercises().length);
-ok(added === expected && added > 0 && added < 125, `E: übernommen ${added} von 125 (erwartet ${expected})`);
+ok(added === expected && added > 0 && added < 133, `E: übernommen ${added} von 133 (erwartet ${expected})`);
 await shot('7-library');
 
 ok(errs.length === 0, `keine Konsolenfehler ${errs.slice(0, 3).join(' | ')}`);

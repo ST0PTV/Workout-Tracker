@@ -88,7 +88,18 @@ test('Geräte: nur passende Übungen; fehlende Muster werden gemeldet', () => {
   assert.ok(refs.every((r) => ['dumbbell', 'bodyweight'].includes(poolEntry(r).equipment)), refs.join(','));
   assert.ok(p.missing.includes('vpull'));
   const body = B.buildProgram({ ...gym, gear: [] });
-  assert.ok(body.missing.includes('squat'));
+  // v3.4.0: Kniebeuge, Ausfallschritt, Hüftstreckung und Drücken über Kopf gehen jetzt ohne Geräte; Rudern nicht.
+  for (const s of ['squat', 'lunge', 'hinge']) assert.ok(!body.missing.includes(s), s);
+  assert.ok(body.missing.includes('hpull'));
+  assert.ok(body.plans.flatMap((x) => x.items.map((it) => it.ref)).includes('bodyweight-squat'));
+});
+
+test('v3.4.0: Balanceboard ist eigenes Gerät, Stuhl-Kniebeuge und Türrahmen-Push-up ohne Zubehör', async () => {
+  const { gearOf, GEAR } = await import('../js/pool.js');
+  assert.equal(GEAR.balance, 'Balanceboard');
+  assert.deepEqual(gearOf(poolEntry('balance-board-calf-raise')), ['balance']);
+  assert.deepEqual(gearOf(poolEntry('chair-squat')), []);
+  assert.deepEqual(gearOf(poolEntry('door-frame-push-up')), []);
 });
 
 test('Wochensätze: direkt 1, indirekt 0,5', () => {

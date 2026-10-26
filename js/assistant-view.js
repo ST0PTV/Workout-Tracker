@@ -12,7 +12,7 @@ import { formatDays } from './schedule.js';
 import { fmtSets } from './week.js';
 import { infoBody } from './info.js';
 import {
-  GOALS, DAY_OPTIONS, TIME_OPTIONS, LEVELS, GEAR_PRESETS, SLOT_LABELS, buildProgram, normalizeAnswers
+  GOALS, DAY_OPTIONS, TIME_OPTIONS, LEVELS, GEAR_PRESETS, SLOT_LABELS, SLOT_NEEDS, buildProgram, normalizeAnswers
 } from './plan-builder.js';
 
 export const ASSISTANT_INFO = {
@@ -140,7 +140,7 @@ export function openAssistant(rerender) {
       h('span', {}, MUSCLES[m]), h('i', { 'aria-hidden': 'true' }, h('em', { style: `width:${Math.round((v / max) * 100)}%` })), h('span', { class: 'as-v' }, fmtSets(v))));
     const missing = prog.missing.length ? h('div', { class: 'card warn-box as-miss' },
       h('b', {}, 'Nicht alles passt zu deinen Geräten'),
-      h('p', {}, `Für ${prog.missing.map((s) => SLOT_LABELS[s]).join(', ')} fehlt im Übungspool eine passende Übung. Mit mehr Geräten wird der Plan vollständiger.`)) : null;
+      h('p', {}, `Es fehlen: ${prog.missing.map((s) => (SLOT_NEEDS[s] ? `${SLOT_LABELS[s]} (${SLOT_NEEDS[s]})` : SLOT_LABELS[s])).join(', ')}.`)) : null;
     body.replaceChildren(
       h('div', { class: 'as-top' },
         h('button', { class: 'as-link', type: 'button', onclick: () => { st.step = qs.length - 1; draw(); } }, 'Zurück'), h('span')),

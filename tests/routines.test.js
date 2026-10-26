@@ -49,6 +49,20 @@ test('Vorlagen: bekannte Übungen, Dauer nahe der Angabe, kein langes Halten im 
   assert.ok(D.TEMPLATES.some((t) => t.phase === 'cooldown'));
 });
 
+test('v3.4.0: Armübungen ohne Gewicht nur im Katalog (Beweglichkeit), nicht im Übungspool', async () => {
+  const { POOL } = await import('../js/pool.js');
+  const t = D.TEMPLATES.find((x) => x.id === 'tpl:mob-arms-5');
+  assert.ok(t && t.items.length === 7);
+  for (const ref of ['shoulder-press-bw', 'lateral-raise-bw', 'front-raise-bw', 'triceps-back-bw', 'wrist-curl-bw', 'reverse-wrist-curl-bw']) {
+    assert.equal(D.ITEM_BY_REF[ref].type, 'dynamic', ref);
+    assert.ok(!POOL.some((p) => p.ref === ref), ref);
+  }
+  const m = D.TEMPLATES.find((x) => x.id === 'tpl:mob-full-15');
+  assert.equal(m.items.length, 13);
+  assert.ok(m.items.filter((x) => x.ref !== 'hip-circles').every((x) => x.reps === 20));
+  assert.equal(R.steps(m).length >= 13, true);
+});
+
 test('Info: Quellen mit https-Link und kurzer Notiz, keine Heilsversprechen', () => {
   for (const s of D.ROUTINE_INFO.sources) {
     assert.ok(s.url.startsWith('https://'), s.label);
