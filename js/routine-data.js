@@ -4,7 +4,7 @@
 // Katalog-Übungen sind keine Kraftübungen: sie zählen nicht als Sätze, nicht ins Volumen und nicht in die Muskelkarte.
 export const ROUTINES_CHECKED_AT = '2026-10-16';
 
-export const PHASES = { warmup: 'Aufwärmen', cooldown: 'Cool-down' };
+export const PHASES = { warmup: 'Aufwärmen', cooldown: 'Cool-down', mobility: 'Mobility' }; // v3.5.0: Mobility als eigener Bereich (Nutzerwunsch)
 export const ITEM_TYPES = { cardio: 'Locker (Cardio)', dynamic: 'Dynamisch', activation: 'Aktivierung', stretch: 'Dehnen' };
 
 // Dosis: time = Dauer in s; reps = Wiederholungen; hold = Haltezeit in s × Runden. perSide = je Seite.
@@ -101,11 +101,11 @@ export const TEMPLATES = [
     it('cardio-walk', { seconds: 60 }), it('stretch-quad'), it('stretch-hamstring'), it('stretch-hip-flexor'),
     it('stretch-chest-door', { rounds: 1 }), it('stretch-child')
   ], 'Optional. Zum Runterkommen – nicht gegen Muskelkater.'),
-  tpl('mob-arms-5', 'Beweglichkeit Arme & Hände 5 min', 'cooldown', 5, 'upper', [
+  tpl('mob-arms-5', 'Beweglichkeit Arme & Hände 5 min', 'mobility', 5, 'upper', [
     it('arm-circles'), it('shoulder-press-bw'), it('lateral-raise-bw'), it('front-raise-bw'), it('triceps-back-bw'),
     it('wrist-curl-bw'), it('reverse-wrist-curl-bw')
   ], 'Sanft und ohne Gewicht, im Stehen oder Sitzen. Auch allein startbar. Hält beweglich, ist aber kein Krafttraining.'),
-  tpl('mob-full-15', 'Mobilitätsprogramm 15 min', 'cooldown', 15, 'full', [
+  tpl('mob-full-15', 'Mobilitätsprogramm 15 min', 'mobility', 15, 'full', [
     it('biceps-curl-bw', { reps: 20 }), it('shoulder-press-bw', { reps: 20 }), it('lateral-raise-bw', { reps: 20 }), it('chair-squat-mob', { reps: 20 }),
     it('lunge-mob', { reps: 20 }), it('crunch-mob', { reps: 20 }), it('hip-circles', { seconds: 60 }), it('balance-calf-raise-mob', { reps: 20 }),
     it('triceps-back-bw', { reps: 20 }), it('door-push-up-mob', { reps: 20 }), it('wrist-curl-bw', { reps: 20 }), it('reverse-wrist-curl-bw', { reps: 20 }),
@@ -128,8 +128,18 @@ export const ROUTINE_INFO = {
       'Optional: für Erholung und Muskelkater bringt es kaum etwas.',
       'Dehnen verbessert über Wochen die Beweglichkeit.',
       'Bis zum Zuggefühl dehnen, nicht in den Schmerz.'
+    ],
+    mobility: [
+      'Ruhige Bewegungen ohne Gewicht, im Stehen oder Sitzen – auch ohne Plan startbar.',
+      'Zählt nicht als Sätze, nicht ins Volumen und nicht in die Muskelkarte.',
+      'Nur so weit bewegen, wie es angenehm ist, nicht in den Schmerz.'
     ]
   },
+  mobility: [
+    'Mobility-Routinen sind ruhige Bewegungsfolgen ohne Zusatzgewicht. Sie ersetzen kein Krafttraining.',
+    'Ohne Last ist der Kraftreiz gering. Das ist Trainingswissen, nicht per Studie geprüft – deshalb zählen die Übungen nicht als Sätze.',
+    'Was Dehnen über Wochen für die Beweglichkeit bringt, steht in der Info zum Cool-down.'
+  ],
   warmup: [
     'Wärmere Muskeln verbessern in Studien schnelle Kraft und Leistung, aber nicht die Maximalkraft.',
     'In einer Studie mit 16 Kraftsportlern senkten 15 min Aufwärmen bei mittlerer Intensität das 1RM leicht; 15 min locker erhöhten es leicht, 5 min änderten nichts. Darum ist das Aufwärmen hier locker angelegt – länger heißt nicht automatisch besser.',
