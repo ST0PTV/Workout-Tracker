@@ -34,7 +34,7 @@ for (const theme of ['dark', 'light']) {
   await p.getByRole('button', { name: 'Vorschlag ansehen' }).click(); await p.waitForTimeout(300);
   const a = await p.evaluate(() => document.querySelector('.assist')?.innerText || '');
   ok(/Kniebeuge ohne Gewicht/.test(a) && /Glute Bridge ohne Gewicht/.test(a), `${tag}: Assistent nimmt die neuen Übungen (GK A)`);
-  ok(/Rudern \(braucht Band oder Stange\)/.test(a) && !/Kniebeuge-Muster/.test(a), `${tag}: Hinweis nennt das fehlende Gerät, Kniebeuge fehlt nicht mehr`);
+  ok(/Rudern \(Band oder Stange\)/.test(a) && !/Kniebeuge-Muster/.test(a), `${tag}: Hinweis nennt das fehlende Gerät, Kniebeuge fehlt nicht mehr`);
   ok(!/object HTML/.test(a), `${tag}: kein [object HTML…]`);
   if (shots) await p.screenshot({ path: `${shots}/v340-${theme}-assist.png` });
   await p.getByRole('tab', { name: 'GK B' }).click(); await p.waitForTimeout(150);

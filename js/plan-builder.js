@@ -177,8 +177,8 @@ export const SLOT_LABELS = {
 
 // v3.4.0: Was für ein Muster ohne passende Übung fehlt (Hinweis im Assistenten).
 export const SLOT_NEEDS = {
-  hpull: 'Band oder Stange', vpull: 'Klimmzugstange oder Kabelzug', lateral: 'Kurzhanteln, Kabel oder Band',
-  legcurl: 'Beinbeuger-Maschine', legext: 'Beinstrecker-Maschine', calves: 'Stufe oder Maschine'
+  hpull: 'Band oder Stange', vpull: 'Stange oder Kabel', lateral: 'Hanteln oder Band',
+  legcurl: 'Maschine', legext: 'Maschine', calves: 'Stufe oder Maschine'
 };
 
 // Alle Pool-Refs, die der Assistent nutzen kann (für Tests: müssen im Pool existieren).

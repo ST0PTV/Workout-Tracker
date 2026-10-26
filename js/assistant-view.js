@@ -140,7 +140,7 @@ export function openAssistant(rerender) {
       h('span', {}, MUSCLES[m]), h('i', { 'aria-hidden': 'true' }, h('em', { style: `width:${Math.round((v / max) * 100)}%` })), h('span', { class: 'as-v' }, fmtSets(v))));
     const missing = prog.missing.length ? h('div', { class: 'card warn-box as-miss' },
       h('b', {}, 'Nicht alles passt zu deinen Geräten'),
-      h('p', {}, `Für ${prog.missing.map((s) => (SLOT_NEEDS[s] ? `${SLOT_LABELS[s]} (braucht ${SLOT_NEEDS[s]})` : SLOT_LABELS[s])).join(', ')} gibt es ohne diese Geräte keine passende Übung. Mit mehr Geräten wird der Plan vollständiger.`)) : null;
+      h('p', {}, `Es fehlen: ${prog.missing.map((s) => (SLOT_NEEDS[s] ? `${SLOT_LABELS[s]} (${SLOT_NEEDS[s]})` : SLOT_LABELS[s])).join(', ')}.`)) : null;
     body.replaceChildren(
       h('div', { class: 'as-top' },
         h('button', { class: 'as-link', type: 'button', onclick: () => { st.step = qs.length - 1; draw(); } }, 'Zurück'), h('span')),
