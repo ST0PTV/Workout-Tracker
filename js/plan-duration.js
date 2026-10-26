@@ -11,7 +11,9 @@ export const FIT_MAX_SETS = 5;
 
 /** Geschätzte Dauer eines Plans in Sekunden (gleiches Modell wie die Plan-Analyse). */
 export function planSeconds(plan, exercises, settings) {
-  return planFacts([{ ...plan, archived: false }], exercises, settings)[0]?.seconds || 0;
+  // v3.8.0: Pläne nur mit Cardio (z. B. „Ausdauer“ aus dem Assistenten) haben keine Schätzung – sonst stünde dort nur das Aufwärmen.
+  const f = planFacts([{ ...plan, archived: false }], exercises, settings)[0];
+  return f && f.items.length ? f.seconds : 0;
 }
 
 /**

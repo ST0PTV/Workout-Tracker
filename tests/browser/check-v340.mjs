@@ -1,4 +1,4 @@
-// v3.4.0: Körpergewichtsübungen ohne Geräte. Startpool zeigt 133 Übungen; der Plan-Assistent mit „Nur Körpergewicht“
+// v3.4.0: Körpergewichtsübungen ohne Geräte. Startpool zeigt 136 Übungen; der Plan-Assistent mit „Nur Körpergewicht“
 // nimmt Kniebeuge, Ausfallschritt, Glute Bridge ohne Gewicht und Y/T-Heben; der Hinweis nennt das fehlende Gerät
 // fürs Rudern. Dunkel und hell.
 // Aufruf: node tests/browser/check-v340.mjs [Ordner für Screenshots]
@@ -20,8 +20,8 @@ for (const theme of ['dark', 'light']) {
 
   await p.getByRole('button', { name: /Startpool-Übungen übernehmen/ }).click(); await p.waitForTimeout(300);
   const pool = await p.evaluate(() => [...document.querySelectorAll('.sheet')].pop().innerText);
-  ok(/133 übernehmen/.test(pool), `${tag}: Startpool mit 133 Übungen`);
-  await p.getByRole('button', { name: /^133 übernehmen/ }).click(); await p.waitForTimeout(400);
+  ok(/136 übernehmen/.test(pool), `${tag}: Startpool mit 136 Übungen`);
+  await p.getByRole('button', { name: /^136 übernehmen/ }).click(); await p.waitForTimeout(400);
   const lib = await p.evaluate(() => document.getElementById('view').innerText);
   ok(['Kniebeuge ohne Gewicht', 'Ausfallschritte rückwärts ohne Gewicht', 'Glute Bridge ohne Gewicht', 'Pike Push-up', 'Y/T-Heben in Bauchlage', 'Türrahmen-Push-up', 'Kniebeuge auf den Stuhl', 'Balanceboard-Wadenheben'].every((n) => lib.includes(n)), `${tag}: die acht neuen Übungen in der Bibliothek`);
   if (shots) await p.screenshot({ path: `${shots}/v340-${theme}-lib.png`, fullPage: false });

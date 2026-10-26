@@ -18,7 +18,7 @@ import { POOL, poolEntry, fitsGear } from './pool.js';
 import { MUSCLES } from './model.js';
 
 export const GOALS = { strength: 'Kraft', muscle: 'Muskelaufbau', fit: 'Fit bleiben' };
-export const DAY_OPTIONS = [2, 3, 4, 5];
+export const DAY_OPTIONS = [1, 2, 3, 4, 5, 6]; // Krafttage pro Woche (v3.8.0: 1 und 6 dazu)
 export const TIME_OPTIONS = [30, 45, 60, 75];
 export const LEVELS = { new: 'Neu', some: 'Bis 1 Jahr', long: 'Länger' };
 export const WARMUP_SEC = 300; // Konvention: allgemeines Aufwärmen
@@ -67,19 +67,78 @@ export const DAY_TEMPLATES = {
 };
 
 // Tage pro Woche → Pläne mit Wochentagen (Mo = 0). Konvention; Split vs. Ganzkörper gleichwertig (Ramos-Campo 2024),
-// jeder Muskel mind. 2× pro Woche (Schoenfeld 2016).
+// jeder Muskel mind. 2× pro Woche (Schoenfeld 2016) – außer bei 1 Krafttag (dann ein Hinweis).
+// v3.8.0: 1 Tag = Ganzkörper A; 6 Tage = Drücken/Ziehen/Beine zweimal (Konvention). Kein 7. Krafttag (STRENGTH_MAX).
 export const SPLITS = {
+  1: { label: 'Ganzkörper', plans: [['fbA', [0]]] },
   2: { label: 'Ganzkörper', plans: [['fbA', [0]], ['fbB', [3]]] },
   3: { label: 'Ganzkörper', plans: [['fbA', [0, 4]], ['fbB', [2]]] },
   4: { label: 'Oberkörper / Unterkörper', plans: [['upper', [0, 3]], ['lower', [1, 4]]] },
-  5: { label: 'Drücken / Ziehen / Beine + Ober-/Unterkörper', plans: [['push', [0]], ['pull', [1]], ['legs', [2]], ['upper', [4]], ['lower', [5]]] }
+  5: { label: 'Drücken / Ziehen / Beine + Ober-/Unterkörper', plans: [['push', [0]], ['pull', [1]], ['legs', [2]], ['upper', [4]], ['lower', [5]]] },
+  6: { label: 'Drücken / Ziehen / Beine ×2', plans: [['push', [0, 3]], ['pull', [1, 4]], ['legs', [2, 5]]] }
 };
 
-/** Prüft und vervollständigt die Antworten; unbekannte Werte fallen auf sichere Standards. */
+// v3.8.0: Wochentage frei wählbar, jeder Tag Kraft oder Cardio (Nutzer entscheidet). Ein Split ist eine Reihenfolge von
+// Trainings (z. B. Ganzkörper A, B, A); die Krafttage werden der Reihe nach belegt. Mit den Standardtagen von SPLITS
+// kommt exakt der frühere Vorschlag heraus.
+export const STRENGTH_MAX = 6; // Konvention: mindestens ein Tag ohne Krafttraining (Regel: kein Druck gegen Ruhetage)
+export const DEFAULT_WEEKDAYS = Object.fromEntries(DAY_OPTIONS.map((n) => [n, SPLITS[n].plans.flatMap(([, days]) => days).sort((x, y) => x - y)]));
+// Übergang für die alte Tagesfrage (2–5 Tage); die neue Frage nutzt STRENGTH_MAX.
+export const WEEKDAY_MIN = 1;
+export const WEEKDAY_MAX = STRENGTH_MAX;
+
+// Cardio-Tage: ein eigener Plan „Ausdauer“ mit einer Übung ohne Gerät, tauschbar im Plan. Einsteiger: zügiges Gehen,
+// sonst Laufen (Konvention). Dauer = Antwort „Wie lange pro Training?“. Kraft und Cardio an getrennten Tagen bremsen
+// Muskelaufbau und Maximalkraft im Mittel nicht (Schumann et al. 2022, Meta-Analyse; Abstract).
+export const CARDIO_PLAN_NAME = 'Ausdauer';
+export const CARDIO_PICK = { new: 'outdoor-walking', some: 'outdoor-running', long: 'outdoor-running' };
+// WHO 2020 (Bull et al., Abstract): 150–300 min mittlere oder 75–150 min hohe Intensität pro Woche – nur als Orientierung.
+export const WHO_AEROBIC = { moderate: [150, 300], vigorous: [75, 150] };
+
+/** Reihenfolge der Trainings je Tageszahl, z. B. 3 → ['fbA', 'fbB', 'fbA']. */
+export function sessionOrder(count) {
+  return SPLITS[count].plans.flatMap(([key, days]) => days.map((d) => [d, key])).sort((x, y) => x[0] - y[0]).map(([, key]) => key);
+}
+
+/** Gültige Tagesliste (Mo = 0 … So = 6, verschieden, höchstens max Einträge, aufsteigend) oder null. Leer ist erlaubt. */
+export function cleanDays(list, max = 7) {
+  if (!Array.isArray(list) || list.length > max) return null;
+  if (new Set(list).size !== list.length || !list.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)) return null;
+  return [...list].sort((x, y) => x - y);
+}
+
+/** Krafttage (1–6) oder null. */
+export function cleanWeekdays(list) {
+  const days = cleanDays(list, STRENGTH_MAX);
+  return days && days.length ? days : null;
+}
+
+/** Wochentage je Plan: Krafttage der Reihe nach auf die Trainings des Splits verteilen. */
+export function planDays(weekdays) {
+  const order = sessionOrder(weekdays.length);
+  return SPLITS[weekdays.length].plans.map(([key]) => weekdays.filter((_, i) => order[i] === key));
+}
+
+/** Ganzkörper (2–3 Krafttage) an Tagen direkt hintereinander (So und Mo zählen auch)? Dann ein neutraler Hinweis (Konvention). */
+export function adjacentFullBody(weekdays) {
+  const days = cleanWeekdays(weekdays);
+  if (!days || days.length < 2 || days.length > 3) return false;
+  return days.some((d) => days.includes((d + 1) % 7));
+}
+
+/** Prüft und vervollständigt die Antworten; unbekannte Werte fallen auf sichere Standards.
+ *  weekdays = Krafttage (0–6, leer nur zusammen mit Cardio-Tagen), cardioDays = Cardio-Tage (0–7, nicht doppelt belegt).
+ *  Ohne gültige Krafttage gilt days (alte Frage) mit den Standardtagen; Cardio-Tage gibt es dann nicht. */
 export function normalizeAnswers(a = {}) {
+  let weekdays = cleanDays(a.weekdays, STRENGTH_MAX);
+  let cardioDays = cleanDays(a.cardioDays, 7) || [];
+  if (!weekdays || cardioDays.some((d) => weekdays.includes(d))) cardioDays = [];
+  if (weekdays && !weekdays.length && !cardioDays.length) weekdays = null;
   return {
     goal: GOALS[a.goal] ? a.goal : 'muscle',
-    days: DAY_OPTIONS.includes(a.days) ? a.days : 3,
+    weekdays,
+    cardioDays,
+    days: weekdays ? weekdays.length : (DAY_OPTIONS.includes(a.days) ? a.days : 3),
     minutes: TIME_OPTIONS.includes(a.minutes) ? a.minutes : 45,
     gear: a.gear === null || Array.isArray(a.gear) ? a.gear : null,
     level: LEVELS[a.level] ? a.level : 'new'
@@ -147,17 +206,32 @@ export function weeklyMuscleSets(plans) {
   return out;
 }
 
+/** v3.8.0: Plan für die Cardio-Tage – eine Übung ohne Gerät, so lang wie die gewählte Trainingsdauer. */
+export function cardioPlan(answers) {
+  const ref = CARDIO_PICK[answers.level] || CARDIO_PICK.new;
+  return {
+    key: 'cardio', name: CARDIO_PLAN_NAME, cardio: true, days: [...answers.cardioDays],
+    items: [{ slot: 'cardio', ref, sets: 1, repRange: null, restSeconds: null }],
+    seconds: answers.minutes * 60, missing: []
+  };
+}
+
 /** Der ganze Vorschlag: Pläne mit Wochentagen, Übungen, Dauer und Sätze pro Muskel. */
 export function buildProgram(rawAnswers) {
   const answers = normalizeAnswers(rawAnswers);
-  const split = SPLITS[answers.days];
+  const split = answers.days ? SPLITS[answers.days] : null;
+  const dayLists = !split ? [] : answers.weekdays ? planDays(answers.weekdays) : split.plans.map(([, days]) => days);
   const used = new Set();
-  const plans = split.plans.map(([key, days]) => {
+  const plans = !split ? [] : split.plans.map(([key], i) => {
     const day = buildDay(key, answers, used);
     for (const it of day.items) used.add(it.ref);
-    return { ...day, days };
+    return { ...day, days: [...dayLists[i]] };
   });
-  return { answers, splitLabel: split.label, plans, weekly: weeklyMuscleSets(plans), missing: [...new Set(plans.flatMap((p) => p.missing))] };
+  if (answers.cardioDays.length) plans.push(cardioPlan(answers));
+  return {
+    answers, splitLabel: split ? split.label : 'Nur Ausdauer', plans, weekly: weeklyMuscleSets(plans),
+    cardioMinutes: answers.minutes * answers.cardioDays.length, missing: [...new Set(plans.flatMap((p) => p.missing))]
+  };
 }
 
 /** Freier Name, falls „Ganzkörper A“ schon existiert: „Ganzkörper A (2)“. */
