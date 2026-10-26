@@ -20,13 +20,13 @@ for (const theme of ['dark', 'light']) {
   await p.getByRole('button', { name: 'Plan vorschlagen lassen' }).click(); await p.waitForTimeout(350);
   const q1 = await p.evaluate(() => document.querySelector('.assist')?.innerText || '');
   ok(/Frage 1 von 5/.test(q1) && /Was ist dein Ziel\?/.test(q1), `${tag}: Frage 1 erscheint`);
-  // Frage 1 → 2, dort 3 Tage gewählt (Standard), Tap-Ziele groß
+  // Frage 1 → 2: seit 3.8.0 Wochentage (Standard Mo · Mi · Fr = 3 Tage), Tap-Ziele groß
   await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(200);
-  const opt = await p.evaluate(() => { const r = document.querySelector('.as-opt').getBoundingClientRect(); return { h: Math.round(r.height), on: document.querySelector('.as-opt.on')?.innerText.split('\n')[1] }; });
-  ok(opt.h >= 64 && /3 Tage/.test(opt.on || ''), `${tag}: Antwortkarten ≥ 64 pt, 3 Tage vorausgewählt (${JSON.stringify(opt)})`);
+  const opt = await p.evaluate(() => { const r = document.querySelector('.as-day').getBoundingClientRect(); return { h: Math.round(r.height), w: Math.round(r.width), on: document.querySelectorAll('.as-day.on').length, text: document.querySelector('.as-split')?.innerText || '' }; });
+  ok(opt.h >= 44 && opt.w >= 44 && opt.on === 3 && /3 Tage/.test(opt.text), `${tag}: Tagestasten ≥ 44 pt, 3 Tage vorausgewählt (${JSON.stringify(opt)})`);
   if (shots) await p.screenshot({ path: `${shots}/v320-${theme}-q2.png` });
-  // Antwort ändern: 4 Tage
-  await p.getByRole('button', { name: /^4\s*4 Tage/ }).click(); await p.waitForTimeout(150);
+  // Antwort ändern: 4 Tage (Di dazu)
+  await p.locator('.as-day').nth(1).click(); await p.waitForTimeout(150);
   for (let i = 0; i < 3; i++) { await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(150); }
   await p.getByRole('button', { name: 'Vorschlag ansehen' }).click(); await p.waitForTimeout(300);
   const prev = await p.evaluate(() => document.querySelector('.assist')?.innerText || '');

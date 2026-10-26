@@ -1169,6 +1169,15 @@ input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: ce
 .as-prog span.on { background: var(--accent); }
 .as-h { font-size: 30px; margin: 0 0 6px; }
 .as-opts { display: flex; flex-direction: column; }
+/* v3.8.0: Wochentage im Assistenten – sieben gleich breite Tasten (mind. 44 pt hoch), darunter der entstehende Split */
+.as-opts-week { gap: 12px; }
+.as-opts-week > p { margin: 0; }
+.as-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.as-day { min-height: 52px; border-radius: 12px; border: 0; background: var(--surface-2); color: var(--text); font: inherit; font-size: 16px; font-weight: 600; cursor: pointer; }
+.as-day.on { background: var(--accent); color: var(--on-accent); }
+.as-day:disabled { opacity: 0.35; cursor: not-allowed; }
+.as-split { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; }
+.as-split b { font-size: 17px; font-weight: 600; }
 .as-opt { min-height: 72px; color: var(--text); font: inherit; }
 .as-opt.on { box-shadow: inset 0 0 0 2px var(--accent); }
 .as-opt .as-t { flex: 1; min-width: 0; }

@@ -8,11 +8,12 @@ import * as store from './store.js';
 import { applyProgram } from './plan-apply.js';
 import { poolEntry, ownedGear, GEAR } from './pool.js';
 import { MUSCLES } from './model.js';
-import { formatDays } from './schedule.js';
+import { formatDays, DAY_LABELS } from './schedule.js';
 import { fmtSets } from './week.js';
 import { infoBody } from './info.js';
 import {
-  GOALS, DAY_OPTIONS, TIME_OPTIONS, LEVELS, GEAR_PRESETS, SLOT_LABELS, SLOT_NEEDS, buildProgram, normalizeAnswers
+  GOALS, TIME_OPTIONS, LEVELS, GEAR_PRESETS, SLOT_LABELS, SLOT_NEEDS, DEFAULT_WEEKDAYS, WEEKDAY_MIN, WEEKDAY_MAX,
+  buildProgram, normalizeAnswers, cleanWeekdays, adjacentFullBody
 } from './plan-builder.js';
 
 export const ASSISTANT_INFO = {
@@ -62,8 +63,8 @@ function questions(settings) {
         { value: 'muscle', label: GOALS.muscle, sub: 'Muskeln aufbauen' },
         { value: 'strength', label: GOALS.strength, sub: 'Stärker werden in den Grundübungen' },
         { value: 'fit', label: GOALS.fit, sub: 'Allgemein fit und gesund' }] },
-    { key: 'days', title: 'Wie oft pro Woche?', sub: 'Zähl nur Tage, die in deinen Alltag passen. Ändern geht jederzeit.',
-      options: DAY_OPTIONS.map((d) => ({ value: d, label: d === 5 ? '5 Tage' : `${d} Tage`, sub: SPLIT_SUB[d], num: d === 5 ? '5' : String(d) })) },
+    // v3.8.0: statt „Wie oft?“ die Wochentage wählen; die Zahl der Tage bestimmt den Split.
+    { key: 'weekdays', kind: 'weekdays', title: 'An welchen Tagen trainierst du?', sub: `Wähle ${WEEKDAY_MIN} bis ${WEEKDAY_MAX} Tage, die in deinen Alltag passen. Ändern geht jederzeit.` },
     { key: 'minutes', title: 'Wie lange pro Training?', sub: 'Inklusive Aufwärmen. Die Dauer ist eine Schätzung.',
       options: TIME_OPTIONS.map((m) => ({ value: m, label: m === 75 ? '75 min oder mehr' : `${m} min`, num: String(m) })) },
     { key: 'gear', title: 'Was hast du zur Verfügung?', sub: 'Nur passende Übungen kommen in den Plan.', options: gearOpts },
@@ -86,7 +87,7 @@ const check = () => h('svg', { class: 'as-chk', viewBox: '0 0 24 24', 'aria-hidd
 export function openAssistant(rerender) {
   const settings = store.get('settings');
   const qs = questions(settings);
-  const st = { step: 0, choice: { goal: 'muscle', days: 3, minutes: 45, gear: ownedGear(settings) ? 'mine' : 'gym', level: 'new' }, tab: 0 };
+  const st = { step: 0, choice: { goal: 'muscle', weekdays: [...DEFAULT_WEEKDAYS[3]], minutes: 45, gear: ownedGear(settings) ? 'mine' : 'gym', level: 'new' }, tab: 0 };
   const body = h('div', { class: 'assist' });
   const sheet = openSheet(body, { full: true, title: 'Plan erstellen' });
 
@@ -97,10 +98,34 @@ export function openAssistant(rerender) {
     body.scrollTop = 0;
   }
 
+  // v3.8.0: sieben Tasten Mo–So; 2–5 Tage, weitere Tage sind bei 5 gesperrt.
+  function weekdayPicker() {
+    const days = st.choice.weekdays;
+    const n = days.length;
+    const toggle = (d) => {
+      st.choice.weekdays = (days.includes(d) ? days.filter((x) => x !== d) : [...days, d]).sort((x, y) => x - y);
+      draw();
+    };
+    const grid = h('div', { class: 'as-week', role: 'group', 'aria-label': 'Trainingstage' }, DAY_LABELS.map((label, d) => {
+      const on = days.includes(d);
+      return h('button', { type: 'button', class: `as-day${on ? ' on' : ''}`, 'aria-pressed': String(on), disabled: !on && n >= WEEKDAY_MAX,
+        'aria-label': `${label} ${on ? 'abwählen' : 'wählen'}`, onclick: () => toggle(d) }, label);
+    }));
+    const ok = n >= WEEKDAY_MIN;
+    const split = ok
+      ? [h('b', {}, `${n} Tage`), h('small', {}, SPLIT_SUB[n])]
+      : [h('b', {}, `Noch ${WEEKDAY_MIN - n} Tag${WEEKDAY_MIN - n === 1 ? '' : 'e'} wählen`), h('small', {}, `Mindestens ${WEEKDAY_MIN} Tage.`)];
+    return [grid,
+      h('div', { class: 'card as-split' }, split),
+      n >= WEEKDAY_MAX ? h('p', { class: 'muted small' }, `Der Assistent plant höchstens ${WEEKDAY_MAX} Tage pro Woche.`) : null,
+      adjacentFullBody(days) ? h('p', { class: 'muted small' }, 'Bei Ganzkörper-Training ist ein freier Tag dazwischen üblich (Konvention). Du kannst die Tage trotzdem so lassen.') : null];
+  }
+
   function drawQuestion() {
     const q = qs[st.step];
     const prog = h('div', { class: 'as-prog', 'aria-hidden': 'true' }, qs.map((_, i) => h('span', { class: i <= st.step ? 'on' : '' })));
-    const opts = q.options.map((o) => {
+    const valid = q.kind !== 'weekdays' || cleanWeekdays(st.choice.weekdays) !== null;
+    const opts = q.kind === 'weekdays' ? weekdayPicker() : q.options.map((o) => {
       const on = st.choice[q.key] === o.value;
       return h('button', { class: `opt as-opt${on ? ' on' : ''}`, type: 'button', 'aria-pressed': String(on),
         onclick: () => { st.choice[q.key] = o.value; draw(); } },
@@ -115,9 +140,9 @@ export function openAssistant(rerender) {
       prog,
       h('h1', { class: 'as-h' }, q.title),
       h('p', { class: 'sub' }, q.sub),
-      h('div', { class: 'as-opts' }, opts),
+      h('div', { class: q.kind === 'weekdays' ? 'as-opts as-opts-week' : 'as-opts' }, opts),
       h('div', { class: 'as-bottom' },
-        h('button', { class: 'btn primary block', type: 'button', onclick: () => { st.step += 1; st.tab = 0; draw(); } },
+        h('button', { class: 'btn primary block', type: 'button', disabled: !valid, onclick: () => { st.step += 1; st.tab = 0; draw(); } },
           st.step === qs.length - 1 ? 'Vorschlag ansehen' : 'Weiter')));
   }
 

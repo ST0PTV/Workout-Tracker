@@ -75,11 +75,46 @@ export const SPLITS = {
   5: { label: 'Drücken / Ziehen / Beine + Ober-/Unterkörper', plans: [['push', [0]], ['pull', [1]], ['legs', [2]], ['upper', [4]], ['lower', [5]]] }
 };
 
+// v3.8.0: Wochentage frei wählbar. Ein Split ist eine Reihenfolge von Trainings (z. B. Ganzkörper A, B, A); die gewählten
+// Tage werden der Reihe nach belegt. Mit den Standardtagen von SPLITS kommt exakt der frühere Vorschlag heraus.
+export const WEEKDAY_MIN = DAY_OPTIONS[0];
+export const WEEKDAY_MAX = DAY_OPTIONS[DAY_OPTIONS.length - 1];
+export const DEFAULT_WEEKDAYS = Object.fromEntries(DAY_OPTIONS.map((n) => [n, SPLITS[n].plans.flatMap(([, days]) => days).sort((x, y) => x - y)]));
+
+/** Reihenfolge der Trainings je Tageszahl, z. B. 3 → ['fbA', 'fbB', 'fbA']. */
+export function sessionOrder(count) {
+  return SPLITS[count].plans.flatMap(([key, days]) => days.map((d) => [d, key])).sort((x, y) => x[0] - y[0]).map(([, key]) => key);
+}
+
+/** Gültige Wochentage (Mo = 0 … So = 6, 2–5 verschiedene, aufsteigend) oder null. */
+export function cleanWeekdays(list) {
+  if (!Array.isArray(list)) return null;
+  const days = [...new Set(list)];
+  if (days.length !== list.length || days.length < WEEKDAY_MIN || days.length > WEEKDAY_MAX) return null;
+  if (!days.every((d) => Number.isInteger(d) && d >= 0 && d <= 6)) return null;
+  return days.sort((x, y) => x - y);
+}
+
+/** Wochentage je Plan: gewählte Tage der Reihe nach auf die Trainings des Splits verteilen. */
+export function planDays(weekdays) {
+  const order = sessionOrder(weekdays.length);
+  return SPLITS[weekdays.length].plans.map(([key]) => weekdays.filter((_, i) => order[i] === key));
+}
+
+/** Ganzkörper (2–3 Tage) an Tagen direkt hintereinander (So und Mo zählen auch)? Dann kommt ein neutraler Hinweis (Konvention). */
+export function adjacentFullBody(weekdays) {
+  const days = cleanWeekdays(weekdays);
+  if (!days || days.length > 3) return false;
+  return days.some((d) => days.includes((d + 1) % 7));
+}
+
 /** Prüft und vervollständigt die Antworten; unbekannte Werte fallen auf sichere Standards. */
 export function normalizeAnswers(a = {}) {
+  const weekdays = cleanWeekdays(a.weekdays);
   return {
     goal: GOALS[a.goal] ? a.goal : 'muscle',
-    days: DAY_OPTIONS.includes(a.days) ? a.days : 3,
+    weekdays,
+    days: weekdays ? weekdays.length : (DAY_OPTIONS.includes(a.days) ? a.days : 3),
     minutes: TIME_OPTIONS.includes(a.minutes) ? a.minutes : 45,
     gear: a.gear === null || Array.isArray(a.gear) ? a.gear : null,
     level: LEVELS[a.level] ? a.level : 'new'
@@ -151,11 +186,12 @@ export function weeklyMuscleSets(plans) {
 export function buildProgram(rawAnswers) {
   const answers = normalizeAnswers(rawAnswers);
   const split = SPLITS[answers.days];
+  const dayLists = answers.weekdays ? planDays(answers.weekdays) : split.plans.map(([, days]) => days);
   const used = new Set();
-  const plans = split.plans.map(([key, days]) => {
+  const plans = split.plans.map(([key], i) => {
     const day = buildDay(key, answers, used);
     for (const it of day.items) used.add(it.ref);
-    return { ...day, days };
+    return { ...day, days: [...dayLists[i]] };
   });
   return { answers, splitLabel: split.label, plans, weekly: weeklyMuscleSets(plans), missing: [...new Set(plans.flatMap((p) => p.missing))] };
 }
