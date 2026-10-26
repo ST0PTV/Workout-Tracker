@@ -35,6 +35,13 @@ export const ROUTINE_ITEMS = [
   I('lunge-rotation', 'Ausfallschritt mit Rotation', 'dynamic', 'warmup', ['quads', 'glutes'], ['obliques', 'hip-flexors'], R(5, true), 'Ausfallschritt, Oberkörper zum vorderen Bein drehen.'),
   I('bw-squat', 'Kniebeuge ohne Gewicht', 'dynamic', 'warmup', ['quads', 'glutes'], ['adductors'], R(10), 'Langsam und so tief, wie es angenehm ist.'),
   I('hip-hinge', 'Hip-Hinge ohne Gewicht', 'dynamic', 'warmup', ['hamstrings', 'glutes'], ['lower-back'], R(10), 'Hüfte nach hinten schieben, Rücken lang, Knie leicht gebeugt.'),
+  // v3.4.0: Armübungen ohne Gewicht – nur zur Beweglichkeit (ohne Last kaum Kraftreiz, deshalb nicht im Übungspool)
+  I('shoulder-press-bw', 'Schulterdrücken ohne Gewicht', 'dynamic', 'both', ['front-delts', 'side-delts'], ['triceps'], R(10), 'Hände auf Schulterhöhe, Arme langsam nach oben strecken. Auch im Sitzen.'),
+  I('lateral-raise-bw', 'Seitheben ohne Gewicht', 'dynamic', 'both', ['side-delts'], ['upper-back'], R(10), 'Arme seitlich bis Schulterhöhe heben, langsam senken. Auch im Sitzen.'),
+  I('front-raise-bw', 'Frontheben ohne Gewicht', 'dynamic', 'both', ['front-delts'], ['side-delts'], R(10), 'Arme gestreckt nach vorn bis Schulterhöhe heben, langsam senken.'),
+  I('triceps-back-bw', 'Trizeps nach hinten ohne Gewicht', 'dynamic', 'both', ['triceps'], ['rear-delts'], R(10), 'Oberkörper leicht vor, Arme gestreckt nach hinten führen, kurz halten.'),
+  I('wrist-curl-bw', 'Unterarm-Curl ohne Gewicht', 'dynamic', 'both', ['forearms'], [], R(10), 'Unterarme auf den Oberschenkeln, Handflächen oben: Hände heben und senken.'),
+  I('reverse-wrist-curl-bw', 'Umgekehrter Unterarm-Curl ohne Gewicht', 'dynamic', 'both', ['forearms'], [], R(10), 'Wie Unterarm-Curl, Handrücken oben: Hände langsam heben und senken.'),
   // Aktivierung
   I('glute-bridge', 'Glute Bridge', 'activation', 'warmup', ['glutes'], ['hamstrings'], R(12), 'Rückenlage, Becken anheben, oben kurz halten.', 'mat'),
   I('calf-raise-bw', 'Wadenheben ohne Gewicht', 'activation', 'warmup', ['calves'], [], R(15), 'Auf die Zehenspitzen und langsam wieder ab.'),
@@ -87,6 +94,10 @@ export const TEMPLATES = [
     it('cardio-walk', { seconds: 60 }), it('stretch-quad'), it('stretch-hamstring'), it('stretch-hip-flexor'),
     it('stretch-chest-door', { rounds: 1 }), it('stretch-child')
   ], 'Optional. Zum Runterkommen – nicht gegen Muskelkater.'),
+  tpl('mob-arms-5', 'Beweglichkeit Arme & Hände 5 min', 'cooldown', 5, 'upper', [
+    it('arm-circles'), it('shoulder-press-bw'), it('lateral-raise-bw'), it('front-raise-bw'), it('triceps-back-bw'),
+    it('wrist-curl-bw'), it('reverse-wrist-curl-bw')
+  ], 'Sanft und ohne Gewicht, im Stehen oder Sitzen. Auch allein startbar. Hält beweglich, ist aber kein Krafttraining.'),
   tpl('cd-mobility-15', 'Beweglichkeit 15 min', 'cooldown', 15, 'full', [
     it('cardio-walk', { seconds: 120 }), it('stretch-hamstring', { rounds: 3 }), it('stretch-hip-flexor', { rounds: 3 }),
     it('stretch-figure4', { rounds: 3 }), it('stretch-chest-door', { rounds: 3 })
