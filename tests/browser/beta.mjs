@@ -41,8 +41,14 @@ const srv = createServer((req, res) => {
   res.writeHead(200, { 'content-type': MIME[extname(f)] || 'application/octet-stream', 'cache-control': 'no-store' });
   res.end(readFileSync(f));
 });
+const sockets = new Set();
+srv.on('connection', (c) => { sockets.add(c); c.on('close', () => sockets.delete(c)); });
 await new Promise((r) => srv.listen(0, '127.0.0.1', r));
-const URL0 = `http://127.0.0.1:${srv.address().port}`;
+const PORT = srv.address().port;
+const URL0 = `http://127.0.0.1:${PORT}`;
+// Echtes „offline“ für alle Engines: Server anhalten (Playwrights setOffline lieferte in WebKit auch über den Service Worker nichts – ob Werkzeug oder App, soll dieser Weg klären).
+const serverOff = () => new Promise((r) => { srv.close(() => r()); for (const c of sockets) c.destroy(); });
+const serverOn = () => new Promise((r) => srv.listen(PORT, '127.0.0.1', r));
 
 // ---------- Allgemeine Prüfungen im Browser ----------
 function pageAudit() {
@@ -218,6 +224,20 @@ for (const devName of DEVICES) {
       await row.locator('input.val').nth(1).fill('10'); await row.locator('input.val').nth(1).dispatchEvent('change');
       await row.locator('.ck').click(); await p.waitForTimeout(400);
       ok(await p.locator('.restbar:not([hidden])').count() === 1, `${T}: Pause läuft nach dem Haken`);
+      // v3.8.1: Layout bei schmalen Bildschirmen – Zeit einzeilig, Knopfzeilen im Inhaltsbereich, Schnellknöpfe einzeilig
+      const lay = await p.evaluate(() => {
+        const one = (e) => { // nur Textknoten zählen (Icons liegen höher/tiefer als der Text)
+          if (!e) return true; const tops = new Set(); const w = document.createTreeWalker(e, NodeFilter.SHOW_TEXT);
+          for (let n = w.nextNode(); n; n = w.nextNode()) { if (!n.textContent.trim()) continue; const r = document.createRange(); r.selectNodeContents(n); for (const x of r.getClientRects()) if (x.width > 1) tops.add(Math.round(x.top / 6)); }
+          return tops.size <= 1; };
+        const inside = (sel) => [...document.querySelectorAll(sel)].every((row) => { const pr = row.getBoundingClientRect(); return [...row.children].every((c) => { const r = c.getBoundingClientRect(); return r.right <= pr.right + 1 && r.left >= pr.left - 1; }); });
+        const view = document.querySelector('#view'); const vr = view.getBoundingClientRect(); const pad = parseFloat(getComputedStyle(view).paddingRight) || 0;
+        const gutter = [...document.querySelectorAll('#view .nav2 .btn')].every((b) => b.getBoundingClientRect().right <= vr.right - pad + 1);
+        const quickIn = [...document.querySelectorAll('.quick')].every((q) => { const card = q.closest('.card') || q.parentElement; const cr = card.getBoundingClientRect(); return [...q.children].every((c) => c.getBoundingClientRect().right <= cr.right + 1); });
+        const plus = [...document.querySelectorAll('#view .nav2 .btn')].filter((b) => /Aufwärmsatz|^\s*Satz/.test(b.innerText)).every((b) => { const i = b.querySelector('.icon'); return i && getComputedStyle(i).display !== 'none'; });
+        return { time: one(document.querySelector('.rt-time')), nav: inside('.nav2'), gutter, quick: [...document.querySelectorAll('.qbtn')].every(one), quickIn, plus };
+      });
+      ok(lay.time && lay.nav && lay.gutter && lay.quick && lay.quickIn && lay.plus, `${T}: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz (${JSON.stringify(lay)})`);
       await audit(p, `${T} Training Satz`, errs); await shot(`04-session-${theme}`);
       // Technik-Animation öffnen
       if (await p.getByRole('button', { name: 'Technik' }).count()) {
@@ -334,7 +354,7 @@ for (const devName of DEVICES) {
     await p.evaluate(async () => { await navigator.serviceWorker.ready; });
     await p.reload(); await p.waitForTimeout(800);
     ok(await p.evaluate(() => !!navigator.serviceWorker.controller), `${ENGINE}: Service Worker steuert die Seite`);
-    await ctx.setOffline(true);
+    await serverOff();
     // Nachweis 1: ohne Netz kommen App-Dateien aus dem Service-Worker-Cache (funktioniert in allen Engines).
     const fetched = await p.evaluate(async () => {
       const out = {};
@@ -344,8 +364,7 @@ for (const devName of DEVICES) {
     ok(Object.values(fetched).every(Boolean), `${ENGINE}: ohne Netz liefert der Service Worker die App-Dateien (${JSON.stringify(fetched)})`);
     // Nachweis 2: Neuladen ohne Netz. Playwright-WebKit kann das unter Linux nicht (interner Fehler im Werkzeug, nicht in der App).
     try { await p.reload(); } catch (e) {
-      if (ENGINE === 'webkit') { warn(`webkit: Neuladen ohne Netz im Testwerkzeug nicht möglich (${String(e.message).split('\n')[0]}) – Nachweis über den Cache oben`); await ctx.setOffline(false); await ctx.close(); return; }
-      throw e;
+      await serverOn(); throw e;
     }
     await p.waitForTimeout(800);
     const t = await p.evaluate(() => document.body.innerText);
@@ -353,7 +372,9 @@ for (const devName of DEVICES) {
     await p.evaluate(() => { location.hash = '#/settings'; }); await p.waitForTimeout(400);
     ok((await p.evaluate(() => document.body.innerText)).includes(appVersion()), `${ENGINE}: offline auch die Einstellungen (Version sichtbar)`);
     ok(errs.length === 0, `${ENGINE}: offline ohne Seitenfehler ${errs.join(' | ')}`);
+    await serverOn();
   });
+  if (!srv.listening) await serverOn();
   await ctx.close();
 }
 

@@ -1257,3 +1257,20 @@ input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: ce
 .plan-dur, .rt-total > .ctl { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
 .plan-dur > .step, .rt-total > .ctl > .step { flex: 0 0 auto; width: auto; }
 .routine-edit > .seg + .rt-total, .routine-edit > p + .rt-total { margin-top: 12px; }
+
+/* v3.8.1 (Beta-Test, iPhone SE 320 px in WebKit): Pausen-Zeit brach um („2:0 / 0“), die Knopfzeile ‹ · Übersicht · Weiter
+   lief rechts über den Rand, „+ Rest-Pause“ war zweizeilig. Für alle Breiten: Zeit und Schnellknöpfe nie umbrechen. */
+.rt-text b { white-space: nowrap; }
+.qbtn { white-space: nowrap; }
+.nav2 .btn { min-width: 0; white-space: nowrap; }
+@media (max-width: 374px) {
+  .restbar { gap: 8px; }
+  .rt-ring { width: 40px; height: 40px; }
+  .rt-btn { min-width: 44px; }
+  .nav2 { gap: 8px; }
+  .nav2 .btn { padding: 0 10px; font-size: 16px; }
+  .nav2 .btn:first-child:has(.flip) { flex: 0 0 48px; }
+  .nav2:has(.flip) .btn .icon:not(.flip) { display: none; } /* nur die Navigationszeile, nicht „+ Aufwärmsatz/+ Satz“ */
+  .qbtn { font-size: 13px; padding: 0 8px; min-width: 0; }
+  .with-prev .quick, .with-prev .tagline, .with-prev .addline.stage-add { margin-left: 60px; } /* mit „Zuletzt“-Spalte war kein Platz */
+}
