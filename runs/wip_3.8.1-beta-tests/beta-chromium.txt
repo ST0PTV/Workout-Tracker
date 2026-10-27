@@ -50,6 +50,7 @@ WARN chromium/Pixel 7 dark Plan Ganzkörper A: Tap-Ziel unter 44 px: button.pill
 ok   chromium/Pixel 7 dark Plan Ganzkörper A: keine Konsolenfehler
 ok   chromium/Pixel 7 dark: Training läuft mit Satzzeilen
 ok   chromium/Pixel 7 dark: Pause läuft nach dem Haken
+ok   chromium/Pixel 7 dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   chromium/Pixel 7 dark Training Satz: nichts ragt seitlich heraus
 ok   chromium/Pixel 7 dark Training Satz: kein null/undefined/NaN/[object] im Text
 ok   chromium/Pixel 7 dark Training Satz: keine Tap-Ziele unter 24 px
@@ -243,6 +244,7 @@ ok   chromium/Pixel 7 light Plan Ganzkörper A: Textkontrast ≥ 3:1
 ok   chromium/Pixel 7 light Plan Ganzkörper A: keine Konsolenfehler
 ok   chromium/Pixel 7 light: Training läuft mit Satzzeilen
 ok   chromium/Pixel 7 light: Pause läuft nach dem Haken
+ok   chromium/Pixel 7 light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   chromium/Pixel 7 light Training Satz: nichts ragt seitlich heraus
 ok   chromium/Pixel 7 light Training Satz: kein null/undefined/NaN/[object] im Text
 ok   chromium/Pixel 7 light Training Satz: keine Tap-Ziele unter 24 px
@@ -364,6 +366,7 @@ ok   chromium/Galaxy S24 dark Plan Ganzkörper A: Textkontrast ≥ 3:1
 ok   chromium/Galaxy S24 dark Plan Ganzkörper A: keine Konsolenfehler
 ok   chromium/Galaxy S24 dark: Training läuft mit Satzzeilen
 ok   chromium/Galaxy S24 dark: Pause läuft nach dem Haken
+ok   chromium/Galaxy S24 dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   chromium/Galaxy S24 dark Training Satz: nichts ragt seitlich heraus
 ok   chromium/Galaxy S24 dark Training Satz: kein null/undefined/NaN/[object] im Text
 ok   chromium/Galaxy S24 dark Training Satz: keine Tap-Ziele unter 24 px
@@ -465,6 +468,7 @@ ok   chromium/Galaxy S24 light Plan Ganzkörper A: Textkontrast ≥ 3:1
 ok   chromium/Galaxy S24 light Plan Ganzkörper A: keine Konsolenfehler
 ok   chromium/Galaxy S24 light: Training läuft mit Satzzeilen
 ok   chromium/Galaxy S24 light: Pause läuft nach dem Haken
+ok   chromium/Galaxy S24 light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   chromium/Galaxy S24 light Training Satz: nichts ragt seitlich heraus
 ok   chromium/Galaxy S24 light Training Satz: kein null/undefined/NaN/[object] im Text
 ok   chromium/Galaxy S24 light Training Satz: keine Tap-Ziele unter 24 px

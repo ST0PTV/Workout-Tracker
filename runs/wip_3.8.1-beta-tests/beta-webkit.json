@@ -4,7 +4,7 @@
     "iPhone SE",
     "iPhone 15"
   ],
-  "fails": 1,
+  "fails": 0,
   "warns": [
     "webkit/iPhone SE dark Start (neu): Tap-Ziel unter 44 px: a.dots「Einstellungen」 36×36",
     "webkit/iPhone SE dark Start (neu): Tap-Ziel unter 44 px: button.dots「Mehr: Training nachtragen, l」 36×36",
@@ -123,7 +123,6 @@
     "webkit/iPhone SE light Technik-Animation: Kontrast unter 4,5:1 (normaler Text): em.tag「UMSTRITTEN」 4.15:1",
     "webkit/iPhone SE light Info Kniebeuge: Kontrast unter 4,5:1 (normaler Text): button.anim-badge.measured「Gemessen」 4.10:1",
     "webkit/iPhone SE light Einstellungen: Tap-Ziel unter 44 px: button「Dunkel」 126×32",
-    "webkit/iPhone SE light Einstellungen: Tap-Ziel unter 44 px: button.on「Hell」 126×32",
-    "webkit: Neuladen ohne Netz im Testwerkzeug nicht möglich (page.reload: WebKit encountered an internal error) – Nachweis über den Cache oben"
+    "webkit/iPhone SE light Einstellungen: Tap-Ziel unter 44 px: button.on「Hell」 126×32"
   ]
 }

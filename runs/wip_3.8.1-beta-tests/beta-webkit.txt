@@ -57,6 +57,7 @@ WARN webkit/iPhone SE dark Plan Ganzkörper A: Tap-Ziel unter 44 px: button.pill
 ok   webkit/iPhone SE dark Plan Ganzkörper A: keine Konsolenfehler
 ok   webkit/iPhone SE dark: Training läuft mit Satzzeilen
 ok   webkit/iPhone SE dark: Pause läuft nach dem Haken
+ok   webkit/iPhone SE dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   webkit/iPhone SE dark Training Satz: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Training Satz: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone SE dark Training Satz: keine Tap-Ziele unter 24 px
@@ -252,6 +253,7 @@ ok   webkit/iPhone SE light Plan Ganzkörper A: Textkontrast ≥ 3:1
 ok   webkit/iPhone SE light Plan Ganzkörper A: keine Konsolenfehler
 ok   webkit/iPhone SE light: Training läuft mit Satzzeilen
 ok   webkit/iPhone SE light: Pause läuft nach dem Haken
+ok   webkit/iPhone SE light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   webkit/iPhone SE light Training Satz: nichts ragt seitlich heraus
 ok   webkit/iPhone SE light Training Satz: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone SE light Training Satz: keine Tap-Ziele unter 24 px
@@ -366,6 +368,7 @@ ok   webkit/iPhone 15 dark Plan Ganzkörper A: Textkontrast ≥ 3:1
 ok   webkit/iPhone 15 dark Plan Ganzkörper A: keine Konsolenfehler
 ok   webkit/iPhone 15 dark: Training läuft mit Satzzeilen
 ok   webkit/iPhone 15 dark: Pause läuft nach dem Haken
+ok   webkit/iPhone 15 dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   webkit/iPhone 15 dark Training Satz: nichts ragt seitlich heraus
 ok   webkit/iPhone 15 dark Training Satz: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone 15 dark Training Satz: keine Tap-Ziele unter 24 px
@@ -467,6 +470,7 @@ ok   webkit/iPhone 15 light Plan Ganzkörper A: Textkontrast ≥ 3:1
 ok   webkit/iPhone 15 light Plan Ganzkörper A: keine Konsolenfehler
 ok   webkit/iPhone 15 light: Training läuft mit Satzzeilen
 ok   webkit/iPhone 15 light: Pause läuft nach dem Haken
+ok   webkit/iPhone 15 light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
 ok   webkit/iPhone 15 light Training Satz: nichts ragt seitlich heraus
 ok   webkit/iPhone 15 light Training Satz: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone 15 light Training Satz: keine Tap-Ziele unter 24 px
@@ -533,11 +537,13 @@ ok   webkit/iPhone 15: Backup ist gültiges JSON (workout-tracker-backup-2026-10
 ok   webkit/iPhone 15: Import stellt die Pläne wieder her (3 → 3)
 ok   webkit/iPhone 15: Backup ohne Konsolenfehler 
 ok   webkit: Service Worker steuert die Seite
-FAIL webkit: ohne Netz liefert der Service Worker die App-Dateien ({"index.html":false,"js/app.js":false,"css/glass.css":false,"js/version.js":false})
-WARN webkit: Neuladen ohne Netz im Testwerkzeug nicht möglich (page.reload: WebKit encountered an internal error) – Nachweis über den Cache oben
+ok   webkit: ohne Netz liefert der Service Worker die App-Dateien ({"index.html":true,"js/app.js":true,"css/glass.css":true,"js/version.js":true})
+ok   webkit: App startet offline
+ok   webkit: offline auch die Einstellungen (Version sichtbar)
+ok   webkit: offline ohne Seitenfehler 
 ok   Update: Daten in 3.7.0 angelegt
 ok   Update: 3.7.0 → 3.8.0 nach 2 Neuladen sichtbar (Modul: 3.8.0)
 ok   Update: Plan aus der alten Version ist noch da
 ok   Update: keine Seitenfehler 
 
-1 Fehler · 119 Hinweise
+alle Prüfungen bestanden · 118 Hinweise
