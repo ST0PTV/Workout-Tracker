@@ -1,5 +1,6 @@
 import * as store from './store.js';
-import { startRouter, toast } from './ui.js';
+import { startRouter, toast, currentPath } from './ui.js';
+import { maybeTip } from './tour-view.js';
 import { trainingView, plansView, exercisesView, progressView, settingsView } from './views.js';
 import { runnerView } from './routine-view.js';
 import { activeSession } from './session.js';
@@ -19,6 +20,7 @@ store.onWriteResult((ok) => { if (saveBar) saveBar.hidden = ok; });
 const withDevice = (view) => () => {
   const node = view(() => router());
   setKeepAwake(!!activeSession() && store.get('settings').keepAwake !== false);
+  setTimeout(() => maybeTip(currentPath()), 450); // v3.9.0: einmalige Tipps (Tutorial D)
   return node;
 };
 
@@ -33,6 +35,8 @@ const router = startRouter({
 
 // v3.1.0: Play-Knopf in der Tab-Leiste (ui.js sendet wt-play)
 document.addEventListener('wt-play', () => openPlaySheet(() => router()));
+// v3.9.0: Tutorial (Sandbox an/aus) zeichnet die Seite neu
+document.addEventListener('wt-rerender', () => router());
 
 
 if (!boot.ok) {

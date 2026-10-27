@@ -29,6 +29,8 @@ const PRECACHE = [
   'js/info.js',
   'js/glossary.js',
   'js/onboarding.js',
+  'js/tutorial.js',
+  'js/tour-view.js',
   'js/muscle-info.js',
   'js/exercises.js',
   'js/exercises-view.js',

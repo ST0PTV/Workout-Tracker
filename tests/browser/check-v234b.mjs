@@ -21,12 +21,11 @@ const go = async (hash) => { await p.goto(srv.url + '/index.html' + hash); await
 await go('#/');
 ok((await text()).includes('Neu hier?'), 'E: neue Nutzer sehen „Neu hier?“');
 await shot('1-welcome');
-await p.locator('.welcome button', { hasText: 'Einführung' }).click(); await p.waitForTimeout(400);
-for (const title of ['Plan anlegen', 'Sätze eintragen', 'Fortschritt sehen']) {
-  ok((await p.locator('.sheet').last().innerText()).includes(title), `E: Schritt „${title}“`);
-  await p.locator('.sheet .onboarding button.primary').click(); await p.waitForTimeout(300);
-}
-ok(await p.locator('.sheet').count() === 0, 'E: nach drei Schritten geschlossen');
+// v3.9.0: Einführung ist jetzt der Rundgang (Spotlight, 7 Schritte, Details in check-v390) – hier nur überspringen
+await p.locator('.welcome button', { hasText: 'Rundgang starten' }).click(); await p.waitForTimeout(500);
+ok(await p.locator('.tt-bub').count() === 1, 'E: Rundgang startet');
+await p.locator('.tt-bub button', { hasText: 'Überspringen' }).click(); await p.waitForTimeout(400);
+ok(await p.locator('.tt-root').count() === 0, 'E: Rundgang übersprungen, Overlay weg');
 ok(!(await text()).includes('Neu hier?'), 'E: Karte danach weg');
 ok(await p.evaluate(async () => (await import('./js/store.js')).get('settings').onboarded) === true, 'E: als gesehen gespeichert');
 
@@ -120,7 +119,7 @@ await shot('7-glossary');
 await go('#/settings');
 t = await text();
 ok(!t.includes('Deine Daten liegen nur lokal') && !t.includes('Gilt für alle Übungen ohne eigene Pausenzeit'), 'E: Kartentexte nicht mehr auf der Seite');
-ok(t.includes('Hinweise anzeigen') && t.includes('Einführung') && t.includes('Begriffe'), 'E: Karte „Anzeige“ mit Schalter, Einführung, Begriffe');
+ok(t.includes('Hinweise anzeigen') && t.includes('Rundgang') && t.includes('Probetraining') && t.includes('Begriffe'), 'E: Karte „Anzeige“ mit Schalter, Rundgang, Probetraining, Begriffe');
 ok(await words() < 100, `E: wenig Text (${await words()} Wörter)`);
 await shot('8-settings');
 await p.locator('.card', { hasText: 'Backup' }).first().locator('.info-btn').click(); await p.waitForTimeout(300);

@@ -15,7 +15,7 @@ import { gearPicker } from './gear-view.js';
 import { openSheet } from './sheet.js';
 import { infoBody, cardHead } from './info.js';
 import { openGlossary } from './glossary.js';
-import { openOnboarding } from './onboarding.js';
+import { startTour, startTrial, resetTips } from './tour-view.js';
 import { APPEARANCES, appearanceOf, applyTheme } from './theme.js';
 
 function onOff(label, key, rerender) {
@@ -172,8 +172,12 @@ export function settingsView(rerender) {
           } }, label);
         })),
       onOff('Hinweise anzeigen', 'hints', rerender),
+      // v3.9.0: Tutorial – Rundgang (A), Probetraining (B), Tipps wieder zeigen (D)
       h('div', { class: 'btn-row' },
-        h('button', { class: 'btn', type: 'button', onclick: () => openOnboarding() }, 'Einführung'),
+        h('button', { class: 'btn', type: 'button', onclick: () => startTour() }, 'Rundgang'),
+        h('button', { class: 'btn', type: 'button', onclick: () => startTrial() }, 'Probetraining')),
+      h('div', { class: 'btn-row' },
+        h('button', { class: 'btn', type: 'button', onclick: () => { resetTips(); toast('Tipps erscheinen wieder beim nächsten Besuch.'); } }, 'Tipps wieder zeigen'),
         h('button', { class: 'btn', type: 'button', onclick: openGlossary }, 'Begriffe'))),
     cycleSettingsCard(rerender),
     h('div', { class: 'card' },

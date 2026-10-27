@@ -792,7 +792,7 @@ function startView(rerender) {
         const sum = S.sessionView(s).summary;
         const name = s.planId ? (P.getPlan(s.planId)?.name || 'Plan') : 'Freies Training';
         return h('div', { class: 'row' }, h('span', { class: 't' }, h('b', {}, name),
-          h('small', {}, `${new Date(s.startedAt).toLocaleDateString('de-DE')} · ${sum.hardSets} ${TERMS.workSets}`)));
+          h('small', {}, `${new Date(s.startedAt).toLocaleDateString('de-DE')} · ${sum.hardSets} ${sum.hardSets === 1 ? 'Satz' : TERMS.workSets}`)));
       }))) : null);
 }
 

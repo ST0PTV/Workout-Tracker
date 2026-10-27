@@ -173,11 +173,14 @@ for (const devName of DEVICES) {
         await go(p, '#/');
         ok(/Neu hier\?/.test(await p.evaluate(() => document.body.innerText)), `${T}: Karte „Neu hier?“ beim ersten Start`);
         await audit(p, `${T} Start (neu)`, errs); await shot('01-start');
-        await p.getByRole('button', { name: 'Einführung', exact: true }).first().click(); await p.waitForTimeout(300);
-        await audit(p, `${T} Einführung`, errs);
-        await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(150);
-        await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(150);
-        await p.getByRole('button', { name: 'Los geht’s' }).click(); await p.waitForTimeout(300);
+        // v3.9.0: Rundgang (7 Schritte mit Spotlight), am Ende „Später“ statt Probetraining
+        await p.getByRole('button', { name: 'Rundgang starten' }).click(); await p.waitForTimeout(500);
+        for (let i = 0; i < 7; i++) {
+          if (i === 3) await audit(p, `${T} Rundgang`, errs);
+          await p.locator('.tt-bub button', { hasText: i === 6 ? 'Fertig' : 'Weiter' }).click(); await p.waitForTimeout(350);
+        }
+        await p.locator('.tt-bub button', { hasText: 'Später' }).click(); await p.waitForTimeout(400);
+        await go(p, '#/');
         ok(!/Neu hier\?/.test(await p.evaluate(() => document.body.innerText)), `${T}: nach der Einführung keine Karte mehr`);
       });
     }
