@@ -8,6 +8,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+defaults:
+  run:
+    shell: bash # im Playwright-Container ist sonst sh die Standard-Shell (v3.8.1: ${VAR//…} schlug fehl)
 jobs:
   test:
     runs-on: ubuntu-24.04
