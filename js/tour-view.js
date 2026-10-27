@@ -60,7 +60,7 @@ function spotlight() {
     if (!el) {
       Object.assign(dims[0].style, { left: '0px', top: '0px', width: W + 'px', height: H + 'px' });
       for (const d of dims.slice(1)) d.style.display = 'none';
-      ring.style.display = 'none'; block.style.display = 'none'; arrow.style.display = 'none';
+      root.classList.remove('tt-hole'); ring.style.display = 'none'; block.style.display = 'none'; arrow.style.display = 'none';
       bubble.style.top = Math.max(16, (H - bubble.offsetHeight) / 2) + 'px';
       return;
     }
@@ -69,6 +69,7 @@ function spotlight() {
     const x0 = Math.max(0, r.left - pad); const y0 = Math.max(0, r.top - pad);
     const x1 = Math.min(W, r.right + pad); const y1 = Math.min(H, r.bottom + pad);
     for (const d of dims) d.style.display = '';
+    root.classList.add('tt-hole'); // abgedunkelt wird dann über den Schatten des Rings, damit die runden Ecken sauber sind
     Object.assign(dims[0].style, { left: '0px', top: '0px', width: W + 'px', height: y0 + 'px' });
     Object.assign(dims[1].style, { left: '0px', top: y1 + 'px', width: W + 'px', height: Math.max(0, H - y1) + 'px' });
     Object.assign(dims[2].style, { left: '0px', top: y0 + 'px', width: x0 + 'px', height: (y1 - y0) + 'px' });

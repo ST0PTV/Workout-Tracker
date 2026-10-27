@@ -1279,6 +1279,8 @@ input.input[type="datetime-local"]::-webkit-date-and-time-value { text-align: ce
 .tt-root { position: fixed; inset: 0; z-index: 40; pointer-events: none; }
 .tt-root[hidden] { display: none; }
 .tt-dim { position: fixed; background: rgba(0, 0, 0, 0.62); pointer-events: auto; }
+.tt-hole .tt-dim { background: transparent; }
+.tt-hole .tt-ring { box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent), 0 0 0 200vmax rgba(0, 0, 0, 0.62); }
 .tt-ring { position: fixed; border-radius: 16px; box-shadow: 0 0 0 2px var(--accent), 0 0 0 6px color-mix(in srgb, var(--accent) 25%, transparent); pointer-events: none; }
 .tt-block { position: fixed; pointer-events: auto; }
 .tt-arrow { position: fixed; width: 18px; height: 18px; transform: rotate(45deg); background: var(--sheet-surface); pointer-events: none; }
