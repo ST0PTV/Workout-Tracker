@@ -93,6 +93,11 @@ for (const devName of ['iPhone SE', 'Pixel 7']) {
 
     // Abbrechen mitten im Probetraining über „Beenden“ und Neuladen während des Probetrainings
     await p.evaluate(() => { location.hash = '#/settings'; }); await p.waitForTimeout(400);
+    { // v3.9.1: Knöpfe der Anzeige-Karte als 2er-Raster, gleiche Breite, 8 px Abstand waagerecht und senkrecht, Text nicht abgeschnitten
+      const g = await p.locator('.btn-grid2').evaluate((el) => [...el.children].map((c) => { const r = c.getBoundingClientRect(); return { l: r.left, t: r.top, w: r.width, h: r.height, cut: c.scrollWidth > c.clientWidth }; }));
+      const gx = g[1].l - (g[0].l + g[0].w), gy = g[2].t - (g[0].t + g[0].h);
+      ok(g.length === 4 && Math.abs(gx - 8) < 1 && Math.abs(gy - 8) < 1 && g.every((x) => Math.abs(x.w - g[0].w) < 1 && !x.cut), `${T}: Knopf-Raster gleichmäßig (Abstand ${gx.toFixed(1)} / ${gy.toFixed(1)} px, ohne Abschneiden)`);
+    }
     await p.getByRole('button', { name: 'Probetraining', exact: true }).click(); await p.waitForTimeout(700);
     await p.locator('.setrow').first().locator('.ck').click(); await p.waitForTimeout(400);
     await p.reload(); await p.waitForTimeout(600);
