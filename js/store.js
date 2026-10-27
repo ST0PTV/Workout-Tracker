@@ -20,9 +20,33 @@ const DEFAULTS = {
 export const COLLECTIONS = ['exercises', 'groups', 'plans', 'sessions', 'routines'];
 export const KEYS = Object.keys(DEFAULTS);
 
-function storage() {
-  return globalThis.localStorage;
+// v3.9.0: Probetraining im Tutorial – solange eine Sandbox aktiv ist, liest und schreibt die App nur im Arbeitsspeicher.
+// Echte Daten in localStorage werden dabei nie angefasst; Neuladen oder endSandbox() führt zurück zu ihnen.
+class MemoryStore {
+  constructor() { this.map = new Map(); }
+  get length() { return this.map.size; }
+  key(i) { return [...this.map.keys()][i] ?? null; }
+  getItem(k) { return this.map.has(k) ? this.map.get(k) : null; }
+  setItem(k, v) { this.map.set(k, String(v)); }
+  removeItem(k) { this.map.delete(k); }
+  clear() { this.map.clear(); }
 }
+let sandbox = null;
+
+function storage() {
+  return sandbox || globalThis.localStorage;
+}
+
+/** Sandbox mit diesen Daten starten (fehlende Keys = Standard). Gibt false zurück, wenn schon eine läuft. */
+export function startSandbox(data = {}) {
+  if (sandbox) return false;
+  sandbox = new MemoryStore();
+  for (const key of KEYS) sandbox.setItem(PREFIX + key, JSON.stringify(key in data ? data[key] : DEFAULTS[key]));
+  sandbox.setItem(PREFIX + 'schema', JSON.stringify(SCHEMA_VERSION));
+  return true;
+}
+export function endSandbox() { sandbox = null; }
+export function inSandbox() { return sandbox !== null; }
 
 // v2.7.1: Ein Wert mit falscher Form (z. B. null statt Liste) oder kaputtes JSON gilt als beschädigt: Es gilt der
 // Standardwert, und der Rohtext wird einmalig unter wt_broken_<key> aufgehoben, damit nichts still verloren geht.

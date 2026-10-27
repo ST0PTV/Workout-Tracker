@@ -66,6 +66,7 @@ export const DEFAULT_SETTINGS = {
   lightWeek: null, // v2.30.0 (B3): Montag der „leichten Woche“ als "JJJJ-MM-TT" oder null
   hints: true, // v2.34.0: kurze Erklärzeilen auf den Bildschirmen (Einstellungen → Anzeige)
   onboarded: false, // v2.34.0: Einführung gesehen oder ausgeblendet
+  tutorial: null, // v3.9.0: { tour, trial: null | 'done' | 'skipped', tips: { <id>: true } } – siehe tutorial.js
   equipment: null // v2.31.0: „Mein Equipment“ als Liste von Geräte-Schlüsseln (siehe pool.js GEAR) oder null = alles zeigen
 };
 
