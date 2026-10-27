@@ -173,11 +173,10 @@ export function settingsView(rerender) {
         })),
       onOff('Hinweise anzeigen', 'hints', rerender),
       // v3.9.0: Tutorial – Rundgang (A), Probetraining (B), Tipps wieder zeigen (D)
-      h('div', { class: 'btn-row' },
+      h('div', { class: 'btn-row btn-grid2' }, // v3.9.1: ein Raster, gleiche Spalten und Abstände
         h('button', { class: 'btn', type: 'button', onclick: () => startTour() }, 'Rundgang'),
-        h('button', { class: 'btn', type: 'button', onclick: () => startTrial() }, 'Probetraining')),
-      h('div', { class: 'btn-row' },
-        h('button', { class: 'btn', type: 'button', onclick: () => { resetTips(); toast('Tipps erscheinen wieder beim nächsten Besuch.'); } }, 'Tipps wieder zeigen'),
+        h('button', { class: 'btn', type: 'button', onclick: () => startTrial() }, 'Probetraining'),
+        h('button', { class: 'btn', type: 'button', onclick: () => { resetTips(); toast('Tipps erscheinen wieder beim nächsten Besuch.'); } }, 'Tipps zeigen'),
         h('button', { class: 'btn', type: 'button', onclick: openGlossary }, 'Begriffe'))),
     cycleSettingsCard(rerender),
     h('div', { class: 'card' },

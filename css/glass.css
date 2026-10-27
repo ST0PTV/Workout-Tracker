@@ -1305,3 +1305,8 @@ body.tt-trial #view { padding-top: calc(var(--safe-top) + 64px); }
 .tt-tip-ok { min-height: 40px; padding: 0; margin-top: 2px; background: none; border: 0; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 .tt-tip-arrow { position: fixed; width: 16px; height: 16px; transform: rotate(45deg); background: var(--accent); }
 @media (prefers-reduced-motion: no-preference) { .tt-bub, .tt-tip { transition: top 0.18s ease; } }
+
+/* v3.9.1: Knopf-Raster 2 × n (Einstellungen → Anzeige): gleiche Spaltenbreite, 8 px Abstand in beiden Richtungen */
+.btn-row.btn-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-grid2 > .btn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 374px) { .btn-grid2 > .btn { padding: 0 8px; font-size: 15px; } }
