@@ -533,12 +533,11 @@ ok   webkit/iPhone 15: Backup ist gültiges JSON (workout-tracker-backup-2026-10
 ok   webkit/iPhone 15: Import stellt die Pläne wieder her (3 → 3)
 ok   webkit/iPhone 15: Backup ohne Konsolenfehler 
 ok   webkit: Service Worker steuert die Seite
-FAIL Offline: page.reload: WebKit encountered an internal error
-     bei: navigation until "load"
-     sichtbar: 
+FAIL webkit: ohne Netz liefert der Service Worker die App-Dateien ({"index.html":false,"js/app.js":false,"css/glass.css":false,"js/version.js":false})
+WARN webkit: Neuladen ohne Netz im Testwerkzeug nicht möglich (page.reload: WebKit encountered an internal error) – Nachweis über den Cache oben
 ok   Update: Daten in 3.7.0 angelegt
 ok   Update: 3.7.0 → 3.8.0 nach 2 Neuladen sichtbar (Modul: 3.8.0)
 ok   Update: Plan aus der alten Version ist noch da
 ok   Update: keine Seitenfehler 
 
-1 Fehler · 118 Hinweise
+1 Fehler · 119 Hinweise

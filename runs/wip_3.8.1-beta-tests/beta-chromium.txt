@@ -531,6 +531,7 @@ ok   chromium/Galaxy S24: Backup ist gültiges JSON (workout-tracker-backup-2026
 ok   chromium/Galaxy S24: Import stellt die Pläne wieder her (3 → 3)
 ok   chromium/Galaxy S24: Backup ohne Konsolenfehler 
 ok   chromium: Service Worker steuert die Seite
+ok   chromium: ohne Netz liefert der Service Worker die App-Dateien ({"index.html":true,"js/app.js":true,"css/glass.css":true,"js/version.js":true})
 ok   chromium: App startet offline
 ok   chromium: offline auch die Einstellungen (Version sichtbar)
 ok   chromium: offline ohne Seitenfehler 

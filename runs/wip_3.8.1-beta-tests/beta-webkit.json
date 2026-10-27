@@ -123,6 +123,7 @@
     "webkit/iPhone SE light Technik-Animation: Kontrast unter 4,5:1 (normaler Text): em.tag「UMSTRITTEN」 4.15:1",
     "webkit/iPhone SE light Info Kniebeuge: Kontrast unter 4,5:1 (normaler Text): button.anim-badge.measured「Gemessen」 4.10:1",
     "webkit/iPhone SE light Einstellungen: Tap-Ziel unter 44 px: button「Dunkel」 126×32",
-    "webkit/iPhone SE light Einstellungen: Tap-Ziel unter 44 px: button.on「Hell」 126×32"
+    "webkit/iPhone SE light Einstellungen: Tap-Ziel unter 44 px: button.on「Hell」 126×32",
+    "webkit: Neuladen ohne Netz im Testwerkzeug nicht möglich (page.reload: WebKit encountered an internal error) – Nachweis über den Cache oben"
   ]
 }
