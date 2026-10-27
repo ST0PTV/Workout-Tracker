@@ -10,8 +10,12 @@ permissions:
   contents: write
 jobs:
   test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    # Offizielles Playwright-Image: WebKit, Chromium und Systempakete sind schon drin (v3.8.1: die Installation mit
+    # --with-deps hing im ersten Lauf 40 min). Version = lokale Playwright-Version.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,32 +23,36 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Playwright installieren
+      - name: Playwright-Paket (Browser liegen im Image)
+        timeout-minutes: 5
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           npm install --no-save playwright@1.63.0
-          npx playwright install --with-deps webkit chromium
       - name: Node-Tests
+        timeout-minutes: 5
         run: npm test
       - name: Beta-Durchlauf WebKit (iPhone SE, iPhone 15)
         continue-on-error: true
-        run: WT_REPORT=out/beta-webkit.json node tests/browser/beta.mjs --engine webkit --devices "iPhone SE,iPhone 15" --old 85e3ac7 --shots out/shots 2>&1 | tee out-beta-webkit.txt
+        timeout-minutes: 12
+        run: mkdir -p out && WT_REPORT=out/beta-webkit.json node tests/browser/beta.mjs --engine webkit --devices "iPhone SE,iPhone 15" --old 85e3ac7 --shots out/shots 2>&1 | tee out/beta-webkit.txt
       - name: Beta-Durchlauf Chromium (Pixel 7, Galaxy S24)
         continue-on-error: true
-        run: WT_REPORT=out/beta-chromium.json node tests/browser/beta.mjs --engine chromium --devices "Pixel 7,Galaxy S24" --old 85e3ac7 2>&1 | tee out-beta-chromium.txt
+        timeout-minutes: 10
+        run: mkdir -p out && WT_REPORT=out/beta-chromium.json node tests/browser/beta.mjs --engine chromium --devices "Pixel 7,Galaxy S24" --old 85e3ac7 2>&1 | tee out/beta-chromium.txt
       - name: Bestehende Prüfungen in WebKit
         continue-on-error: true
+        timeout-minutes: 15
         run: |
           mkdir -p out
           for f in tests/browser/check-*.mjs; do
             n=$(basename "$f" .mjs); [ "$n" = check-anim ] && continue
             echo "### $n" >> out/checks-webkit.txt
-            WT_ENGINE=webkit timeout 300 node "$f" >> out/checks-webkit.txt 2>&1 || echo "EXIT $? $n" >> out/checks-webkit.txt
+            WT_ENGINE=webkit timeout 120 node "$f" >> out/checks-webkit.txt 2>&1 || echo "EXIT $? $n" >> out/checks-webkit.txt
           done
       - name: Ergebnisse sammeln
         if: always()
         run: |
           mkdir -p out
-          cp out-beta-*.txt out/ 2>/dev/null || true
           echo "commit ${GITHUB_SHA} branch ${GITHUB_REF_NAME} $(date -u +%FT%TZ)" > out/RUN.txt
       - uses: actions/upload-artifact@v4
         if: always()
