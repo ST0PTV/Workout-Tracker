@@ -898,7 +898,9 @@ details.more > :not(summary) { font-size: 14px; }
 .glossary dt { font-weight: 700; margin-top: 12px; }
 .glossary dd { margin: 2px 0 0; color: var(--muted); line-height: 1.45; }
 .hint-line { margin: 6px 0 10px; font-size: 13.5px; color: var(--muted); line-height: 1.4; }
-.hint-line .link { padding: 0 0 0 6px; min-height: 0; font-size: 13.5px; }
+.hint-line .link { padding: 0 6px; min-height: 0; font-size: 13.5px; }
+/* v3.8.1: „Mehr“ war nur 40×19 px – Tap-Fläche 32 px hoch, negative Ränder halten die Zeilenhöhe (Beta-Test) */
+.hint-line .link { display: inline-flex; align-items: center; min-height: 32px; margin: -7px 0 -7px 0; vertical-align: middle; }
 .hint-line.warm { color: var(--warn); }
 .card-head { margin-bottom: 8px; }
 .card-head h2 { margin: 0; }
@@ -1107,7 +1109,7 @@ button.row:active, .pickrow:active { background: var(--fill); }
 .anim-kp.on .plain { background: var(--fill); }
 .anim-kp .n { background: var(--fill); color: var(--muted); }
 .anim-kp.on .n { background: var(--text); color: var(--bg); }
-.anim-kp .tag { color: var(--faint); }
+.anim-kp .tag { color: var(--muted); } /* v3.8.1: --faint lag im hellen Modus unter 3:1 (Beta-Test) */
 .anim-status { background: var(--fill); color: var(--muted); }
 details.more > summary { color: var(--accent); }
 

@@ -44,9 +44,11 @@ function chromiumPath() {
   return exe && existsSync(exe) ? exe : undefined;
 }
 
+// v3.8.1: WT_ENGINE=webkit startet die Safari-Engine (nur in GitHub Actions installiert); Standard Chromium.
 export async function launch() {
-  const { chromium } = await loadPlaywright();
-  return chromium.launch({ executablePath: chromiumPath() });
+  const pw = await loadPlaywright();
+  if (process.env.WT_ENGINE === 'webkit') return pw.webkit.launch();
+  return pw.chromium.launch({ executablePath: process.env.CI ? undefined : chromiumPath() });
 }
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png' };
