@@ -1,10 +1,11 @@
-# Browser-Tests in WebKit (Safari-Engine) und Chromium (Android-Profile) für wip-Branches.
+# Browser-Tests in WebKit (Safari-Engine) und Chromium (Android-Profile) – nur auf Abruf (Nutzerwahl 2026-10-27):
+# Push auf einen Branch ci/<name> (z. B. ci/3.9.0) oder manuell. Standard vor einem Deploy bleiben die lokalen Prüfungen.
 # Ergebnis: Artefakt „browser-tests“ und ein Commit auf dem Branch ci-results (Bericht + Screenshots),
 # damit die Ergebnisse auch ohne GitHub-Login per git gelesen werden können. Keine persönlichen Daten.
 name: browser-tests
 on:
   push:
-    branches: ['wip/**']
+    branches: ['ci/**']
   workflow_dispatch:
 permissions:
   contents: write
