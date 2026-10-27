@@ -1,0 +1,76 @@
+# Browser-Tests in WebKit (Safari-Engine) und Chromium (Android-Profile) – nur auf Abruf (Nutzerwahl 2026-10-27):
+# Push auf einen Branch ci/<name> (z. B. ci/3.9.0) oder manuell. Standard vor einem Deploy bleiben die lokalen Prüfungen.
+# Ergebnis: Artefakt „browser-tests“ und ein Commit auf dem Branch ci-results (Bericht + Screenshots),
+# damit die Ergebnisse auch ohne GitHub-Login per git gelesen werden können. Keine persönlichen Daten.
+name: browser-tests
+on:
+  push:
+    branches: ['ci/**']
+  workflow_dispatch:
+permissions:
+  contents: write
+defaults:
+  run:
+    shell: bash # im Playwright-Container ist sonst sh die Standard-Shell (v3.8.1: ${VAR//…} schlug fehl)
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    # Offizielles Playwright-Image: WebKit, Chromium und Systempakete sind schon drin (v3.8.1: die Installation mit
+    # --with-deps hing im ersten Lauf 40 min). Version = lokale Playwright-Version.
+    container:
+      image: mcr.microsoft.com/playwright:v1.63.0-noble
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Playwright-Paket (Browser liegen im Image)
+        timeout-minutes: 5
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          npm install --no-save playwright@1.63.0
+      - name: Node-Tests
+        timeout-minutes: 5
+        run: npm test
+      - name: Beta-Durchlauf WebKit (iPhone SE, iPhone 15)
+        continue-on-error: true
+        timeout-minutes: 12
+        run: mkdir -p out && WT_REPORT=out/beta-webkit.json node tests/browser/beta.mjs --engine webkit --devices "iPhone SE,iPhone 15" --old 85e3ac7 --shots out/shots 2>&1 | tee out/beta-webkit.txt
+      - name: Beta-Durchlauf Chromium (Pixel 7, Galaxy S24)
+        continue-on-error: true
+        timeout-minutes: 10
+        run: mkdir -p out && WT_REPORT=out/beta-chromium.json node tests/browser/beta.mjs --engine chromium --devices "Pixel 7,Galaxy S24" --old 85e3ac7 2>&1 | tee out/beta-chromium.txt
+      - name: Bestehende Prüfungen in WebKit
+        continue-on-error: true
+        timeout-minutes: 15
+        run: |
+          mkdir -p out
+          for f in tests/browser/check-*.mjs; do
+            n=$(basename "$f" .mjs); [ "$n" = check-anim ] && continue
+            echo "### $n" >> out/checks-webkit.txt
+            WT_ENGINE=webkit timeout 120 node "$f" >> out/checks-webkit.txt 2>&1 || echo "EXIT $? $n" >> out/checks-webkit.txt
+          done
+      - name: Ergebnisse sammeln
+        if: always()
+        run: |
+          mkdir -p out
+          echo "commit ${GITHUB_SHA} branch ${GITHUB_REF_NAME} $(date -u +%FT%TZ)" > out/RUN.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-tests
+          path: out
+      - name: Ergebnis-Branch ci-results aktualisieren
+        if: always()
+        run: |
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          rm -rf /tmp/res && cp -r out /tmp/res
+          git fetch origin ci-results || true
+          if git rev-parse --verify origin/ci-results >/dev/null 2>&1; then git checkout -B ci-results origin/ci-results; else git checkout --orphan ci-results; git rm -rf . >/dev/null; fi
+          rm -rf "runs/${GITHUB_REF_NAME//\//_}" && mkdir -p "runs/${GITHUB_REF_NAME//\//_}"
+          cp -r /tmp/res/. "runs/${GITHUB_REF_NAME//\//_}/"
+          git add runs && git commit -m "CI-Ergebnis ${GITHUB_REF_NAME} ${GITHUB_SHA::7}" && git push origin ci-results
