@@ -1316,3 +1316,38 @@ body.tt-trial #view { padding-top: calc(var(--safe-top) + 64px); }
 :root[data-theme="light"] { --muted: #5C5C60; }
 :root[data-theme="light"] .tab, :root[data-theme="light"] .setrow .prev { color: var(--muted); }
 :root[data-theme="light"] .tab[aria-current="page"] { color: var(--accent); }
+
+/* ===== v3.10.0: Tap-Ziele, Variante C (Nutzerwahl 2026-10-29) =====
+   Training (und Sheets, die im Training offen sind): Knöpfe sichtbar mindestens 44 px hoch – dort wird einhändig getippt.
+   Überall sonst bleibt die Optik; eine unsichtbare Fläche (::after) erweitert kleine Ziele auf 44 × 44 px.
+   Die Fläche wird aus der eigenen Größe berechnet (top/bottom in % der Höhe, left/right in % der Breite), wächst also nur,
+   wo das Ziel kleiner als 44 px ist. Nachbarn brauchen dafür mindestens 8 px Abstand (geprüft in check-v3100). */
+:is(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .icon-btn, .tt-tip-ok, .step button) { position: relative; }
+:is(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .icon-btn, .tt-tip-ok, .step button)::after {
+  content: ''; position: absolute;
+  top: min(0px, calc((100% - 44px) / 2)); bottom: min(0px, calc((100% - 44px) / 2));
+  left: min(0px, calc((100% - 44px) / 2)); right: min(0px, calc((100% - 44px) / 2)); }
+.search-input { min-height: 44px; }
+
+/* Training sichtbar */
+body:has(#view .training) :is(#view .training, .sheet) button:not(.sn):not(.switch) { min-height: 44px; }
+body:has(#view .training) :is(#view .training, .sheet) :is(.sheet-close, .dots) { width: 44px; height: 44px; }
+/* Stepper sichtbar 44 px (overflow: hidden für die runden Ecken würde eine unsichtbare Fläche abschneiden) */
+.step, .step.small { height: 44px; }
+/* Nachbarn: mindestens 8 px Abstand, damit sich erweiterte Flächen nicht überlappen */
+.wrap, .chips { gap: 8px; }
+.chip-pair { gap: 8px; }
+.chips { padding-top: 4px; margin-top: -2px; }
+.progress .chips { overflow: visible; }
+/* Technik-Animation, Links und Wochentage im Plan-Assistenten */
+:is(.anim-badge, .ab-speed, .sheet a[href], #view a[href]) { position: relative; }
+:is(.anim-badge, .ab-speed, .ab-label, .sheet a[href], #view a[href])::after {
+  content: ''; position: absolute;
+  top: min(0px, calc((100% - 44px) / 2)); bottom: min(0px, calc((100% - 44px) / 2));
+  left: min(0px, calc((100% - 44px) / 2)); right: min(0px, calc((100% - 44px) / 2)); }
+/* 7 Tage auf 320 px: breiter als 4 px Lücke geht nicht ohne Überlappung → nur bis zur halben Lücke (Höhe ist 64 px) */
+.as-day { position: relative; }
+.as-day::after { content: ''; position: absolute; top: 0; bottom: 0; left: -2px; right: -2px; }
+/* Ausnahme: Phasen-Beschriftungen der Technik-Animation liegen nach ihrer Position auf der Zeitleiste und berühren sich
+   auf 320 px schon sichtbar → keine Erweiterung (Hauptbedienung sind Play und Zeitleiste, beide ≥ 44 px) */
+.ab-label::after { content: none; }

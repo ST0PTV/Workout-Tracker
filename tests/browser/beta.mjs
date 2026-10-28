@@ -72,9 +72,13 @@ function pageAudit() {
   for (const e of scope.querySelectorAll('button, a[href], input:not([type=hidden]), select, textarea, [role=button], [role=tab]')) {
     if (!visible(e) || e.disabled) continue;
     const r = e.getBoundingClientRect();
-    const m = Math.min(r.width, r.height);
-    if (m < 24) tiny.push(desc(e) + ` ${Math.round(r.width)}×${Math.round(r.height)}`);
-    else if (m < 44) small.push(desc(e) + ` ${Math.round(r.width)}×${Math.round(r.height)}`);
+    // v3.10.0: unsichtbare Trefferfläche (::after, absolut) zählt mit; Überlappung prüft check-v3100
+    const pa = getComputedStyle(e, '::after');
+    const ext = pa.content !== 'none' && pa.position === 'absolute' && getComputedStyle(e).position !== 'static'
+      ? ['top', 'right', 'bottom', 'left'].map((k) => Math.max(0, -parseFloat(pa[k]) || 0)) : [0, 0, 0, 0];
+    const m = Math.min(r.width + ext[1] + ext[3], r.height + ext[0] + ext[2]);
+    if (Math.min(r.width, r.height) < 24 && m < 44) tiny.push(desc(e) + ` ${Math.round(r.width)}×${Math.round(r.height)}`);
+    else if (m < 43.5) small.push(desc(e) + ` ${Math.round(r.width)}×${Math.round(r.height)}`);
   }
   // Kontrast: Elemente mit eigenem Text gegen den ersten deckenden Hintergrund dahinter
   const rgba = (s) => { const m = s.match(/rgba?\(([^)]+)\)/); if (!m) return null; const p = m[1].split(/[,\s/]+/).filter(Boolean).map(Number); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
