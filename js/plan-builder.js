@@ -92,6 +92,17 @@ export const WEEKDAY_MAX = STRENGTH_MAX;
 // Muskelaufbau und Maximalkraft im Mittel nicht (Schumann et al. 2022, Meta-Analyse; Abstract).
 export const CARDIO_PLAN_NAME = 'Ausdauer';
 export const CARDIO_PICK = { new: 'outdoor-walking', some: 'outdoor-running', long: 'outdoor-running' };
+// v3.11.0 (Nutzerwunsch): Tage mit Kraft + Cardio. Cardio kommt nach dem Kraftteil (Nutzerwahl 2026-10-29): Kraft zuerst
+// brachte mehr dynamische Beinkraft, Muskelwachstum und Ausdauer blieben gleich (Eddens 2018; Murlasits 2018; Abstracts).
+// Dauer des Cardio-Blocks = eigene Frage; der Kraftteil wird um diese Zeit kürzer, aber nicht unter COMBO_MIN_STRENGTH (Konvention).
+export const COMBO_OPTIONS = [10, 20, 30];
+export const COMBO_DEFAULT = 20;
+export const COMBO_MIN_STRENGTH = 20;
+export const COMBO_SUFFIX = ' + Cardio';
+// v3.11.0 (#311): Cardio-Übung nach Ziel, Geräten und Ort. Ziel Muskeln/Kraft → Radfahren statt Laufen: Laufen ging parallel
+// zum Krafttraining mit weniger Muskel- und Kraftzuwachs einher, Radfahren nicht (Wilson 2012, Moderator-Analyse über Studien;
+// Abstract). Am Kombi-Tag ist man am Ort des Krafttrainings → mit Cardiogeräten (Fitnessstudio) ein Gerät, sonst draußen.
+// Gehen statt Laufen ohne Rad bei Muskel-/Kraftziel und bei Einsteigern ist Konvention (in Wilson 2012 nicht untersucht).
 // WHO 2020 (Bull et al., Abstract): 150–300 min mittlere oder 75–150 min hohe Intensität pro Woche – nur als Orientierung.
 export const WHO_AEROBIC = { moderate: [150, 300], vigorous: [75, 150] };
 
@@ -138,6 +149,9 @@ export function normalizeAnswers(a = {}) {
     goal: GOALS[a.goal] ? a.goal : 'muscle',
     weekdays,
     cardioDays,
+    // v3.11.0: Tage mit Kraft + Cardio (Teilmenge der Krafttage) und Dauer des Cardio-Blocks
+    comboDays: weekdays ? (cleanDays(a.comboDays, 7) || []).filter((d) => weekdays.includes(d)) : [],
+    comboMinutes: COMBO_OPTIONS.includes(a.comboMinutes) ? a.comboMinutes : COMBO_DEFAULT,
     days: weekdays ? weekdays.length : (DAY_OPTIONS.includes(a.days) ? a.days : 3),
     minutes: TIME_OPTIONS.includes(a.minutes) ? a.minutes : 45,
     gear: a.gear === null || Array.isArray(a.gear) ? a.gear : null,
@@ -198,7 +212,7 @@ export function weeklyMuscleSets(plans) {
     const times = Math.max(1, plan.days.length);
     for (const it of plan.items) {
       const p = poolEntry(it.ref);
-      if (!p) continue;
+      if (!p || it.slot === 'cardio') continue; // v3.11.0: Cardio zählt nicht als Satz
       for (const m of p.muscles.primary) out[m] += it.sets * times;
       for (const m of p.muscles.secondary) out[m] += 0.5 * it.sets * times;
     }
@@ -206,14 +220,35 @@ export function weeklyMuscleSets(plans) {
   return out;
 }
 
-/** v3.8.0: Plan für die Cardio-Tage – eine Übung ohne Gerät, so lang wie die gewählte Trainingsdauer. */
+/** v3.11.0 (#311): Cardio-Übung. combo = Block nach dem Krafttraining (gleicher Ort wie das Krafttraining). */
+export function pickCardio(answers, combo = false) {
+  const gear = answers.gear;
+  const machines = combo && (gear === null || gear.includes('cardio')); // Fitnessstudio (alles) oder „Cardiogeräte“
+  const bike = Array.isArray(gear) && gear.includes('bike');
+  const lifting = answers.goal === 'muscle' || answers.goal === 'strength';
+  if (lifting) return machines ? 'stationary-bike' : bike ? 'outdoor-cycling' : 'outdoor-walking';
+  if (answers.level === 'new') return machines ? 'incline-treadmill-walking' : 'outdoor-walking';
+  return machines ? 'treadmill-running' : 'outdoor-running';
+}
+
+const cardioItem = (ref, minutes) => ({ slot: 'cardio', ref, sets: 1, repRange: null, restSeconds: null, minutes });
+
+/** v3.8.0: Plan für die Cardio-Tage – eine Übung, so lang wie die gewählte Trainingsdauer (v3.11.0: Auswahl nach #311). */
 export function cardioPlan(answers) {
-  const ref = CARDIO_PICK[answers.level] || CARDIO_PICK.new;
   return {
     key: 'cardio', name: CARDIO_PLAN_NAME, cardio: true, days: [...answers.cardioDays],
-    items: [{ slot: 'cardio', ref, sets: 1, repRange: null, restSeconds: null }],
+    items: [cardioItem(pickCardio(answers, false), answers.minutes)],
     seconds: answers.minutes * 60, missing: []
   };
+}
+
+/** v3.11.0: Kraftteil (kürzer) plus Cardio-Block am Ende. */
+export function comboDay(key, answers, used) {
+  const strengthMin = Math.max(COMBO_MIN_STRENGTH, answers.minutes - answers.comboMinutes);
+  const day = buildDay(key, { ...answers, minutes: strengthMin }, used);
+  return { ...day, key: `${key}+c`, name: day.name + COMBO_SUFFIX, combo: true,
+    items: [...day.items, cardioItem(pickCardio(answers, true), answers.comboMinutes)],
+    seconds: day.seconds + answers.comboMinutes * 60 };
 }
 
 /** Der ganze Vorschlag: Pläne mit Wochentagen, Übungen, Dauer und Sätze pro Muskel. */
@@ -222,15 +257,21 @@ export function buildProgram(rawAnswers) {
   const split = answers.days ? SPLITS[answers.days] : null;
   const dayLists = !split ? [] : answers.weekdays ? planDays(answers.weekdays) : split.plans.map(([, days]) => days);
   const used = new Set();
-  const plans = !split ? [] : split.plans.map(([key], i) => {
-    const day = buildDay(key, answers, used);
+  const plans = [];
+  if (split) split.plans.forEach(([key], i) => {
+    // v3.11.0: Tage dieses Trainings mit Cardio danach bekommen eine eigene Fassung „… + Cardio“ (gleiche Übungen, kürzer)
+    const all = dayLists[i], combo = all.filter((d) => answers.comboDays.includes(d)), plain = all.filter((d) => !combo.includes(d));
+    const before = new Set(used);
+    const day = buildDay(key, answers, before);
+    if (plain.length || !all.length) plans.push({ ...day, days: plain });
+    if (combo.length) plans.push({ ...comboDay(key, answers, before), days: combo });
     for (const it of day.items) used.add(it.ref);
-    return { ...day, days: [...dayLists[i]] };
   });
   if (answers.cardioDays.length) plans.push(cardioPlan(answers));
   return {
     answers, splitLabel: split ? split.label : 'Nur Ausdauer', plans, weekly: weeklyMuscleSets(plans),
-    cardioMinutes: answers.minutes * answers.cardioDays.length, missing: [...new Set(plans.flatMap((p) => p.missing))]
+    cardioMinutes: answers.minutes * answers.cardioDays.length + answers.comboMinutes * answers.comboDays.length,
+    missing: [...new Set(plans.flatMap((p) => p.missing))]
   };
 }
 

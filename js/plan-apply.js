@@ -31,7 +31,8 @@ export function applyProgram(prog) {
     const created = P.newPlan(name);
     if (!created.ok) return { ok: false, error: created.errors[0] };
     const items = p.items.map((it) => createPlanItem(idFor.get(it.ref), {
-      targetSets: it.sets, restSeconds: it.restSeconds, ...(it.repRange ? { repRange: { ...it.repRange } } : {})
+      targetSets: it.sets, restSeconds: it.restSeconds, ...(it.repRange ? { repRange: { ...it.repRange } } : {}),
+      ...(Number.isInteger(it.minutes) ? { targetMinutes: it.minutes } : {}) // v3.11.0: Dauer eines Cardio-Eintrags
     }));
     const saved = P.savePlan({ ...created.plan, items, days: [...p.days] });
     if (!saved.ok) return { ok: false, error: saved.errors[0] };

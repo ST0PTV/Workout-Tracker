@@ -37,7 +37,7 @@ for (const theme of ['dark', 'light']) {
   ok(/Rudern \(Band oder Stange\)/.test(a) && !/Kniebeuge-Muster/.test(a), `${tag}: Hinweis nennt das fehlende Gerät, Kniebeuge fehlt nicht mehr`);
   ok(!/object HTML/.test(a), `${tag}: kein [object HTML…]`);
   if (shots) await p.screenshot({ path: `${shots}/v340-${theme}-assist.png` });
-  await p.getByRole('tab', { name: 'GK B' }).click(); await p.waitForTimeout(150);
+  await p.getByRole('tab', { name: 'Ganzkörper B' }).click(); await p.waitForTimeout(150);
   const bTab = await p.evaluate(() => document.querySelector('.assist')?.innerText || '');
   ok(/Ausfallschritte rückwärts ohne Gewicht/.test(bTab) && /Y\/T-Heben in Bauchlage/.test(bTab), `${tag}: GK B mit Ausfallschritt und Y/T-Heben`);
   ok(errs.length === 0, `${tag}: keine Konsolenfehler ${errs.slice(0, 3).join(' | ')}`);

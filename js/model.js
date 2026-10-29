@@ -205,6 +205,8 @@ export function validatePlan(p) {
       if (!isRest(it.restSeconds)) err.push(`Plan ${p.id}: Pausenzeit ungültig.`);
       if (!isRepRange(it.repRange)) err.push(`Plan ${p.id}: Wiederholungsbereich ungültig.`);
       if (it.supersetNext !== undefined && typeof it.supersetNext !== 'boolean') err.push(`Plan ${p.id}: Supersatz-Kopplung ungültig.`);
+      // v3.11.0 (optional, ohne Schemaänderung): geplante Minuten eines Cardio-Eintrags
+      if (it.targetMinutes !== undefined && it.targetMinutes !== null && !(Number.isInteger(it.targetMinutes) && it.targetMinutes >= 1 && it.targetMinutes <= 600)) err.push(`Plan ${p.id}: targetMinutes ungültig.`);
     }
   }
   if (typeof p.archived !== 'boolean') err.push(`Plan ${p.id}: archived ungültig.`);

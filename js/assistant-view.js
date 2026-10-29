@@ -13,11 +13,11 @@ import { fmtSets } from './week.js';
 import { infoBody } from './info.js';
 import {
   GOALS, TIME_OPTIONS, LEVELS, GEAR_PRESETS, SLOT_LABELS, SLOT_NEEDS, DEFAULT_WEEKDAYS, STRENGTH_MAX, SPLITS, WHO_AEROBIC,
-  buildProgram, normalizeAnswers, adjacentFullBody
+  COMBO_OPTIONS, COMBO_DEFAULT, COMBO_MIN_STRENGTH, COMBO_SUFFIX, buildProgram, normalizeAnswers, adjacentFullBody, pickCardio
 } from './plan-builder.js';
 
 export const ASSISTANT_INFO = {
-  checkedAt: '2026-10-26',
+  checkedAt: '2026-10-29',
   short: [
     'Der Vorschlag ist ein Startpunkt nach allgemeinen Empfehlungen, kein persönlicher Trainingsplan.',
     'Dauer und Sätze pro Muskel sind Schätzungen.',
@@ -34,7 +34,9 @@ export const ASSISTANT_INFO = {
     'Bei nur einem Krafttag kommt jeder Muskel einmal pro Woche dran; zweimal war in Studien günstiger (Schoenfeld 2016).',
     'Cardio-Tage bekommen einen eigenen Plan „Ausdauer“. Kraft und Ausdauer an getrennten Tagen bremsen Muskelaufbau und Maximalkraft im Mittel nicht; die Schnellkraft eher, vor allem in derselben Einheit (Schumann 2022).',
     'Die WHO empfiehlt Erwachsenen pro Woche 150–300 min Ausdauer mit mittlerer oder 75–150 min mit hoher Intensität (Bull 2020). Die Cardio-Minuten im Vorschlag sind eine Schätzung aus Dauer × Cardio-Tagen.',
-    'Höchstens 6 Krafttage: Ein Tag ohne Krafttraining bleibt (Konvention).'
+    'Höchstens 6 Krafttage: Ein Tag ohne Krafttraining bleibt (Konvention).',
+    'Kraft + Cardio am selben Tag: Cardio kommt nach dem Kraftteil. Kraft zuerst brachte in zwei Meta-Analysen mehr Beinkraft; Muskelwachstum und Ausdauer hingen nicht von der Reihenfolge ab (Eddens 2018; Murlasits 2018). Der Kraftteil wird um die Cardio-Zeit kürzer, mindestens 20 min (Konvention).',
+    'Welches Cardio: Bei Ziel Muskelaufbau oder Kraft schlägt die App Radfahren statt Laufen vor. Laufen ging parallel zum Krafttraining mit weniger Muskel- und Kraftzuwachs einher, Radfahren nicht (Wilson 2012, Vergleich über Studien hinweg). Ohne Rad: zügiges Gehen (Konvention). Am Kombi-Tag im Fitnessstudio ein Cardiogerät, sonst draußen.'
   ],
   sources: [
     { label: 'ACSM 2009, Med Sci Sports Exerc 41:687–708', url: 'https://doi.org/10.1249/MSS.0b013e3181915670', note: 'Position Stand: Einsteiger 8–12 Wdh., 2–3 Tage/Woche; große und mehrgelenkige Übungen zuerst (Abstract).' },
@@ -46,6 +48,9 @@ export const ASSISTANT_INFO = {
     { label: 'Nunes et al. 2020, Eur J Sport Sci 21:149–157', url: 'https://doi.org/10.1080/17461391.2020.1733672', note: 'Reihenfolge: Kraft wächst in den ersten Übungen am meisten; Muskelwachstum ähnlich (Abstract).' },
     { label: 'Schumann et al. 2022, Sports Med 52:601–612', url: 'https://doi.org/10.1007/s40279-021-01587-7', note: 'Meta-Analyse (43 Studien): Ausdauer zusätzlich zu Kraft ändert Muskelwachstum und Maximalkraft nicht; Schnellkraft leidet eher, v. a. in derselben Einheit (Abstract).' },
     { label: 'Bull et al. 2020, Br J Sports Med 54:1451–1462', url: 'https://doi.org/10.1136/bjsports-2020-102955', note: 'WHO-Leitlinie: 150–300 min mittlere oder 75–150 min hohe Ausdauer pro Woche für Erwachsene (Abstract).' },
+    { label: 'Eddens, van Someren & Howatson 2018, Sports Med 48:177–188', url: 'https://doi.org/10.1007/s40279-017-0784-1', note: 'Meta-Analyse (10 Studien): Kraft vor Ausdauer +6,9 % dynamische Beinkraft; kein Unterschied für Muskelwachstum, statische Kraft, VO2max und Körperfett (Abstract).' },
+    { label: 'Murlasits, Kneffel & Thalib 2018, J Sports Sci 36:1212–1219', url: 'https://doi.org/10.1080/02640414.2017.1364405', note: 'Meta-Analyse: Kraft zuerst +4 kg Bein-1RM; Ausdauerleistung unabhängig von der Reihenfolge (Abstract).' },
+    { label: 'Wilson et al. 2012, J Strength Cond Res 26:2293–2307', url: 'https://doi.org/10.1519/JSC.0b013e31823a3e2d', note: 'Meta-Analyse (21 Studien): mit Laufen, nicht mit Radfahren, weniger Muskel- und Kraftzuwachs; mehr Häufigkeit und Dauer der Ausdauer → mehr Einbußen (Abstract; Moderator-Analyse).' },
     { label: 'Singer et al. 2024, Front Sports Act Living 6:1429789', url: 'https://doi.org/10.3389/fspor.2024.1429789', note: 'Pausen > 60 s leicht besser, über 90 s kein weiterer Unterschied (Abstract).' }
   ]
 };
@@ -70,9 +75,12 @@ function questions(settings) {
         { value: 'strength', label: GOALS.strength, sub: 'Stärker werden in den Grundübungen' },
         { value: 'fit', label: GOALS.fit, sub: 'Allgemein fit und gesund' }] },
     // v3.8.0: statt „Wie oft?“ die Wochentage wählen; die Zahl der Tage bestimmt den Split.
-    { key: 'week', kind: 'weekdays', title: 'An welchen Tagen trainierst du?', sub: 'Einmal tippen: Kraft. Zweimal: Cardio. Dreimal: wieder frei. Ändern geht jederzeit.' },
+    { key: 'week', kind: 'weekdays', title: 'An welchen Tagen trainierst du?', sub: 'Tippen wechselt: Kraft → Cardio → Kraft + Cardio → frei. Ändern geht jederzeit.' },
     { key: 'minutes', title: 'Wie lange pro Training?', sub: 'Inklusive Aufwärmen. Die Dauer ist eine Schätzung.',
       options: TIME_OPTIONS.map((m) => ({ value: m, label: m === 75 ? '75 min oder mehr' : `${m} min`, num: String(m) })) },
+    // v3.11.0: nur sichtbar, wenn ein Tag mit Kraft + Cardio gewählt ist
+    { key: 'comboMinutes', when: (c) => c.week.includes('kc'), title: 'Wie lange Cardio nach dem Krafttraining?', sub: `An Tagen mit Kraft + Cardio. Der Kraftteil wird entsprechend kürzer (mindestens ${COMBO_MIN_STRENGTH} min).`,
+      options: COMBO_OPTIONS.map((m) => ({ value: m, label: `${m} min`, num: String(m) })) },
     { key: 'gear', title: 'Was hast du zur Verfügung?', sub: 'Nur passende Übungen kommen in den Plan.', options: gearOpts },
     { key: 'level', title: 'Wie viel Erfahrung hast du?', sub: 'Mit Krafttraining.',
       options: [
@@ -96,49 +104,60 @@ export function openAssistant(rerender) {
   // v3.8.0: week = 7 Einträge Mo–So: '' frei, 'k' Kraft, 'c' Cardio (Variante A, Nutzerwahl 2026-10-26). Standard Mo · Mi · Fr Kraft.
   const week = Array(7).fill('');
   for (const d of DEFAULT_WEEKDAYS[3]) week[d] = 'k';
-  const st = { step: 0, choice: { goal: 'muscle', week, minutes: 45, gear: ownedGear(settings) ? 'mine' : 'gym', level: 'new' }, tab: 0 };
+  const st = { step: 0, choice: { goal: 'muscle', week, minutes: 45, comboMinutes: COMBO_DEFAULT, gear: ownedGear(settings) ? 'mine' : 'gym', level: 'new' }, tab: 0 };
+  const vq = () => qs.filter((q) => !q.when || q.when(st.choice)); // v3.11.0: sichtbare Fragen
   const body = h('div', { class: 'assist' });
   const sheet = openSheet(body, { full: true, title: 'Plan erstellen' });
 
   const daysOf = (kind) => st.choice.week.flatMap((v, d) => (v === kind ? [d] : []));
-  const answers = () => normalizeAnswers({ ...st.choice, weekdays: daysOf('k'), cardioDays: daysOf('c'), gear: gearFromChoice(st.choice.gear, settings) });
+  const answers = () => normalizeAnswers({ ...st.choice, weekdays: [...daysOf('k'), ...daysOf('kc')].sort((x, y) => x - y), cardioDays: daysOf('c'),
+    comboDays: daysOf('kc'), gear: gearFromChoice(st.choice.gear, settings) });
 
   function draw() {
-    if (st.step < qs.length) drawQuestion(); else drawPreview();
+    if (st.step < vq().length) drawQuestion(); else drawPreview();
     body.scrollTop = 0;
   }
 
-  // v3.8.0 (Variante A): sieben Tasten Mo–So; ein Tipp schaltet frei → Kraft → Cardio → frei. Freie Tage ohne Beschriftung.
-  // Höchstens STRENGTH_MAX Krafttage: ist das erreicht, springt ein freier Tag direkt auf Cardio.
+  // v3.8.0 (Variante A): sieben Tasten Mo–So. v3.11.0: ein Tipp schaltet frei → Kraft → Cardio → Kraft + Cardio → frei.
+  // Höchstens STRENGTH_MAX Tage mit Krafttraining (Kraft und Kraft + Cardio): ist das erreicht, springt ein freier Tag auf
+  // Cardio und Cardio zurück auf frei.
   function weekdayPicker() {
     const w = st.choice.week;
-    const k = w.filter((v) => v === 'k').length;
+    const kOnly = w.filter((v) => v === 'k').length, kc = w.filter((v) => v === 'kc').length;
+    const k = kOnly + kc;
     const c = w.filter((v) => v === 'c').length;
-    const next = (v) => (v === '' ? (k >= STRENGTH_MAX ? 'c' : 'k') : v === 'k' ? 'c' : '');
-    const NAME = { k: 'Kraft', c: 'Cardio', '': 'frei' };
+    const next = (v) => (v === '' ? (k >= STRENGTH_MAX ? 'c' : 'k') : v === 'k' ? 'c' : v === 'c' ? (k >= STRENGTH_MAX ? '' : 'kc') : '');
+    const NAME = { k: 'Kraft', c: 'Cardio', kc: 'Kraft und Cardio', '': 'frei' };
     const grid = h('div', { class: 'as-week', role: 'group', 'aria-label': 'Trainingstage' }, DAY_LABELS.map((label, d) => {
       const v = w[d];
-      return h('button', { type: 'button', class: `as-day${v === 'k' ? ' k' : v === 'c' ? ' c' : ''}`, 'aria-label': `${label}: ${NAME[v]}, tippen für ${NAME[next(v)]}`,
+      return h('button', { type: 'button', class: `as-day${v ? ' ' + v : ''}`, 'aria-label': `${label}: ${NAME[v]}, tippen für ${NAME[next(v)]}`,
         onclick: () => { st.choice.week = w.map((x, i) => (i === d ? next(x) : x)); draw(); } },
-      h('span', {}, label), v === 'k' ? icon('dumbbell', { size: 18 }) : v === 'c' ? icon('cardio', { size: 18 }) : null);
+      h('span', {}, label), v === 'k' ? icon('dumbbell', { size: 18 }) : v === 'c' ? icon('cardio', { size: 18 })
+        : v === 'kc' ? h('span', { class: 'as-kc' }, icon('dumbbell', { size: 15 }), icon('cardio', { size: 15 })) : null);
     }));
     const legend = h('div', { class: 'as-legend', 'aria-hidden': 'true' },
-      h('span', {}, h('i', { class: 'k' }), 'Kraft'), h('span', {}, h('i', { class: 'c' }), 'Cardio'));
-    const parts = [k ? `${k} × Kraft` : null, c ? `${c} × Cardio` : null].filter(Boolean);
+      h('span', {}, h('i', { class: 'k' }), 'Kraft'), h('span', {}, h('i', { class: 'c' }), 'Cardio'), h('span', {}, h('i', { class: 'kc' }), 'Kraft + Cardio'));
+    const a = answers();
+    const cardioName = (combo) => poolEntry(pickCardio(a, combo))?.name || 'Cardio';
+    const parts = [k ? `${k} × Kraft` : null, kc ? `davon ${kc} mit Cardio danach` : null, c ? `${c} × Cardio` : null].filter(Boolean);
     const summary = parts.length
-      ? [h('b', {}, parts.join(' · ')), h('small', {}, [k ? `Kraft: ${SPLIT_SUB[k]}` : null, c ? 'Cardio: zügiges Gehen oder Laufen, im Plan tauschbar' : null].filter(Boolean).join(' · '))]
+      ? [h('b', {}, parts.join(' · ')), h('small', {}, [k ? `Kraft: ${SPLIT_SUB[k]}` : null, kc ? `danach: ${cardioName(true)}` : null,
+        c ? `Cardio: ${cardioName(false)}` : null, kc || c ? 'im Plan tauschbar' : null].filter(Boolean).join(' · '))]
       : [h('b', {}, 'Noch keinen Tag gewählt'), h('small', {}, 'Tippe mindestens einen Tag an.')];
-    const kDays = daysOf('k');
+    const kDays = [...daysOf('k'), ...daysOf('kc')].sort((x, y) => x - y);
     return [grid, legend,
       h('div', { class: 'card as-split' }, summary),
       k >= STRENGTH_MAX ? h('p', { class: 'muted small' }, `Höchstens ${STRENGTH_MAX} Krafttage: Ein Tag ohne Krafttraining bleibt (Konvention). Weitere Tage werden Cardio.`) : null,
       k === 1 ? h('p', { class: 'muted small' }, 'Mit einem Krafttag kommt jeder Muskel einmal pro Woche dran. Zweimal war in Studien günstiger (Schoenfeld 2016).') : null,
-      adjacentFullBody(kDays) ? h('p', { class: 'muted small' }, 'Bei Ganzkörper-Training ist ein freier Tag dazwischen üblich (Konvention). Du kannst die Tage trotzdem so lassen.') : null];
+      adjacentFullBody(kDays) ? h('p', { class: 'muted small' }, 'Bei Ganzkörper-Training ist ein freier Tag dazwischen üblich (Konvention). Du kannst die Tage trotzdem so lassen.') : null,
+      // v3.11.0: neutraler Hinweis zur Studienlage, kein Abraten (Nutzer entscheidet)
+      kc ? h('p', { class: 'muted small' }, 'Kraft + Cardio: Cardio kommt nach dem Kraftteil – so war die Beinkraft in Studien höher (Eddens 2018). In derselben Einheit litt eher die Schnellkraft, Muskelaufbau und Maximalkraft im Mittel nicht (Schumann 2022).') : null];
   }
 
   function drawQuestion() {
-    const q = qs[st.step];
-    const prog = h('div', { class: 'as-prog', 'aria-hidden': 'true' }, qs.map((_, i) => h('span', { class: i <= st.step ? 'on' : '' })));
+    const qv = vq();
+    const q = qv[st.step];
+    const prog = h('div', { class: 'as-prog', 'aria-hidden': 'true' }, qv.map((_, i) => h('span', { class: i <= st.step ? 'on' : '' })));
     const valid = q.kind !== 'weekdays' || st.choice.week.some(Boolean);
     const opts = q.kind === 'weekdays' ? weekdayPicker() : q.options.map((o) => {
       const on = st.choice[q.key] === o.value;
@@ -151,14 +170,14 @@ export function openAssistant(rerender) {
     body.replaceChildren(
       h('div', { class: 'as-top' },
         st.step > 0 ? h('button', { class: 'as-link', type: 'button', onclick: () => { st.step -= 1; draw(); } }, 'Zurück') : h('span'),
-        h('span', { class: 'muted small' }, `Frage ${st.step + 1} von ${qs.length}`)),
+        h('span', { class: 'muted small' }, `Frage ${st.step + 1} von ${qv.length}`)),
       prog,
       h('h1', { class: 'as-h' }, q.title),
       h('p', { class: 'sub' }, q.sub),
       h('div', { class: q.kind === 'weekdays' ? 'as-opts as-opts-week' : 'as-opts' }, opts),
       h('div', { class: 'as-bottom' },
         h('button', { class: 'btn primary block', type: 'button', disabled: !valid, onclick: () => { st.step += 1; st.tab = 0; draw(); } },
-          st.step === qs.length - 1 ? 'Vorschlag ansehen' : 'Weiter')));
+          st.step === qv.length - 1 ? 'Vorschlag ansehen' : 'Weiter')));
   }
 
   function drawPreview() {
@@ -168,10 +187,10 @@ export function openAssistant(rerender) {
     const longest = Math.max(...prog.plans.map((p) => p.seconds));
     const seg = prog.plans.length > 1 ? h('div', { class: 'seg as-seg', role: 'tablist', 'aria-label': 'Pläne' },
       prog.plans.map((p, i) => h('button', { type: 'button', role: 'tab', class: i === st.tab ? 'on' : '', 'aria-selected': String(i === st.tab),
-        onclick: () => { st.tab = i; draw(); } }, shortName(p.name)))) : null;
+        onclick: () => { st.tab = i; draw(); }, 'aria-label': p.name }, shortName(p.name.replace(COMBO_SUFFIX, '')), p.combo ? icon('cardio', { size: 14, cls: 'inline' }) : null))) : null;
     const rows = plan.items.map((it) => {
       const ex = poolEntry(it.ref);
-      const reps = plan.cardio ? `ca. ${Math.round(plan.seconds / 60)} min` : it.repRange ? `${it.sets} × ${it.repRange.min}–${it.repRange.max}` : `${it.sets} × halten`;
+      const reps = it.slot === 'cardio' ? `ca. ${it.minutes} min` : it.repRange ? `${it.sets} × ${it.repRange.min}–${it.repRange.max}` : `${it.sets} × halten`;
       return h('div', { class: 'row' }, h('span', { class: 't' }, h('b', {}, ex.name)), h('span', { class: 'as-n' }, reps));
     });
     const weekly = Object.entries(prog.weekly).filter(([, v]) => v >= 1).sort((x, y) => y[1] - x[1]).slice(0, 8);
@@ -179,8 +198,9 @@ export function openAssistant(rerender) {
     const bars = weekly.map(([m, v]) => h('div', { class: 'as-bar' },
       h('span', {}, MUSCLES[m]), h('i', { 'aria-hidden': 'true' }, h('em', { style: `width:${Math.round((v / max) * 100)}%` })), h('span', { class: 'as-v' }, fmtSets(v))));
     // v3.8.0: Kopfzeile mit Kraft- und Cardio-Tagen
-    const nC = a.cardioDays.length;
+    const nC = a.cardioDays.length, nKC = a.comboDays.length;
     const headline = [a.days ? `${prog.splitLabel} · ${a.days} ${a.days === 1 ? 'Krafttag' : 'Krafttage'}` : null,
+      nKC ? `davon ${nKC} mit Cardio` : null,
       nC ? `${nC} ${nC === 1 ? 'Cardio-Tag' : 'Cardio-Tage'}` : null].filter(Boolean).join(' · ');
     const infoBtn = () => h('button', { class: 'info-btn small', type: 'button', 'aria-label': 'So entsteht der Vorschlag', onclick: openAssistantInfo }, icon('info', { size: 16 }));
     const missing = prog.missing.length ? h('div', { class: 'card warn-box as-miss' },
@@ -188,7 +208,7 @@ export function openAssistant(rerender) {
       h('p', {}, `Es fehlen: ${prog.missing.map((s) => (SLOT_NEEDS[s] ? `${SLOT_LABELS[s]} (${SLOT_NEEDS[s]})` : SLOT_LABELS[s])).join(', ')}.`)) : null;
     body.replaceChildren(
       h('div', { class: 'as-top' },
-        h('button', { class: 'as-link', type: 'button', onclick: () => { st.step = qs.length - 1; draw(); } }, 'Zurück'), h('span')),
+        h('button', { class: 'as-link', type: 'button', onclick: () => { st.step = vq().length - 1; draw(); } }, 'Zurück'), h('span')),
       h('h1', { class: 'as-h' }, 'Dein Plan'),
       h('p', { class: 'sub' }, `${headline} · bis ca. ${Math.round(longest / 60)} min `, h('span', { class: 'est-tag' }, 'Schätzung')),
       missing,
@@ -220,5 +240,5 @@ export function openAssistant(rerender) {
   return sheet;
 }
 
-const shortName = (name) => name.replace('Ganzkörper ', 'GK ').replace('Oberkörper', 'Oben').replace('Unterkörper', 'Unten');
+const shortName = (name) => name.replace('Ganzkörper ', 'GK ').replace('Oberkörper', 'Oben').replace('Unterkörper', 'Unten').replace(/^Ausdauer$/, 'Cardio');
 

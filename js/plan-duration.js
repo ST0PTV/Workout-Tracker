@@ -12,17 +12,26 @@ export const FIT_MAX_SETS = 5;
 /** Geschätzte Dauer eines Plans in Sekunden (gleiches Modell wie die Plan-Analyse). */
 export function planSeconds(plan, exercises, settings) {
   // v3.8.0: Pläne nur mit Cardio (z. B. „Ausdauer“ aus dem Assistenten) haben keine Schätzung – sonst stünde dort nur das Aufwärmen.
+  // v3.11.0: geplante Cardio-Minuten (targetMinutes) zählen dazu; ein reiner Cardio-Plan dauert dann so lange wie seine Einträge.
   const f = planFacts([{ ...plan, archived: false }], exercises, settings)[0];
-  return f && f.items.length ? f.seconds : 0;
+  return (f && f.items.length ? f.seconds : 0) + cardioSeconds(plan);
+}
+
+/** v3.11.0: geplante Cardio-Zeit eines Plans in Sekunden (Summe targetMinutes). */
+export function cardioSeconds(plan) {
+  return (plan?.items || []).reduce((n, it) => n + (Number.isInteger(it.targetMinutes) ? it.targetMinutes * 60 : 0), 0);
 }
 
 /**
  * Sätze so ändern, dass die geschätzte Dauer möglichst nah an targetSec liegt, ohne sie beim Verlängern zu überschreiten.
  * Rückgabe: { items, seconds, changed } – items = Plan-Einträge mit neuem targetSets.
  */
-export function fitPlanToSeconds(plan, exercises, settings, targetSec) {
+export function fitPlanToSeconds(plan, exercises, settings, totalSec) {
+  // v3.11.0: Cardio-Minuten bleiben fest; angepasst wird nur der Kraftteil.
+  const cardio = cardioSeconds(plan);
+  const targetSec = totalSec - cardio;
   const f = planFacts([{ ...plan, archived: false }], exercises, settings)[0];
-  if (!f || !f.items.length) return { items: plan.items, seconds: f?.seconds || 0, changed: false };
+  if (!f || !f.items.length) return { items: plan.items, seconds: (f?.seconds || 0) + cardio, changed: false };
   const rows = f.items.map((it) => ({ ...it }));
   const setSec = (r) => SET_WORK_SEC + r.rest;
   const total = () => WARMUP_SEC + rows.reduce((n, r) => n + r.sets * setSec(r), 0);
@@ -49,5 +58,5 @@ export function fitPlanToSeconds(plan, exercises, settings, targetSec) {
     changed = true;
     return { ...it, targetSets: s };
   });
-  return { items, seconds: total(), changed };
+  return { items, seconds: total() + cardio, changed };
 }
