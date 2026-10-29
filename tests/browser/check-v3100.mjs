@@ -107,6 +107,9 @@ for (const devName of ['iPhone SE', 'Pixel 7']) {
     await p.getByRole('button', { name: 'Weiter' }).click(); await p.waitForTimeout(300);
     ok(await p.locator('.as-day').count() === 7, `${T}: Assistent zeigt die Wochentage`);
     await check('Assistent Tage (Sheet)'); await closeSheets();
+    // Belege und Quellen (Links)
+    await p.evaluate(async () => { const v = await import('./js/exercises-view.js'); v.openEvidence('back-squat'); }); await p.waitForTimeout(500);
+    await check('Belege Kniebeuge (Sheet)'); await p.evaluate(() => { const b = document.querySelector('.sheet .sheet-body'); if (b) b.scrollTop = b.scrollHeight; }); await check('Belege Kniebeuge unten (Sheet)'); await closeSheets();
     await go('#/progress');
     for (const tab of ['Übungen', 'Trainings', 'Muskeln', '4 Wochen']) { await p.locator('#view [role=tab]', { hasText: tab }).first().click(); await check(`Fortschritt · ${tab}`); }
     await shot('progress');

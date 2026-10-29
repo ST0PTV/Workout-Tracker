@@ -1328,7 +1328,8 @@ body.tt-trial #view { padding-top: calc(var(--safe-top) + 64px); }
 :is(.seg button, [role="tab"])::after { inset: -6px 0; }          /* 32–34 → 44–46 */
 :is(.info-btn, .sheet-close, .dots)::after { inset: -4px; }        /* 36 → 44 */
 .info-btn.small::after, .chip-pair .info-btn::after, .label-row .info-btn::after, .ctitle .info-btn::after { inset: -7px; } /* 30 → 44 */
-:is(.link, .note-btn, .hist-link)::after, :where(.sheet, #view) a[href]:not(.dots)::after { inset: -6px 0; } /* 32 → 44 */
+:is(.link, .note-btn, .hist-link)::after { inset: -6px 0; } /* 32 → 44 */
+:where(.sheet, #view) a[href]:not(.dots)::after { inset: -8px 0; } /* Quellen-Links 28 → 44 */
 :is(.qbtn, .pill, .tt-tip-ok)::after { inset: -2px 0; }           /* 40 → 44 */
 .setrow .sn::after { inset: 0 -6px; }                             /* 32–36 breit → 44–48 (Höhe ist 44; Rasterlücke 8 px) */
 .anim-badge::after { inset: -7px 0; }                             /* 30 → 44 */
@@ -1352,3 +1353,4 @@ body:has(#view .training) :is(#view .training, .sheet) :is(.qbtn, .pill, .note-b
    – Wochentage im Plan-Assistenten: 7 auf 320 px passen nicht in 44 px Breite (7 × 44 = 308 > 288); Höhe ist 64 px.
    – Phasen-Beschriftungen der Technik-Animation: liegen nach ihrer Position auf der Zeitleiste; Hauptbedienung sind Play und
      Zeitleiste (beide ≥ 44 px). Die Beschriftungen werden seit 3.10.0 nach der echten Leistenbreite verteilt. */
+.anim-top { row-gap: 14px; } /* Varianten-Schalter (−6) und Badge (−7) untereinander auf 320 px: 13 px Erweiterung + 1 */
