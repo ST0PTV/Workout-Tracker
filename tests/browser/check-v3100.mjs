@@ -11,7 +11,7 @@ const shots = process.argv[2] || null;
 const pw = await loadPlaywright();
 const srv = await startServer(); const b = await launch(); const { ok, done } = checker();
 
-const audit = (p, training) => p.evaluate(({ training }) => {
+const audit = (p, training) => p.evaluate(({ training, process_debug }) => {
   const SEL = 'button, a[href], [role=tab], input:not([type=hidden]):not(.switch), select, textarea';
   const sheets = [...document.querySelectorAll('.sheet')].filter((s) => s.getBoundingClientRect().height > 0);
   const scope = sheets.length ? sheets[sheets.length - 1] : document;
@@ -47,13 +47,16 @@ const audit = (p, training) => p.evaluate(({ training }) => {
       if (x < 0 || y < 0 || x >= W || y >= H) continue;
       const hit = document.elementFromPoint(x, y);
       if (hit && !(hit === e || e.contains(hit)) && fixedCover(hit, e)) { coveredPart = true; continue; }
-      if (!hit || !(hit === e || e.contains(hit))) { miss = { x: Math.round(x), y: Math.round(y), hit: hit ? label(hit) : 'nichts' }; break; }
+      if (!hit || !(hit === e || e.contains(hit))) {
+        const dbg = (n) => { if (!n) return ''; const q = n.getBoundingClientRect(), a = getComputedStyle(n, '::after'), cs = getComputedStyle(n);
+          return ` [${Math.round(q.left)},${Math.round(q.top)} ${Math.round(q.width)}×${Math.round(q.height)} pos=${cs.position} disp=${cs.display} after=${a.content}/${a.position} t${a.top} r${a.right} b${a.bottom} l${a.left} w${a.width} h${a.height}]`; };
+        miss = { x: Math.round(x), y: Math.round(y), hit: hit ? label(hit) + (process_debug ? dbg(hit) + ' | ziel' + dbg(e) + ' | eltern' + dbg(e.parentElement) : '') : 'nichts' }; break; }
     }
     if (miss) fails.push(`Fläche ${label(e)} ${Math.round(r.width)}×${Math.round(r.height)}: (${miss.x},${miss.y}) trifft ${miss.hit}`);
     if (training && e.tagName === 'BUTTON' && !e.classList.contains('sn') && r.height < 43.5) fails.push(`sichtbar ${label(e)} ${Math.round(r.width)}×${Math.round(r.height)} im Training unter 44 px hoch`);
   }
   return { n, covered, fails };
-}, { training });
+}, { training, process_debug: !!process.env.WT_DEBUG || process.env.WT_ENGINE === 'webkit' });
 
 for (const devName of ['iPhone SE', 'Pixel 7']) {
   for (const theme of ['dark', 'light']) {
