@@ -11,6 +11,7 @@ import * as SETS from './sets.js';
 import { startRest, adjustRest } from './timer.js';
 import * as PR from './progression.js';
 import * as SS from './superset.js';
+import { isTimed } from './timed.js';
 
 function exercisesById() {
   return Object.fromEntries(store.get('exercises').map((e) => [e.id, e]));
@@ -96,7 +97,7 @@ export function completeSet(entryId, setId, values = {}) {
     if (!set) return 'Satz nicht gefunden.';
     const ex = exercisesById()[entry.exerciseId];
     const kind = ex?.kind || 'strength';
-    const err = completionError({ ...set, ...values }, kind);
+    const err = completionError({ ...set, ...values }, kind, isTimed(ex));
     if (err) return err;
     Object.assign(set, values, { completedAt: nowISO() });
     // v2.30.0 (B1): im Supersatz keine Pause innerhalb der Runde, danach die längste Pause der Gruppe.

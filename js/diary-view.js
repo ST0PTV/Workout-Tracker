@@ -10,7 +10,8 @@ import * as P from './plans.js';
 import * as lib from './exercises.js';
 import { miniFigure } from './figure.js';
 import { weightWarning, sessionSummary } from './model.js';
-import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm } from './input.js';
+import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm, parseHold, fmtHold } from './input.js';
+import { isTimed } from './timed.js';
 import { INTENSITIES } from './model.js';
 import { PHASES } from './routine-data.js';
 import { openSheet } from './sheet.js';
@@ -189,7 +190,7 @@ export function openDiaryEntry(id, rerender, opts = {}) {
   };
   const hasValues = (d) => d.entries.some((en) => en.sets.some((x) => !H.isEmptySet(x)));
 
-  function editRow(entry, set, workNo, exId, kind = 'strength') {
+  function editRow(entry, set, workNo, exId, kind = 'strength', timed = false) {
     const key = set.id;
     const cardio = kind === 'cardio';
     const bw = kind === 'bodyweight';
@@ -198,6 +199,7 @@ export function openDiaryEntry(id, rerender, opts = {}) {
       : h('input', { class: 'val', type: 'text', inputmode: bw ? 'text' : 'decimal', value: bw ? fmtAdded(set.weightKg) : fmtNum(set.weightKg), placeholder: bw ? 'KG' : '–', 'aria-label': `Satz ${setLabel(set, workNo)} ${bw ? 'Zusatzgewicht' : 'Gewicht'} in kg` });
     const r = cardio
       ? h('input', { class: 'val', type: 'text', inputmode: 'decimal', value: fmtKm(set.distanceM), placeholder: '–', 'aria-label': 'Strecke in km' })
+      : timed ? h('input', { class: 'val', type: 'text', inputmode: 'text', value: fmtHold(set.durationSec), placeholder: 'Sek.', 'aria-label': `Satz ${setLabel(set, workNo)} Haltezeit in Sekunden` })
       : h('input', { class: 'val', type: 'text', inputmode: 'numeric', value: fmtNum(set.reps), placeholder: '–', 'aria-label': `Satz ${setLabel(set, workNo)} Wiederholungen` });
     const hint = h('div', { class: 'hint typo', hidden: true }, h('span', { class: 'hint-ic' }, icon('info', { size: 18 })), h('span', {}));
     const check = () => {
@@ -212,6 +214,15 @@ export function openDiaryEntry(id, rerender, opts = {}) {
         return;
       }
       const weightKg = bw ? parseAddedWeight(w.value) : parseWeight(w.value);
+      if (timed) {
+        const durationSec = parseHold(r.value);
+        w.classList.toggle('bad', Number.isNaN(weightKg));
+        r.classList.toggle('bad', Number.isNaN(durationSec));
+        if (Number.isNaN(weightKg) || Number.isNaN(durationSec)) { state.invalid.add(key); return; }
+        state.invalid.delete(key);
+        H.setValues(state.draft, entry.id, set.id, { weightKg, durationSec, reps: null });
+        return;
+      }
       const reps = parseReps(r.value);
       w.classList.toggle('bad', Number.isNaN(weightKg));
       r.classList.toggle('bad', Number.isNaN(reps));
@@ -276,8 +287,8 @@ export function openDiaryEntry(id, rerender, opts = {}) {
         return h('div', { class: 'card sets diary-ex' },
           h('h2', {}, ex?.name || 'Unbekannte Übung'),
           insteadOf(en, byId),
-          h('div', { class: 'hdrrow' }, h('span', {}, kind === 'cardio' ? 'Abs.' : 'Satz'), h('span', {}, kind === 'cardio' ? 'Dauer' : kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, kind === 'cardio' ? 'km' : 'Wdh.'), h('span', {}, '')),
-          en.sets.length ? en.sets.flatMap((x) => editRow(en, x, x.type === 'warmup' ? 0 : ++workNo, en.exerciseId, kind)) : h('p', { class: 'muted small center' }, 'Keine Sätze – die Übung fällt beim Speichern weg.'),
+          h('div', { class: 'hdrrow' }, h('span', {}, kind === 'cardio' ? 'Abs.' : 'Satz'), h('span', {}, kind === 'cardio' ? 'Dauer' : kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, kind === 'cardio' ? 'km' : isTimed(ex) ? 'Sek.' : 'Wdh.'), h('span', {}, '')),
+          en.sets.length ? en.sets.flatMap((x) => editRow(en, x, x.type === 'warmup' ? 0 : ++workNo, en.exerciseId, kind, isTimed(ex))) : h('p', { class: 'muted small center' }, 'Keine Sätze – die Übung fällt beim Speichern weg.'),
           h('div', { class: 'nav2' },
             h('button', { class: 'btn', type: 'button', onclick: () => { H.addSet(d, en.id, 'work'); draw(); } }, icon('plus', { size: 18 }), 'Satz'),
             h('button', { class: 'btn danger-text', type: 'button', 'aria-label': `${ex?.name || 'Übung'} aus dem Training entfernen`, onclick: () => {

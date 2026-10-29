@@ -3,7 +3,8 @@
 // Pausen-Timer ohne Ton, Alarm oder Vibration – das Ende wird nur angezeigt.
 import { infoBody, hintLine, hintsOn, infoBtn } from './info.js';
 import { openGlossary, TERMS } from './glossary.js';
-import { welcomeCard } from './onboarding.js';
+import { welcomeCard, homeScreenCard } from './onboarding.js';
+import { openAssistant } from './assistant-view.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import * as S from './session.js';
@@ -19,12 +20,14 @@ import { formatDuration } from './rest.js';
 import { WARMUP_HINT, WARMUP_INFO, WARMUP_CHECKED_AT } from './warmup-info.js';
 import { openProgress, hasHistory } from './progress-view.js';
 import { openAnimation, hasAnimation } from './anim-view.js';
-import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm, fmtPace } from './input.js';
+import { parseWeight, parseReps, fmtNum, parseAddedWeight, fmtAdded, parseDuration, fmtDuration, parseDistanceKm, fmtKm, fmtPace, parseHold, fmtHold } from './input.js';
+import { isTimed } from './timed.js';
 import { weightWarning, placeholderFor, lastSetFor, INTENSITIES } from './model.js';
 import { typoText, openBackfill } from './diary-view.js';
 import * as SETS from './sets.js';
 import { openSetSheet, stageRows, tagChips, quickButtons, lastCompletedIndex } from './set-view.js';
 import { swapOptions, candidateLine } from './group-view.js';
+import { alternativesFor } from './swap-alt.js';
 import { miniFigure } from './figure.js';
 import { askWarmup, startRun, cooldownOffer } from './routine-view.js';
 import { cycleStartCards } from './cycle-view.js';
@@ -117,9 +120,9 @@ function computeNext(v, entryId) {
   if (k >= 0) {
     const set = sets[k];
     const workNo = set.type === 'warmup' ? 0 : sets.slice(0, k + 1).filter((x) => x.type !== 'warmup').length;
-    const vals = set.reps !== null ? set : { ...set, ...(placeholderFor(d.entry, k, d.last) || {}) };
+    const vals = set.reps !== null || set.durationSec > 0 ? set : { ...set, ...(placeholderFor(d.entry, k, d.last) || {}) };
     const label = set.type === 'warmup' ? 'Aufwärmsatz' : `Satz ${SETS.setLabel(set, workNo)}`;
-    const values = vals.reps !== null && vals.reps !== undefined ? ` · ${SETS.formatSet({ ...vals, drops: [] }, kind)}${isPerSide(d.exercise) ? ' je Seite' : ''}` : '';
+    const values = (vals.reps !== null && vals.reps !== undefined) || vals.durationSec > 0 ? ` · ${SETS.formatSet({ ...vals, drops: [] }, kind)}${isPerSide(d.exercise) ? ' je Seite' : ''}` : '';
     return `Als Nächstes: ${label}${values}`;
   }
   const after = v.entries.slice(i + 1).find((x) => !x.complete) || v.entries.slice(0, i).find((x) => !x.complete);
@@ -386,17 +389,25 @@ function lockUntilLongPress(inputs, onTapLocked) {
 function setRow(d, set, i, workNo, rerender, isQuick = false, withPrev = false) {
   const done = set.completedAt !== null;
   const bw = d.exercise?.kind === 'bodyweight';
+  const timed = isTimed(d.exercise); // v3.13.0 (M2): zweite Spalte = Sekunden statt Wdh.
   // v3.0.0: Spalte „Zuletzt“ (Werte der letzten Ausführung an dieser Stelle), nur wenn es ein letztes Training gibt.
   const lastSet = withPrev ? lastSetFor(d.entry, i, d.last) : null;
-  const prevText = lastSet ? `${bw ? (lastSet.weightKg ? fmtAdded(lastSet.weightKg) : 'KG') : fmtNum(lastSet.weightKg)}\u2009×\u2009${fmtNum(lastSet.reps)}` : '–';
+  const prevText = lastSet && timed ? SETS.formatSet({ ...lastSet, drops: [] }, d.exercise.kind) : lastSet ? `${bw ? (lastSet.weightKg ? fmtAdded(lastSet.weightKg) : 'KG') : fmtNum(lastSet.weightKg)}\u2009×\u2009${fmtNum(lastSet.reps)}` : '–';
   const prev = withPrev ? h('span', { class: 'prev', 'aria-label': lastSet ? `Zuletzt ${prevText}` : 'Zuletzt kein Satz' }, prevText) : null;
   // v1.4 (Entscheidung 6 A): graue Platzhalter = vorheriger Satz bzw. letzte Ausführung; der Haken übernimmt sie.
   const ph = done ? null : placeholderFor(d.entry, i, d.last);
   const phW = ph ? (bw ? (ph.weightKg ? fmtAdded(ph.weightKg) : 'KG') : fmtNum(ph.weightKg)) : (bw ? 'KG' : '–');
   const w = h('input', { class: 'val', type: 'text', inputmode: bw ? 'text' : 'decimal', enterkeyhint: 'next', value: bw ? fmtAdded(set.weightKg) : fmtNum(set.weightKg), 'aria-label': `Satz ${i + 1} ${bw ? 'Zusatzgewicht' : 'Gewicht'} in kg`, placeholder: phW });
-  const r = h('input', { class: 'val', type: 'text', inputmode: 'numeric', enterkeyhint: 'done', value: fmtNum(set.reps), 'aria-label': `Satz ${i + 1} Wiederholungen`, placeholder: ph ? fmtNum(ph.reps) : '–' });
+  const r = timed
+    ? h('input', { class: 'val', type: 'text', inputmode: 'text', enterkeyhint: 'done', value: fmtHold(set.durationSec), 'aria-label': `Satz ${i + 1} Haltezeit in Sekunden`, placeholder: ph?.durationSec ? fmtHold(ph.durationSec) : 'Sek.' })
+    : h('input', { class: 'val', type: 'text', inputmode: 'numeric', enterkeyhint: 'done', value: fmtNum(set.reps), 'aria-label': `Satz ${i + 1} Wiederholungen`, placeholder: ph ? fmtNum(ph.reps) : '–' });
   const commit = () => {
     const weightKg = bw ? parseAddedWeight(w.value) : parseWeight(w.value);
+    if (timed) {
+      const durationSec = parseHold(r.value);
+      if (Number.isNaN(weightKg) || Number.isNaN(durationSec)) { toast('Bitte gültige Werte eingeben (Zeit z. B. 45 oder 1:30).', { error: true }); return null; }
+      return { weightKg, durationSec, reps: null };
+    }
     const reps = parseReps(r.value);
     if (Number.isNaN(weightKg) || Number.isNaN(reps)) { toast(bw ? 'Bitte gültige Zahlen eingeben (Zusatzgewicht z. B. +5 oder -10).' : 'Bitte gültige Zahlen eingeben (Gewicht z. B. 82,5).', { error: true }); return null; }
     return { weightKg, reps };
@@ -449,11 +460,12 @@ function setRow(d, set, i, workNo, rerender, isQuick = false, withPrev = false) 
       const v = commit();
       if (!v) return;
       // Leere Felder übernehmen die Platzhalter (nur wenn beide Werte fehlen oder nur die Wdh. fehlen).
-      if (ph && v.reps === null) { v.reps = ph.reps; if (v.weightKg === null) v.weightKg = ph.weightKg; }
+      if (timed) { if (ph && v.durationSec === null) { v.durationSec = ph.durationSec ?? null; if (v.weightKg === null) v.weightKg = ph.weightKg; } }
+      else if (ph && v.reps === null) { v.reps = ph.reps; if (v.weightKg === null) v.weightKg = ph.weightKg; }
       const res = S.completeSet(d.entry.id, set.id, v);
       if (!res.ok) {
         w.classList.toggle('bad', v.weightKg === null && !bw);
-        r.classList.toggle('bad', v.reps === null);
+        r.classList.toggle('bad', timed ? !(v.durationSec > 0) : v.reps === null);
         toast(res.errors[0], { error: true });
         return;
       }
@@ -471,15 +483,20 @@ function setRow(d, set, i, workNo, rerender, isQuick = false, withPrev = false) 
         add: () => ok(S.addStage(eid, set.id))
       }
     }),
-    isQuick ? quickButtons(set, { onQuick: (type) => { if (ok(S.quickStage(eid, set.id, type))) rerender(); } }) : null
+    isQuick && !timed ? quickButtons(set, { onQuick: (type) => { if (ok(S.quickStage(eid, set.id, type))) rerender(); } }) : null
   ];
 }
 
 // v1.3: „statt <geplant> · zurück“; v1.4 (Entscheidung 2 B): „Tauschen“ klappt die Kandidaten unter dem Titel auf.
-function swapLine(d, rerender) {
+function swapLine(d, rerender, noteBtn = null) {
   const planned = d.entry.plannedExerciseId ? lib.getExercise(d.entry.plannedExerciseId) : null;
-  const { candidates } = swapOptions(d.entry);
-  if (!planned && !candidates.length) return [];
+  const { candidates: grouped } = swapOptions(d.entry);
+  // v3.13.0 (S3): automatische Alternativen ergänzen die Gruppen (Pool-Einträge werden beim Antippen übernommen)
+  const base = planned || d.exercise;
+  const alt = alternativesFor(base, store.get('exercises'), store.get('settings'), new Set([d.entry.exerciseId, ...grouped.map((x) => x.id)]));
+  const candidates = [...grouped, ...alt.library];
+  const poolAlt = alt.pool;
+  if (!planned && !candidates.length && !poolAlt.length) return noteBtn ? [noteBtn] : [];
   const back = () => {
     const r = S.swapEntry(d.entry.id, planned.id);
     if (!r.ok) { toast(r.errors[0], { error: true }); return; }
@@ -487,7 +504,7 @@ function swapLine(d, rerender) {
     if (r.mode === 'inserted') ui.current = r.index;
     rerender();
   };
-  const open = ui.swapOpen === d.entry.id && candidates.length > 0;
+  const open = ui.swapOpen === d.entry.id && (candidates.length + poolAlt.length) > 0;
   const hasDone = d.entry.sets.some((x) => x.completedAt !== null);
   const pick = (ex) => {
     const r = S.swapEntry(d.entry.id, ex.id);
@@ -497,17 +514,28 @@ function swapLine(d, rerender) {
     if (r.mode === 'inserted') ui.current = r.index;
     rerender();
   };
+  const pickPool = (p) => {
+    const r = lib.addFromPool(p.ref);
+    if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+    pick(r.exercise);
+  };
   const sex = store.get('settings').figure;
   return [
     h('div', { class: 'swapline' },
-      planned ? h('span', { class: 'muted small' }, `statt ${planned.name} · `, h('button', { class: 'link small', type: 'button', onclick: back }, 'zurück')) : h('span'),
-      candidates.length ? h('button', { class: `btn small swap-btn${open ? ' on' : ''}`, type: 'button', 'aria-expanded': String(open), onclick: () => { ui.swapOpen = open ? null : d.entry.id; rerender(); } },
+      // v3.13.0: ohne Tausch steht „Notiz“ links in derselben Zeile (eine Zeile weniger über der Satztabelle)
+      planned ? h('span', { class: 'muted small' }, `statt ${planned.name} · `, h('button', { class: 'link small', type: 'button', onclick: back }, 'zurück')) : (noteBtn || h('span')),
+      candidates.length + poolAlt.length ? h('button', { class: `btn small swap-btn${open ? ' on' : ''}`, type: 'button', 'aria-expanded': String(open), onclick: () => { ui.swapOpen = open ? null : d.entry.id; rerender(); } },
         icon('swap', { size: 16 }), ' Tauschen') : null),
+    planned && noteBtn ? noteBtn : null,
     open ? h('div', { class: 'card list swap-list' },
       hasDone ? h('p', { class: 'muted small swap-note' }, 'Schon ein Satz erledigt: Die Auswahl kommt als eigene Übung direkt dahinter.') : null,
       candidates.map((ex) => h('button', { class: 'row', type: 'button', onclick: () => pick(ex) },
         h('span', { class: 'fig-ic' }, miniFigure(ex, sex)),
         h('span', { class: 't' }, h('b', {}, ex.name), h('small', {}, candidateLine(ex, d.entry))),
+        h('span', { class: 'pill-act' }, hasDone ? 'Einfügen' : 'Tauschen'))),
+      poolAlt.map((p) => h('button', { class: 'row', type: 'button', onclick: () => pickPool(p) },
+        h('span', { class: 'fig-ic' }, miniFigure(p, sex)),
+        h('span', { class: 't' }, h('b', {}, p.name), h('small', {}, 'Aus dem Startpool')),
         h('span', { class: 'pill-act' }, hasDone ? 'Einfügen' : 'Tauschen')))) : null
   ];
 }
@@ -580,9 +608,8 @@ function exercisePage(v, d, rerender) {
       h('div', { class: 'sub2' }, lib.muscleSummary(ex), perSide ? h('span', { class: 'side-pill' }, 'je Seite') : null,
         letter ? h('span', { class: 'side-pill' }, `Supersatz ${letter}`) : null,
         d.entry.repRange && !cardio ? h('span', { class: 'side-pill' }, `Ziel ${d.entry.repRange.min === d.entry.repRange.max ? d.entry.repRange.min : `${d.entry.repRange.min}–${d.entry.repRange.max}`} Wdh.`) : null),
-      ...swapLine(d, rerender),
-      h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
-        icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen')) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
+      ...swapLine(d, rerender, h('button', { class: 'note-btn', type: 'button', onclick: () => openNoteEditor(ex, rerender) },
+        icon('edit', { size: 14, cls: 'inline' }), ex.note ? ` ${ex.note}` : ' Notiz hinzufügen'))) : h('h2', { class: 'exh' }, 'Unbekannte Übung'),
     // v2.34.0: Aufwärm-Hinweis einzeilig, nur mit „Hinweise anzeigen“
     d.warmupHint ? hintLine(WARMUP_HINT, openWarmupInfo, { tone: 'warm' }) : null,
     // v2.34.0 (Vorschlag 3): Die Werte vom letzten Mal stehen schon in den Feldern; hier nur noch das Datum.
@@ -592,7 +619,7 @@ function exercisePage(v, d, rerender) {
         ex && hasHistory(ex.id) ? h('button', { class: 'link hist-link', type: 'button', onclick: () => openProgress(ex.id) }, icon('progress', { size: 16, cls: 'inline' }), ' Verlauf') : null)),
     suggestionCard(d, rerender),
     cardio ? cardioCard(d, rerender) : h('div', { class: `card sets${withPrev ? ' with-prev' : ''}` },
-      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), withPrev ? h('span', {}, 'Zuletzt') : null, h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, perSide ? 'Wdh./S.' : 'Wdh.'), h('span', {}, '')),
+      h('div', { class: 'hdrrow' }, h('span', {}, 'Satz'), withPrev ? h('span', {}, 'Zuletzt') : null, h('span', {}, ex?.kind === 'bodyweight' ? '+ kg' : 'kg'), h('span', {}, isTimed(ex) ? 'Sek.' : perSide ? 'Wdh./S.' : 'Wdh.'), h('span', {}, '')),
       rows.length ? rows : h('p', { class: 'muted small center' }, 'Noch keine Sätze.'),
       plate.el),
     cardio ? null : h('div', { class: 'nav2' },
@@ -779,13 +806,16 @@ function startView(rerender) {
         h('a', { class: 'dots', href: '#/settings', 'aria-label': 'Einstellungen' }, icon('settings', { size: 20 })), // v3.1.0: Einstellungen nicht mehr in der Tab-Leiste
         h('button', { class: 'dots', type: 'button', 'aria-label': 'Mehr: Training nachtragen, leichte Woche', onclick: moreMenu }, '⋯'))),
     welcomeCard(rerender),
+    homeScreenCard(rerender),
     ...cycleStartCards(rerender),
     ...missedCards(rerender),
     light ? lightWeekCard(true, rerender) : null,
     plans.length
       ? cards
       : h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('plans', { size: 44 })), h('h2', {}, 'Noch keine Pläne'),
-        h('p', { class: 'muted' }, 'Lege im Tab „Pläne“ einen Plan an – oder starte frei.')),
+        // v3.13.0 (S1): der Assistent direkt hier, damit Einsteiger nicht erst den Tab suchen
+        h('p', { class: 'muted' }, 'Lass dir einen Plan vorschlagen, lege im Tab „Pläne“ selbst einen an – oder starte frei.'),
+        h('button', { class: 'btn primary block', type: 'button', onclick: () => openAssistant(rerender) }, 'Plan vorschlagen lassen')),
     h('button', { class: 'btn block subtle', type: 'button', onclick: start(() => S.startEmpty()) }, 'Freies Training starten'),
     recent.length ? h('div', {}, h('div', { class: 'sec' }, 'Letzte Trainings'),
       h('div', { class: 'card list' }, recent.map((s) => {

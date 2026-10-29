@@ -87,7 +87,7 @@ export function trialData(realSettings = {}, now = new Date()) {
       sets: [0, 1].map((k) => createSet({ type: 'work', weightKg: i === 0 ? 60 : 40, reps: 10 - k, completedAt: iso(5 + i * 15 + k * 3) }))
     }))
   });
-  const settings = { ...realSettings, onboarded: true, persistAsked: true, lightWeek: null,
+  const settings = { ...realSettings, onboarded: true, persistAsked: true, homeHint: true, lightWeek: null,
     tutorial: { ...tutorialState(realSettings), tips: Object.fromEntries(TIPS.map((t) => [t.id, true])) } };
   return { exercises, groups: [], plans: [plan], sessions: [past], routines: [], settings };
 }

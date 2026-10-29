@@ -5,6 +5,7 @@
 // die Regel „zweimal passend → mehr Gewicht“, „zweimal schwer → weniger“, die Prozentwerte der Pausentabelle.
 import { lastPerformance } from './model.js';
 import { poolEntry } from './pool.js';
+import { isTimed } from './timed.js';
 
 export const PROGRESSION_CHECKED_AT = '2026-10-16';
 export const RANGE_LIGHT_CHECKED_AT = '2026-10-22'; // v2.30.0: Bereich und leichte Woche (Abstracts in PubMed)
@@ -79,7 +80,7 @@ const minReps = (sets) => Math.min(...workSets(sets).map((x) => x.reps || 0));
 // v2.30.0 (B2): repRange { min, max } aus dem Plan – dann entscheidet der Bereich (siehe rangeSuggestion),
 // die Bewertung bremst nur. Trainings der leichten Woche sind nie Ausgangspunkt (skipLight).
 export function suggestFor(exercise, sessions, { now = Date.now(), beforeSessionId = null, repRange = null } = {}) {
-  if (!exercise || exercise.kind === 'cardio') return null;
+  if (!exercise || exercise.kind === 'cardio' || isTimed(exercise)) return null; // v3.13.0: kein Wdh.-Vorschlag für Halteübungen
   const done = sessions.filter((s) => s.endedAt !== null && s.light !== true);
   const l1 = lastPerformance(exercise.id, done, { beforeSessionId });
   if (!l1 || daysBetween(l1.date, now) >= BREAK_MIN_DAYS) return null;

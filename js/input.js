@@ -51,6 +51,17 @@ export function parseDuration(text) {
 }
 
 // 1230 → "20:30", 3900 → "1:05:00"
+// v3.13.0 (M2): Haltezeit – eine ganze Zahl sind Sekunden (anders als parseDuration: Minuten), sonst m:ss.
+export function parseHold(text) {
+  const t = String(text ?? '').trim();
+  if (!t) return null;
+  if (/^\d+$/.test(t)) { const sec = Number(t); return sec > 0 && sec <= MAX_DURATION_SEC ? sec : NaN; }
+  return parseDuration(t);
+}
+
+// v3.13.0 (M2): Haltezeit unter einer Minute als Sekundenzahl („45“), sonst m:ss.
+export const fmtHold = (sec) => (sec === null || sec === undefined ? '' : sec < 60 ? String(sec) : fmtDuration(sec));
+
 export function fmtDuration(sec) {
   if (sec === null || sec === undefined) return '';
   const h = Math.floor(sec / 3600);

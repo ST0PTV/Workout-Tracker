@@ -22,7 +22,7 @@ export const ANALYSIS_INFO = {
   points: [
     'Balance: Die App vergleicht Beine vorn mit hinten und Drücken mit Ziehen. Ein Hinweis kommt, wenn eine Seite deutlich kleiner ist (unter 50 % bzw. 2/3). Diese Schwellen sind Annahmen der App, keine Studienwerte.',
     'Frequenz: Große Muskeln wuchsen in einer Meta-Analyse mit zweimal pro Woche besser als mit einmal (Schoenfeld 2016).',
-    'Spanne: Für Muskelwachstum fand ACSM 2026 mehr Wirkung ab etwa 10 Sätzen pro Woche. Die App nennt das nur als Orientierung, mit niedrigster Priorität.',
+    'Spanne: Für Muskelwachstum fand ACSM 2026 mehr Wirkung ab etwa 10 Sätzen pro Woche. Die App schlägt erst unter 5 Sätzen eine Änderung vor (Grenze ist eine Konvention der App); 5 bis 9 Sätze nennt sie nur als Hinweis.',
     'Dauer: Sätze × (40 s + Pause) + 5 min Aufwärmen; ab 75 min schlägt die App vor, eine Einzelgelenk-Übung zu verschieben. 40 s, 5 min und 75 min sind Annahmen.',
     'Pläne ohne Trainingstage zählen als einmal pro Woche.',
     '„Trainiert“ zeigt den Schnitt der letzten vier abgeschlossenen Wochen aus deinen Trainings.'
@@ -96,6 +96,9 @@ function showResult(res, ctx, rerender, plannedClass) {
       res.suggestions.length
         ? h('div', {}, h('div', { class: 'sec' }, 'Zum Anpassen'), h('div', { class: 'card list' }, rows))
         : h('div', { class: 'card' }, h('b', {}, 'Nichts Auffälliges'), h('p', { class: 'muted' }, 'Balance, Frequenz und Dauer deiner Pläne liegen im üblichen Rahmen.')),
+      // v3.13.0 (M4): 5 bis unter 10 Sätze nur als neutraler Hinweis, ohne Vorschlag
+      res.nearTarget?.length ? h('p', { class: 'muted small ana-note' },
+        `Knapp unter 10 Sätzen pro Woche: ${res.nearTarget.map((x) => `${x.label} ${fmtSets(x.sets)}`).join(', ')}. ACSM 2026 fand ab etwa 10 Sätzen mehr Muskelwachstum – Orientierung, kein Muss.`) : null,
       res.suggestions.length ? h('div', { class: 'as-bottom' },
         h('button', { class: 'btn primary block', type: 'button', onclick: () => { st.view = 'E'; st.tab = 0; draw(); } }, 'Vorschläge ansehen')) : null);
   }

@@ -79,10 +79,11 @@ export function suggestionCard(d, rerender) {
     : s.kind === 'weight' && s.repsFrom ? `${s.reason} – mehr Gewicht, Wiederholungen wie vorletztes Mal.`
     : s.smallStepNote ? `${s.reason}. Der kleinste Gewichtsschritt (${kg(s.step)}) ist hier groß – erst Wiederholungen.`
       : s.deltaKg < 0 ? `${s.reason} – einen Schritt leichter.` : `${s.reason}.`;
+  // v3.13.0 (S2, Feature-Audit): kompakter – Titel und Vorschlag in einem Block, Tasten nebeneinander, damit die
+  // Satztabelle auf kleinen iPhones ohne Scrollen sichtbar bleibt.
   return h('div', { class: 'card sug-card' },
-    h('div', { class: 'sug-top' }, h('span', { class: 'sec-lbl' }, 'Vorschlag für heute'),
+    h('div', { class: 'sug-top' }, h('div', {}, h('span', { class: 'sec-lbl' }, 'Vorschlag für heute'), head),
       h('button', { class: 'info-btn small', type: 'button', 'aria-label': 'Wie entsteht der Vorschlag?', onclick: () => openProgressionInfo(s.range ? 'range' : 'rating') }, icon('info', { size: 18 }))),
-    head,
     h('p', { class: 'muted small' }, `${why} Schätzung – du entscheidest.`),
     h('div', { class: 'btn-row' },
       h('button', { class: 'btn primary', type: 'button', onclick: () => decide(true) }, 'Übernehmen'),

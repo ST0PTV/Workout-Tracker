@@ -53,7 +53,8 @@ export const SLOTS = {
 };
 
 // Übungen mit Haltezeit statt Wiederholungen: kein Wiederholungsbereich.
-export const TIMED = new Set(['plank', 'side-plank', 'copenhagen-plank', 'l-sit', 'farmers-walk']);
+export { TIMED_REFS as TIMED } from './timed.js';
+import { TIMED_REFS as TIMED } from './timed.js';
 
 // Tagesvorlagen: erst die festen Muster (Reihenfolge = mehrgelenkig zuerst), dann Zusätze, solange die Zeit reicht.
 export const DAY_TEMPLATES = {
