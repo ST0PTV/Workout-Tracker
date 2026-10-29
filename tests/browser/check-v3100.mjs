@@ -30,7 +30,7 @@ const audit = (p, training) => p.evaluate(({ training, process_debug }) => {
     if (r.top < 0 || r.bottom > H || r.left < 0 || r.right > W) continue; // nur vollständig sichtbare Ziele
     // … auch innerhalb des scrollenden Containers (z. B. Sheet): teilweise herausgescrollte Ziele überspringen
     let clipped = false;
-    for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) { const cs = getComputedStyle(a); if (/(auto|scroll|hidden)/.test(cs.overflowY + cs.overflowX)) { const q = a.getBoundingClientRect(); if (r.top < q.top - 0.5 || r.bottom > q.bottom + 0.5) { clipped = true; break; } } }
+    for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) { const cs = getComputedStyle(a); if (/(auto|scroll|hidden)/.test(cs.overflowY + cs.overflowX)) { const q = a.getBoundingClientRect(); if (r.top < q.top - 0.5 || r.bottom > q.bottom + 0.5 || r.left < q.left - 0.5 || r.right > q.right + 0.5) { clipped = true; break; } } }
     if (clipped) { covered++; continue; }
     // Tab-Leiste und erhöhter Knopf: Höhe 58 px, eigene Prüfung in check-tabs
     // von etwas Festem verdeckt (z. B. Pausenleiste beim Scrollen): kein Tap-Ziel in dieser Lage
@@ -41,7 +41,8 @@ const audit = (p, training) => p.evaluate(({ training, process_debug }) => {
     const day = e.classList.contains('as-day'), lab = false;
     const w = day ? r.width : lab ? r.width : Math.max(44, r.width), h = Math.max(44, r.height), cx = r.left + r.width / 2, cy = lab ? r.top + h / 2 : r.top + r.height / 2;
     // Mitte und Kantenmitten (Ecken nicht: abgerundete Ecken gehören im Browser nicht zur Trefferfläche)
-    const pts = [[cx, cy], [cx - w / 2 + 1.5, cy], [cx + w / 2 - 1.5, cy], [cx, cy - h / 2 + 1.5], [cx, cy + h / 2 - 1.5]];
+    // 3 px nach innen: WebKit rundet beim Treffertest auf ganze Pixel (Tabs ohne Lücke mit Breiten wie 86,67 px)
+    const pts = [[cx, cy], [cx - w / 2 + 3, cy], [cx + w / 2 - 3, cy], [cx, cy - h / 2 + 3], [cx, cy + h / 2 - 3]];
     let miss = null, coveredPart = false;
     for (const [x, y] of pts) {
       if (x < 0 || y < 0 || x >= W || y >= H) continue;
