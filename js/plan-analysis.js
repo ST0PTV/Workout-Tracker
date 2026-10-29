@@ -28,9 +28,11 @@ export const MIN_DATA_WEEKS = 2;
 
 // v3.7.0 (#303): Pool-Übungen tragen eine ausdrückliche Einordnung (`compound`, siehe pool.js). Nur eigene Übungen ohne
 // Pool-Bezug behalten die Heuristik „mindestens 3 beteiligte Muskeln“ (Konvention).
+// v3.12.0 (#309): Eigene Übungen können das ausdrücklich festlegen (`compound` true/false); fehlt das Feld, gilt die Heuristik.
 export const isCompound = (ex) => {
   const entry = ex?.source?.ref ? poolEntry(ex.source.ref) : null;
   if (entry) return entry.compound === true;
+  if (typeof ex?.compound === 'boolean') return ex.compound;
   return (ex?.muscles?.primary?.length || 0) + (ex?.muscles?.secondary?.length || 0) >= 3;
 };
 

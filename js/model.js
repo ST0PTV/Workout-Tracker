@@ -176,6 +176,8 @@ export function validateExercise(e) {
   // v2.26.0: optionale Felder (fehlen in älteren Daten): eigenes Stangengewicht, Wiederholungen je Seite.
   if (e.barKg !== undefined && e.barKg !== null && !(typeof e.barKg === 'number' && Number.isFinite(e.barKg) && e.barKg >= BAR_KG_MIN && e.barKg <= BAR_KG_MAX)) err.push(`Übung ${e.id}: Stangengewicht ungültig.`);
   if (e.perSide !== undefined && typeof e.perSide !== 'boolean') err.push(`Übung ${e.id}: „je Seite“ ungültig.`);
+  // v3.12.0 (#309, optional, ohne Schemaänderung): eigene Einordnung als Grundübung (mehrgelenkig); fehlt = automatisch
+  if (e.compound !== undefined && typeof e.compound !== 'boolean') err.push(`Übung ${e.id}: Grundübung-Angabe ungültig.`);
   if (!e.source || !['builtin', 'custom'].includes(e.source.origin) || !VERIFICATION.includes(e.source.verification)) {
     err.push(`Übung ${e.id}: Quelle ungültig.`);
   }

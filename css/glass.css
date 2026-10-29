@@ -1362,3 +1362,7 @@ body:has(#view .training) :is(#view .training, .sheet) :is(.qbtn, .pill, .note-b
 .as-legend i.kc { background: linear-gradient(135deg, var(--accent) 0 50%, transparent 50%); box-shadow: inset 0 0 0 2px var(--accent); }
 /* v3.11.0: Vorschau-Tabs einzeilig (Kombi-Fassung mit Cardio-Symbol statt „+ Cardio“) */
 .as-seg button { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 3px; padding: 0 4px; }
+
+/* 3.12.0: Fortschritt-Reiter („4 Wochen“) bleiben auf schmalen iPhones einzeilig */
+.ex-seg button { white-space: nowrap; padding: 0 4px; }
+@media (max-width: 374px) { .ex-seg button { font-size: 13px; } }
