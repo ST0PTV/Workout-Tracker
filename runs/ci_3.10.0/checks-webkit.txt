@@ -342,12 +342,12 @@ ok   iPhone SE dark Pläne: 10 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Pläne · Routinen: 14 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Übungen: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 FAIL iPhone SE dark Übung-Info (Sheet): 13 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
-      Fläche button.on「Details」 87×32: (115,137) trifft button「Verlauf」
-      Fläche button.on「Kraft」 87×41: (115,298) trifft button「Körpergewicht」
+      Fläche button.on「Details」 87×32: (115,137) trifft button「Verlauf」 [117,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | ziel [30,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | eltern [28,119 264×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
+      Fläche button.on「Kraft」 87×41: (115,298) trifft button「Körpergewicht」 [117,277 87×41 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h53px] | ziel [30,277 87×41 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h53px] | eltern [28,275 264×45 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL iPhone SE dark Technik-Animation (Sheet): 7 Ziele mit 44-px-Fläche
-      Fläche button「Details」 87×32: (115,137) trifft button「Verlauf」
+      Fläche button「Details」 87×32: (115,137) trifft button「Verlauf」 [117,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | ziel [30,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | eltern [28,119 264×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL iPhone SE dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
-      Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」
+      Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」 [117,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | ziel [30,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | eltern [28,119 264×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 ok   iPhone SE dark Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE dark: Assistent zeigt die Wochentage
 ok   iPhone SE dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
@@ -373,12 +373,12 @@ ok   iPhone SE light Pläne: 10 Ziele mit 44-px-Fläche
 ok   iPhone SE light Pläne · Routinen: 14 Ziele mit 44-px-Fläche
 ok   iPhone SE light Übungen: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 FAIL iPhone SE light Übung-Info (Sheet): 13 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
-      Fläche button.on「Details」 87×32: (115,137) trifft button「Verlauf」
-      Fläche button.on「Kraft」 87×41: (115,298) trifft button「Körpergewicht」
+      Fläche button.on「Details」 87×32: (115,137) trifft button「Verlauf」 [117,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | ziel [30,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | eltern [28,119 264×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
+      Fläche button.on「Kraft」 87×41: (115,298) trifft button「Körpergewicht」 [117,277 87×41 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h53px] | ziel [30,277 87×41 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h53px] | eltern [28,275 264×45 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL iPhone SE light Technik-Animation (Sheet): 7 Ziele mit 44-px-Fläche
-      Fläche button「Details」 87×32: (115,137) trifft button「Verlauf」
+      Fläche button「Details」 87×32: (115,137) trifft button「Verlauf」 [117,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | ziel [30,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | eltern [28,119 264×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL iPhone SE light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
-      Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」
+      Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」 [117,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | ziel [30,121 87×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w86.671875px h44px] | eltern [28,119 264×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 ok   iPhone SE light Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE light: Assistent zeigt die Wochentage
 ok   iPhone SE light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
@@ -402,14 +402,14 @@ ok   Pixel 7 dark Training-Tab: 9 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Pläne: 9 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Pläne · Routinen: 17 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 FAIL Pixel 7 dark Übungen: 15 Ziele mit 44-px-Fläche
-      Fläche button.chip「Arme」 60×36: (379,133) trifft button.info-btn「Infos zu den Muskelgruppen」
+      Fläche button.chip「Arme」 60×36: (379,133) trifft button.info-btn「Infos zu den Muskelgruppen」 [360,118 36×36 pos=relative disp=flex after=""/absolute t-4px r-4px b-4px l-4px w44px h44px] | ziel [321,115 60×36 pos=relative disp=flex after=""/absolute t-4px r0px b-4px l0px w59.5625px h44px] | eltern [16,111 336×48 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL Pixel 7 dark Übung-Info (Sheet): 18 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
-      Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」
-      Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」
+      Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」 [265,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,119 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
+      Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」 [265,277 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,277 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,275 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL Pixel 7 dark Technik-Animation (Sheet): 9 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
-      Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」
+      Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」 [265,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,119 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL Pixel 7 dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
-      Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」
+      Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」 [265,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,119 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 ok   Pixel 7 dark Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark: Assistent zeigt die Wochentage
 ok   Pixel 7 dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
@@ -434,14 +434,14 @@ ok   Pixel 7 light Training-Tab: 9 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Pläne: 9 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Pläne · Routinen: 17 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 FAIL Pixel 7 light Übungen: 15 Ziele mit 44-px-Fläche
-      Fläche button.chip「Arme」 60×36: (379,133) trifft button.info-btn「Infos zu den Muskelgruppen」
+      Fläche button.chip「Arme」 60×36: (379,133) trifft button.info-btn「Infos zu den Muskelgruppen」 [360,118 36×36 pos=relative disp=flex after=""/absolute t-4px r-4px b-4px l-4px w44px h44px] | ziel [321,115 60×36 pos=relative disp=flex after=""/absolute t-4px r0px b-4px l0px w59.5625px h44px] | eltern [16,111 336×48 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL Pixel 7 light Übung-Info (Sheet): 18 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
-      Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」
-      Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」
+      Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」 [265,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,119 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
+      Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」 [265,277 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,277 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,275 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL Pixel 7 light Technik-Animation (Sheet): 9 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
-      Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」
+      Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」 [265,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,119 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 FAIL Pixel 7 light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
-      Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」
+      Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」 [265,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | ziel [147,121 117×32 pos=relative disp=block after=""/absolute t-6px r0px b-6px l0px w117.328125px h44px] | eltern [28,119 356×36 pos=static disp=flex after=none/static tauto rauto bauto lauto wauto hauto]
 ok   Pixel 7 light Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 light: Assistent zeigt die Wochentage
 ok   Pixel 7 light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
