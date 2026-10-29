@@ -9,7 +9,7 @@ import { MUSCLE_SHAPE_F, HIDDEN_MUSCLES_F, MUSCLE_SHAPE_B, HIDDEN_MUSCLES_B } fr
 import { animationFor, framesOf, READ, BASIS, STATUS, TEMPO_BASIS, ANIM_CHECKED_AT, dumbbellPath, dumbbellBox } from './anim-data.js';
 import { poolEntry as poolOnly } from './pool.js';
 import { ITEM_BY_REF } from './routine-data.js';
-import { segmentsOf, segmentIndexAt, jumpTime, labelPlan } from './anim-bar.js';
+import { segmentsOf, segmentIndexAt, jumpTime, labelPlan, BAR_W } from './anim-bar.js';
 import { MUSCLES } from './model.js';
 import * as store from './store.js';
 
@@ -199,16 +199,19 @@ export function animationCard(ref, { onKeyPoint = null } = {}) {
   const range = h('input', { class: 'ab-range', type: 'range', min: '0', max: '1000', value: '0', 'aria-label': 'Stelle in der Bewegung',
     oninput: (e) => { pause(); st.t = (Number(e.target.value) / 1000) * CYC * 0.999; draw(st.t); } });
   const labels = h('div', { class: 'ab-labels' });
-  let barIdx = -1;
+  let barIdx = -1, barW = 0;
+  // Leistenbreite steht erst nach dem Einhängen fest (und ändert sich beim Drehen): dann neu verteilen, auch angehalten
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => { if (Math.round(labels.clientWidth) !== barW) updateBar(st.t); }).observe(labels);
   function updateBar(t) {
     const x = ((t % CYC) + CYC) % CYC, idx = segmentIndexAt(segs, x, CYC);
     segs.forEach((sg, i) => { segEls[i].firstChild.style.width = `${Math.max(0, Math.min(1, (x - sg.start) / sg.dur)) * 100}%`; segEls[i].classList.toggle('on', i === idx); });
     thumb.style.left = `${(x / CYC) * 100}%`;
     range.value = String(Math.round((x / CYC) * 1000));
     range.setAttribute('aria-valuetext', `${segs[idx].label}, ${String(Math.round(x * 10) / 10).replace('.', ',')} s`);
-    if (idx !== barIdx) {
-      barIdx = idx;
-      labels.replaceChildren(...labelPlan(segs, idx).map((l) => h('button', { type: 'button', class: 'ab-label' + (l.i === idx ? ' on' : ''), style: `left: ${l.left.toFixed(2)}%`,
+    const bw = Math.round(labels.clientWidth) || BAR_W; // v3.10.0: echte Leistenbreite statt Schätzung (iPhone SE: Beschriftungen liefen ineinander)
+    if (idx !== barIdx || bw !== barW) {
+      barIdx = idx; barW = bw;
+      labels.replaceChildren(...labelPlan(segs, idx, bw).map((l) => h('button', { type: 'button', class: 'ab-label' + (l.i === idx ? ' on' : ''), style: `left: ${l.left.toFixed(2)}%`,
         onclick: () => { pause(); st.t = jumpTime(segs[l.i]); draw(st.t); } }, l.label)));
     }
   }

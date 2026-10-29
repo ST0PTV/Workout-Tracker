@@ -1310,3 +1310,47 @@ body.tt-trial #view { padding-top: calc(var(--safe-top) + 64px); }
 .btn-row.btn-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .btn-grid2 > .btn { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @media (max-width: 374px) { .btn-grid2 > .btn { padding: 0 8px; font-size: 15px; } }
+
+/* v3.9.2: Textkontrast im hellen Design ≥ 4,5:1 (Beta-Test #274): --muted etwas dunkler (auch auf getönten Flächen wie „Gemessen“, „UMSTRITTEN“);
+   Tab-Beschriftungen und „Zuletzt“ nutzten --faint (3,1–3,4:1). Dunkel war bereits ≥ 4,5:1 und bleibt unverändert. Platzhalter und Icons bleiben --faint. */
+:root[data-theme="light"] { --muted: #5C5C60; }
+:root[data-theme="light"] .tab, :root[data-theme="light"] .setrow .prev { color: var(--muted); }
+:root[data-theme="light"] .tab[aria-current="page"] { color: var(--accent); }
+
+/* ===== v3.10.0: Tap-Ziele, Variante C (Nutzerwahl 2026-10-29) =====
+   Training (und Sheets, die im Training offen sind): Knöpfe sichtbar mindestens 44 px hoch – dort wird einhändig getippt.
+   Überall sonst bleibt die Optik; eine unsichtbare Fläche (::after) erweitert kleine Ziele auf 44 px.
+   Feste Pixelwerte je Typ (eine Prozent-Formel mit min()/calc() rechnete WebKit anders als Chromium → Nachbarn überlappten).
+   Nachbarn brauchen mindestens 8 px Abstand (geprüft in check-v3100, Chromium und WebKit). */
+:where(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .tt-tip-ok, .anim-badge, .ab-speed, .sheet a[href], #view a[href]) { position: relative; }
+:where(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .tt-tip-ok, .anim-badge, .ab-speed, .sheet a[href], #view a[href])::after { content: ''; position: absolute; inset: 0; } /* :where = Spezifität 0, Einzelwerte unten gelten */
+.chip::after { inset: -4px 0; }                                   /* 36 → 44 */
+:is(.seg button, [role="tab"])::after { inset: -6px 0; }          /* 32–34 → 44–46 */
+:is(.info-btn, .sheet-close, .dots)::after { inset: -4px; }        /* 36 → 44 */
+.info-btn.small::after, .chip-pair .info-btn::after, .label-row .info-btn::after, .ctitle .info-btn::after { inset: -7px; } /* 30 → 44 */
+:is(.link, .note-btn, .hist-link)::after { inset: -6px 0; } /* 32 → 44 */
+:where(.sheet, #view) a[href]:not(.dots)::after { inset: -8px 0; } /* Quellen-Links 28 → 44 */
+:is(.qbtn, .pill, .tt-tip-ok)::after { inset: -2px 0; }           /* 40 → 44 */
+.setrow .sn::after { inset: 0 -6px; }                             /* 32–36 breit → 44–48 (Höhe ist 44; Rasterlücke 8 px) */
+.anim-badge::after { inset: -7px 0; }                             /* 30 → 44 */
+.ab-speed::after { inset: -4px 0; }                               /* 36 → 44 */
+.search-input { min-height: 44px; }
+
+/* Training sichtbar */
+body:has(#view .training) :is(#view .training, .sheet) button:not(.sn):not(.switch) { min-height: 44px; }
+body:has(#view .training) :is(#view .training, .sheet) :is(.sheet-close, .dots) { width: 44px; height: 44px; }
+body:has(#view .training) :is(#view .training, .sheet) :is(.qbtn, .pill, .note-btn, .hist-link, .link, .sheet-close, .dots)::after { inset: 0; }
+
+/* Stepper sichtbar 44 px (overflow: hidden für die runden Ecken würde eine unsichtbare Fläche abschneiden) */
+.step, .step.small { height: 44px; }
+/* Nachbarn: mindestens 8 px Abstand, damit sich erweiterte Flächen nicht überlappen */
+.wrap, .chips, .chips-line { gap: 8px; }
+.chip-pair { gap: 8px; }
+.chips { padding-top: 4px; margin-top: -2px; }
+.progress .chips { overflow: visible; }
+
+/* Ausnahmen:
+   – Wochentage im Plan-Assistenten: 7 auf 320 px passen nicht in 44 px Breite (7 × 44 = 308 > 288); Höhe ist 64 px.
+   – Phasen-Beschriftungen der Technik-Animation: liegen nach ihrer Position auf der Zeitleiste; Hauptbedienung sind Play und
+     Zeitleiste (beide ≥ 44 px). Die Beschriftungen werden seit 3.10.0 nach der echten Leistenbreite verteilt. */
+.anim-top { row-gap: 14px; } /* Varianten-Schalter (−6) und Badge (−7) untereinander auf 320 px: 13 px Erweiterung + 1 */
