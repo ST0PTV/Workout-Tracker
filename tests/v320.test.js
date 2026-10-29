@@ -23,7 +23,7 @@ test('alle Kandidaten existieren im Pool', () => {
 
 test('Antworten werden geprüft (unbekannt → Standard)', () => {
   const a = B.normalizeAnswers({ goal: 'x', days: 9, minutes: 1, gear: 'y', level: 'z' });
-  assert.deepEqual(a, { goal: 'muscle', weekdays: null, cardioDays: [], days: 3, minutes: 45, gear: null, level: 'new' }); // weekdays, cardioDays seit 3.8.0
+  assert.deepEqual(a, { goal: 'muscle', weekdays: null, cardioDays: [], comboDays: [], comboMinutes: 20, days: 3, minutes: 45, gear: null, level: 'new' }); // weekdays, cardioDays seit 3.8.0; comboDays, comboMinutes seit 3.11.0
 });
 
 test('Split je Tage; jeder Plan mit Wochentagen, Summe = Tage', () => {

@@ -87,7 +87,8 @@ test('Cardio-Tage: eigener Plan „Ausdauer“ mit einer Übung ohne Gerät, Min
   assert.equal(c.items[0].ref, 'outdoor-walking'); // Einsteiger
   assert.equal(c.seconds, 30 * 60);
   assert.equal(p.cardioMinutes, 60);
-  assert.equal(B.buildProgram({ ...gym, level: 'long', weekdays: [0], cardioDays: [3] }).plans.find((x) => x.cardio).items[0].ref, 'outdoor-running');
+  // v3.11.0 (#311): Laufen nur noch beim Ziel „Fit bleiben“; bei Muskelaufbau/Kraft ohne Rad zügiges Gehen (Wilson 2012, siehe v3110.test.js)
+  assert.equal(B.buildProgram({ ...gym, goal: 'fit', level: 'long', weekdays: [0], cardioDays: [3] }).plans.find((x) => x.cardio).items[0].ref, 'outdoor-running');
   for (const ref of Object.values(B.CARDIO_PICK)) assert.deepEqual(gearOf(poolEntry(ref)), [], ref);
 });
 
@@ -98,7 +99,8 @@ test('Nur Cardio: keine Krafttage, alle 7 Tage Cardio möglich; Muskelsätze ble
   assert.equal(Object.values(p.weekly).reduce((x, y) => x + y, 0), 0);
 });
 
-test('Kraft und Cardio nie am selben Tag (Schumann 2022: Schnellkraft leidet v. a. in derselben Einheit) – doppelt belegt → keine Cardio-Tage', () => {
+// v3.11.0: Kraft + Cardio am selben Tag gibt es jetzt über comboDays (Nutzerwunsch); reine Cardio-Tage bleiben getrennt von Krafttagen.
+test('Reine Cardio-Tage nicht zugleich Krafttage – doppelt belegt → keine Cardio-Tage', () => {
   const n = B.normalizeAnswers({ weekdays: [0, 2], cardioDays: [2, 4] });
   assert.deepEqual(n.weekdays, [0, 2]);
   assert.deepEqual(n.cardioDays, []);
@@ -113,8 +115,9 @@ test('Übernehmen legt auch den Cardio-Plan mit seinen Tagen an', () => {
   const ex = store.get('exercises').find((e) => e.id === cardio.items[0].exerciseId);
   assert.equal(ex.source.ref, 'outdoor-walking');
   assert.equal(ex.kind, 'cardio');
-  // Ein reiner Cardio-Plan hat keine Dauer-Schätzung (sonst stünde dort nur das Aufwärmen, 5 min)
-  assert.equal(planSeconds(cardio, store.get('exercises'), store.get('settings')), 0);
+  // v3.11.0: Der Cardio-Eintrag hat geplante Minuten (targetMinutes) → Dauer = diese Minuten (vorher 0, nur Aufwärmen wäre falsch)
+  assert.equal(cardio.items[0].targetMinutes, 45);
+  assert.equal(planSeconds(cardio, store.get('exercises'), store.get('settings')), 45 * 60);
 });
 
 test('Hinweis Ganzkörper an Tagen direkt hintereinander: nur bei 2–3 Krafttagen, So und Mo zählen als benachbart', () => {

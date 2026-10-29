@@ -5,10 +5,11 @@ import { launch, startServer, checker, BAD_TEXT } from './lib.mjs';
 const shots = process.argv[2] || null;
 const srv = await startServer(); const b = await launch(); const { ok, done } = checker();
 const sheetText = (p) => p.evaluate(() => [...document.querySelectorAll('.sheet')].pop()?.innerText || '');
-const states = (p) => p.evaluate(() => [...document.querySelectorAll('.as-day')].map((e) => (e.classList.contains('k') ? 'k' : e.classList.contains('c') ? 'c' : '-')).join(''));
+// v3.11.0: 'K' = Kraft + Cardio
+const states = (p) => p.evaluate(() => [...document.querySelectorAll('.as-day')].map((e) => (e.classList.contains('kc') ? 'K' : e.classList.contains('k') ? 'k' : e.classList.contains('c') ? 'c' : '-')).join(''));
 const tap = async (p, d, n = 1) => { for (let i = 0; i < n; i++) await p.locator('.as-day').nth(d).click(); };
 const setWeek = async (p, want) => { // want z. B. 'k-k-kc-'
-  for (let d = 0; d < 7; d++) for (let i = 0; i < 3 && (await states(p))[d] !== want[d]; i++) await tap(p, d);
+  for (let d = 0; d < 7; d++) for (let i = 0; i < 4 && (await states(p))[d] !== want[d]; i++) await tap(p, d);
 };
 for (const theme of ['dark', 'light']) {
   const p = await (await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, serviceWorkers: 'block' })).newPage();
@@ -26,10 +27,11 @@ for (const theme of ['dark', 'light']) {
   ok(!/frei/.test(await p.evaluate(() => document.querySelector('.as-week').innerText)), `${theme}: freie Tage ohne Beschriftung`);
   const box = await p.locator('.as-day').first().boundingBox();
   ok(box.height >= 44 && box.width >= 44, `${theme}: Taste groß genug (${Math.round(box.width)}×${Math.round(box.height)})`);
-  // Zyklus: frei → Kraft → Cardio → frei
+  // Zyklus: frei → Kraft → Cardio → Kraft + Cardio (v3.11.0) → frei
   await tap(p, 1); ok((await states(p))[1] === 'k', `${theme}: 1× tippen = Kraft`);
   await tap(p, 1); ok((await states(p))[1] === 'c', `${theme}: 2× tippen = Cardio`);
-  await tap(p, 1); ok((await states(p))[1] === '-', `${theme}: 3× tippen = frei`);
+  await tap(p, 1); ok((await states(p))[1] === 'K', `${theme}: 3× tippen = Kraft + Cardio`);
+  await tap(p, 1); ok((await states(p))[1] === '-', `${theme}: 4× tippen = frei`);
   // 3 Kraft + 2 Cardio
   await setWeek(p, 'kck-kc-');
   t = await sheetText(p);

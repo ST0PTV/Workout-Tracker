@@ -15,7 +15,7 @@ import { DAY_LABELS, formatDays, isWeekSkipped } from './schedule.js';
 import { openProgressionInfo } from './progression-view.js';
 import { openAssistant } from './assistant-view.js';
 import { openPlanAnalysis } from './plan-analysis-view.js';
-import { planSeconds, fitPlanToSeconds } from './plan-duration.js';
+import { planSeconds, fitPlanToSeconds, cardioSeconds } from './plan-duration.js';
 import { nextMinutes } from './routines.js';
 
 // v2.30.0 (B2): Wiederholungsbereich pro Planeintrag (optional). Standard beim Einschalten 8–12 (Konvention).
@@ -80,13 +80,16 @@ const tab = { mode: 'plans' };
 
 const fmtDate = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
 
+// v3.11.0: Cardio-Eintrag zeigt geplante Minuten statt Sätze und Pause.
+const cardioTag = (ex, item) => (ex?.kind === 'cardio' ? (Number.isInteger(item.targetMinutes) ? `ca. ${item.targetMinutes} min` : 'Cardio') : null);
+
 // v3.5.0: Gesamtdauer des Plans per −/+ ändern – passt nur die Satzzahl an (plan-duration.js).
 function durationCtl(planId, onChange) {
   const exercises = store.get('exercises');
   const settings = store.get('settings');
   const plan = P.getPlan(planId);
   const sec = planSeconds(plan, exercises, settings);
-  if (!sec) return null;
+  if (!sec || sec === cardioSeconds(plan)) return null; // v3.11.0: nur Cardio → nichts per Satzzahl anzupassen
   return h('div', { class: 'ctl plan-dur' }, h('span', { class: 'ctl-label' }, 'Gesamtdauer'),
     stepper({ value: Math.round(sec / 60), small: true, format: (v) => `${v} min`, label: 'Gesamtdauer des Plans', onStep: (v, delta) => {
       const cur = P.getPlan(planId);
@@ -194,7 +197,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
           const r = P.renamePlan(planId, e.target.value);
           if (!r.ok) { toast(r.errors[0], { error: true }); e.target.value = P.getPlan(planId).name; } else { draw(); rerender(); }
         } })
-        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + x.sets, 0)} Sätze${(() => { const sec = planSeconds(plan, store.get('exercises'), ctx.settings); return sec ? ` · ${Math.round(sec / 60)} min` : ''; })()}` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
+        : h('p', { class: 'muted small' }, details.length ? `${details.length} Übungen · ${details.reduce((n, x) => n + (x.exercise?.kind === 'cardio' ? 0 : x.sets), 0)} Sätze${(() => { const sec = planSeconds(plan, store.get('exercises'), ctx.settings); return sec ? ` · ${Math.round(sec / 60)} min` : ''; })()}` : 'Noch keine Übungen im Plan.', formatDays(plan.days) ? ` · ${formatDays(plan.days)}` : ''),
       h('button', { class: `pill${mode.edit ? ' on' : ''}`, type: 'button', onclick: () => { mode.edit = !mode.edit; draw(); } },
         mode.edit ? 'Fertig' : h('span', { class: 'pill-in' }, icon('edit', { size: 16 }), 'Bearbeiten')));
 
@@ -206,8 +209,8 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
       const restText = `Pause ${formatDuration(rest)}${own ? ' (Plan)' : ''}`;
       const open = mode.edit && mode.open === d.item.id;
       const info = h('div', { class: 't' },
-        h('b', {}, name, mode.edit ? null : h('span', { class: 'tag' }, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'}${rrText(d.item)} · ${restText}`)),
-        mode.edit ? h('small', {}, `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'}${rrText(d.item)} · ${restText}${d.item.groupId ? ` · Tausch: ${ctx.groups.find((g) => g.id === d.item.groupId)?.name || 'Gruppe'}` : ''}`) : (ex ? h('small', {}, lib.muscleSummary(ex)) : null),
+        h('b', {}, name, mode.edit ? null : h('span', { class: 'tag' }, cardioTag(ex, d.item) || `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'}${rrText(d.item)} · ${restText}`)),
+        mode.edit ? h('small', {}, `${cardioTag(ex, d.item) || `${d.sets} ${d.sets === 1 ? 'Satz' : 'Sätze'}${rrText(d.item)} · ${restText}`}${d.item.groupId ? ` · Tausch: ${ctx.groups.find((g) => g.id === d.item.groupId)?.name || 'Gruppe'}` : ''}`) : (ex ? h('small', {}, lib.muscleSummary(ex)) : null),
         d.archivedExercise ? h('small', { class: 'warn' }, 'Übung ist archiviert') : null,
         !mode.edit && ex?.note ? h('i', {}, icon('edit', { size: 13, cls: 'inline' }), ` ${ex.note}`) : null,
         !mode.edit ? h('span', { class: `last${d.last ? '' : ' none'}` }, d.last && d.last.sets.length ? `Zuletzt ${fmtDate(d.last.date)}: ${P.formatLastSets(d.last.sets, ex?.kind)}` : 'Noch nicht trainiert') : null);
