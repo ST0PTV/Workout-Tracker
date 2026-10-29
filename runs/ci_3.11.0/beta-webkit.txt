@@ -1,0 +1,447 @@
+
+### webkit/iPhone SE (320×568 @2)
+ok   webkit/iPhone SE dark: Karte „Neu hier?“ beim ersten Start
+ok   webkit/iPhone SE dark Start (neu): nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Start (neu): kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Start (neu): keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Start (neu): Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Start (neu): keine Konsolenfehler
+ok   webkit/iPhone SE dark Rundgang: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Rundgang: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Rundgang: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Rundgang: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Rundgang: keine Konsolenfehler
+ok   webkit/iPhone SE dark: nach der Einführung keine Karte mehr
+ok   webkit/iPhone SE dark Assistent Frage 1: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Assistent Frage 1: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Assistent Frage 1: keine Konsolenfehler
+ok   webkit/iPhone SE dark Assistent Tage: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Assistent Tage: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Assistent Tage: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Mo: Kraft, tippen für Cardio」 34×64
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.c「Di: Cardio, tippen für Kraft」 34×64
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Mi: Kraft, tippen für Cardio」 34×64
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「Do: frei, tippen für Kraft」 34×64
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Fr: Kraft, tippen für Cardio」 34×64
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「Sa: frei, tippen für Kraft」 34×64
+WARN webkit/iPhone SE dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「So: frei, tippen für Kraft」 34×64
+ok   webkit/iPhone SE dark Assistent Tage: keine Konsolenfehler
+ok   webkit/iPhone SE dark Assistent Vorschau: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Assistent Vorschau: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Assistent Vorschau: keine Konsolenfehler
+ok   webkit/iPhone SE dark: drei Pläne angelegt (GK A, GK B, Ausdauer)
+ok   webkit/iPhone SE dark Pläne: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Pläne: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Pläne: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Pläne: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Pläne: keine Konsolenfehler
+ok   webkit/iPhone SE dark Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Plan Ganzkörper A: keine Konsolenfehler
+ok   webkit/iPhone SE dark: Training läuft mit Satzzeilen
+ok   webkit/iPhone SE dark: Pause läuft nach dem Haken
+ok   webkit/iPhone SE dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   webkit/iPhone SE dark Training Satz: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Training Satz: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Training Satz: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Training Satz: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Training Satz: Tap-Ziel unter 44 px: button.link.small「Mehr」 42×44
+ok   webkit/iPhone SE dark Training Satz: keine Konsolenfehler
+ok   webkit/iPhone SE dark Technik-Animation: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Technik-Animation: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Technik-Animation: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Technik-Animation: Tap-Ziel unter 44 px: button.ab-label.on「Oben」 31×44
+ok   webkit/iPhone SE dark Technik-Animation: keine Konsolenfehler
+ok   webkit/iPhone SE dark Training Übersicht: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Training Übersicht: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Training Übersicht: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Training Übersicht: keine Konsolenfehler
+ok   webkit/iPhone SE dark Bewertung: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Bewertung: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Bewertung: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Bewertung: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Bewertung: keine Konsolenfehler
+ok   webkit/iPhone SE dark: Zusammenfassung „Training gespeichert“
+ok   webkit/iPhone SE dark Zusammenfassung: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Zusammenfassung: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Zusammenfassung: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Zusammenfassung: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Zusammenfassung: keine Konsolenfehler
+ok   webkit/iPhone SE dark: Training beendet
+ok   webkit/iPhone SE dark Fortschritt Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Fortschritt Übungen: keine Konsolenfehler
+ok   webkit/iPhone SE dark Fortschritt Trainings: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Fortschritt Trainings: keine Konsolenfehler
+ok   webkit/iPhone SE dark Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Fortschritt Muskeln: keine Konsolenfehler
+ok   webkit/iPhone SE dark Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Fortschritt 4 Wochen: keine Konsolenfehler
+ok   webkit/iPhone SE dark: Verlauf nach dem Training vorhanden
+ok   webkit/iPhone SE dark Nachtragen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Nachtragen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Nachtragen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Nachtragen: keine Konsolenfehler
+ok   webkit/iPhone SE dark Routinen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Routinen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Routinen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Routinen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Routinen: keine Konsolenfehler
+ok   webkit/iPhone SE dark Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE dark Übungen: keine Konsolenfehler
+ok   webkit/iPhone SE dark Info Kniebeuge: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Info Kniebeuge: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label.on「Absenken」 55×28
+ok   webkit/iPhone SE dark Info Kniebeuge: keine Konsolenfehler
+ok   webkit/iPhone SE dark Einstellungen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE dark Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE dark Einstellungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE dark Einstellungen: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Bildschirm anlassen」 51×31
+WARN webkit/iPhone SE dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Scheiben pro Seite」 51×31
+WARN webkit/iPhone SE dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Hinweise anzeigen」 51×31
+WARN webkit/iPhone SE dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Zyklus berücksichtigen」 51×31
+ok   webkit/iPhone SE dark Einstellungen: keine Konsolenfehler
+ok   webkit/iPhone SE light: Hell über die Einstellungen
+ok   webkit/iPhone SE light Assistent Frage 1: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Assistent Frage 1: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Assistent Frage 1: keine Konsolenfehler
+ok   webkit/iPhone SE light Assistent Tage: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Assistent Tage: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Assistent Tage: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Assistent Tage: keine Konsolenfehler
+ok   webkit/iPhone SE light Assistent Vorschau: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Assistent Vorschau: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Assistent Vorschau: keine Konsolenfehler
+ok   webkit/iPhone SE light Pläne: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Pläne: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Pläne: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Pläne: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Pläne: keine Konsolenfehler
+ok   webkit/iPhone SE light Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Plan Ganzkörper A: keine Konsolenfehler
+ok   webkit/iPhone SE light: Training läuft mit Satzzeilen
+ok   webkit/iPhone SE light: Pause läuft nach dem Haken
+ok   webkit/iPhone SE light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   webkit/iPhone SE light Training Satz: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Training Satz: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Training Satz: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Training Satz: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Training Satz: keine Konsolenfehler
+ok   webkit/iPhone SE light Technik-Animation: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Technik-Animation: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Technik-Animation: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Technik-Animation: keine Konsolenfehler
+ok   webkit/iPhone SE light Training Übersicht: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Training Übersicht: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Training Übersicht: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Training Übersicht: keine Konsolenfehler
+ok   webkit/iPhone SE light: Training verworfen
+ok   webkit/iPhone SE light Fortschritt Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Fortschritt Übungen: keine Konsolenfehler
+ok   webkit/iPhone SE light Fortschritt Trainings: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Fortschritt Trainings: keine Konsolenfehler
+ok   webkit/iPhone SE light Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Fortschritt Muskeln: keine Konsolenfehler
+ok   webkit/iPhone SE light Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Fortschritt 4 Wochen: keine Konsolenfehler
+ok   webkit/iPhone SE light: Verlauf nach dem Training vorhanden
+ok   webkit/iPhone SE light Nachtragen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Nachtragen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Nachtragen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Nachtragen: keine Konsolenfehler
+ok   webkit/iPhone SE light Routinen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Routinen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Routinen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Routinen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Routinen: keine Konsolenfehler
+ok   webkit/iPhone SE light Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Übungen: keine Konsolenfehler
+ok   webkit/iPhone SE light Info Kniebeuge: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Info Kniebeuge: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Info Kniebeuge: keine Konsolenfehler
+ok   webkit/iPhone SE light Einstellungen: nichts ragt seitlich heraus
+ok   webkit/iPhone SE light Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone SE light Einstellungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone SE light Einstellungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone SE light Einstellungen: keine Konsolenfehler
+ok   webkit/iPhone SE: Backup ist gültiges JSON (workout-tracker-backup-2026-10-29.json)
+ok   webkit/iPhone SE: Import stellt die Pläne wieder her (3 → 3)
+ok   webkit/iPhone SE: Backup ohne Konsolenfehler 
+
+### webkit/iPhone 15 (393×659 @3)
+ok   webkit/iPhone 15 dark: Karte „Neu hier?“ beim ersten Start
+ok   webkit/iPhone 15 dark Start (neu): nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Start (neu): kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Start (neu): keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Start (neu): Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Start (neu): keine Konsolenfehler
+ok   webkit/iPhone 15 dark Rundgang: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Rundgang: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Rundgang: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Rundgang: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Rundgang: keine Konsolenfehler
+ok   webkit/iPhone 15 dark: nach der Einführung keine Karte mehr
+ok   webkit/iPhone 15 dark Assistent Frage 1: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Assistent Frage 1: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Assistent Frage 1: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Assistent Tage: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Assistent Tage: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Assistent Tage: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Assistent Tage: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Assistent Vorschau: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Assistent Vorschau: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Assistent Vorschau: keine Konsolenfehler
+ok   webkit/iPhone 15 dark: drei Pläne angelegt (GK A, GK B, Ausdauer)
+ok   webkit/iPhone 15 dark Pläne: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Pläne: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Pläne: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Pläne: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Pläne: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Plan Ganzkörper A: keine Konsolenfehler
+ok   webkit/iPhone 15 dark: Training läuft mit Satzzeilen
+ok   webkit/iPhone 15 dark: Pause läuft nach dem Haken
+ok   webkit/iPhone 15 dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   webkit/iPhone 15 dark Training Satz: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Training Satz: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Training Satz: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Training Satz: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Training Satz: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Technik-Animation: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Technik-Animation: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Technik-Animation: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Technik-Animation: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Training Übersicht: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Training Übersicht: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Training Übersicht: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Training Übersicht: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Bewertung: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Bewertung: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Bewertung: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Bewertung: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Bewertung: keine Konsolenfehler
+ok   webkit/iPhone 15 dark: Zusammenfassung „Training gespeichert“
+ok   webkit/iPhone 15 dark Zusammenfassung: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Zusammenfassung: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Zusammenfassung: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Zusammenfassung: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Zusammenfassung: keine Konsolenfehler
+ok   webkit/iPhone 15 dark: Training beendet
+ok   webkit/iPhone 15 dark Fortschritt Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Fortschritt Übungen: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Fortschritt Trainings: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Fortschritt Trainings: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Fortschritt Muskeln: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Fortschritt 4 Wochen: keine Konsolenfehler
+ok   webkit/iPhone 15 dark: Verlauf nach dem Training vorhanden
+ok   webkit/iPhone 15 dark Nachtragen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Nachtragen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Nachtragen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Nachtragen: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Routinen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Routinen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Routinen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Routinen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Routinen: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Übungen: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Info Kniebeuge: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Info Kniebeuge: Textkontrast ≥ 3:1
+WARN webkit/iPhone 15 dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label「Aufstehen」 57×28
+WARN webkit/iPhone 15 dark Info Kniebeuge: Tap-Ziel unter 44 px: a「」 250×25
+ok   webkit/iPhone 15 dark Info Kniebeuge: keine Konsolenfehler
+ok   webkit/iPhone 15 dark Einstellungen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 dark Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 dark Einstellungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 dark Einstellungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 dark Einstellungen: keine Konsolenfehler
+ok   webkit/iPhone 15 light: Hell über die Einstellungen
+ok   webkit/iPhone 15 light Assistent Frage 1: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Assistent Frage 1: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Assistent Frage 1: keine Konsolenfehler
+ok   webkit/iPhone 15 light Assistent Tage: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Assistent Tage: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Assistent Tage: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Assistent Tage: keine Konsolenfehler
+ok   webkit/iPhone 15 light Assistent Vorschau: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Assistent Vorschau: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Assistent Vorschau: keine Konsolenfehler
+ok   webkit/iPhone 15 light Pläne: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Pläne: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Pläne: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Pläne: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Pläne: keine Konsolenfehler
+ok   webkit/iPhone 15 light Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Plan Ganzkörper A: keine Konsolenfehler
+ok   webkit/iPhone 15 light: Training läuft mit Satzzeilen
+ok   webkit/iPhone 15 light: Pause läuft nach dem Haken
+ok   webkit/iPhone 15 light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   webkit/iPhone 15 light Training Satz: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Training Satz: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Training Satz: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Training Satz: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Training Satz: keine Konsolenfehler
+ok   webkit/iPhone 15 light Technik-Animation: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Technik-Animation: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Technik-Animation: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Technik-Animation: keine Konsolenfehler
+ok   webkit/iPhone 15 light Training Übersicht: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Training Übersicht: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Training Übersicht: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Training Übersicht: keine Konsolenfehler
+ok   webkit/iPhone 15 light: Training verworfen
+ok   webkit/iPhone 15 light Fortschritt Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Fortschritt Übungen: keine Konsolenfehler
+ok   webkit/iPhone 15 light Fortschritt Trainings: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Fortschritt Trainings: keine Konsolenfehler
+ok   webkit/iPhone 15 light Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Fortschritt Muskeln: keine Konsolenfehler
+ok   webkit/iPhone 15 light Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Fortschritt 4 Wochen: keine Konsolenfehler
+ok   webkit/iPhone 15 light: Verlauf nach dem Training vorhanden
+ok   webkit/iPhone 15 light Nachtragen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Nachtragen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Nachtragen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Nachtragen: keine Konsolenfehler
+ok   webkit/iPhone 15 light Routinen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Routinen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Routinen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Routinen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Routinen: keine Konsolenfehler
+ok   webkit/iPhone 15 light Übungen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Übungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Übungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Übungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Übungen: keine Konsolenfehler
+ok   webkit/iPhone 15 light Info Kniebeuge: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Info Kniebeuge: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Info Kniebeuge: keine Konsolenfehler
+ok   webkit/iPhone 15 light Einstellungen: nichts ragt seitlich heraus
+ok   webkit/iPhone 15 light Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   webkit/iPhone 15 light Einstellungen: keine Tap-Ziele unter 24 px
+ok   webkit/iPhone 15 light Einstellungen: Textkontrast ≥ 3:1
+ok   webkit/iPhone 15 light Einstellungen: keine Konsolenfehler
+ok   webkit/iPhone 15: Backup ist gültiges JSON (workout-tracker-backup-2026-10-29.json)
+ok   webkit/iPhone 15: Import stellt die Pläne wieder her (3 → 3)
+ok   webkit/iPhone 15: Backup ohne Konsolenfehler 
+ok   webkit: Service Worker steuert die Seite
+ok   webkit: ohne Netz liefert der Service Worker die App-Dateien ({"index.html":true,"js/app.js":true,"css/glass.css":true,"js/version.js":true})
+ok   webkit: App startet offline
+ok   webkit: offline auch die Einstellungen (Version sichtbar)
+ok   webkit: offline ohne Seitenfehler 
+ok   Update: Daten in 3.7.0 angelegt
+ok   Update: 3.7.0 → 3.10.0 nach 2 Neuladen sichtbar (Modul: 3.10.0)
+ok   Update: Plan aus der alten Version ist noch da
+ok   Update: keine Seitenfehler 
+
+alle Prüfungen bestanden · 16 Hinweise
