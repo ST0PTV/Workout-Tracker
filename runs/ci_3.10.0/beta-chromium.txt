@@ -108,6 +108,9 @@ ok   chromium/Pixel 7 dark Info Kniebeuge: nichts ragt seitlich heraus
 ok   chromium/Pixel 7 dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
 ok   chromium/Pixel 7 dark Info Kniebeuge: keine Tap-Ziele unter 24 px
 ok   chromium/Pixel 7 dark Info Kniebeuge: Textkontrast ≥ 3:1
+WARN chromium/Pixel 7 dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label.on「Absenken」 61×28
+WARN chromium/Pixel 7 dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label「Aufstehen」 58×28
+WARN chromium/Pixel 7 dark Info Kniebeuge: Tap-Ziel unter 44 px: a「」 223×28
 ok   chromium/Pixel 7 dark Info Kniebeuge: keine Konsolenfehler
 ok   chromium/Pixel 7 dark Einstellungen: nichts ragt seitlich heraus
 ok   chromium/Pixel 7 dark Einstellungen: kein null/undefined/NaN/[object] im Text
@@ -235,6 +238,13 @@ ok   chromium/Galaxy S24 dark Assistent Tage: nichts ragt seitlich heraus
 ok   chromium/Galaxy S24 dark Assistent Tage: kein null/undefined/NaN/[object] im Text
 ok   chromium/Galaxy S24 dark Assistent Tage: keine Tap-Ziele unter 24 px
 ok   chromium/Galaxy S24 dark Assistent Tage: Textkontrast ≥ 3:1
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Mo: Kraft, tippen für Cardio」 40×64
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.c「Di: Cardio, tippen für frei」 40×64
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Mi: Kraft, tippen für Cardio」 40×64
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「Do: frei, tippen für Kraft」 40×64
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Fr: Kraft, tippen für Cardio」 40×64
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「Sa: frei, tippen für Kraft」 40×64
+WARN chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「So: frei, tippen für Kraft」 40×64
 ok   chromium/Galaxy S24 dark Assistent Tage: keine Konsolenfehler
 ok   chromium/Galaxy S24 dark Assistent Vorschau: nichts ragt seitlich heraus
 ok   chromium/Galaxy S24 dark Assistent Vorschau: kein null/undefined/NaN/[object] im Text
@@ -432,4 +442,4 @@ ok   Update: 3.7.0 → 3.9.1 nach 2 Neuladen sichtbar (Modul: 3.9.1)
 ok   Update: Plan aus der alten Version ist noch da
 ok   Update: keine Seitenfehler 
 
-alle Prüfungen bestanden · 4 Hinweise
+alle Prüfungen bestanden · 14 Hinweise

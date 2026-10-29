@@ -52,11 +52,13 @@ ok   webkit/iPhone SE dark Training Satz: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Training Satz: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone SE dark Training Satz: keine Tap-Ziele unter 24 px
 ok   webkit/iPhone SE dark Training Satz: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Training Satz: Tap-Ziel unter 44 px: button.link.small「Mehr」 42×44
 ok   webkit/iPhone SE dark Training Satz: keine Konsolenfehler
 ok   webkit/iPhone SE dark Technik-Animation: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Technik-Animation: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone SE dark Technik-Animation: keine Tap-Ziele unter 24 px
 ok   webkit/iPhone SE dark Technik-Animation: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Technik-Animation: Tap-Ziel unter 44 px: button.ab-label.on「Oben」 31×44
 ok   webkit/iPhone SE dark Technik-Animation: keine Konsolenfehler
 ok   webkit/iPhone SE dark Training Übersicht: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Training Übersicht: kein null/undefined/NaN/[object] im Text
@@ -115,6 +117,8 @@ ok   webkit/iPhone SE dark Info Kniebeuge: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone SE dark Info Kniebeuge: keine Tap-Ziele unter 24 px
 ok   webkit/iPhone SE dark Info Kniebeuge: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label.on「Absenken」 55×28
+WARN webkit/iPhone SE dark Info Kniebeuge: Tap-Ziel unter 44 px: a「」 220×28
 ok   webkit/iPhone SE dark Info Kniebeuge: keine Konsolenfehler
 ok   webkit/iPhone SE dark Einstellungen: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Einstellungen: kein null/undefined/NaN/[object] im Text
@@ -329,7 +333,7 @@ ok   webkit/iPhone 15 dark Info Kniebeuge: nichts ragt seitlich heraus
 ok   webkit/iPhone 15 dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone 15 dark Info Kniebeuge: keine Tap-Ziele unter 24 px
 ok   webkit/iPhone 15 dark Info Kniebeuge: Textkontrast ≥ 3:1
-WARN webkit/iPhone 15 dark Info Kniebeuge: Tap-Ziel unter 44 px: a「」 250×25
+WARN webkit/iPhone 15 dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label「Aufstehen」 57×28
 ok   webkit/iPhone 15 dark Info Kniebeuge: keine Konsolenfehler
 ok   webkit/iPhone 15 dark Einstellungen: nichts ragt seitlich heraus
 ok   webkit/iPhone 15 dark Einstellungen: kein null/undefined/NaN/[object] im Text
@@ -440,4 +444,4 @@ ok   Update: 3.7.0 → 3.9.1 nach 2 Neuladen sichtbar (Modul: 3.9.1)
 ok   Update: Plan aus der alten Version ist noch da
 ok   Update: keine Seitenfehler 
 
-alle Prüfungen bestanden · 12 Hinweise
+alle Prüfungen bestanden · 16 Hinweise

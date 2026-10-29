@@ -6,9 +6,19 @@
   ],
   "fails": 0,
   "warns": [
+    "chromium/Pixel 7 dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label.on「Absenken」 61×28",
+    "chromium/Pixel 7 dark Info Kniebeuge: Tap-Ziel unter 44 px: button.ab-label「Aufstehen」 58×28",
+    "chromium/Pixel 7 dark Info Kniebeuge: Tap-Ziel unter 44 px: a「」 223×28",
     "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Bildschirm anlassen」 51×31",
     "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Scheiben pro Seite」 51×31",
     "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Hinweise anzeigen」 51×31",
-    "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Zyklus berücksichtigen」 51×31"
+    "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Zyklus berücksichtigen」 51×31",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Mo: Kraft, tippen für Cardio」 40×64",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.c「Di: Cardio, tippen für frei」 40×64",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Mi: Kraft, tippen für Cardio」 40×64",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「Do: frei, tippen für Kraft」 40×64",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day.k「Fr: Kraft, tippen für Cardio」 40×64",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「Sa: frei, tippen für Kraft」 40×64",
+    "chromium/Galaxy S24 dark Assistent Tage: Tap-Ziel unter 44 px: button.as-day「So: frei, tippen für Kraft」 40×64"
   ]
 }

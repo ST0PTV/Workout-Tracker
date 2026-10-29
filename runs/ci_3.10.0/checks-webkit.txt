@@ -350,10 +350,7 @@ FAIL iPhone SE dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
       Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」
 ok   iPhone SE dark Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE dark: Assistent zeigt die Wochentage
-FAIL iPhone SE dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
-      Fläche button.as-day「Di: frei, tippen für Kraft」 34×64: (101,375) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
-      Fläche button.as-day.k「Mi: Kraft, tippen für Cardio」 34×64: (139,375) trifft button.as-day「Do: frei, tippen für Kraft」
-      Fläche button.as-day「Sa: frei, tippen für Kraft」 34×64: (254,375) trifft button.as-day「So: frei, tippen für Kraft」
+ok   iPhone SE dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Fortschritt · Übungen: 13 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Fortschritt · Trainings: 12 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche
@@ -382,10 +379,7 @@ FAIL iPhone SE light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
       Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」
 ok   iPhone SE light Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE light: Assistent zeigt die Wochentage
-FAIL iPhone SE light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
-      Fläche button.as-day「Di: frei, tippen für Kraft」 34×64: (101,375) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
-      Fläche button.as-day.k「Mi: Kraft, tippen für Cardio」 34×64: (139,375) trifft button.as-day「Do: frei, tippen für Kraft」
-      Fläche button.as-day「Sa: frei, tippen für Kraft」 34×64: (254,375) trifft button.as-day「So: frei, tippen für Kraft」
+ok   iPhone SE light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
 ok   iPhone SE light Fortschritt · Übungen: 13 Ziele mit 44-px-Fläche
 ok   iPhone SE light Fortschritt · Trainings: 12 Ziele mit 44-px-Fläche
 ok   iPhone SE light Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche
@@ -408,17 +402,13 @@ FAIL Pixel 7 dark Übungen: 15 Ziele mit 44-px-Fläche
 FAIL Pixel 7 dark Übung-Info (Sheet): 18 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
       Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」
       Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」
-FAIL Pixel 7 dark Technik-Animation (Sheet): 10 Ziele mit 44-px-Fläche
+FAIL Pixel 7 dark Technik-Animation (Sheet): 9 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
       Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」
-      Fläche button.plain「3 Stange kontrolliert zur un」 356×75: (206,824) trifft div.sheet.full.in「Bankdrücken」
 FAIL Pixel 7 dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
       Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」
 ok   Pixel 7 dark Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark: Assistent zeigt die Wochentage
-FAIL Pixel 7 dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
-      Fläche button.as-day「Di: frei, tippen für Kraft」 47×64: (127,354) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
-      Fläche button.as-day「Do: frei, tippen für Kraft」 47×64: (230,354) trifft button.as-day.k「Fr: Kraft, tippen für Cardio」
-      Fläche button.as-day「Sa: frei, tippen für Kraft」 47×64: (333,354) trifft button.as-day「So: frei, tippen für Kraft」
+ok   Pixel 7 dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Fortschritt · Übungen: 12 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Fortschritt · Trainings: 11 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
@@ -442,17 +432,13 @@ FAIL Pixel 7 light Übungen: 15 Ziele mit 44-px-Fläche
 FAIL Pixel 7 light Übung-Info (Sheet): 18 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
       Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」
       Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」
-FAIL Pixel 7 light Technik-Animation (Sheet): 10 Ziele mit 44-px-Fläche
+FAIL Pixel 7 light Technik-Animation (Sheet): 9 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
       Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」
-      Fläche button.plain「3 Stange kontrolliert zur un」 356×75: (206,824) trifft div.sheet.full.in「Bankdrücken」
 FAIL Pixel 7 light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
       Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」
 ok   Pixel 7 light Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 light: Assistent zeigt die Wochentage
-FAIL Pixel 7 light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
-      Fläche button.as-day「Di: frei, tippen für Kraft」 47×64: (127,354) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
-      Fläche button.as-day「Do: frei, tippen für Kraft」 47×64: (230,354) trifft button.as-day.k「Fr: Kraft, tippen für Cardio」
-      Fläche button.as-day「Sa: frei, tippen für Kraft」 47×64: (333,354) trifft button.as-day「So: frei, tippen für Kraft」
+ok   Pixel 7 light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Fortschritt · Übungen: 12 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Fortschritt · Trainings: 11 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
@@ -467,7 +453,7 @@ ok   Pixel 7 light Satztyp (Sheet): 10 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Training Übersicht: 14 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Bewertung (Sheet): 6 Ziele mit 44-px-Fläche
 ok   Pixel 7 light: keine Konsolenfehler 
-18 Fehler
+14 Fehler
 EXIT 1 check-v3100
 ### check-v320
 ok   dark: Frage 1 erscheint
