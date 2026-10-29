@@ -1319,35 +1319,36 @@ body.tt-trial #view { padding-top: calc(var(--safe-top) + 64px); }
 
 /* ===== v3.10.0: Tap-Ziele, Variante C (Nutzerwahl 2026-10-29) =====
    Training (und Sheets, die im Training offen sind): Knöpfe sichtbar mindestens 44 px hoch – dort wird einhändig getippt.
-   Überall sonst bleibt die Optik; eine unsichtbare Fläche (::after) erweitert kleine Ziele auf 44 × 44 px.
-   Die Fläche wird aus der eigenen Größe berechnet (top/bottom in % der Höhe, left/right in % der Breite), wächst also nur,
-   wo das Ziel kleiner als 44 px ist. Nachbarn brauchen dafür mindestens 8 px Abstand (geprüft in check-v3100). */
-:is(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .icon-btn, .tt-tip-ok, .step button) { position: relative; }
-:is(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .icon-btn, .tt-tip-ok, .step button)::after {
-  content: ''; position: absolute;
-  top: min(0px, calc((100% - 44px) / 2)); bottom: min(0px, calc((100% - 44px) / 2));
-  left: min(0px, calc((100% - 44px) / 2)); right: min(0px, calc((100% - 44px) / 2)); }
+   Überall sonst bleibt die Optik; eine unsichtbare Fläche (::after) erweitert kleine Ziele auf 44 px.
+   Feste Pixelwerte je Typ (eine Prozent-Formel mit min()/calc() rechnete WebKit anders als Chromium → Nachbarn überlappten).
+   Nachbarn brauchen mindestens 8 px Abstand (geprüft in check-v3100, Chromium und WebKit). */
+:where(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .tt-tip-ok, .anim-badge, .ab-speed, .sheet a[href], #view a[href]) { position: relative; }
+:where(.chip, .seg button, [role="tab"], .info-btn, .sheet-close, .dots, .link, .note-btn, .hist-link, .qbtn, .pill, .setrow .sn, .tt-tip-ok, .anim-badge, .ab-speed, .sheet a[href], #view a[href])::after { content: ''; position: absolute; inset: 0; } /* :where = Spezifität 0, Einzelwerte unten gelten */
+.chip::after { inset: -4px 0; }                                   /* 36 → 44 */
+:is(.seg button, [role="tab"])::after { inset: -6px 0; }          /* 32–34 → 44–46 */
+:is(.info-btn, .sheet-close, .dots)::after { inset: -4px; }        /* 36 → 44 */
+.info-btn.small::after, .chip-pair .info-btn::after, .label-row .info-btn::after, .ctitle .info-btn::after { inset: -7px; } /* 30 → 44 */
+:is(.link, .note-btn, .hist-link)::after, :where(.sheet, #view) a[href]:not(.dots)::after { inset: -6px 0; } /* 32 → 44 */
+:is(.qbtn, .pill, .tt-tip-ok)::after { inset: -2px 0; }           /* 40 → 44 */
+.setrow .sn::after { inset: 0 -6px; }                             /* 32–36 breit → 44–48 (Höhe ist 44; Rasterlücke 8 px) */
+.anim-badge::after { inset: -7px 0; }                             /* 30 → 44 */
+.ab-speed::after { inset: -4px 0; }                               /* 36 → 44 */
 .search-input { min-height: 44px; }
 
 /* Training sichtbar */
 body:has(#view .training) :is(#view .training, .sheet) button:not(.sn):not(.switch) { min-height: 44px; }
 body:has(#view .training) :is(#view .training, .sheet) :is(.sheet-close, .dots) { width: 44px; height: 44px; }
+body:has(#view .training) :is(#view .training, .sheet) :is(.qbtn, .pill, .note-btn, .hist-link, .link, .sheet-close, .dots)::after { inset: 0; }
+
 /* Stepper sichtbar 44 px (overflow: hidden für die runden Ecken würde eine unsichtbare Fläche abschneiden) */
 .step, .step.small { height: 44px; }
 /* Nachbarn: mindestens 8 px Abstand, damit sich erweiterte Flächen nicht überlappen */
-.wrap, .chips { gap: 8px; }
+.wrap, .chips, .chips-line { gap: 8px; }
 .chip-pair { gap: 8px; }
 .chips { padding-top: 4px; margin-top: -2px; }
 .progress .chips { overflow: visible; }
-/* Technik-Animation, Links und Wochentage im Plan-Assistenten */
-:is(.anim-badge, .ab-speed, .sheet a[href], #view a[href]) { position: relative; }
-:is(.anim-badge, .ab-speed, .ab-label, .sheet a[href], #view a[href])::after {
-  content: ''; position: absolute;
-  top: min(0px, calc((100% - 44px) / 2)); bottom: min(0px, calc((100% - 44px) / 2));
-  left: min(0px, calc((100% - 44px) / 2)); right: min(0px, calc((100% - 44px) / 2)); }
-/* 7 Tage auf 320 px: breiter als 4 px Lücke geht nicht ohne Überlappung → nur bis zur halben Lücke (Höhe ist 64 px) */
-.as-day { position: relative; }
-.as-day::after { content: ''; position: absolute; top: 0; bottom: 0; left: -2px; right: -2px; }
-/* Ausnahme: Phasen-Beschriftungen der Technik-Animation liegen nach ihrer Position auf der Zeitleiste und berühren sich
-   auf 320 px schon sichtbar → keine Erweiterung (Hauptbedienung sind Play und Zeitleiste, beide ≥ 44 px) */
-.ab-label::after { content: none; }
+
+/* Ausnahmen:
+   – Wochentage im Plan-Assistenten: 7 auf 320 px passen nicht in 44 px Breite (7 × 44 = 308 > 288); Höhe ist 64 px.
+   – Phasen-Beschriftungen der Technik-Animation: liegen nach ihrer Position auf der Zeitleiste; Hauptbedienung sind Play und
+     Zeitleiste (beide ≥ 44 px). Die Beschriftungen werden seit 3.10.0 nach der echten Leistenbreite verteilt. */

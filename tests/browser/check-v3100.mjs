@@ -28,14 +28,18 @@ const audit = (p, training) => p.evaluate(({ training }) => {
     if (!vis(e) || e.disabled || e.closest('[aria-hidden=true]') || e.classList.contains('ab-label')) continue; // ab-label: Ausnahme, siehe css/glass.css
     const r = e.getBoundingClientRect();
     if (r.top < 0 || r.bottom > H || r.left < 0 || r.right > W) continue; // nur vollständig sichtbare Ziele
+    // … auch innerhalb des scrollenden Containers (z. B. Sheet): teilweise herausgescrollte Ziele überspringen
+    let clipped = false;
+    for (let a = e.parentElement; a && a !== document.body; a = a.parentElement) { const cs = getComputedStyle(a); if (/(auto|scroll|hidden)/.test(cs.overflowY + cs.overflowX)) { const q = a.getBoundingClientRect(); if (r.top < q.top - 0.5 || r.bottom > q.bottom + 0.5) { clipped = true; break; } } }
+    if (clipped) { covered++; continue; }
     // Tab-Leiste und erhöhter Knopf: Höhe 58 px, eigene Prüfung in check-tabs
     // von etwas Festem verdeckt (z. B. Pausenleiste beim Scrollen): kein Tap-Ziel in dieser Lage
     const c0 = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     if (!c0 || !(c0 === e || e.contains(c0))) { covered++; continue; }
     n++;
-    // Ausnahmen (css/glass.css): Wochentage im Assistenten nur bis zur halben Lücke breiter; Phasen-Beschriftungen nur nach unten
+    // Ausnahme (css/glass.css): Wochentage im Assistenten nicht breiter (7 auf 320 px), nur Überlappung geprüft
     const day = e.classList.contains('as-day'), lab = false;
-    const w = day ? r.width + 4 : lab ? r.width : Math.max(44, r.width), h = Math.max(44, r.height), cx = r.left + r.width / 2, cy = lab ? r.top + h / 2 : r.top + r.height / 2;
+    const w = day ? r.width : lab ? r.width : Math.max(44, r.width), h = Math.max(44, r.height), cx = r.left + r.width / 2, cy = lab ? r.top + h / 2 : r.top + r.height / 2;
     // Mitte und Kantenmitten (Ecken nicht: abgerundete Ecken gehören im Browser nicht zur Trefferfläche)
     const pts = [[cx, cy], [cx - w / 2 + 1.5, cy], [cx + w / 2 - 1.5, cy], [cx, cy - h / 2 + 1.5], [cx, cy + h / 2 - 1.5]];
     let miss = null, coveredPart = false;
