@@ -18,6 +18,7 @@ import { effectiveRest, stepRest, formatDuration } from './rest.js';
 import * as store from './store.js';
 import { progressPanel, hasHistory } from './progress-view.js';
 import { animationCard, hasAnimation } from './anim-view.js';
+import { isCompound } from './plan-analysis.js';
 import { warningsFor, warningSources, EVIDENCE, WARN_CHECKED_AT } from './warnings.js';
 import { infoBody } from './info.js';
 import { openGlossary } from './glossary.js';
@@ -317,16 +318,34 @@ export function openEditor(existing, rerender) {
   const kindBox = h('div');
   let drawExtra = null; // v2.26.0: weiter unten gesetzt, hängt vom Typ ab
   const drawKind = () => kindBox.replaceChildren(h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Typ' },
-    EXERCISE_KINDS.map((k) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(ex.kind === k), class: ex.kind === k ? 'on' : '', onclick: () => { ex.kind = k; drawKind(); drawExtra?.(); } }, KIND_LABEL[k]))));
+    EXERCISE_KINDS.map((k) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(ex.kind === k), class: ex.kind === k ? 'on' : '', onclick: () => { ex.kind = k; drawKind(); drawExtra?.(); drawCompound?.(); } }, KIND_LABEL[k]))));
 
   const musclesBox = h('div');
   const drawMuscles = () => {
     const chipRow = (keys, which) => h('div', { class: 'wrap' },
       keys.map((m) => h('span', { class: 'chip-pair' }, h('span', { class: 'chip on static' }, MUSCLES[m]), infoButton(`Info ${MUSCLES[m]}`, () => openMuscleInfo(m)))),
-      h('button', { class: 'chip', type: 'button', onclick: () => musclePicker(which === 'primary' ? 'Primäre Muskeln' : 'Sekundäre Muskeln', ex.muscles[which], ex.muscles[which === 'primary' ? 'secondary' : 'primary'], (list) => { ex.muscles[which] = list; drawMuscles(); drawSource(); }) }, keys.length ? 'Ändern' : '+ Muskel'));
+      h('button', { class: 'chip', type: 'button', onclick: () => musclePicker(which === 'primary' ? 'Primäre Muskeln' : 'Sekundäre Muskeln', ex.muscles[which], ex.muscles[which === 'primary' ? 'secondary' : 'primary'], (list) => { ex.muscles[which] = list; drawMuscles(); drawSource(); drawCompound(); }) }, keys.length ? 'Ändern' : '+ Muskel'));
     musclesBox.replaceChildren(
       h('div', { class: 'field' }, h('div', { class: 'label-row' }, h('label', {}, 'Primär'), infoButton('Alle Muskelgruppen', openMuscleOverview)), chipRow(ex.muscles.primary, 'primary')),
       h('div', { class: 'field' }, h('label', {}, 'Sekundär'), chipRow(ex.muscles.secondary, 'secondary')));
+  };
+
+  // v3.12.0 (#309): Schalter „Grundübung“ nur für eigene Kraftübungen (Pool-Übungen sind ausdrücklich eingeordnet).
+  // Ohne Eingabe gilt die Heuristik aus plan-analysis.js (ab 3 beteiligten Muskeln; Konvention der App).
+  const compoundBox = h('div', { class: 'field' });
+  const drawCompound = () => {
+    compoundBox.hidden = ex.kind === 'cardio' || !!pool;
+    if (compoundBox.hidden) { if (ex.kind === 'cardio') delete ex.compound; compoundBox.replaceChildren(); return; }
+    const on = isCompound(ex), auto = typeof ex.compound !== 'boolean';
+    compoundBox.replaceChildren(
+      h('label', {}, 'Grundübung (mehrgelenkig)'),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Grundübung' },
+        [[true, 'Ja'], [false, 'Nein']].map(([v, label]) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(on === v), class: on === v ? 'on' : '',
+          onclick: () => { ex.compound = v; drawCompound(); } }, label))),
+      h('p', { class: 'muted small' }, auto
+        ? 'Automatisch vorgeschlagen: ab 3 beteiligten Muskeln gilt eine Übung als mehrgelenkig (Konvention der App, keine Studienaussage).'
+        : 'Von dir festgelegt. Der Plan-Assistent kürzt bei „Zeit ändern“ zuerst eingelenkige Übungen und verlängert zuerst Grundübungen.'),
+      auto ? null : h('button', { class: 'link', type: 'button', onclick: () => { delete ex.compound; drawCompound(); } }, 'Automatisch'));
   };
 
   const setsValue = h('div', { class: 'step-val', 'aria-live': 'polite' }, String(ex.defaultWorkSets));
@@ -396,11 +415,12 @@ export function openEditor(existing, rerender) {
   };
   drawExtra();
 
-  drawKind(); drawMuscles(); drawSource();
+  drawKind(); drawMuscles(); drawSource(); drawCompound();
   const body = h('form', { class: 'editor', onsubmit: (e) => { e.preventDefault(); save(); } },
     h('div', { class: 'field' }, h('label', {}, 'Name'), nameInput),
     h('div', { class: 'field' }, h('label', {}, 'Typ'), kindBox),
     musclesBox,
+    compoundBox,
     groupField(ex),
     h('div', { class: 'field' }, h('label', {}, 'Arbeitssätze (Standard)'),
       h('div', { class: 'step' },
