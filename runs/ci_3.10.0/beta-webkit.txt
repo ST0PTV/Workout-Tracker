@@ -58,6 +58,7 @@ ok   webkit/iPhone SE dark Technik-Animation: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Technik-Animation: kein null/undefined/NaN/[object] im Text
 ok   webkit/iPhone SE dark Technik-Animation: keine Tap-Ziele unter 24 px
 ok   webkit/iPhone SE dark Technik-Animation: Textkontrast ≥ 3:1
+WARN webkit/iPhone SE dark Technik-Animation: Tap-Ziel unter 44 px: button.ab-label.on「Oben」 31×44
 ok   webkit/iPhone SE dark Technik-Animation: keine Konsolenfehler
 ok   webkit/iPhone SE dark Training Übersicht: nichts ragt seitlich heraus
 ok   webkit/iPhone SE dark Training Übersicht: kein null/undefined/NaN/[object] im Text
@@ -443,4 +444,4 @@ ok   Update: 3.7.0 → 3.9.1 nach 2 Neuladen sichtbar (Modul: 3.9.1)
 ok   Update: Plan aus der alten Version ist noch da
 ok   Update: keine Seitenfehler 
 
-alle Prüfungen bestanden · 15 Hinweise
+alle Prüfungen bestanden · 16 Hinweise
