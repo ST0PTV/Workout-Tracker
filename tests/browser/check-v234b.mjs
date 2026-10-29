@@ -47,7 +47,10 @@ await p.evaluate(async () => {
 });
 
 // ---------- Startseite A ----------
+// v3.13.0: Der einmalige Hinweis „Zum Home-Bildschirm“ erscheint außerhalb der installierten App; hier zuerst bestätigen,
+// damit die Textmenge der Startseite selbst gemessen wird (der Hinweis hat eigene Prüfungen in check-v3130).
 await go('#/');
+if (await p.locator('.home-hint').count()) { await p.locator('.home-hint').getByRole('button', { name: 'Verstanden' }).click(); await p.waitForTimeout(200); }
 ok(await p.locator('.start-card.today').count() === 1 && (await p.locator('.start-card.today').innerText()).includes('Push'), 'S: Plan von heute als große Karte');
 ok(await p.locator('.start-row').count() === 1 && await p.locator('.start-row button.play').count() === 1, 'S: übriger Plan kompakt mit Start-Taste');
 let t = await text();

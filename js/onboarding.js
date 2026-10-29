@@ -4,12 +4,28 @@
 import { h } from './util.js';
 import * as store from './store.js';
 import { startTour } from './tour-view.js';
+import { isStandalone } from './device.js';
+import { icon } from './icons.js';
 
 const markSeen = () => store.set('settings', { ...store.get('settings'), onboarded: true });
 
 /** Neu = noch nie gesehen, keine Pläne, keine Trainings. */
 export function isNewUser() {
   return store.get('settings').onboarded !== true && !store.get('plans').length && !store.get('sessions').length;
+}
+
+/**
+ * v3.13.0 (M3, Feature-Audit 2026-10-29): einmaliger Hinweis außerhalb der installierten App. Safari löscht
+ * Website-Speicher (localStorage) nach 7 Tagen ohne Besuch; Web-Apps auf dem Home-Bildschirm sind ausgenommen
+ * (Search Engine Land 2020 mit WebKit-Zitat; Stand nicht neu geprüft, Unverified). Kein Druck, ein Tipp „Verstanden“ blendet ihn aus.
+ */
+export function homeScreenCard(rerender) {
+  if (store.inSandbox?.() || store.get('settings').homeHint === true || isStandalone()) return null;
+  return h('div', { class: 'card home-hint' },
+    h('b', {}, icon('info', { size: 18, cls: 'inline' }), ' Zum Home-Bildschirm hinzufügen'),
+    h('p', { class: 'muted small' }, 'Im Safari-Browser können deine Daten nach 7 Tagen ohne Besuch gelöscht werden, als App nicht. Teilen → „Zum Home-Bildschirm“. Zusätzlich sichert ein Backup (Einstellungen).'),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn', type: 'button', onclick: () => { store.set('settings', { ...store.get('settings'), homeHint: true }); rerender(); } }, 'Verstanden')));
 }
 
 /** Karte oben im Training-Tab für neue Nutzer (oder null). */

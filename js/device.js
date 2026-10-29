@@ -88,7 +88,7 @@ export function fmtBytes(b) {
 // Seit 3.0.6 bleibt alles im Fenster; bei Lücke setzt diese Funktion nur die Klasse .wt-gap (siehe css/glass.css).
 // Ursache nicht belegt (Hypothese: iOS/WebKit-Fehler, WebKit-Bug 301994). Im Safari-Browser bleibt die Lücke 0.
 let gapNow = 0;
-const isStandalone = () => (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+export const isStandalone = () => (typeof matchMedia === 'function' && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
 const fullHeight = () => (innerWidth > innerHeight ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height));
 
 export function initViewportGap() {

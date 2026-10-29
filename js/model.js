@@ -66,6 +66,7 @@ export const DEFAULT_SETTINGS = {
   lightWeek: null, // v2.30.0 (B3): Montag der „leichten Woche“ als "JJJJ-MM-TT" oder null
   hints: true, // v2.34.0: kurze Erklärzeilen auf den Bildschirmen (Einstellungen → Anzeige)
   onboarded: false, // v2.34.0: Einführung gesehen oder ausgeblendet
+  homeHint: false, // v3.13.0 (M3): Hinweis „Zum Home-Bildschirm“ gelesen
   tutorial: null, // v3.9.0: { tour, trial: null | 'done' | 'skipped', tips: { <id>: true } } – siehe tutorial.js
   equipment: null // v2.31.0: „Mein Equipment“ als Liste von Geräte-Schlüsseln (siehe pool.js GEAR) oder null = alles zeigen
 };
@@ -178,6 +179,8 @@ export function validateExercise(e) {
   if (e.perSide !== undefined && typeof e.perSide !== 'boolean') err.push(`Übung ${e.id}: „je Seite“ ungültig.`);
   // v3.12.0 (#309, optional, ohne Schemaänderung): eigene Einordnung als Grundübung (mehrgelenkig); fehlt = automatisch
   if (e.compound !== undefined && typeof e.compound !== 'boolean') err.push(`Übung ${e.id}: Grundübung-Angabe ungültig.`);
+  // v3.13.0 (M2, optional): eigene Übung in Sekunden statt Wiederholungen
+  if (e.timed !== undefined && typeof e.timed !== 'boolean') err.push(`Übung ${e.id}: Angabe „Sekunden“ ungültig.`);
   if (!e.source || !['builtin', 'custom'].includes(e.source.origin) || !VERIFICATION.includes(e.source.verification)) {
     err.push(`Übung ${e.id}: Quelle ungültig.`);
   }
@@ -545,7 +548,13 @@ export function startSessionFromPlan(plan, exercisesById, sessions) {
 // Ein Satz braucht Werte, bevor er als erledigt gilt: Kraft = Gewicht und Wdh. (≥ 1),
 // Körpergewicht = Wdh. (Zusatzgewicht optional), Cardio = Dauer oder Strecke.
 // Gibt einen Fehlertext zurück oder null.
-export function completionError(values, kind = 'strength') {
+export function completionError(values, kind = 'strength', timed = false) {
+  // v3.13.0 (M2): Halteübungen brauchen eine Haltezeit (Sekunden); Kraft zusätzlich ein Gewicht (z. B. Farmer's Walk).
+  if (timed && kind !== 'cardio') {
+    if (!(values.durationSec > 0)) return 'Erst die Haltezeit eintragen.';
+    if (kind === 'strength' && (values.weightKg === null || values.weightKg === undefined)) return 'Erst Gewicht und Zeit eintragen.';
+    return null;
+  }
   if (kind === 'cardio') return values.durationSec > 0 || values.distanceM > 0 ? null : 'Erst Dauer oder Strecke eintragen.';
   if (!(Number.isInteger(values.reps) && values.reps >= 1)) return kind === 'bodyweight' ? 'Erst Wiederholungen eintragen.' : 'Erst Gewicht und Wdh. eintragen.';
   if (kind === 'strength' && (values.weightKg === null || values.weightKg === undefined)) return 'Erst Gewicht und Wdh. eintragen.';
@@ -562,19 +571,22 @@ export function lastSetFor(entry, setIndex, last) {
   const same = (x) => (x.type === 'warmup') === (set.type === 'warmup');
   const pos = entry.sets.slice(0, setIndex).filter(same).length;
   const ref = last.sets.filter(same)[pos];
-  return ref && ref.reps !== null ? { weightKg: ref.weightKg, reps: ref.reps } : null;
+  return ref && hasValue(ref) ? pick(ref) : null;
 }
+// v3.13.0 (M2): ein Satz hat Werte, wenn Wdh. oder (bei Halteübungen) eine Haltezeit da ist.
+const hasValue = (x) => x.reps !== null || x.durationSec > 0;
+const pick = (x) => (x.reps === null && x.durationSec > 0 ? { weightKg: x.weightKg, reps: null, durationSec: x.durationSec } : { weightKg: x.weightKg, reps: x.reps });
 
 export function placeholderFor(entry, setIndex, last) {
   const set = entry.sets[setIndex];
   if (!set) return null;
   const same = (x) => (x.type === 'warmup') === (set.type === 'warmup');
-  const prev = entry.sets.slice(0, setIndex).reverse().find((x) => same(x) && x.reps !== null);
-  if (prev) return { weightKg: prev.weightKg, reps: prev.reps };
+  const prev = entry.sets.slice(0, setIndex).reverse().find((x) => same(x) && hasValue(x));
+  if (prev) return pick(prev);
   if (last) {
     const pos = entry.sets.slice(0, setIndex).filter(same).length;
     const ref = last.sets.filter(same)[pos];
-    if (ref && ref.reps !== null) return { weightKg: ref.weightKg, reps: ref.reps };
+    if (ref && hasValue(ref)) return pick(ref);
   }
   return null;
 }

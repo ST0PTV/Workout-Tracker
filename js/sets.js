@@ -88,6 +88,12 @@ const num = (n) => (n === null || n === undefined ? '–' : (Math.round(n * 100)
 // v1.4: kind-abhängig. Cardio "20:00 · 4,6 km"; Körpergewicht "KG × 8" bzw. "+5 × 5" / "−10 × 6" (Unterstützung);
 // ohne Gewicht und ohne bekannten Typ "8 Wdh.".
 export function formatSet(set, kind = null) {
+  if (kind !== 'cardio' && set.reps === null && set.durationSec && !set.distanceM) {
+    // v3.13.0 (M2): Halteübung „0:45“, mit Zusatz- oder Hantelgewicht „+10 kg · 0:45“ bzw. „24 kg · 1:00“
+    const t = fmtDuration(set.durationSec);
+    if (!set.weightKg) return t;
+    return `${kind === 'bodyweight' ? (set.weightKg > 0 ? '+' : '−') : ''}${num(Math.abs(set.weightKg))} kg · ${t}`;
+  }
   if (kind === 'cardio' || (set.reps === null && (set.durationSec || set.distanceM))) {
     return [set.durationSec ? fmtDuration(set.durationSec) : null, set.distanceM ? `${fmtKm(set.distanceM)} km` : null].filter(Boolean).join(' · ') || '–';
   }

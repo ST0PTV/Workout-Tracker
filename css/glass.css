@@ -1369,3 +1369,21 @@ body:has(#view .training) :is(#view .training, .sheet) :is(.qbtn, .pill, .note-b
 /* 3.12.0: Typ-Auswahl im Editor („Körpergewicht“) bricht auf 320 px nicht mehr um */
 .editor .seg button { white-space: nowrap; padding: 0 2px; }
 @media (max-width: 340px) { .editor .seg button { font-size: 12px; } }
+/* 3.13.0 (M1): 4-Wochen-Raster auf schmalen iPhones – Muskelname als eigene Zeile über seinen Werten statt einer zu schmalen Spalte */
+@media (max-width: 400px) {
+  .a4-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) 38px 46px; row-gap: 3px; }
+  .a4-grid > .a4h:first-child { display: none; }
+  .a4n { grid-column: 1 / -1; margin-top: 8px; font-weight: 600; hyphens: manual; -webkit-hyphens: manual; }
+}
+/* 3.13.0 (S2): kompakte Vorschlagskarte im Training */
+.sug-card { padding: 12px 14px; }
+.sug-top { align-items: flex-start; gap: 8px; }
+.sug-main { font-size: 20px; margin: 2px 0 0; }
+.sug-main .muted { font-size: 15px; }
+.sug-card p { margin: 6px 0 10px; line-height: 1.35; }
+.sug-card .btn-row { flex-wrap: nowrap; }
+.sug-card .btn-row > .btn { flex: 1 1 0; min-height: 44px; padding: 0 10px; }
+/* 3.13.0 (M3): Hinweis Home-Bildschirm */
+.home-hint b { display: block; margin-bottom: 4px; }
+.home-hint p { margin: 0; }
+.swapline .note-btn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

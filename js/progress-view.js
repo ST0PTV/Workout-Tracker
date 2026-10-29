@@ -15,6 +15,7 @@ import { musclesPanel } from './muscle-view.js';
 import { analysisPanel } from './analysis-view.js';
 import { fmtDuration, fmtKm, fmtPace } from './input.js';
 import { formatSet } from './sets.js';
+import { isTimed } from './timed.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 const fmtDay = (iso) => new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
@@ -134,6 +135,7 @@ export function progressPanel(exercise) {
     return h('div', { class: 'progress-panel' }, h('p', { class: 'muted' }, 'Der Verlauf erscheint nach dem ersten Training.'));
   }
   if (exercise.kind === 'cardio') return cardioPanel(rows);
+  if (isTimed(exercise)) return holdPanel(rows, exercise.kind);
   const sum = progressSummary(rows);
   const isStrength = exercise.kind === 'strength';
   const est = rows.filter((r) => r.e1rm);
@@ -181,6 +183,21 @@ export function progressPanel(exercise) {
     h('p', { class: 'muted small' }, 'Ohne Aufwärmsätze.'));
 }
 
+// v3.13.0 (M2): Halteübungen – gemessene längste Haltezeit je Training, keine Schätzung.
+function holdPanel(rows, kind) {
+  const best = rows.reduce((b, r) => (r.holdSec > (b?.holdSec || 0) ? r : b), null);
+  const tiles = h('div', { class: 'tiles' },
+    h('div', { class: 'tile' }, h('small', {}, 'Längste Haltezeit'), h('b', {}, best ? fmtDuration(best.holdSec) : '–'), h('span', {}, best ? `gemessen · ${fmtDate(best.date)}` : '')),
+    h('div', { class: 'tile' }, h('small', {}, 'Trainings'), h('b', {}, String(rows.length)), h('span', {}, 'abgeschlossen')));
+  const table = h('table', { class: 'tbl' },
+    h('thead', {}, h('tr', {}, h('th', {}, 'Datum'), h('th', {}, 'Sätze'), h('th', { class: 'n' }, 'Längste'))),
+    h('tbody', {}, [...rows].reverse().map((r) => h('tr', {}, h('td', {}, fmtDay(r.date)), h('td', {}, fmtSets(r.sets, kind)), h('td', { class: 'n' }, r.holdSec ? fmtDuration(r.holdSec) : '–')))));
+  return h('div', { class: 'progress-panel' }, tiles,
+    h('div', { class: 'sec' }, 'Alle Trainings'),
+    h('div', { class: 'card tbl-card' }, table),
+    h('p', { class: 'muted small' }, 'Ohne Aufwärmsätze. Gemessene Zeiten, keine Schätzung.'));
+}
+
 // v1.4 Cardio: gemessene Werte (Dauer, Strecke) und daraus berechnetes Tempo; kein Diagramm, keine Kalorien.
 function cardioPanel(rows) {
   const last = rows[rows.length - 1];
@@ -226,9 +243,10 @@ function exerciseList() {
       h('div', { class: 'card list' }, list.map(({ exercise: ex, sessions }) => {
         const rows = exerciseProgress(ex.id, finished(), { kind: ex.kind });
         const lastRow = rows[rows.length - 1];
-        const values = ex.kind === 'strength' ? rows.filter((r) => r.e1rm).map((r) => r.e1rm.value) : ex.kind === 'cardio' ? rows.map((r) => r.distanceM || r.durationSec) : rows.map((r) => r.totalReps);
+        const timed = isTimed(ex);
+        const values = timed ? rows.map((r) => r.holdSec) : ex.kind === 'strength' ? rows.filter((r) => r.e1rm).map((r) => r.e1rm.value) : ex.kind === 'cardio' ? rows.map((r) => r.distanceM || r.durationSec) : rows.map((r) => r.totalReps);
         const top = lastRow.topSet;
-        const lastText = ex.kind === 'cardio' ? setText(lastRow, 'cardio') : ex.kind === 'bodyweight' ? setText({ ...top, drops: [] }, 'bodyweight') : top.weightKg ? `${fmtKg(top.weightKg)} × ${top.reps}` : `${top.reps} Wdh.`;
+        const lastText = timed ? (lastRow.holdSec ? fmtDuration(lastRow.holdSec) : '–') : ex.kind === 'cardio' ? setText(lastRow, 'cardio') : ex.kind === 'bodyweight' ? setText({ ...top, drops: [] }, 'bodyweight') : top.weightKg ? `${fmtKg(top.weightKg)} × ${top.reps}` : `${top.reps} Wdh.`;
         return h('button', { class: 'row prow', type: 'button', onclick: () => openProgress(ex.id) },
           h('span', { class: 't' }, h('b', {}, ex.name),
             h('small', {}, `${sessions} ${sessions === 1 ? 'Training' : 'Trainings'} · zuletzt ${lastText}`)),

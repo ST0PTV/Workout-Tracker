@@ -34,6 +34,7 @@ export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {
     let reps = 0;
     let durationSec = 0;
     let distanceM = 0;
+    let holdSec = 0;
     for (const x of sets) {
       const w = x.weightKg ?? 0;
       const r = x.reps ?? 0;
@@ -44,6 +45,7 @@ export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {
       reps += r;
       durationSec += x.durationSec || 0;
       distanceM += x.distanceM || 0;
+      if ((x.durationSec || 0) > holdSec) holdSec = x.durationSec; // v3.13.0: längste Haltezeit
       if (x.type === 'drop' || x.type === 'restpause') for (const d of x.drops) { volume += (d.weightKg || 0) * (d.reps || 0); reps += d.reps || 0; }
     }
     rows.push({
@@ -53,6 +55,7 @@ export function exerciseProgress(exerciseId, sessions, { kind = 'strength' } = {
       hardSets: kind === 'cardio' ? 0 : sets.length,
       durationSec, // v1.4 Cardio
       distanceM,
+      holdSec,
       topSet: top,
       e1rm: best,
       volume: kind === 'strength' ? volume : null,

@@ -19,6 +19,7 @@ import * as store from './store.js';
 import { progressPanel, hasHistory } from './progress-view.js';
 import { animationCard, hasAnimation } from './anim-view.js';
 import { isCompound } from './plan-analysis.js';
+import { isTimed } from './timed.js';
 import { warningsFor, warningSources, EVIDENCE, WARN_CHECKED_AT } from './warnings.js';
 import { infoBody } from './info.js';
 import { openGlossary } from './glossary.js';
@@ -318,7 +319,7 @@ export function openEditor(existing, rerender) {
   const kindBox = h('div');
   let drawExtra = null; // v2.26.0: weiter unten gesetzt, hängt vom Typ ab
   const drawKind = () => kindBox.replaceChildren(h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Typ' },
-    EXERCISE_KINDS.map((k) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(ex.kind === k), class: ex.kind === k ? 'on' : '', onclick: () => { ex.kind = k; drawKind(); drawExtra?.(); drawCompound?.(); } }, KIND_LABEL[k]))));
+    EXERCISE_KINDS.map((k) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(ex.kind === k), class: ex.kind === k ? 'on' : '', onclick: () => { ex.kind = k; drawKind(); drawExtra?.(); drawCompound?.(); drawTimed?.(); } }, KIND_LABEL[k]))));
 
   const musclesBox = h('div');
   const drawMuscles = () => {
@@ -346,6 +347,19 @@ export function openEditor(existing, rerender) {
         ? 'Automatisch vorgeschlagen: ab 3 beteiligten Muskeln gilt eine Übung als mehrgelenkig (Konvention der App, keine Studienaussage).'
         : 'Von dir festgelegt. Der Plan-Assistent kürzt bei „Zeit ändern“ zuerst eingelenkige Übungen und verlängert zuerst Grundübungen.'),
       auto ? null : h('button', { class: 'link', type: 'button', onclick: () => { delete ex.compound; drawCompound(); } }, 'Automatisch'));
+  };
+
+  // v3.13.0 (M2): eigene Übungen können in Sekunden gemessen werden (Halteübungen wie Plank); Pool-Übungen nach ref.
+  const timedBox = h('div', { class: 'field' });
+  const drawTimed = () => {
+    timedBox.hidden = ex.kind === 'cardio' || !!pool;
+    if (timedBox.hidden) { if (ex.kind === 'cardio') delete ex.timed; timedBox.replaceChildren(); return; }
+    const on = isTimed(ex);
+    timedBox.replaceChildren(h('label', {}, 'Messen in'),
+      h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Messen in' },
+        [[false, 'Wiederholungen'], [true, 'Sekunden']].map(([v, label]) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(on === v), class: on === v ? 'on' : '',
+          onclick: () => { if (v) ex.timed = true; else delete ex.timed; drawTimed(); } }, label))),
+      on ? h('p', { class: 'muted small' }, 'Für Halteübungen: Im Training trägst du die Haltezeit ein (z. B. 45 oder 1:30).') : null);
   };
 
   const setsValue = h('div', { class: 'step-val', 'aria-live': 'polite' }, String(ex.defaultWorkSets));
@@ -415,12 +429,13 @@ export function openEditor(existing, rerender) {
   };
   drawExtra();
 
-  drawKind(); drawMuscles(); drawSource(); drawCompound();
+  drawKind(); drawMuscles(); drawSource(); drawCompound(); drawTimed();
   const body = h('form', { class: 'editor', onsubmit: (e) => { e.preventDefault(); save(); } },
     h('div', { class: 'field' }, h('label', {}, 'Name'), nameInput),
     h('div', { class: 'field' }, h('label', {}, 'Typ'), kindBox),
     musclesBox,
     compoundBox,
+    timedBox,
     groupField(ex),
     h('div', { class: 'field' }, h('label', {}, 'Arbeitssätze (Standard)'),
       h('div', { class: 'step' },

@@ -1,5 +1,6 @@
 // Pläne-Tab (Kombination A + B): Plan-Liste als Karten, Plan als nummerierter Ablauf
 // mit „Zuletzt …“ und Pausenzeit; Bearbeiten-Modus mit Pfeil-Tasten, Sätzen, Pause und Entfernen.
+import { isTimed } from './timed.js';
 import { h } from './util.js';
 import * as store from './store.js';
 import * as P from './plans.js';
@@ -234,7 +235,7 @@ export function openPlan(planId, rerender, { edit = false } = {}) {
             draw();
             return next;
           } })) : null,
-        ex && ex.kind !== 'cardio' ? repRangeCtl(planId, d.item, () => { draw(); rerender(); }) : null,
+        ex && ex.kind !== 'cardio' && !isTimed(ex) ? repRangeCtl(planId, d.item, () => { draw(); rerender(); }) : null,
         ex ? h('p', { class: 'muted small' }, `Übung sonst ${formatDuration(effectiveRest(ex, ctx.settings))}`, own ? [' · ', h('button', { class: 'link small', type: 'button', onclick: () => { P.setItemRest(planId, d.item.id, null); draw(); } }, 'zurücksetzen')] : ' · gilt nur in diesem Plan') : null,
         ex ? h('div', { class: 'ctl col' }, h('span', { class: 'ctl-label' }, 'Tauschen aus'),
           exGroups.length

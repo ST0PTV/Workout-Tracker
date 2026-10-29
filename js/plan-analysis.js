@@ -22,6 +22,9 @@ export const BALANCE_SHARE = 0.5; // Beine hinten < 50 % von vorn (Konvention)
 export const PULL_SHARE = 2 / 3; // Ziehen < 2/3 von Drücken (Konvention)
 export const BALANCE_MIN = 6; // erst ab 6 Wochensätzen auf der stärkeren Seite vergleichen (Konvention)
 export const VOLUME_TARGET = 10; // ≥ 10 Sätze/Woche (ACSM 2026) – Orientierung
+// v3.13.0 (M4, Feature-Audit): Vorschlag erst unter 5 Sätzen (Konvention, gleiche Stufe wie die Farbskala „<5“);
+// 5 bis unter 10 nur als neutraler Hinweis. Sonst meldet die Analyse schon den Plan des Assistenten (8–9 Sätze).
+export const VOLUME_SUGGEST_BELOW = 5;
 export const LONG_SESSION_MIN = 75; // Konvention
 export const MAX_SUGGESTIONS = 3;
 export const MIN_DATA_WEEKS = 2;
@@ -163,11 +166,14 @@ export function analysePlans({ plans, exercises, settings, sessions, now = new D
       detail: `Ca. ${Math.round(p.seconds / 60)} min mit Pausen. „${last.name}“ passt auch in „${to.name}“.`,
       changes: [{ type: 'move', planId: p.id, toPlanId: to.id, itemId: last.itemId, name: last.name }] });
   }
-  // 5. Spanne (Orientierung): großer Muskel unter 10 Wochensätzen → +1 Satz bei der größten Übung je Plan
+  // 5. Spanne (Orientierung): großer Muskel unter 5 Wochensätzen → +1 Satz bei der größten Übung je Plan;
+  // 5 bis unter 10 → nur Hinweis (nearTarget), kein Vorschlag, keine orange Markierung.
+  const nearTarget = [];
   for (const g of BIG) {
     if (used.has(g)) continue;
     const v = load.group[g];
-    if (!(v > 0 && v < VOLUME_TARGET)) continue;
+    if (v >= VOLUME_SUGGEST_BELOW && v < VOLUME_TARGET) { nearTarget.push({ group: g, label: BIG_LABELS[g], sets: v }); continue; }
+    if (!(v > 0 && v < VOLUME_SUGGEST_BELOW)) continue;
     const muscles = g === 'back' ? ['lats', 'upper-back'] : [g];
     const changes = [];
     for (const p of facts) {
@@ -181,7 +187,7 @@ export function analysePlans({ plans, exercises, settings, sessions, now = new D
   }
 
   const suggestions = out.sort((a, b) => a.priority - b.priority).slice(0, MAX_SUGGESTIONS);
-  return { facts, load, trained, dataWeeks, lowData: dataWeeks < MIN_DATA_WEEKS, suggestions, assumedDays: facts.some((p) => p.assumed) };
+  return { facts, load, trained, dataWeeks, lowData: dataWeeks < MIN_DATA_WEEKS, suggestions, nearTarget, assumedDays: facts.some((p) => p.assumed) };
 }
 
 function fmt(n) { return (Math.round(n * 10) / 10).toLocaleString('de-DE', { maximumFractionDigits: 1 }); }
