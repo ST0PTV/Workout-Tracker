@@ -351,6 +351,8 @@ FAIL iPhone SE dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE dark: Assistent zeigt die Wochentage
 ok   iPhone SE dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Belege Kniebeuge (Sheet): 4 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Belege Kniebeuge unten (Sheet): 6 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE dark Fortschritt · Übungen: 13 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Fortschritt · Trainings: 12 Ziele mit 44-px-Fläche
 ok   iPhone SE dark Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche
@@ -380,6 +382,8 @@ FAIL iPhone SE light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
 ok   iPhone SE light Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE light: Assistent zeigt die Wochentage
 ok   iPhone SE light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+ok   iPhone SE light Belege Kniebeuge (Sheet): 4 Ziele mit 44-px-Fläche
+ok   iPhone SE light Belege Kniebeuge unten (Sheet): 6 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
 ok   iPhone SE light Fortschritt · Übungen: 13 Ziele mit 44-px-Fläche
 ok   iPhone SE light Fortschritt · Trainings: 12 Ziele mit 44-px-Fläche
 ok   iPhone SE light Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche
@@ -409,6 +413,8 @@ FAIL Pixel 7 dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark: Assistent zeigt die Wochentage
 ok   Pixel 7 dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Belege Kniebeuge (Sheet): 6 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   Pixel 7 dark Belege Kniebeuge unten (Sheet): 10 Ziele mit 44-px-Fläche (3 verdeckt übersprungen)
 ok   Pixel 7 dark Fortschritt · Übungen: 12 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Fortschritt · Trainings: 11 Ziele mit 44-px-Fläche
 ok   Pixel 7 dark Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
@@ -439,6 +445,8 @@ FAIL Pixel 7 light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
 ok   Pixel 7 light: Assistent zeigt die Wochentage
 ok   Pixel 7 light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Belege Kniebeuge (Sheet): 6 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   Pixel 7 light Belege Kniebeuge unten (Sheet): 10 Ziele mit 44-px-Fläche (3 verdeckt übersprungen)
 ok   Pixel 7 light Fortschritt · Übungen: 12 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Fortschritt · Trainings: 11 Ziele mit 44-px-Fläche
 ok   Pixel 7 light Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
