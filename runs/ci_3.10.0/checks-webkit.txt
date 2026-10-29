@@ -1,0 +1,856 @@
+### check-tabs
+ok   #/: kein null/undefined/NaN im Text
+ok   #/plans: kein null/undefined/NaN im Text
+ok   #/exercises: kein null/undefined/NaN im Text
+ok   #/progress: kein null/undefined/NaN im Text
+ok   #/settings: kein null/undefined/NaN im Text
+ok   Version 3.9.1 in den Einstellungen sichtbar
+ok   keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v226
+ok   A1: ohne Training keine Bildschirm-Sperre
+ok   A1: Training läuft → Bildschirm-Sperre angefordert
+ok   A4: 80 kg → 30 kg pro Seite (25 + 5)
+ok   A4: 81 kg → nicht genau ladbar
+ok   A5: nächster Satz in der Leiste („0:03 | Pause · Bankdrücken | −15 | +15 | Als Nächstes: Satz 2 · 80 × 8“)
+ok   A6: Pause vorbei → Leiste leuchtet einmal auf
+ok   A10: Satz gelöscht
+ok   A10: Toast mit „Rückgängig“
+ok   A10: Satz nach „Rückgängig“ wieder da
+ok   A8: „je Seite“ und Spalte Wdh./S. bei Bulgarian Split Squat
+ok   A5: Vorschau folgt der offenen Übung (Satz 1 der neuen Übung)
+ok   A4: keine Scheiben-Zeile bei Kurzhantel-Übung
+ok   A3: Banner bei Speicherfehler sichtbar
+ok   A3: Banner nach erfolgreichem Speichern weg
+ok   Einstellungen: Schalter da (Beschriftungen ab 2.34.0 kürzer)
+ok   v3.0.1: Info-Karte zeigt nur die Version
+ok   Einstellungen: kein null/undefined/NaN
+ok   A1: Schalter aus → Sperre freigegeben
+ok   Editor: neue Felder bei Langhantel-Übung
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v226
+alle Prüfungen bestanden
+### check-v229
+ok   A: Hinweis für gestern sichtbar
+ok   A: neutral – kein „verpasst“, keine Serie
+ok   A: Tage auf der Startkarte
+ok   A: OK → Hinweis weg
+ok   A: nach Neuladen nicht wieder da (einmal)
+ok   A: Woche ausgesetzt → Hinweis weg, Startkarte zeigt es
+ok   A: rückgängig
+ok   A: Tag im Editor umschalten
+ok   A: Block „Trainingstage“ im Editor
+ok   B: Liste „Plan anpassen?“ nach dem Training
+ok   B: Satzzahl 3 → 4 und zwei nicht gemachte Übungen
+ok   B: nichts vorausgewählt
+ok   B: Übernehmen ohne Auswahl gesperrt
+ok   B: kein null/undefined/NaN
+ok   B: Bestätigung nach dem Übernehmen
+ok   B: nur die Satzzahl übernommen, nichts entfernt ([4,null,null])
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v229
+alle Prüfungen bestanden
+### check-v230
+ok   B2: Bereich 8–12 gesetzt
+ok   B2: Zeile zeigt „× 8–12 Wdh.“
+ok   B2: „Ziel 8–12 Wdh.“ in der Übung
+ok   B2: Vorschlag 62,5 kg, Wdh. zurück auf 8
+ok   B2: kein null/undefined/NaN
+ok   B3: Karte „Leichte Woche bis Sonntag“
+ok   B3: Vorschlag 4 → 2 Sätze, 60 → 55 kg
+ok   B3: als Schätzung gekennzeichnet
+ok   B3: Kopfzeile „· leicht“
+ok   B3: keine Vorschlagskarte in der leichten Woche
+ok   B3: 2 Sätze mit 55 kg ([55,55])
+ok   Info: neue Quellen gelistet
+ok   Info: Konvention gekennzeichnet
+ok   B3: leichte Woche beendet (ab 2.34.0 Einstieg im ⋯-Menü)
+ok   B1: im Editor gekoppelt
+ok   B1: Ansicht zeigt „Supersatz“
+ok   B1: Umschalter A | B
+ok   B1: nach Satz A → Seite B
+ok   B1: Hinweis „direkt weiter mit B“
+ok   B1: keine Pause innerhalb der Runde
+ok   B1: nach Satz B → zurück zu A
+ok   B1: Hinweis „Runde fertig“
+ok   B1: Pause nach der Runde, 2:30 (Pause · Runde A + B)
+ok   B1: Wechsel innerhalb der Gruppe ohne Bewertung
+ok   B1: beim Verlassen der Gruppe Bewertung
+ok   B1: zweite Bewertung für das andere Mitglied
+ok   B1: beide bewertet (["right","right"])
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v230
+alle Prüfungen bestanden
+### check-v231
+ok   E: Karte „Mein Equipment“ mit feinen Geräten
+ok   E: Standard = nichts gewählt (alles zeigen)
+ok   E: drei Geräte gewählt
+ok   E: gespeichert in Geräte-Reihenfolge (["dumbbell","bench","pullbar"])
+ok   E: Auswahl bleibt nach Neuladen
+ok   E: Schalter „Nur mein Equipment“ sichtbar
+ok   E: Zähler „x von 136 · Mein Equipment“ (57 von 136 Übungen · Mein Equipment)
+ok   E: passende Übungen (Klimmzug, KH-Bankdrücken, Liegestütz, Plank, Bankdips)
+ok   E: nicht passende fehlen (Dips, Latzug, Kniebeuge, Ab-Rad, Band)
+ok   E: kein null/undefined/NaN
+ok   E: Übungsinfo zeigt „Braucht: Klimmzugstange“
+ok   E: Schalter aus → 136 Übungen
+ok   E: nach Änderung im Pool kommen Kabelübungen dazu
+ok   E: „Alle auswählen“ gilt für die 76 angezeigten
+ok   E: Leerzustand-Taste „Passende … übernehmen“
+ok   E: Bestätigung nennt Filter und Rest
+ok   E: übernommen 57 von 136 (erwartet 57)
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v231
+alle Prüfungen bestanden
+### check-v232
+ok   N: Einstieg über das ⋯-Menü des Training-Tabs
+ok   N: Dialog mit Beginn, Ende, Dauer 1 h
+ok   N: Plan-Auswahl
+ok   N: Zeit in der Zukunft wird abgelehnt
+ok   N: Editor mit Planübungen
+ok   N: 3 + 3 leere Sätze (6)
+ok   N: kein „Training löschen“ beim Nachtragen
+ok   N: noch nichts gespeichert
+ok   N: ohne Werte nicht gespeichert
+ok   N: weiterhin nichts gespeichert
+ok   N: Übung hinzugefügt
+ok   N: +3 leere Sätze (Standard-Satzzahl)
+ok   N: ein abgeschlossenes Training gespeichert
+ok   N: nur Sätze mit Werten (1 Übung, 2 Sätze)
+ok   N: Beginn und Ende wie gewählt
+ok   N: Editor geschlossen
+ok   N: erscheint unter „Letzte Trainings“
+ok   N: kein null/undefined/NaN
+ok   N: Dialog sagt, dass die Sätze vorbelegt sind
+ok   N: Bankdrücken mit Werten vom letzten Mal vorbelegt (60×10|62,5×9)
+ok   N: zweiter Nachtrag gespeichert
+ok   N: Tagebuch zeigt Taste und das nachgetragene Training
+ok   N: Abbrechen speichert nichts
+ok   N: Bearbeiten wie bisher („Fertig“)
+ok   N: Bearbeiten hat weiter „Training löschen“
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v232
+alle Prüfungen bestanden
+### check-v233
+ok   T: Plan des Tages oben und markiert (Push, Beine, Nur Cardio, Pull)
+ok   T: nur ein Plan als „Heute“
+ok   T: Label „Heute“
+ok   K: Kraftpläne mit 3D-Figur (Canvas)
+ok   K: Cardio-Plan ohne Figur
+ok   T: übrige alphabetisch (Beine, Nur Cardio, Pull)
+ok   K: Figur gezeichnet (10113 Pixel, 1127 in Akzentfarbe)
+ok   K: Wischen dreht die Figur
+ok   K: Wischen öffnet keine große Ansicht
+ok   K: kein Training gestartet
+ok   G: große Ansicht mit Hauptmuskeln
+ok   G: mitbeteiligte Muskeln
+ok   G: große drehbare Figur
+ok   kein null/undefined/NaN
+ok   K: weibliche Figur ebenfalls 3D
+ok   Starten startet das Training
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v233
+alle Prüfungen bestanden
+### check-v2331
+ok   A: leerer Plan – Abstand unter „Übungen hinzufügen“ ≥ 12 px (12)
+ok   A: Abstand oben und unten gleich (12 / 12)
+ok   A: Bearbeiten-Modus – Abstand unter „Übungen hinzufügen“ ≥ 12 px (12)
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v2331
+alle Prüfungen bestanden
+### check-v234
+ok   B: Bankdrücken – Box mit 3 Hinweisen (3)
+ok   B: Box steht ganz oben, vor Animation und Muskeln
+ok   B: Belegarten sichtbar (Review, Fallserie, Fallbericht, Umfrage)
+ok   B: jede Nummer [n] steht in der Quellenliste ([3][4][5][6] / [3][4][5][6])
+ok   B: kein null/undefined/NaN
+ok   B: Box zeigt Kurzzeilen, Ausführliches eingeklappt
+ok   B: Details aufgeklappt zeigen den ausführlichen Text
+ok   B: Kreuzheben – 2 Hinweise mit Videoanalyse (2)
+ok   B: Beinpresse – Knie- und Blutdruck-Hinweis
+ok   B: plank – kein Hinweis, keine Nummern
+ok   B: lateral-raise-dumbbell – kein Hinweis, keine Nummern
+ok   B: barbell-upright-row – kein Hinweis, keine Nummern
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v234
+alle Prüfungen bestanden
+### check-v234b
+ok   E: neue Nutzer sehen „Neu hier?“
+ok   E: Rundgang startet
+ok   E: Rundgang übersprungen, Overlay weg
+ok   E: Karte danach weg
+ok   E: als gesehen gespeichert
+ok   S: Plan von heute als große Karte
+ok   S: übriger Plan kompakt mit Start-Taste
+ok   S: kein Untertitel, Nebenaktionen nicht auf der Seite
+ok   S: freies Training sichtbar, „Sätze“ statt „Arbeitssätze“
+ok   S: wenig Text (33 Wörter)
+ok   S: ⋯-Menü mit Nachtragen und leichter Woche
+ok   S: Start-Taste der kompakten Zeile startet
+ok   T: Aufwärmzeile kurz, „Werte vom …“ statt Werteliste
+ok   T: Scheiben-Zeile anfangs verborgen
+ok   T: Scheiben-Zeile nach Antippen des Gewichts
+ok   F: nur Pfeile in der Liste (↑ ↑)
+ok   F: keine Prozentzahlen in der Liste
+ok   I: Fortschritt – 3 Kurz-Punkte, Details zu, 10 Quellen eingeklappt
+ok   I: Sätze – 3 Kurz-Punkte, Details zu, 5 Quellen eingeklappt
+ok   I: Bewertung – 3 Kurz-Punkte, Details zu, 20 Quellen eingeklappt
+ok   I: Leichte Woche – 3 Kurz-Punkte, Details zu, 20 Quellen eingeklappt
+ok   I: Aufwärmen – 3 Kurz-Punkte, Details zu, 15 Quellen eingeklappt
+ok   I: Cool-down – 3 Kurz-Punkte, Details zu, 15 Quellen eingeklappt
+ok   I: Übung – 0 Kurz-Punkte, Details zu, 2 Quellen eingeklappt
+ok   I: aufgeklappt sind die Quellen sichtbar
+ok   G: Glossar öffnet sich aus dem Info-Sheet
+ok   E: Kartentexte nicht mehr auf der Seite
+ok   E: Karte „Anzeige“ mit Schalter, Rundgang, Probetraining, Begriffe
+ok   E: wenig Text (57 Wörter)
+ok   E: Backup-Info über (i)
+ok   E: Hinweise aus → keine Hinweiszeilen
+ok   E: Hinweise aus → keine Aufwärmzeile im Training
+ok   E: Warnhinweise bleiben trotz „Hinweise aus“
+ok   keine Konsolenfehler 
+Screenshots: /tmp/wt-browser/v234b
+alle Prüfungen bestanden
+### check-v300
+ok   Standard: Dunkel (null, rgb(0, 0, 0))
+ok   Standard: Browserfarbe schwarz
+ok   Tab-Leiste deckend ohne Glas (seit 3.1.0, Variante B)
+ok   Hell gewählt: html[data-theme=light] (rgb(242, 242, 247))
+ok   Hell: Browserfarbe hell
+ok   Hell bleibt nach Neuladen (index.html setzt es vor dem Zeichnen)
+ok   Hinweise: <input type=checkbox switch>
+ok   Schalter aus → Einstellung gespeichert
+ok   Schalter an → Einstellung gespeichert
+ok   Zyklus-Schalter an → Felder erscheinen
+ok   Piktogramm-Körper: hell rgb(213, 217, 222), dunkel rgb(58, 63, 69)
+ok   Zurück auf Dunkel
+ok   Kopfzeile mit „Zuletzt“ (Satz | Zuletzt | kg | Wdh. | )
+ok   Zuletzt-Werte je Satz (60 × 8, 60 × 7)
+ok   Erledigter Satz: Felder gesperrt
+ok   Kurzer Tipp auf gesperrtes Feld → Hinweis
+ok   Langes Drücken gibt das Feld frei
+ok   #/: kein null/undefined/NaN
+ok   #/plans: kein null/undefined/NaN
+ok   #/exercises: kein null/undefined/NaN
+ok   #/progress: kein null/undefined/NaN
+ok   #/settings: kein null/undefined/NaN
+ok   keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v303
+ok   844 dark #/: Dokument scrollt nicht (844/844)
+ok   844 dark #/: neue Seite beginnt oben
+ok   844 dark #/plans: Dokument scrollt nicht (844/844)
+ok   844 dark #/plans: neue Seite beginnt oben
+ok   844 dark #/exercises: Dokument scrollt nicht (844/844)
+ok   844 dark #/exercises: neue Seite beginnt oben
+ok   844 dark Übungen: #view ist scrollbar
+ok   844 dark Übungen: Wischen scrollt #view (600), nicht das Fenster
+ok   844 dark Übungen: Tab-Leiste bleibt beim Scrollen stehen
+ok   844 dark #/progress: Dokument scrollt nicht (844/844)
+ok   844 dark #/progress: neue Seite beginnt oben
+ok   844 dark #/settings: Dokument scrollt nicht (844/844)
+ok   844 dark #/settings: neue Seite beginnt oben
+ok   844 dark: Tab-Leiste überall gleich hoch (844, 844, 844, 844, 844)
+ok   844 dark: Tab-Leiste am Rand, volle Breite ({"b":844,"l":0,"w":390})
+ok   844 dark: Datumsfelder im Sheet
+ok   844 dark: keine Konsolenfehler 
+ok   844 light #/: Dokument scrollt nicht (844/844)
+ok   844 light #/: neue Seite beginnt oben
+ok   844 light #/plans: Dokument scrollt nicht (844/844)
+ok   844 light #/plans: neue Seite beginnt oben
+ok   844 light #/exercises: Dokument scrollt nicht (844/844)
+ok   844 light #/exercises: neue Seite beginnt oben
+ok   844 light Übungen: #view ist scrollbar
+ok   844 light Übungen: Wischen scrollt #view (600), nicht das Fenster
+ok   844 light Übungen: Tab-Leiste bleibt beim Scrollen stehen
+ok   844 light #/progress: Dokument scrollt nicht (844/844)
+ok   844 light #/progress: neue Seite beginnt oben
+ok   844 light #/settings: Dokument scrollt nicht (844/844)
+ok   844 light #/settings: neue Seite beginnt oben
+ok   844 light: Tab-Leiste überall gleich hoch (844, 844, 844, 844, 844)
+ok   844 light: Tab-Leiste am Rand, volle Breite ({"b":844,"l":0,"w":390})
+ok   844 light: Datumsfelder im Sheet
+ok   844 light: keine Konsolenfehler 
+ok   664 dark #/: Dokument scrollt nicht (664/664)
+ok   664 dark #/: neue Seite beginnt oben
+ok   664 dark #/plans: Dokument scrollt nicht (664/664)
+ok   664 dark #/plans: neue Seite beginnt oben
+ok   664 dark #/exercises: Dokument scrollt nicht (664/664)
+ok   664 dark #/exercises: neue Seite beginnt oben
+ok   664 dark Übungen: #view ist scrollbar
+ok   664 dark Übungen: Wischen scrollt #view (600), nicht das Fenster
+ok   664 dark Übungen: Tab-Leiste bleibt beim Scrollen stehen
+ok   664 dark #/progress: Dokument scrollt nicht (664/664)
+ok   664 dark #/progress: neue Seite beginnt oben
+ok   664 dark #/settings: Dokument scrollt nicht (664/664)
+ok   664 dark #/settings: neue Seite beginnt oben
+ok   664 dark: Tab-Leiste überall gleich hoch (664, 664, 664, 664, 664)
+ok   664 dark: Tab-Leiste am Rand, volle Breite ({"b":664,"l":0,"w":390})
+ok   664 dark: Datumsfelder im Sheet
+ok   664 dark: keine Konsolenfehler 
+ok   664 light #/: Dokument scrollt nicht (664/664)
+ok   664 light #/: neue Seite beginnt oben
+ok   664 light #/plans: Dokument scrollt nicht (664/664)
+ok   664 light #/plans: neue Seite beginnt oben
+ok   664 light #/exercises: Dokument scrollt nicht (664/664)
+ok   664 light #/exercises: neue Seite beginnt oben
+ok   664 light Übungen: #view ist scrollbar
+ok   664 light Übungen: Wischen scrollt #view (600), nicht das Fenster
+ok   664 light Übungen: Tab-Leiste bleibt beim Scrollen stehen
+ok   664 light #/progress: Dokument scrollt nicht (664/664)
+ok   664 light #/progress: neue Seite beginnt oben
+ok   664 light #/settings: Dokument scrollt nicht (664/664)
+ok   664 light #/settings: neue Seite beginnt oben
+ok   664 light: Tab-Leiste überall gleich hoch (664, 664, 664, 664, 664)
+ok   664 light: Tab-Leiste am Rand, volle Breite ({"b":664,"l":0,"w":390})
+ok   664 light: Datumsfelder im Sheet
+ok   664 light: keine Konsolenfehler 
+ok   App dark: Leiste/Hülle im Fenster (789/789)
+ok   App dark: Klasse wt-gap gesetzt
+ok   App dark: Leiste 58 hoch, Leiste = Seitenhintergrund (v3.1.1) (rgb(0, 0, 0) vs rgb(0, 0, 0))
+ok   App dark: keine Fehler 
+ok   App light: Leiste/Hülle im Fenster (789/789)
+ok   App light: Klasse wt-gap gesetzt
+ok   App light: Leiste 58 hoch, Leiste = Seitenhintergrund (v3.1.1) (rgb(242, 242, 247) vs rgb(242, 242, 247))
+ok   App light: keine Fehler 
+ok   Browser dark: Leiste/Hülle im Fenster (789/789)
+ok   Browser dark: Klasse wt-gap nicht gesetzt
+ok   Browser dark: keine Fehler 
+ok   Browser light: Leiste/Hülle im Fenster (789/789)
+ok   Browser light: Klasse wt-gap nicht gesetzt
+ok   Browser light: keine Fehler 
+alle Prüfungen bestanden
+### check-v310
+ok   dark: vier Tabs + Play in der Mitte (tab:Training | tab:Pläne | tb-mid: | tab:Übungen | tab:Fortschritt)
+ok   dark: Play-Knopf erhöht über der Leiste ({"top":773,"barTop":786,"w":58})
+ok   dark: Zahnrad öffnet die Einstellungen
+ok   dark: Sheet zeigt Beine als Nächstes (Training starten Als Nächstes Beine 3 Übungen · Noch nie trainiert Beine starten ANDERER PLAN Pull 3 Übungen · Noch nie )
+ok   dark: Start über das Sheet ({"hash":"#/","plan":"Beine","sheets":0})
+ok   dark: laufendes Training öffnet sich direkt ({"hash":"#/","sheets":0})
+ok   dark: keine Konsolenfehler 
+ok   light: vier Tabs + Play in der Mitte (tab:Training | tab:Pläne | tb-mid: | tab:Übungen | tab:Fortschritt)
+ok   light: Play-Knopf erhöht über der Leiste ({"top":773,"barTop":786,"w":58})
+ok   light: Zahnrad öffnet die Einstellungen
+ok   light: Sheet zeigt Beine als Nächstes (Training starten Als Nächstes Beine 3 Übungen · Noch nie trainiert Beine starten ANDERER PLAN Pull 3 Übungen · Noch nie )
+ok   light: Start über das Sheet ({"hash":"#/","plan":"Beine","sheets":0})
+ok   light: laufendes Training öffnet sich direkt ({"hash":"#/","sheets":0})
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v3100
+ok   iPhone SE dark Training-Tab: 10 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Pläne: 10 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Pläne · Routinen: 14 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Übungen: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+FAIL iPhone SE dark Übung-Info (Sheet): 13 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
+      Fläche button.on「Details」 87×32: (115,137) trifft button「Verlauf」
+      Fläche button.on「Kraft」 87×41: (115,298) trifft button「Körpergewicht」
+FAIL iPhone SE dark Technik-Animation (Sheet): 7 Ziele mit 44-px-Fläche
+      Fläche button「Details」 87×32: (115,137) trifft button「Verlauf」
+FAIL iPhone SE dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
+      Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」
+ok   iPhone SE dark Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE dark: Assistent zeigt die Wochentage
+FAIL iPhone SE dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+      Fläche button.as-day「Di: frei, tippen für Kraft」 34×64: (101,375) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
+      Fläche button.as-day.k「Mi: Kraft, tippen für Cardio」 34×64: (139,375) trifft button.as-day「Do: frei, tippen für Kraft」
+      Fläche button.as-day「Sa: frei, tippen für Kraft」 34×64: (254,375) trifft button.as-day「So: frei, tippen für Kraft」
+ok   iPhone SE dark Fortschritt · Übungen: 13 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Fortschritt · Trainings: 12 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Fortschritt · 4 Wochen: 10 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Einstellungen (oben): 12 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE dark Einstellungen (Mitte): 12 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE dark Einstellungen (unten): 12 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE dark Training Satz: 22 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
+ok   iPhone SE dark Training nach Haken (oben): 21 Ziele mit 44-px-Fläche (6 verdeckt übersprungen)
+ok   iPhone SE dark Training nach Haken (unten): 21 Ziele mit 44-px-Fläche (6 verdeckt übersprungen)
+ok   iPhone SE dark Satztyp (Sheet): 10 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Training Übersicht: 12 Ziele mit 44-px-Fläche
+ok   iPhone SE dark Bewertung (Sheet): 6 Ziele mit 44-px-Fläche
+ok   iPhone SE dark: keine Konsolenfehler 
+ok   iPhone SE light: helles Design aktiv
+ok   iPhone SE light Training-Tab: 10 Ziele mit 44-px-Fläche
+ok   iPhone SE light Pläne: 10 Ziele mit 44-px-Fläche
+ok   iPhone SE light Pläne · Routinen: 14 Ziele mit 44-px-Fläche
+ok   iPhone SE light Übungen: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+FAIL iPhone SE light Übung-Info (Sheet): 13 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
+      Fläche button.on「Details」 87×32: (115,137) trifft button「Verlauf」
+      Fläche button.on「Kraft」 87×41: (115,298) trifft button「Körpergewicht」
+FAIL iPhone SE light Technik-Animation (Sheet): 7 Ziele mit 44-px-Fläche
+      Fläche button「Details」 87×32: (115,137) trifft button「Verlauf」
+FAIL iPhone SE light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
+      Fläche button「Details」 87×32: (115,137) trifft button.on「Verlauf」
+ok   iPhone SE light Assistent Frage 1 (Sheet): 4 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE light: Assistent zeigt die Wochentage
+FAIL iPhone SE light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+      Fläche button.as-day「Di: frei, tippen für Kraft」 34×64: (101,375) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
+      Fläche button.as-day.k「Mi: Kraft, tippen für Cardio」 34×64: (139,375) trifft button.as-day「Do: frei, tippen für Kraft」
+      Fläche button.as-day「Sa: frei, tippen für Kraft」 34×64: (254,375) trifft button.as-day「So: frei, tippen für Kraft」
+ok   iPhone SE light Fortschritt · Übungen: 13 Ziele mit 44-px-Fläche
+ok   iPhone SE light Fortschritt · Trainings: 12 Ziele mit 44-px-Fläche
+ok   iPhone SE light Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche
+ok   iPhone SE light Fortschritt · 4 Wochen: 10 Ziele mit 44-px-Fläche
+ok   iPhone SE light Einstellungen (oben): 12 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE light Einstellungen (Mitte): 12 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE light Einstellungen (unten): 12 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   iPhone SE light Training Satz: 22 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
+ok   iPhone SE light Training nach Haken (oben): 21 Ziele mit 44-px-Fläche (6 verdeckt übersprungen)
+ok   iPhone SE light Training nach Haken (unten): 21 Ziele mit 44-px-Fläche (6 verdeckt übersprungen)
+ok   iPhone SE light Satztyp (Sheet): 10 Ziele mit 44-px-Fläche
+ok   iPhone SE light Training Übersicht: 12 Ziele mit 44-px-Fläche
+ok   iPhone SE light Bewertung (Sheet): 6 Ziele mit 44-px-Fläche
+ok   iPhone SE light: keine Konsolenfehler 
+ok   Pixel 7 dark Training-Tab: 9 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Pläne: 9 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Pläne · Routinen: 17 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+FAIL Pixel 7 dark Übungen: 15 Ziele mit 44-px-Fläche
+      Fläche button.chip「Arme」 60×36: (379,133) trifft button.info-btn「Infos zu den Muskelgruppen」
+FAIL Pixel 7 dark Übung-Info (Sheet): 18 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
+      Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」
+      Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」
+FAIL Pixel 7 dark Technik-Animation (Sheet): 10 Ziele mit 44-px-Fläche
+      Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」
+      Fläche button.plain「3 Stange kontrolliert zur un」 356×75: (206,824) trifft div.sheet.full.in「Bankdrücken」
+FAIL Pixel 7 dark Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
+      Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」
+ok   Pixel 7 dark Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark: Assistent zeigt die Wochentage
+FAIL Pixel 7 dark Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+      Fläche button.as-day「Di: frei, tippen für Kraft」 47×64: (127,354) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
+      Fläche button.as-day「Do: frei, tippen für Kraft」 47×64: (230,354) trifft button.as-day.k「Fr: Kraft, tippen für Cardio」
+      Fläche button.as-day「Sa: frei, tippen für Kraft」 47×64: (333,354) trifft button.as-day「So: frei, tippen für Kraft」
+ok   Pixel 7 dark Fortschritt · Übungen: 12 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Fortschritt · Trainings: 11 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   Pixel 7 dark Fortschritt · 4 Wochen: 9 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Einstellungen (oben): 25 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Einstellungen (Mitte): 25 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Einstellungen (unten): 25 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Training Satz: 23 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Training nach Haken (oben): 28 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Training nach Haken (unten): 28 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Satztyp (Sheet): 10 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Training Übersicht: 14 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark Bewertung (Sheet): 6 Ziele mit 44-px-Fläche
+ok   Pixel 7 dark: keine Konsolenfehler 
+ok   Pixel 7 light: helles Design aktiv
+ok   Pixel 7 light Training-Tab: 9 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Pläne: 9 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Pläne · Routinen: 17 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+FAIL Pixel 7 light Übungen: 15 Ziele mit 44-px-Fläche
+      Fläche button.chip「Arme」 60×36: (379,133) trifft button.info-btn「Infos zu den Muskelgruppen」
+FAIL Pixel 7 light Übung-Info (Sheet): 18 Ziele mit 44-px-Fläche (2 verdeckt übersprungen)
+      Fläche button「Verlauf」 117×32: (263,137) trifft button「Technik」
+      Fläche button「Körpergewicht」 117×32: (263,293) trifft button「Cardio」
+FAIL Pixel 7 light Technik-Animation (Sheet): 10 Ziele mit 44-px-Fläche
+      Fläche button「Verlauf」 117×32: (263,137) trifft button.on「Technik」
+      Fläche button.plain「3 Stange kontrolliert zur un」 356×75: (206,824) trifft div.sheet.full.in「Bankdrücken」
+FAIL Pixel 7 light Verlauf (Sheet): 5 Ziele mit 44-px-Fläche
+      Fläche button.on「Verlauf」 117×32: (263,137) trifft button「Technik」
+ok   Pixel 7 light Assistent Frage 1 (Sheet): 5 Ziele mit 44-px-Fläche
+ok   Pixel 7 light: Assistent zeigt die Wochentage
+FAIL Pixel 7 light Assistent Tage (Sheet): 10 Ziele mit 44-px-Fläche
+      Fläche button.as-day「Di: frei, tippen für Kraft」 47×64: (127,354) trifft button.as-day.k「Mi: Kraft, tippen für Cardio」
+      Fläche button.as-day「Do: frei, tippen für Kraft」 47×64: (230,354) trifft button.as-day.k「Fr: Kraft, tippen für Cardio」
+      Fläche button.as-day「Sa: frei, tippen für Kraft」 47×64: (333,354) trifft button.as-day「So: frei, tippen für Kraft」
+ok   Pixel 7 light Fortschritt · Übungen: 12 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Fortschritt · Trainings: 11 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Fortschritt · Muskeln: 13 Ziele mit 44-px-Fläche (1 verdeckt übersprungen)
+ok   Pixel 7 light Fortschritt · 4 Wochen: 9 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Einstellungen (oben): 25 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Einstellungen (Mitte): 25 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Einstellungen (unten): 25 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Training Satz: 23 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Training nach Haken (oben): 28 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Training nach Haken (unten): 28 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Satztyp (Sheet): 10 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Training Übersicht: 14 Ziele mit 44-px-Fläche
+ok   Pixel 7 light Bewertung (Sheet): 6 Ziele mit 44-px-Fläche
+ok   Pixel 7 light: keine Konsolenfehler 
+18 Fehler
+EXIT 1 check-v3100
+### check-v320
+ok   dark: Frage 1 erscheint
+ok   dark: Tagestasten ≥ 44 pt, 3 Tage vorausgewählt ({"h":64,"w":44,"on":3,"text":"3 × Kraft\nKraft: Ganzkörper · guter Start"})
+ok   dark: Vorschau mit Split, Schätzung und Muskelsätzen
+ok   dark: nichts ragt seitlich aus dem Sheet
+ok   dark: Info-Sheet mit Quellen
+ok   dark: zwei Pläne mit Tagen angelegt (Oberkörper, Unterkörper | 8 Übungen · 16 Sätze · Mo · Mi / 7 Übungen · 14 Sätze · Di · Fr)
+ok   dark: Hinweis auf fehlende Muster bei Kurzhanteln
+ok   dark: keine Konsolenfehler 
+ok   light: Frage 1 erscheint
+ok   light: Tagestasten ≥ 44 pt, 3 Tage vorausgewählt ({"h":64,"w":44,"on":3,"text":"3 × Kraft\nKraft: Ganzkörper · guter Start"})
+ok   light: Vorschau mit Split, Schätzung und Muskelsätzen
+ok   light: nichts ragt seitlich aus dem Sheet
+ok   light: Info-Sheet mit Quellen
+ok   light: zwei Pläne mit Tagen angelegt (Oberkörper, Unterkörper | 8 Übungen · 16 Sätze · Mo · Mi / 7 Übungen · 14 Sätze · Di · Fr)
+ok   light: Hinweis auf fehlende Muster bei Kurzhanteln
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v330
+ok   dark: Animation mit echter Figur vorn/hinten, 4 Schritten, Verzögerung je Muskel ({"svgs":2,"steps":4,"fm":22,"delayed":22})
+ok   dark: Animation endet von selbst (≈ 2,5 s)
+ok   dark: Übersicht C mit Vorschlägen und Legende
+ok   dark: Figur vorn/hinten, auffällige Muskeln orange ({"n":2,"warn":5})
+ok   dark: Hinweis bei wenig Trainingsdaten
+ok   dark: Vorschläge E mit Schaltern, alle an ({"sw":1,"on":1,"btn":"3 Änderungen übernehmen"})
+ok   dark: Zähler folgt den Schaltern (2 Änderungen übernehmen)
+ok   dark: Übernehmen ändert die Pläne (4,2,2 → 5,2,3)
+ok   dark: keine Konsolenfehler 
+ok   light: Animation mit echter Figur vorn/hinten, 4 Schritten, Verzögerung je Muskel ({"svgs":2,"steps":4,"fm":22,"delayed":22})
+ok   light: Animation endet von selbst (≈ 2,5 s)
+ok   light: Übersicht C mit Vorschlägen und Legende
+ok   light: Figur vorn/hinten, auffällige Muskeln orange ({"n":2,"warn":5})
+ok   light: Hinweis bei wenig Trainingsdaten
+ok   light: Vorschläge E mit Schaltern, alle an ({"sw":1,"on":1,"btn":"3 Änderungen übernehmen"})
+ok   light: Zähler folgt den Schaltern (2 Änderungen übernehmen)
+ok   light: Übernehmen ändert die Pläne (4,2,2 → 5,2,3)
+ok   light: keine Konsolenfehler 
+ok   reduced motion: keine Animation, Übersicht sofort ({"overlay":false,"ana":true})
+alle Prüfungen bestanden
+### check-v340
+ok   dark: Startpool mit 136 Übungen
+ok   dark: die acht neuen Übungen in der Bibliothek
+ok   dark: Assistent nimmt die neuen Übungen (GK A)
+ok   dark: Hinweis nennt das fehlende Gerät, Kniebeuge fehlt nicht mehr
+ok   dark: kein [object HTML…]
+ok   dark: GK B mit Ausfallschritt und Y/T-Heben
+ok   dark: keine Konsolenfehler 
+ok   light: Startpool mit 136 Übungen
+ok   light: die acht neuen Übungen in der Bibliothek
+ok   light: Assistent nimmt die neuen Übungen (GK A)
+ok   light: Hinweis nennt das fehlende Gerät, Kniebeuge fehlt nicht mehr
+ok   light: kein [object HTML…]
+ok   light: GK B mit Ausfallschritt und Y/T-Heben
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v340b
+ok   dark: Mobilitätsprogramm in der Liste
+ok   dark: Vorlage in der Liste
+ok   dark: Detail mit 7 Übungen
+ok   dark: kein [object HTML…]
+ok   dark: startet ohne Plan mit Armkreisen
+ok   dark: keine Konsolenfehler 
+ok   light: Mobilitätsprogramm in der Liste
+ok   light: Vorlage in der Liste
+ok   light: Detail mit 7 Übungen
+ok   light: kein [object HTML…]
+ok   light: startet ohne Plan mit Armkreisen
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v350
+ok   dark: drei Bereiche ["AUFWÄRMEN","COOL-DOWN","MOBILITY"]
+ok   dark: Vorlagen unter Mobility
+ok   dark: Detail zeigt „Mobility“
+ok   dark: Gesamtdauer 15 min ohne ≈ und Schätzung (15 min)
+ok   dark: nach − etwa 10 min (Gesamtdauer 10 min ÜBUNGEN)
+ok   dark: Wiederholungen anteilig kleiner ["12×","12×","12×"]
+ok   dark: Abstand Katalog-Taste → Tasten 12px
+ok   dark: kein [object HTML…] im Editor
+ok   dark: Plan zeigt 45 min
+ok   dark: Gesamtdauer im Bearbeiten-Modus
+ok   dark: Plan kürzer (45 → 40 min)
+ok   dark: Einzelgelenk zuerst gekürzt [3,3,3,2,2]
+ok   dark: keine Konsolenfehler 
+ok   light: drei Bereiche ["AUFWÄRMEN","COOL-DOWN","MOBILITY"]
+ok   light: Vorlagen unter Mobility
+ok   light: Detail zeigt „Mobility“
+ok   light: Gesamtdauer 15 min ohne ≈ und Schätzung (15 min)
+ok   light: nach − etwa 10 min (Gesamtdauer 10 min ÜBUNGEN)
+ok   light: Wiederholungen anteilig kleiner ["12×","12×","12×"]
+ok   light: Abstand Katalog-Taste → Tasten 12px
+ok   light: kein [object HTML…] im Editor
+ok   light: Plan zeigt 45 min
+ok   light: Gesamtdauer im Bearbeiten-Modus
+ok   light: Plan kürzer (45 → 40 min)
+ok   light: Einzelgelenk zuerst gekürzt [3,3,3,2,2]
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v352
+ok   dark: Mitte zeigt die Hantel, nicht Play
+ok   dark: vier Tab-Icons gezeichnet
+ok   dark: Knopf öffnet das Start-Sheet
+ok   dark: keine Konsolenfehler 
+ok   light: Mitte zeigt die Hantel, nicht Play
+ok   light: vier Tab-Icons gezeichnet
+ok   light: Knopf öffnet das Start-Sheet
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v360
+ok   dark: Liste zeigt 4 Technik-Knöpfe in der Mobility-Vorlage (4)
+ok   dark: Animation öffnet aus der Liste
+ok   dark: Ablauf zeigt „Technik ansehen“ bei Kniebeuge auf den Stuhl
+ok   dark: Animation öffnet im Ablauf
+ok   dark: keine Konsolenfehler 
+ok   light: Liste zeigt 4 Technik-Knöpfe in der Mobility-Vorlage (4)
+ok   light: Animation öffnet aus der Liste
+ok   light: Ablauf zeigt „Technik ansehen“ bei Kniebeuge auf den Stuhl
+ok   light: Animation öffnet im Ablauf
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v361
+ok   dark: Karte zeichnet mit 3× (174 px für 58 CSS-px)
+ok   dark: Umriss geglättet (911 Kantenpixel, 22943 deckend)
+ok   dark: nach dem Drehen wieder geglättet (492 Kantenpixel)
+ok   dark: Wischen öffnet nichts
+ok   dark: große Ansicht offen
+ok   dark: große Ansicht 3× und geglättet (510 px, 2600 Kantenpixel)
+ok   dark: keine Konsolenfehler 
+ok   light: Karte zeichnet mit 3× (174 px für 58 CSS-px)
+ok   light: Umriss geglättet (911 Kantenpixel, 22943 deckend)
+ok   light: nach dem Drehen wieder geglättet (492 Kantenpixel)
+ok   light: Wischen öffnet nichts
+ok   light: große Ansicht offen
+ok   light: große Ansicht 3× und geglättet (510 px, 2600 Kantenpixel)
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v370
+ok   dark back-squat: „Art: Mehrgelenkige Grundübung“
+ok   dark back-squat: kein null/undefined/[object]
+ok   dark lateral-raise-dumbbell: „Art: Eingelenkige Übung“
+ok   dark lateral-raise-dumbbell: kein null/undefined/[object]
+ok   dark treadmill-running: Cardio ohne Einordnung
+ok   dark treadmill-running: kein null/undefined/[object]
+ok   dark: keine Konsolenfehler 
+ok   light back-squat: „Art: Mehrgelenkige Grundübung“
+ok   light back-squat: kein null/undefined/[object]
+ok   light lateral-raise-dumbbell: „Art: Eingelenkige Übung“
+ok   light lateral-raise-dumbbell: kein null/undefined/[object]
+ok   light treadmill-running: Cardio ohne Einordnung
+ok   light treadmill-running: kein null/undefined/[object]
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v380
+ok   dark: Frage „An welchen Tagen“
+ok   dark: Standard Mo · Mi · Fr Kraft (k-k-k--)
+ok   dark: freie Tage ohne Beschriftung
+ok   dark: Taste groß genug (44×64)
+ok   dark: 1× tippen = Kraft
+ok   dark: 2× tippen = Cardio
+ok   dark: 3× tippen = frei
+ok   dark: Zusammenfassung 3 × Kraft · 2 × Cardio
+ok   dark: Icons Hantel/Cardio auf den Tasten
+ok   dark: Hinweis höchstens 6 Krafttage
+ok   dark: bei 6 Krafttagen wird ein weiterer Tag Cardio
+ok   dark: ohne Tag ist Weiter gesperrt
+ok   dark: Hinweis bei einem Krafttag
+ok   dark: Hinweis Ganzkörper an Folgetagen
+ok   dark: Kopfzeile Krafttage und Cardio-Tage
+ok   dark: Ganzkörper A · Di · Sa
+ok   dark: Ausdauer pro Woche ca. 90 min mit WHO-Orientierung
+ok   dark: Cardio-Plan Mo · Mi mit zügigem Gehen, ca. 45 min
+ok   dark: kein null/undefined/[object]
+ok   dark: nur Cardio – keine Muskelsätze, 315 min
+ok   dark: Info-Knopf auch ohne Krafttage
+ok   dark: keine Konsolenfehler 
+ok   light: Frage „An welchen Tagen“
+ok   light: Standard Mo · Mi · Fr Kraft (k-k-k--)
+ok   light: freie Tage ohne Beschriftung
+ok   light: Taste groß genug (44×64)
+ok   light: 1× tippen = Kraft
+ok   light: 2× tippen = Cardio
+ok   light: 3× tippen = frei
+ok   light: Zusammenfassung 3 × Kraft · 2 × Cardio
+ok   light: Icons Hantel/Cardio auf den Tasten
+ok   light: Hinweis höchstens 6 Krafttage
+ok   light: bei 6 Krafttagen wird ein weiterer Tag Cardio
+ok   light: ohne Tag ist Weiter gesperrt
+ok   light: Hinweis bei einem Krafttag
+ok   light: Hinweis Ganzkörper an Folgetagen
+ok   light: Kopfzeile Krafttage und Cardio-Tage
+ok   light: Ganzkörper A · Di · Sa
+ok   light: Ausdauer pro Woche ca. 90 min mit WHO-Orientierung
+ok   light: Cardio-Plan Mo · Mi mit zügigem Gehen, ca. 45 min
+ok   light: kein null/undefined/[object]
+ok   light: nur Cardio – keine Muskelsätze, 315 min
+ok   light: Info-Knopf auch ohne Krafttage
+ok   light: keine Konsolenfehler 
+alle Prüfungen bestanden
+### check-v390
+ok   iPhone SE dark: Karte „Neu hier?“ mit „Rundgang starten“
+ok   iPhone SE dark: Schritt 1 „Die vier Bereiche“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 1 – Blase verdeckt das Ziel nicht {"top":504,"bottom":568}
+ok   iPhone SE dark: Schritt 1 – Text ohne null/undefined
+ok   iPhone SE dark: im Rundgang ist das Ziel gesperrt
+ok   iPhone SE dark: Schritt 2 „Pläne“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 2 – Blase verdeckt das Ziel nicht {"top":300,"bottom":362}
+ok   iPhone SE dark: Schritt 2 – Text ohne null/undefined
+ok   iPhone SE dark: Schritt 3 „Übungen“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 3 – Blase verdeckt das Ziel nicht {"top":250,"bottom":312}
+ok   iPhone SE dark: Schritt 3 – Text ohne null/undefined
+ok   iPhone SE dark: Schritt 4 „Training starten“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 4 – Blase verdeckt das Ziel nicht {"top":197,"bottom":259}
+ok   iPhone SE dark: Schritt 4 – Text ohne null/undefined
+ok   iPhone SE dark: Schritt 5 „Schnellstart“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 5 – Blase verdeckt das Ziel nicht {"top":491,"bottom":561}
+ok   iPhone SE dark: Schritt 5 – Text ohne null/undefined
+ok   iPhone SE dark: Schritt 6 „Fortschritt“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 6 – Blase verdeckt das Ziel nicht {"top":57,"bottom":105}
+ok   iPhone SE dark: Schritt 6 – Text ohne null/undefined
+ok   iPhone SE dark: Schritt 7 „Einstellungen“ – Blase im Bildschirm
+ok   iPhone SE dark: Schritt 7 – Blase verdeckt das Ziel nicht {"top":12,"bottom":60}
+ok   iPhone SE dark: Schritt 7 – Text ohne null/undefined
+ok   iPhone SE dark: sieben Schritte in Reihenfolge (Die vier Bereiche · Pläne · Übungen · Training starten · Schnellstart · Fortschritt · Einstellungen)
+ok   iPhone SE dark: Abschluss bietet das Probetraining an
+ok   iPhone SE dark: Banner „Probetraining · nichts wird gespeichert“
+ok   iPhone SE dark: „Beenden“ einzeilig und im Bildschirm
+ok   iPhone SE dark: Probetraining Schritt 1 „Satz abhaken“
+ok   iPhone SE dark: Gewicht vom letzten Mal vorausgefüllt (60)
+ok   iPhone SE dark: nach dem Haken Schritt „Pause“
+ok   iPhone SE dark: Schritt „Nächste Übung“
+ok   iPhone SE dark: Blase verschwindet, solange die Bewertung offen ist
+ok   iPhone SE dark: Schritt „Training beenden“ auf Übung 2
+ok   iPhone SE dark: Zusammenfassung im Probetraining
+ok   iPhone SE dark: Abschluss „Geschafft!“
+ok   iPhone SE dark: Banner und Overlay weg
+ok   iPhone SE dark: echte Daten unverändert (1 Keys)
+ok   iPhone SE dark: Zustand gespeichert {"tour":"done","trial":"done","tips":{}}
+ok   iPhone SE dark: kein Probetraining-Plan in den echten Plänen
+ok   iPhone SE dark: Plan „Probetraining“ nicht in den echten Daten
+ok   iPhone SE dark: Knopf-Raster gleichmäßig (Abstand 8.0 / 8.0 px, ohne Abschneiden)
+ok   iPhone SE dark: Neuladen mitten im Probetraining → echte Daten, kein Training offen
+ok   iPhone SE dark: „Beenden“ im Banner → zurück, Daten unverändert
+ok   iPhone SE dark: Tipp „4 Wochen“ beim ersten Besuch, im Bildschirm
+ok   iPhone SE dark: Tipp nach „Verstanden“ nicht wieder
+ok   iPhone SE dark: keine Konsolenfehler 
+ok   iPhone SE light: Karte „Neu hier?“ mit „Rundgang starten“
+ok   iPhone SE light: Schritt 1 „Die vier Bereiche“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 1 – Blase verdeckt das Ziel nicht {"top":504,"bottom":568}
+ok   iPhone SE light: Schritt 1 – Text ohne null/undefined
+ok   iPhone SE light: im Rundgang ist das Ziel gesperrt
+ok   iPhone SE light: Schritt 2 „Pläne“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 2 – Blase verdeckt das Ziel nicht {"top":300,"bottom":362}
+ok   iPhone SE light: Schritt 2 – Text ohne null/undefined
+ok   iPhone SE light: Schritt 3 „Übungen“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 3 – Blase verdeckt das Ziel nicht {"top":250,"bottom":312}
+ok   iPhone SE light: Schritt 3 – Text ohne null/undefined
+ok   iPhone SE light: Schritt 4 „Training starten“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 4 – Blase verdeckt das Ziel nicht {"top":197,"bottom":259}
+ok   iPhone SE light: Schritt 4 – Text ohne null/undefined
+ok   iPhone SE light: Schritt 5 „Schnellstart“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 5 – Blase verdeckt das Ziel nicht {"top":491,"bottom":561}
+ok   iPhone SE light: Schritt 5 – Text ohne null/undefined
+ok   iPhone SE light: Schritt 6 „Fortschritt“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 6 – Blase verdeckt das Ziel nicht {"top":57,"bottom":105}
+ok   iPhone SE light: Schritt 6 – Text ohne null/undefined
+ok   iPhone SE light: Schritt 7 „Einstellungen“ – Blase im Bildschirm
+ok   iPhone SE light: Schritt 7 – Blase verdeckt das Ziel nicht {"top":12,"bottom":60}
+ok   iPhone SE light: Schritt 7 – Text ohne null/undefined
+ok   iPhone SE light: sieben Schritte in Reihenfolge (Die vier Bereiche · Pläne · Übungen · Training starten · Schnellstart · Fortschritt · Einstellungen)
+ok   iPhone SE light: helles Design aktiv
+ok   iPhone SE light: Abschluss bietet das Probetraining an
+ok   iPhone SE light: Banner „Probetraining · nichts wird gespeichert“
+ok   iPhone SE light: „Beenden“ einzeilig und im Bildschirm
+ok   iPhone SE light: Probetraining Schritt 1 „Satz abhaken“
+ok   iPhone SE light: Gewicht vom letzten Mal vorausgefüllt (60)
+ok   iPhone SE light: nach dem Haken Schritt „Pause“
+ok   iPhone SE light: Schritt „Nächste Übung“
+ok   iPhone SE light: Blase verschwindet, solange die Bewertung offen ist
+ok   iPhone SE light: Schritt „Training beenden“ auf Übung 2
+ok   iPhone SE light: Zusammenfassung im Probetraining
+ok   iPhone SE light: Abschluss „Geschafft!“
+ok   iPhone SE light: Banner und Overlay weg
+ok   iPhone SE light: echte Daten unverändert (1 Keys)
+ok   iPhone SE light: Zustand gespeichert {"tour":"done","trial":"done","tips":{}}
+ok   iPhone SE light: kein Probetraining-Plan in den echten Plänen
+ok   iPhone SE light: Plan „Probetraining“ nicht in den echten Daten
+ok   iPhone SE light: Knopf-Raster gleichmäßig (Abstand 8.0 / 8.0 px, ohne Abschneiden)
+ok   iPhone SE light: Neuladen mitten im Probetraining → echte Daten, kein Training offen
+ok   iPhone SE light: „Beenden“ im Banner → zurück, Daten unverändert
+ok   iPhone SE light: Tipp „4 Wochen“ beim ersten Besuch, im Bildschirm
+ok   iPhone SE light: Tipp nach „Verstanden“ nicht wieder
+ok   iPhone SE light: keine Konsolenfehler 
+ok   Pixel 7 dark: Karte „Neu hier?“ mit „Rundgang starten“
+ok   Pixel 7 dark: Schritt 1 „Die vier Bereiche“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 1 – Blase verdeckt das Ziel nicht {"top":775,"bottom":839}
+ok   Pixel 7 dark: Schritt 1 – Text ohne null/undefined
+ok   Pixel 7 dark: im Rundgang ist das Ziel gesperrt
+ok   Pixel 7 dark: Schritt 2 „Pläne“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 2 – Blase verdeckt das Ziel nicht {"top":275,"bottom":337}
+ok   Pixel 7 dark: Schritt 2 – Text ohne null/undefined
+ok   Pixel 7 dark: Schritt 3 „Übungen“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 3 – Blase verdeckt das Ziel nicht {"top":225,"bottom":287}
+ok   Pixel 7 dark: Schritt 3 – Text ohne null/undefined
+ok   Pixel 7 dark: Schritt 4 „Training starten“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 4 – Blase verdeckt das Ziel nicht {"top":160,"bottom":222}
+ok   Pixel 7 dark: Schritt 4 – Text ohne null/undefined
+ok   Pixel 7 dark: Schritt 5 „Schnellstart“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 5 – Blase verdeckt das Ziel nicht {"top":762,"bottom":832}
+ok   Pixel 7 dark: Schritt 5 – Text ohne null/undefined
+ok   Pixel 7 dark: Schritt 6 „Fortschritt“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 6 – Blase verdeckt das Ziel nicht {"top":57,"bottom":105}
+ok   Pixel 7 dark: Schritt 6 – Text ohne null/undefined
+ok   Pixel 7 dark: Schritt 7 „Einstellungen“ – Blase im Bildschirm
+ok   Pixel 7 dark: Schritt 7 – Blase verdeckt das Ziel nicht {"top":12,"bottom":60}
+ok   Pixel 7 dark: Schritt 7 – Text ohne null/undefined
+ok   Pixel 7 dark: sieben Schritte in Reihenfolge (Die vier Bereiche · Pläne · Übungen · Training starten · Schnellstart · Fortschritt · Einstellungen)
+ok   Pixel 7 dark: Abschluss bietet das Probetraining an
+ok   Pixel 7 dark: Banner „Probetraining · nichts wird gespeichert“
+ok   Pixel 7 dark: „Beenden“ einzeilig und im Bildschirm
+ok   Pixel 7 dark: Probetraining Schritt 1 „Satz abhaken“
+ok   Pixel 7 dark: Gewicht vom letzten Mal vorausgefüllt (60)
+ok   Pixel 7 dark: nach dem Haken Schritt „Pause“
+ok   Pixel 7 dark: Schritt „Nächste Übung“
+ok   Pixel 7 dark: Blase verschwindet, solange die Bewertung offen ist
+ok   Pixel 7 dark: Schritt „Training beenden“ auf Übung 2
+ok   Pixel 7 dark: Zusammenfassung im Probetraining
+ok   Pixel 7 dark: Abschluss „Geschafft!“
+ok   Pixel 7 dark: Banner und Overlay weg
+ok   Pixel 7 dark: echte Daten unverändert (1 Keys)
+ok   Pixel 7 dark: Zustand gespeichert {"tour":"done","trial":"done","tips":{}}
+ok   Pixel 7 dark: kein Probetraining-Plan in den echten Plänen
+ok   Pixel 7 dark: Plan „Probetraining“ nicht in den echten Daten
+ok   Pixel 7 dark: Knopf-Raster gleichmäßig (Abstand 8.0 / 8.0 px, ohne Abschneiden)
+ok   Pixel 7 dark: Neuladen mitten im Probetraining → echte Daten, kein Training offen
+ok   Pixel 7 dark: „Beenden“ im Banner → zurück, Daten unverändert
+ok   Pixel 7 dark: Tipp „4 Wochen“ beim ersten Besuch, im Bildschirm
+ok   Pixel 7 dark: Tipp nach „Verstanden“ nicht wieder
+ok   Pixel 7 dark: keine Konsolenfehler 
+ok   Pixel 7 light: Karte „Neu hier?“ mit „Rundgang starten“
+ok   Pixel 7 light: Schritt 1 „Die vier Bereiche“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 1 – Blase verdeckt das Ziel nicht {"top":775,"bottom":839}
+ok   Pixel 7 light: Schritt 1 – Text ohne null/undefined
+ok   Pixel 7 light: im Rundgang ist das Ziel gesperrt
+ok   Pixel 7 light: Schritt 2 „Pläne“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 2 – Blase verdeckt das Ziel nicht {"top":275,"bottom":337}
+ok   Pixel 7 light: Schritt 2 – Text ohne null/undefined
+ok   Pixel 7 light: Schritt 3 „Übungen“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 3 – Blase verdeckt das Ziel nicht {"top":225,"bottom":287}
+ok   Pixel 7 light: Schritt 3 – Text ohne null/undefined
+ok   Pixel 7 light: Schritt 4 „Training starten“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 4 – Blase verdeckt das Ziel nicht {"top":160,"bottom":222}
+ok   Pixel 7 light: Schritt 4 – Text ohne null/undefined
+ok   Pixel 7 light: Schritt 5 „Schnellstart“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 5 – Blase verdeckt das Ziel nicht {"top":762,"bottom":832}
+ok   Pixel 7 light: Schritt 5 – Text ohne null/undefined
+ok   Pixel 7 light: Schritt 6 „Fortschritt“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 6 – Blase verdeckt das Ziel nicht {"top":57,"bottom":105}
+ok   Pixel 7 light: Schritt 6 – Text ohne null/undefined
+ok   Pixel 7 light: Schritt 7 „Einstellungen“ – Blase im Bildschirm
+ok   Pixel 7 light: Schritt 7 – Blase verdeckt das Ziel nicht {"top":12,"bottom":60}
+ok   Pixel 7 light: Schritt 7 – Text ohne null/undefined
+ok   Pixel 7 light: sieben Schritte in Reihenfolge (Die vier Bereiche · Pläne · Übungen · Training starten · Schnellstart · Fortschritt · Einstellungen)
+ok   Pixel 7 light: helles Design aktiv
+ok   Pixel 7 light: Abschluss bietet das Probetraining an
+ok   Pixel 7 light: Banner „Probetraining · nichts wird gespeichert“
+ok   Pixel 7 light: „Beenden“ einzeilig und im Bildschirm
+ok   Pixel 7 light: Probetraining Schritt 1 „Satz abhaken“
+ok   Pixel 7 light: Gewicht vom letzten Mal vorausgefüllt (60)
+ok   Pixel 7 light: nach dem Haken Schritt „Pause“
+ok   Pixel 7 light: Schritt „Nächste Übung“
+ok   Pixel 7 light: Blase verschwindet, solange die Bewertung offen ist
+ok   Pixel 7 light: Schritt „Training beenden“ auf Übung 2
+ok   Pixel 7 light: Zusammenfassung im Probetraining
+ok   Pixel 7 light: Abschluss „Geschafft!“
+ok   Pixel 7 light: Banner und Overlay weg
+ok   Pixel 7 light: echte Daten unverändert (1 Keys)
+ok   Pixel 7 light: Zustand gespeichert {"tour":"done","trial":"done","tips":{}}
+ok   Pixel 7 light: kein Probetraining-Plan in den echten Plänen
+ok   Pixel 7 light: Plan „Probetraining“ nicht in den echten Daten
+ok   Pixel 7 light: Knopf-Raster gleichmäßig (Abstand 8.0 / 8.0 px, ohne Abschneiden)
+ok   Pixel 7 light: Neuladen mitten im Probetraining → echte Daten, kein Training offen
+ok   Pixel 7 light: „Beenden“ im Banner → zurück, Daten unverändert
+ok   Pixel 7 light: Tipp „4 Wochen“ beim ersten Besuch, im Bildschirm
+ok   Pixel 7 light: Tipp nach „Verstanden“ nicht wieder
+ok   Pixel 7 light: keine Konsolenfehler 
+alle Prüfungen bestanden

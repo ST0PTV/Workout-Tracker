@@ -1,0 +1,435 @@
+
+### chromium/Pixel 7 (412×839 @2.625)
+ok   chromium/Pixel 7 dark: Karte „Neu hier?“ beim ersten Start
+ok   chromium/Pixel 7 dark Start (neu): nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Start (neu): kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Start (neu): keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Start (neu): Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Start (neu): keine Konsolenfehler
+ok   chromium/Pixel 7 dark Rundgang: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Rundgang: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Rundgang: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Rundgang: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Rundgang: keine Konsolenfehler
+ok   chromium/Pixel 7 dark: nach der Einführung keine Karte mehr
+ok   chromium/Pixel 7 dark Assistent Frage 1: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Assistent Frage 1: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Assistent Frage 1: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Assistent Tage: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Assistent Tage: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Assistent Tage: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Assistent Tage: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Assistent Vorschau: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Assistent Vorschau: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Assistent Vorschau: keine Konsolenfehler
+ok   chromium/Pixel 7 dark: drei Pläne angelegt (GK A, GK B, Ausdauer)
+ok   chromium/Pixel 7 dark Pläne: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Pläne: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Pläne: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Pläne: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Pläne: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Plan Ganzkörper A: keine Konsolenfehler
+ok   chromium/Pixel 7 dark: Training läuft mit Satzzeilen
+ok   chromium/Pixel 7 dark: Pause läuft nach dem Haken
+ok   chromium/Pixel 7 dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   chromium/Pixel 7 dark Training Satz: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Training Satz: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Training Satz: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Training Satz: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Training Satz: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Technik-Animation: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Technik-Animation: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Technik-Animation: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Technik-Animation: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Training Übersicht: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Training Übersicht: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Training Übersicht: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Training Übersicht: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Bewertung: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Bewertung: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Bewertung: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Bewertung: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Bewertung: keine Konsolenfehler
+ok   chromium/Pixel 7 dark: Zusammenfassung „Training gespeichert“
+ok   chromium/Pixel 7 dark Zusammenfassung: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Zusammenfassung: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Zusammenfassung: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Zusammenfassung: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Zusammenfassung: keine Konsolenfehler
+ok   chromium/Pixel 7 dark: Training beendet
+ok   chromium/Pixel 7 dark Fortschritt Übungen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Fortschritt Übungen: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Fortschritt Trainings: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Fortschritt Trainings: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Fortschritt Muskeln: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Fortschritt 4 Wochen: keine Konsolenfehler
+ok   chromium/Pixel 7 dark: Verlauf nach dem Training vorhanden
+ok   chromium/Pixel 7 dark Nachtragen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Nachtragen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Nachtragen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Nachtragen: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Routinen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Routinen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Routinen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Routinen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Routinen: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Übungen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Übungen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Übungen: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Info Kniebeuge: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Info Kniebeuge: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 dark Info Kniebeuge: keine Konsolenfehler
+ok   chromium/Pixel 7 dark Einstellungen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 dark Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 dark Einstellungen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 dark Einstellungen: Textkontrast ≥ 3:1
+WARN chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Bildschirm anlassen」 51×31
+WARN chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Scheiben pro Seite」 51×31
+WARN chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Hinweise anzeigen」 51×31
+WARN chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Zyklus berücksichtigen」 51×31
+ok   chromium/Pixel 7 dark Einstellungen: keine Konsolenfehler
+ok   chromium/Pixel 7 light: Hell über die Einstellungen
+ok   chromium/Pixel 7 light Assistent Frage 1: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Assistent Frage 1: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Assistent Frage 1: keine Konsolenfehler
+ok   chromium/Pixel 7 light Assistent Tage: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Assistent Tage: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Assistent Tage: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Assistent Tage: keine Konsolenfehler
+ok   chromium/Pixel 7 light Assistent Vorschau: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Assistent Vorschau: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Assistent Vorschau: keine Konsolenfehler
+ok   chromium/Pixel 7 light Pläne: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Pläne: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Pläne: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Pläne: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Pläne: keine Konsolenfehler
+ok   chromium/Pixel 7 light Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Plan Ganzkörper A: keine Konsolenfehler
+ok   chromium/Pixel 7 light: Training läuft mit Satzzeilen
+ok   chromium/Pixel 7 light: Pause läuft nach dem Haken
+ok   chromium/Pixel 7 light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   chromium/Pixel 7 light Training Satz: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Training Satz: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Training Satz: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Training Satz: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Training Satz: keine Konsolenfehler
+ok   chromium/Pixel 7 light Technik-Animation: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Technik-Animation: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Technik-Animation: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Technik-Animation: keine Konsolenfehler
+ok   chromium/Pixel 7 light Training Übersicht: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Training Übersicht: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Training Übersicht: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Training Übersicht: keine Konsolenfehler
+ok   chromium/Pixel 7 light: Training verworfen
+ok   chromium/Pixel 7 light Fortschritt Übungen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Fortschritt Übungen: keine Konsolenfehler
+ok   chromium/Pixel 7 light Fortschritt Trainings: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Fortschritt Trainings: keine Konsolenfehler
+ok   chromium/Pixel 7 light Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Fortschritt Muskeln: keine Konsolenfehler
+ok   chromium/Pixel 7 light Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Fortschritt 4 Wochen: keine Konsolenfehler
+ok   chromium/Pixel 7 light: Verlauf nach dem Training vorhanden
+ok   chromium/Pixel 7 light Nachtragen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Nachtragen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Nachtragen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Nachtragen: keine Konsolenfehler
+ok   chromium/Pixel 7 light Routinen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Routinen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Routinen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Routinen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Routinen: keine Konsolenfehler
+ok   chromium/Pixel 7 light Übungen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Übungen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Übungen: keine Konsolenfehler
+ok   chromium/Pixel 7 light Info Kniebeuge: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Info Kniebeuge: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Info Kniebeuge: keine Konsolenfehler
+ok   chromium/Pixel 7 light Einstellungen: nichts ragt seitlich heraus
+ok   chromium/Pixel 7 light Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Pixel 7 light Einstellungen: keine Tap-Ziele unter 24 px
+ok   chromium/Pixel 7 light Einstellungen: Textkontrast ≥ 3:1
+ok   chromium/Pixel 7 light Einstellungen: keine Konsolenfehler
+ok   chromium/Pixel 7: Backup ist gültiges JSON (workout-tracker-backup-2026-10-29.json)
+ok   chromium/Pixel 7: Import stellt die Pläne wieder her (3 → 3)
+ok   chromium/Pixel 7: Backup ohne Konsolenfehler 
+
+### chromium/Galaxy S24 (360×780 @3)
+ok   chromium/Galaxy S24 dark: Karte „Neu hier?“ beim ersten Start
+ok   chromium/Galaxy S24 dark Start (neu): nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Start (neu): kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Start (neu): keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Start (neu): Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Start (neu): keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Rundgang: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Rundgang: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Rundgang: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Rundgang: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Rundgang: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark: nach der Einführung keine Karte mehr
+ok   chromium/Galaxy S24 dark Assistent Frage 1: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Assistent Frage 1: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Assistent Frage 1: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Assistent Tage: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Assistent Tage: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Assistent Tage: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Assistent Tage: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Assistent Vorschau: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Assistent Vorschau: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Assistent Vorschau: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark: drei Pläne angelegt (GK A, GK B, Ausdauer)
+ok   chromium/Galaxy S24 dark Pläne: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Pläne: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Pläne: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Pläne: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Pläne: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Plan Ganzkörper A: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark: Training läuft mit Satzzeilen
+ok   chromium/Galaxy S24 dark: Pause läuft nach dem Haken
+ok   chromium/Galaxy S24 dark: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   chromium/Galaxy S24 dark Training Satz: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Training Satz: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Training Satz: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Training Satz: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Training Satz: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Technik-Animation: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Technik-Animation: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Technik-Animation: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Technik-Animation: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Training Übersicht: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Training Übersicht: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Training Übersicht: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Training Übersicht: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Bewertung: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Bewertung: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Bewertung: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Bewertung: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Bewertung: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark: Zusammenfassung „Training gespeichert“
+ok   chromium/Galaxy S24 dark Zusammenfassung: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Zusammenfassung: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Zusammenfassung: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Zusammenfassung: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Zusammenfassung: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark: Training beendet
+ok   chromium/Galaxy S24 dark Fortschritt Übungen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Fortschritt Übungen: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Fortschritt Trainings: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Fortschritt Trainings: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Fortschritt Muskeln: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Fortschritt 4 Wochen: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark: Verlauf nach dem Training vorhanden
+ok   chromium/Galaxy S24 dark Nachtragen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Nachtragen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Nachtragen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Nachtragen: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Routinen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Routinen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Routinen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Routinen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Routinen: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Übungen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Übungen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Übungen: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Info Kniebeuge: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Info Kniebeuge: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Info Kniebeuge: keine Konsolenfehler
+ok   chromium/Galaxy S24 dark Einstellungen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 dark Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 dark Einstellungen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 dark Einstellungen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 dark Einstellungen: keine Konsolenfehler
+ok   chromium/Galaxy S24 light: Hell über die Einstellungen
+ok   chromium/Galaxy S24 light Assistent Frage 1: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Assistent Frage 1: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Assistent Frage 1: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Assistent Frage 1: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Assistent Frage 1: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Assistent Tage: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Assistent Tage: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Assistent Tage: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Assistent Tage: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Assistent Tage: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Assistent Vorschau: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Assistent Vorschau: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Assistent Vorschau: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Assistent Vorschau: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Assistent Vorschau: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Pläne: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Pläne: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Pläne: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Pläne: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Pläne: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Plan Ganzkörper A: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Plan Ganzkörper A: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Plan Ganzkörper A: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Plan Ganzkörper A: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Plan Ganzkörper A: keine Konsolenfehler
+ok   chromium/Galaxy S24 light: Training läuft mit Satzzeilen
+ok   chromium/Galaxy S24 light: Pause läuft nach dem Haken
+ok   chromium/Galaxy S24 light: Layout schmal – Pausenzeit einzeilig, Knopfzeilen im Rand, Schnellknöpfe einzeilig und in der Karte, Plus bei Aufwärmsatz/Satz ({"time":true,"nav":true,"gutter":true,"quick":true,"quickIn":true,"plus":true})
+ok   chromium/Galaxy S24 light Training Satz: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Training Satz: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Training Satz: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Training Satz: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Training Satz: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Technik-Animation: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Technik-Animation: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Technik-Animation: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Technik-Animation: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Technik-Animation: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Training Übersicht: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Training Übersicht: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Training Übersicht: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Training Übersicht: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Training Übersicht: keine Konsolenfehler
+ok   chromium/Galaxy S24 light: Training verworfen
+ok   chromium/Galaxy S24 light Fortschritt Übungen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Fortschritt Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Fortschritt Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Fortschritt Übungen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Fortschritt Übungen: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Fortschritt Trainings: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Fortschritt Trainings: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Fortschritt Trainings: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Fortschritt Trainings: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Fortschritt Trainings: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Fortschritt Muskeln: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Fortschritt Muskeln: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Fortschritt Muskeln: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Fortschritt Muskeln: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Fortschritt Muskeln: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Fortschritt 4 Wochen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Fortschritt 4 Wochen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Fortschritt 4 Wochen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Fortschritt 4 Wochen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Fortschritt 4 Wochen: keine Konsolenfehler
+ok   chromium/Galaxy S24 light: Verlauf nach dem Training vorhanden
+ok   chromium/Galaxy S24 light Nachtragen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Nachtragen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Nachtragen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Nachtragen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Nachtragen: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Routinen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Routinen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Routinen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Routinen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Routinen: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Übungen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Übungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Übungen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Übungen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Übungen: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Info Kniebeuge: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Info Kniebeuge: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Info Kniebeuge: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Info Kniebeuge: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Info Kniebeuge: keine Konsolenfehler
+ok   chromium/Galaxy S24 light Einstellungen: nichts ragt seitlich heraus
+ok   chromium/Galaxy S24 light Einstellungen: kein null/undefined/NaN/[object] im Text
+ok   chromium/Galaxy S24 light Einstellungen: keine Tap-Ziele unter 24 px
+ok   chromium/Galaxy S24 light Einstellungen: Textkontrast ≥ 3:1
+ok   chromium/Galaxy S24 light Einstellungen: keine Konsolenfehler
+ok   chromium/Galaxy S24: Backup ist gültiges JSON (workout-tracker-backup-2026-10-29.json)
+ok   chromium/Galaxy S24: Import stellt die Pläne wieder her (3 → 3)
+ok   chromium/Galaxy S24: Backup ohne Konsolenfehler 
+ok   chromium: Service Worker steuert die Seite
+ok   chromium: ohne Netz liefert der Service Worker die App-Dateien ({"index.html":true,"js/app.js":true,"css/glass.css":true,"js/version.js":true})
+ok   chromium: App startet offline
+ok   chromium: offline auch die Einstellungen (Version sichtbar)
+ok   chromium: offline ohne Seitenfehler 
+ok   Update: Daten in 3.7.0 angelegt
+ok   Update: 3.7.0 → 3.9.1 nach 2 Neuladen sichtbar (Modul: 3.9.1)
+ok   Update: Plan aus der alten Version ist noch da
+ok   Update: keine Seitenfehler 
+
+alle Prüfungen bestanden · 4 Hinweise

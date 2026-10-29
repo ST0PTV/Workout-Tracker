@@ -1,0 +1,14 @@
+{
+  "engine": "chromium",
+  "devices": [
+    "Pixel 7",
+    "Galaxy S24"
+  ],
+  "fails": 0,
+  "warns": [
+    "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Bildschirm anlassen」 51×31",
+    "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Scheiben pro Seite」 51×31",
+    "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Hinweise anzeigen」 51×31",
+    "chromium/Pixel 7 dark Einstellungen: Tap-Ziel unter 44 px: input.switch「Zyklus berücksichtigen」 51×31"
+  ]
+}
