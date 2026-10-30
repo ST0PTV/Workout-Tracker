@@ -108,13 +108,19 @@ for (const [devName, theme] of profiles) {
   }
 
   // M2: Halteübung im Training
-  for (let i = 0; i < 12; i++) {
-    if (/Unterarmstütz|Seitstütz/.test(await p.locator('#view').innerText().then((t) => t.slice(0, 200)))) break;
+  // v3.14.0: auf den Übungsnamen (h2.exh) warten statt fester 250 ms – in WebKit (CI) war die Schleife sonst zu schnell
+  const exName = () => p.locator('h2.exh').first().innerText().catch(() => '');
+  const seen = [];
+  for (let i = 0; i < 14; i++) {
+    const cur = await exName(); seen.push(cur);
+    if (/Unterarmstütz|Seitstütz/.test(cur)) break;
     const nx = p.getByRole('button', { name: 'Nächste Übung' });
     if (!(await nx.count())) break;
-    await nx.first().click(); await p.waitForTimeout(250);
+    await nx.first().click();
+    await p.waitForFunction((prev) => (document.querySelector('h2.exh')?.textContent || '') !== prev, cur, { timeout: 3000 }).catch(() => {});
   }
-  const head = await p.locator('#view').innerText().then((t) => t.slice(0, 200));
+  if (!/Unterarmstütz|Seitstütz/.test(seen.at(-1))) console.log(`info ${T}: Übungen im Pager: ${seen.join(' → ')}`);
+  const head = await exName();
   ok(/Unterarmstütz|Seitstütz/.test(head), `${T}: Halteübung im Plan erreicht`);
   ok(/sek\./i.test(await p.locator('.card.sets .hdrrow').innerText()), `${T}: Spalte „Sek.“ statt „Wdh.“`);
   const hold = p.locator('.setrow input[aria-label*="Haltezeit"]').first();
