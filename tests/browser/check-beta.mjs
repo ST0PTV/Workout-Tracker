@@ -38,6 +38,7 @@ ok(await p.evaluate(() => document.documentElement.dataset.theme !== 'light'), '
 ok(!(await p.locator('#view').innerText()).includes('Plan der Hauptversion'), 'Plan der Hauptversion nicht sichtbar');
 const card = p.locator('.beta-hint');
 ok(await card.count() === 1, 'Hinweis der Testversion sichtbar');
+ok(await p.locator('.home-hint').count() === 0, 'Home-Bildschirm-Hinweis wartet, solange der Beta-Hinweis offen ist');
 const ct = await card.innerText();
 ok(/nur auf diesem Gerät/.test(ct) && /nichts wird an einen Server gesendet/.test(ct) && /Backup/.test(ct), 'Hinweis betont: lokal, kein Server, selbst sichern');
 await shot('1-start');
@@ -46,9 +47,10 @@ ok(/sendet nichts/.test(await p.evaluate(() => document.querySelector('.sheet')?
 await p.evaluate(() => document.querySelectorAll('.sheet-close').forEach((x) => x.click())); await p.waitForTimeout(300);
 await card.getByRole('button', { name: 'Verstanden' }).click(); await p.waitForTimeout(300);
 ok(await p.locator('.beta-hint').count() === 0, '„Verstanden“ blendet den Hinweis aus');
+ok(await p.locator('.home-hint').count() === 1, 'danach erscheint der Home-Bildschirm-Hinweis');
 
 // Etwas speichern und Keys prüfen
-await p.evaluate(async () => { const lib = await import('./js/exercises.js'); lib.addFromPool('bench-press'); });
+await p.evaluate(async () => { const lib = await import('./js/exercises.js'); const r = lib.addFromPool('plank'); if (!r?.ok && !r?.exercise && !r?.id) console.log('addFromPool', JSON.stringify(r)); });
 const keys = await p.evaluate(() => Object.keys(localStorage));
 ok(keys.some((k) => k === 'wtb_settings') && keys.some((k) => k === 'wtb_exercises'), 'Beta speichert unter wtb_');
 ok(await p.evaluate(() => JSON.parse(localStorage.getItem('wtb_settings')).betaInfo === true), 'betaInfo unter wtb_settings');
