@@ -2,7 +2,7 @@
 // M3 Hinweis „Zum Home-Bildschirm“, M4 Analyse ohne Vorschlag bei 5–9 Sätzen, S1 Assistent im leeren Training-Tab,
 // S2 kompakte Vorschlagskarte, S3 Tausch-Alternativen ohne Gruppen. Nur erfundene Testdaten.
 // Aufruf: node tests/browser/check-v3130.mjs [Ordner für Screenshots]
-import { launch, startServer, checker, loadPlaywright, BAD_TEXT } from './lib.mjs';
+import { launch, startServer, checker, loadPlaywright, BAD_TEXT, startPlan } from './lib.mjs';
 import { join } from 'node:path';
 const shots = process.argv[2] || null;
 const pw = await loadPlaywright();
@@ -86,7 +86,15 @@ for (const [devName, theme] of profiles) {
 
   // S2 + S3: Training
   await go('#/');
-  await p.locator('#view button.play').first().click(); await p.waitForTimeout(600);
+  // v3.14.0: gezielt den Plan mit der Halteübung starten – welcher Plan oben steht, hängt vom Wochentag ab
+  // (WebKit-CI am Freitag/Samstag startete „Ganzkörper B“ ohne Plank).
+  const holdPlan = await p.evaluate(async () => {
+    const st = await import('./js/store.js'); const { isTimed } = await import('./js/timed.js');
+    const ex = Object.fromEntries(st.get('exercises').map((e) => [e.id, e]));
+    return st.get('plans').find((pl) => (pl.items || []).some((i) => ex[i.exerciseId] && isTimed(ex[i.exerciseId])))?.name || null;
+  });
+  ok(!!holdPlan, `${T}: Vorbedingung – ein Plan enthält eine Halteübung (${holdPlan})`);
+  await startPlan(p, holdPlan); await p.waitForTimeout(600);
   const sug = await p.locator('.sug-card').count();
   const firstRow = await p.evaluate(() => { const r = document.querySelector('.setrow'); return r ? Math.round(r.getBoundingClientRect().bottom) : 9999; });
   const vh = await p.evaluate(() => innerHeight);
