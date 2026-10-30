@@ -13,7 +13,8 @@ import { CHANNEL } from './channel.js';
 export const BACKUP_APP = 'workout-tracker'; // gleich in Haupt- und Beta-Version: Backups lassen sich zwischen beiden übertragen
 
 // v3.14.0 (Sicherheit): Grenzen für eingelesene Dateien. Echte Backups liegen weit darunter
-// (Schätzung: ein Training ≈ 1–3 KB, 1000 Trainings ≈ 3 MB). Lange Texte deuten auf eine kaputte oder präparierte Datei.
+// (gemessen 2026-10-31: ein Training mit 22 Sätzen ≈ 6 KB, im Export mit Einrückung ≈ 10 KB → 20 MB ≈ 2000 Trainings,
+// bei 4 pro Woche rund 10 Jahre). Lange Texte deuten auf eine kaputte oder präparierte Datei.
 export const MAX_BACKUP_BYTES = 20 * 1024 * 1024;
 export const MAX_TEXT_CHARS = 5000;
 
