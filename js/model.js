@@ -67,6 +67,8 @@ export const DEFAULT_SETTINGS = {
   hints: true, // v2.34.0: kurze Erklärzeilen auf den Bildschirmen (Einstellungen → Anzeige)
   onboarded: false, // v2.34.0: Einführung gesehen oder ausgeblendet
   homeHint: false, // v3.13.0 (M3): Hinweis „Zum Home-Bildschirm“ gelesen
+  betaInfo: false, // v3.14.0: Hinweis der Testversion gelesen (nur in der Beta sichtbar)
+  lastBackupAt: null, // v3.14.0: Zeitpunkt des letzten Exports (ISO) – nur Anzeige, keine Erinnerung
   tutorial: null, // v3.9.0: { tour, trial: null | 'done' | 'skipped', tips: { <id>: true } } – siehe tutorial.js
   equipment: null // v2.31.0: „Mein Equipment“ als Liste von Geräte-Schlüsseln (siehe pool.js GEAR) oder null = alles zeigen
 };

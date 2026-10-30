@@ -3,7 +3,10 @@
 # 1) Generische Muster: E-Mail-Adressen, Telefonnummern, Backup-Dateien.
 # 2) Eigene Begriffe (Namen, Orte, ...) in .privacy-terms.local, ein Begriff pro Zeile.
 #    Diese Datei ist per .gitignore ausgeschlossen und gehört nie ins Repo.
-cd "$(dirname "$0")/.." || exit 2
+# v3.14.0: optionaler Ordner als 1. Argument (z. B. die Beta-Kopie); die Begriffsliste kommt immer aus dem Repo.
+REPO=$(cd "$(dirname "$0")/.." && pwd) || exit 2
+TERMS="$REPO/.privacy-terms.local"
+cd "${1:-$REPO}" || exit 2
 status=0
 FILES=$(find . -type f \
   -not -path './.git/*' -not -path './node_modules/*' -not -path './icons/*' \
@@ -23,8 +26,8 @@ hits=$(echo "$FILES" | xargs grep -nEI '(\+49|0049|\b0[1-9][0-9]{2,4}[ /-]?[0-9]
 if [ -n "$hits" ]; then echo "$hits"; status=1; else echo "keine"; fi
 
 echo "== Eigene Begriffe (.privacy-terms.local) =="
-if [ -f .privacy-terms.local ]; then
-  hits=$(echo "$FILES" | xargs grep -nIiF -f .privacy-terms.local 2>/dev/null)
+if [ -f "$TERMS" ]; then
+  hits=$(echo "$FILES" | xargs grep -nIiF -f "$TERMS" 2>/dev/null)
   if [ -n "$hits" ]; then echo "$hits"; status=1; else echo "keine"; fi
 else
   echo "Datei fehlt: lege .privacy-terms.local mit Namen/Orten an (ein Begriff pro Zeile)."

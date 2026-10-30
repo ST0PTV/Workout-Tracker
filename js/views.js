@@ -1,7 +1,9 @@
 // Ansichten: Einstellungen (Backup, Standard-Pause, Info); die Tabs Training, Pläne und Übungen kommen aus eigenen Modulen.
 import { cycleSettingsCard } from './cycle-view.js';
-import { h } from './util.js';
+import { h, nowISO } from './util.js';
 import { APP_VERSION } from './version.js';
+import { CHANNEL, BETA_VERSION } from './channel.js';
+import { openDataInfo, lastBackupText } from './privacy-info.js';
 import * as store from './store.js';
 import * as backup from './backup.js';
 import { toast } from './ui.js';
@@ -46,6 +48,7 @@ async function exportBackup() {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: name });
+      markBackup();
       toast('Backup bereit.');
       return;
     } catch (err) {
@@ -58,11 +61,20 @@ async function exportBackup() {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+  markBackup();
   toast('Backup heruntergeladen.');
+}
+
+// v3.14.0: Zeitpunkt des letzten Exports merken (nur Anzeige in der Backup-Karte; keine Erinnerung, kein Zähler).
+let afterBackup = null;
+function markBackup() {
+  store.set('settings', { ...store.get('settings'), lastBackupAt: nowISO() });
+  afterBackup?.();
 }
 
 async function importBackup(file, rerender) {
   if (!file) return;
+  if (file.size > backup.MAX_BACKUP_BYTES) { toast('Datei ist zu groß für ein Backup (über 20 MB).', { error: true }); return; }
   const result = backup.parseBackupText(await file.text());
   if (!result.ok) {
     toast(result.errors[0], { error: true });
@@ -89,6 +101,7 @@ function cardInfo(title, short, details = []) {
 }
 
 export function settingsView(rerender) {
+  afterBackup = rerender;
   const fileInput = h('input', {
     type: 'file',
     accept: 'application/json,.json',
@@ -110,6 +123,7 @@ export function settingsView(rerender) {
         'Sichere sie regelmäßig als Datei.',
         'Die Backup-Datei enthält deine Trainings – nicht öffentlich teilen.'
       ], ['Beim Import werden alle aktuellen Daten in der App ersetzt.'])),
+      h('p', { class: 'muted small backup-state' }, `Nur auf diesem Gerät gespeichert · zuletzt gesichert: ${lastBackupText(settings.lastBackupAt)}`),
       h('div', { class: 'btn-row' },
         h('button', { class: 'btn primary', type: 'button', onclick: exportBackup }, 'Exportieren'),
         h('button', { class: 'btn', type: 'button', onclick: () => fileInput.click() }, 'Importieren')),
@@ -181,7 +195,8 @@ export function settingsView(rerender) {
     cycleSettingsCard(rerender),
     h('div', { class: 'card' },
       cardHead('Info'),
-      kv('Version', APP_VERSION))
+      kv('Version', CHANNEL === 'beta' ? `Beta ${BETA_VERSION} (Stand ${APP_VERSION})` : APP_VERSION),
+      h('div', { class: 'btn-row' }, h('button', { class: 'btn', type: 'button', onclick: openDataInfo }, 'Deine Daten')))
   );
 }
 

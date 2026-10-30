@@ -3,7 +3,7 @@
 // Pausen-Timer ohne Ton, Alarm oder Vibration – das Ende wird nur angezeigt.
 import { infoBody, hintLine, hintsOn, infoBtn } from './info.js';
 import { openGlossary, TERMS } from './glossary.js';
-import { welcomeCard, homeScreenCard } from './onboarding.js';
+import { welcomeCard, homeScreenCard, betaCard } from './onboarding.js';
 import { openAssistant } from './assistant-view.js';
 import { h } from './util.js';
 import * as store from './store.js';
@@ -805,6 +805,7 @@ function startView(rerender) {
       h('div', { class: 'head-btns' },
         h('a', { class: 'dots', href: '#/settings', 'aria-label': 'Einstellungen' }, icon('settings', { size: 20 })), // v3.1.0: Einstellungen nicht mehr in der Tab-Leiste
         h('button', { class: 'dots', type: 'button', 'aria-label': 'Mehr: Training nachtragen, leichte Woche', onclick: moreMenu }, '⋯'))),
+    betaCard(rerender),
     welcomeCard(rerender),
     homeScreenCard(rerender),
     ...cycleStartCards(rerender),

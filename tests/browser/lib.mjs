@@ -6,11 +6,12 @@
 //   PLAYWRIGHT_MODULE  Ordner des Pakets "playwright", falls es nicht über import() gefunden wird
 import { readFileSync, existsSync, readdirSync, mkdirSync } from 'node:fs';
 import { createServer } from 'node:http';
-import { join, extname, normalize } from 'node:path';
+import { join, extname, normalize, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-export const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+// v3.14.0: WT_ROOT prüft einen anderen App-Ordner (z. B. die Beta-Kopie aus scripts/beta.mjs).
+export const ROOT = process.env.WT_ROOT ? join(resolve(process.env.WT_ROOT), '/') : fileURLToPath(new URL('../../', import.meta.url));
 export const rootUrl = (p) => pathToFileURL(join(ROOT, p)).href;
 
 /** App-Version aus js/version.js (einzige Quelle). */
