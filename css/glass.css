@@ -1384,6 +1384,9 @@ body:has(#view .training) :is(#view .training, .sheet) :is(.qbtn, .pill, .note-b
 .sug-card .btn-row { flex-wrap: nowrap; }
 .sug-card .btn-row > .btn { flex: 1 1 0; min-height: 44px; padding: 0 10px; }
 /* 3.13.0 (M3): Hinweis Home-Bildschirm */
-.home-hint b { display: block; margin-bottom: 4px; }
-.home-hint p { margin: 0; }
+.home-hint b, .beta-hint b { display: block; margin-bottom: 4px; }
+.home-hint p, .beta-hint p { margin: 0; }
 .swapline .note-btn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* v3.14.0: Hinweis der Testversion – Absätze sichtbar getrennt */
+.beta-hint p + p { margin-top: 6px; }

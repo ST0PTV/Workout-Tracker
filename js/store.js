@@ -1,12 +1,13 @@
 // Speicherschicht: einzige Stelle, die localStorage anfasst.
-// Alle Keys tragen das Präfix "wt_", damit sie nicht mit anderen Apps unter derselben Origin kollidieren.
+// Alle Keys tragen ein Präfix ("wt_", in der Beta "wtb_", js/channel.js), damit sie nicht mit anderen Apps unter derselben Origin kollidieren.
 import { clone } from './util.js';
 import { SCHEMA_VERSION, DEFAULT_SETTINGS } from './model.js';
 import { migrateData } from './migrate.js';
 import { DEFAULT_CYCLE } from './cycle.js';
+import { STORAGE_PREFIX } from './channel.js';
 
 export { SCHEMA_VERSION };
-const PREFIX = 'wt_';
+const PREFIX = STORAGE_PREFIX;
 
 const DEFAULTS = {
   exercises: [],

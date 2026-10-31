@@ -21,12 +21,18 @@ export function clone(value) {
 }
 
 // Kleiner DOM-Helfer: h('div', {class:'card'}, 'Text', childNode)
+// v3.14.0 (Sicherheit): Links und Quellen nie aus ausführbaren Schemata setzen, auch wenn Daten aus einem Backup stammen.
+const URL_ATTRS = new Set(['href', 'src', 'action', 'formaction', 'xlink:href']);
+const UNSAFE_URL = /^\s*(javascript|vbscript|data):/i;
+export function safeUrl(v) { return !UNSAFE_URL.test(String(v)); }
+
 export function h(tag, attrs = {}, ...children) {
   const el = document.createElement(tag);
   for (const [key, val] of Object.entries(attrs || {})) {
     if (val === false || val === null || val === undefined) continue;
     if (key === 'class') el.className = val;
     else if (key.startsWith('on') && typeof val === 'function') el.addEventListener(key.slice(2).toLowerCase(), val);
+    else if (URL_ATTRS.has(key) && UNSAFE_URL.test(String(val))) continue; // v3.14.0: keine javascript:/data:-Links
     else el.setAttribute(key, val === true ? '' : String(val));
   }
   for (const child of children.flat()) {

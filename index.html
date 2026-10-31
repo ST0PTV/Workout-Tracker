@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <!-- v3.14.0: Content Security Policy. Nur eigene Dateien; keine fremden Server. frame-ancestors geht per Meta nicht (GitHub Pages setzt keine Header). -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <title>Workout Tracker</title>
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,17 +15,7 @@
   <link rel="apple-touch-icon" href="icons/icon-180.png">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="css/glass.css">
-  <script>
-    // v3.0.0: Erscheinung vor dem ersten Zeichnen setzen (Dunkel ist Standard; js/theme.js übernimmt danach)
-    try {
-      var s = JSON.parse(localStorage.getItem('wt_settings') || '{}');
-      if (s && s.appearance === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#F2F2F7');
-        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute('content', 'default');
-      }
-    } catch (e) { /* ohne Speicher: Dunkel */ }
-  </script>
+  <script src="js/theme-early.js"></script>
 </head>
 <body>
   <div class="bg" aria-hidden="true"></div>

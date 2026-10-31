@@ -2,7 +2,7 @@
 // M3 Hinweis „Zum Home-Bildschirm“, M4 Analyse ohne Vorschlag bei 5–9 Sätzen, S1 Assistent im leeren Training-Tab,
 // S2 kompakte Vorschlagskarte, S3 Tausch-Alternativen ohne Gruppen. Nur erfundene Testdaten.
 // Aufruf: node tests/browser/check-v3130.mjs [Ordner für Screenshots]
-import { launch, startServer, checker, loadPlaywright, BAD_TEXT } from './lib.mjs';
+import { launch, startServer, checker, loadPlaywright, BAD_TEXT, startPlan } from './lib.mjs';
 import { join } from 'node:path';
 const shots = process.argv[2] || null;
 const pw = await loadPlaywright();
@@ -86,7 +86,15 @@ for (const [devName, theme] of profiles) {
 
   // S2 + S3: Training
   await go('#/');
-  await p.locator('#view button.play').first().click(); await p.waitForTimeout(600);
+  // v3.14.0: gezielt den Plan mit der Halteübung starten – welcher Plan oben steht, hängt vom Wochentag ab
+  // (WebKit-CI am Freitag/Samstag startete „Ganzkörper B“ ohne Plank).
+  const holdPlan = await p.evaluate(async () => {
+    const st = await import('./js/store.js'); const { isTimed } = await import('./js/timed.js');
+    const ex = Object.fromEntries(st.get('exercises').map((e) => [e.id, e]));
+    return st.get('plans').find((pl) => (pl.items || []).some((i) => ex[i.exerciseId] && isTimed(ex[i.exerciseId])))?.name || null;
+  });
+  ok(!!holdPlan, `${T}: Vorbedingung – ein Plan enthält eine Halteübung (${holdPlan})`);
+  await startPlan(p, holdPlan); await p.waitForTimeout(600);
   const sug = await p.locator('.sug-card').count();
   const firstRow = await p.evaluate(() => { const r = document.querySelector('.setrow'); return r ? Math.round(r.getBoundingClientRect().bottom) : 9999; });
   const vh = await p.evaluate(() => innerHeight);
@@ -108,13 +116,19 @@ for (const [devName, theme] of profiles) {
   }
 
   // M2: Halteübung im Training
-  for (let i = 0; i < 12; i++) {
-    if (/Unterarmstütz|Seitstütz/.test(await p.locator('#view').innerText().then((t) => t.slice(0, 200)))) break;
+  // v3.14.0: auf den Übungsnamen (h2.exh) warten statt fester 250 ms – in WebKit (CI) war die Schleife sonst zu schnell
+  const exName = () => p.locator('h2.exh').first().innerText().catch(() => '');
+  const seen = [];
+  for (let i = 0; i < 14; i++) {
+    const cur = await exName(); seen.push(cur);
+    if (/Unterarmstütz|Seitstütz/.test(cur)) break;
     const nx = p.getByRole('button', { name: 'Nächste Übung' });
     if (!(await nx.count())) break;
-    await nx.first().click(); await p.waitForTimeout(250);
+    await nx.first().click();
+    await p.waitForFunction((prev) => (document.querySelector('h2.exh')?.textContent || '') !== prev, cur, { timeout: 3000 }).catch(() => {});
   }
-  const head = await p.locator('#view').innerText().then((t) => t.slice(0, 200));
+  if (!/Unterarmstütz|Seitstütz/.test(seen.at(-1))) console.log(`info ${T}: Übungen im Pager: ${seen.join(' → ')}`);
+  const head = await exName();
   ok(/Unterarmstütz|Seitstütz/.test(head), `${T}: Halteübung im Plan erreicht`);
   ok(/sek\./i.test(await p.locator('.card.sets .hdrrow').innerText()), `${T}: Spalte „Sek.“ statt „Wdh.“`);
   const hold = p.locator('.setrow input[aria-label*="Haltezeit"]').first();

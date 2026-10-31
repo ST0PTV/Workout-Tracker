@@ -6,6 +6,8 @@ import * as store from './store.js';
 import { startTour } from './tour-view.js';
 import { isStandalone } from './device.js';
 import { icon } from './icons.js';
+import { CHANNEL } from './channel.js';
+import { openDataInfo } from './privacy-info.js';
 
 const markSeen = () => store.set('settings', { ...store.get('settings'), onboarded: true });
 
@@ -21,11 +23,26 @@ export function isNewUser() {
  */
 export function homeScreenCard(rerender) {
   if (store.inSandbox?.() || store.get('settings').homeHint === true || isStandalone()) return null;
+  if (betaCardShown()) return null; // v3.14.0: in der Beta erst nach dem Hinweis der Testversion (nicht drei Karten auf einmal)
   return h('div', { class: 'card home-hint' },
     h('b', {}, icon('info', { size: 18, cls: 'inline' }), ' Zum Home-Bildschirm hinzufügen'),
     h('p', { class: 'muted small' }, 'Im Safari-Browser können deine Daten nach 7 Tagen ohne Besuch gelöscht werden, als App nicht. Teilen → „Zum Home-Bildschirm“. Zusätzlich sichert ein Backup (Einstellungen).'),
     h('div', { class: 'btn-row' },
       h('button', { class: 'btn', type: 'button', onclick: () => { store.set('settings', { ...store.get('settings'), homeHint: true }); rerender(); } }, 'Verstanden')));
+}
+
+/** v3.14.0: Hinweis der Testversion (nur Kanal 'beta', bis „Verstanden“). Betont: Daten nur lokal, selbst sichern. */
+const betaCardShown = () => CHANNEL === 'beta' && !store.inSandbox?.() && store.get('settings').betaInfo !== true;
+
+export function betaCard(rerender) {
+  if (!betaCardShown()) return null;
+  return h('div', { class: 'card beta-hint' },
+    h('b', {}, icon('info', { size: 18, cls: 'inline' }), ' Testversion – deine Daten bleiben bei dir'),
+    h('p', { class: 'muted small' }, 'Alles bleibt nur auf diesem Gerät, nichts wird an einen Server gesendet. Sichere deine Daten deshalb regelmäßig selbst: Einstellungen → Backup → Exportieren.'),
+    h('p', { class: 'muted small' }, 'Testversion: Fehler sind möglich. Vorschläge sind Schätzungen, keine medizinische Beratung.'),
+    h('div', { class: 'btn-row' },
+      h('button', { class: 'btn', type: 'button', onclick: openDataInfo }, 'Mehr dazu'),
+      h('button', { class: 'btn primary', type: 'button', onclick: () => { store.set('settings', { ...store.get('settings'), betaInfo: true }); rerender(); } }, 'Verstanden')));
 }
 
 /** Karte oben im Training-Tab für neue Nutzer (oder null). */
