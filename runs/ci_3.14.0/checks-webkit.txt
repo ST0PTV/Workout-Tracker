@@ -667,39 +667,83 @@ ok   iPhone SE dark: Liste zeigt die Haltezeit („Unterarmstütz (Plank) 7 Trai
 ok   iPhone SE dark: Verlauf Plank mit längster Haltezeit, ohne Schätzung
 ok   iPhone SE dark: kein Volumen-Vorschlag für den Assistenten-Plan
 ok   iPhone SE dark: neutraler Hinweis „Knapp unter 10 Sätzen“
+ok   iPhone SE dark: Vorbedingung – ein Plan enthält eine Halteübung (Ganzkörper A)
 ok   iPhone SE dark: Vorschlagskarte da
 ok   iPhone SE dark: „Übernehmen“ und „Wie zuletzt“ nebeneinander
-info iPhone SE dark: erster Satz endet bei 498 von 568 px (320×568)
+info iPhone SE dark: erster Satz endet bei 516 von 568 px (320×568)
 ok   iPhone SE dark: Tauschen bietet Alternativen ohne Gruppen
 ok   iPhone SE dark: Pool-Alternative „Goblet Squat“ übernommen und getauscht
-info iPhone SE dark: Übungen im Pager: Goblet Squat → Brustpresse schräg → Latzug → Beinbeuger sitzend → Face Pull → Dead Bug → Kabelcurls (auch Bayesian) → Überkopf-Trizepsstrecken mit Kurzhantel → Wadenheben an der Beinpresse
-FAIL iPhone SE dark: Halteübung im Plan erreicht
-FAIL iPhone SE dark: Spalte „Sek.“ statt „Wdh.“
-FAIL iPhone SE dark: Eingabe Haltezeit
-node:internal/modules/run_main:123
-    triggerUncaughtException(
-    ^
-
-locator.fill: Timeout 6000ms exceeded.
-Call log:
-  - waiting for locator('.setrow input[aria-label*="Haltezeit"]').first()
-
-    at /__w/Workout-Tracker/Workout-Tracker/tests/browser/check-v3130.mjs:128:14 {
-  log: [
-    `  - waiting for locator('.setrow input[aria-label*="Haltezeit"]').first()`
-  ],
-  name: 'TimeoutError'
-}
-
-Node.js v22.23.4
-EXIT 1 check-v3130
+ok   iPhone SE dark: Halteübung im Plan erreicht
+ok   iPhone SE dark: Spalte „Sek.“ statt „Wdh.“
+ok   iPhone SE dark: Eingabe Haltezeit
+ok   iPhone SE dark: Satz mit 47 s gespeichert und erledigt
+ok   iPhone SE dark: kein Wdh.-Vorschlag bei der Halteübung
+ok   iPhone SE dark: keine Drop-/Rest-Pause-Knöpfe bei der Halteübung
+ok   iPhone SE dark: Editor: „Messen in“ für eigene Übungen, Standard Wiederholungen
+ok   iPhone SE dark: auf Sekunden umschaltbar
+ok   iPhone SE dark: kein null/undefined/NaN im Text
+ok   iPhone SE dark: keine Konsolenfehler 
+ok   iPhone SE light: helles Design aktiv
+ok   iPhone SE light: Hinweis „Zum Home-Bildschirm“ sichtbar (Browser, nicht installiert)
+ok   iPhone SE light: leerer Training-Tab bietet „Plan vorschlagen lassen“
+ok   iPhone SE light: öffnet den Plan-Assistenten
+ok   iPhone SE light: „Verstanden“ blendet den Hinweis dauerhaft aus
+ok   iPhone SE light: Muskelnamen lesbar, eine Zeile ([{"t":"Gesäß","w":256,"h":16},{"t":"Oberer Rücken / Trapez","w":256,"h":16}])
+ok   iPhone SE light: nichts ragt seitlich heraus
+ok   iPhone SE light: Liste zeigt die Haltezeit („Unterarmstütz (Plank) 7 Trainings · zuletzt 0:59“)
+ok   iPhone SE light: Verlauf Plank mit längster Haltezeit, ohne Schätzung
+ok   iPhone SE light: kein Volumen-Vorschlag für den Assistenten-Plan
+ok   iPhone SE light: neutraler Hinweis „Knapp unter 10 Sätzen“
+ok   iPhone SE light: Vorbedingung – ein Plan enthält eine Halteübung (Ganzkörper A)
+ok   iPhone SE light: Vorschlagskarte da
+ok   iPhone SE light: „Übernehmen“ und „Wie zuletzt“ nebeneinander
+info iPhone SE light: erster Satz endet bei 516 von 568 px (320×568)
+ok   iPhone SE light: Tauschen bietet Alternativen ohne Gruppen
+ok   iPhone SE light: Pool-Alternative „Goblet Squat“ übernommen und getauscht
+ok   iPhone SE light: Halteübung im Plan erreicht
+ok   iPhone SE light: Spalte „Sek.“ statt „Wdh.“
+ok   iPhone SE light: Eingabe Haltezeit
+ok   iPhone SE light: Satz mit 47 s gespeichert und erledigt
+ok   iPhone SE light: kein Wdh.-Vorschlag bei der Halteübung
+ok   iPhone SE light: keine Drop-/Rest-Pause-Knöpfe bei der Halteübung
+ok   iPhone SE light: Editor: „Messen in“ für eigene Übungen, Standard Wiederholungen
+ok   iPhone SE light: auf Sekunden umschaltbar
+ok   iPhone SE light: kein null/undefined/NaN im Text
+ok   iPhone SE light: keine Konsolenfehler 
+ok   Pixel 7 dark: Hinweis „Zum Home-Bildschirm“ sichtbar (Browser, nicht installiert)
+ok   Pixel 7 dark: leerer Training-Tab bietet „Plan vorschlagen lassen“
+ok   Pixel 7 dark: öffnet den Plan-Assistenten
+ok   Pixel 7 dark: „Verstanden“ blendet den Hinweis dauerhaft aus
+ok   Pixel 7 dark: Muskelnamen lesbar, eine Zeile ([{"t":"Gesäß","w":100,"h":16},{"t":"Oberer Rücken / Trapez","w":100,"h":31}])
+ok   Pixel 7 dark: nichts ragt seitlich heraus
+ok   Pixel 7 dark: Liste zeigt die Haltezeit („Unterarmstütz (Plank) 7 Trainings · zuletzt 0:59“)
+ok   Pixel 7 dark: Verlauf Plank mit längster Haltezeit, ohne Schätzung
+ok   Pixel 7 dark: kein Volumen-Vorschlag für den Assistenten-Plan
+ok   Pixel 7 dark: neutraler Hinweis „Knapp unter 10 Sätzen“
+ok   Pixel 7 dark: Vorbedingung – ein Plan enthält eine Halteübung (Ganzkörper A)
+ok   Pixel 7 dark: Vorschlagskarte da
+ok   Pixel 7 dark: „Übernehmen“ und „Wie zuletzt“ nebeneinander
+ok   Pixel 7 dark: erster Satz ohne Scrollen sichtbar (unten 498 von 839)
+ok   Pixel 7 dark: Tauschen bietet Alternativen ohne Gruppen
+ok   Pixel 7 dark: Pool-Alternative „Goblet Squat“ übernommen und getauscht
+ok   Pixel 7 dark: Halteübung im Plan erreicht
+ok   Pixel 7 dark: Spalte „Sek.“ statt „Wdh.“
+ok   Pixel 7 dark: Eingabe Haltezeit
+ok   Pixel 7 dark: Satz mit 47 s gespeichert und erledigt
+ok   Pixel 7 dark: kein Wdh.-Vorschlag bei der Halteübung
+ok   Pixel 7 dark: keine Drop-/Rest-Pause-Knöpfe bei der Halteübung
+ok   Pixel 7 dark: Editor: „Messen in“ für eigene Übungen, Standard Wiederholungen
+ok   Pixel 7 dark: auf Sekunden umschaltbar
+ok   Pixel 7 dark: kein null/undefined/NaN im Text
+ok   Pixel 7 dark: keine Konsolenfehler 
+alle Prüfungen bestanden
 ### check-v3140
 ok   CSP-Meta-Tag vorhanden
 ok   kein Inline-Skript mehr in index.html
 ok   Hauptversion: kein Hinweis der Testversion
 ok   helles Design vor dem ersten Zeichnen (js/theme-early.js)
 ok   Backup-Karte: „zuletzt gesichert: noch nie“
-ok   Backup-Dateiname der Hauptversion (workout-tracker-backup-2026-10-30.json)
+ok   Backup-Dateiname der Hauptversion (workout-tracker-backup-2026-10-31.json)
 ok   nach dem Export: Datum des letzten Backups
 ok   Info „Deine Daten“: lokal, sendet nichts, GitHub-IP-Hinweis
 ok   präparierter Name erscheint als Text
