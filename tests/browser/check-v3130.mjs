@@ -61,7 +61,7 @@ for (const [devName, theme] of profiles) {
   await p.evaluate(seed); await p.reload(); await p.waitForTimeout(600);
 
   // M1: 4-Wochen-Raster
-  await go('#/progress'); await p.getByRole('tab', { name: '4 Wochen' }).click(); await p.waitForTimeout(400);
+  await go('#/progress'); await p.getByRole('tab', { name: 'Rückblick' }).click(); await p.waitForTimeout(400);
   const names = await p.evaluate(() => [...document.querySelectorAll('.a4n')].map((e) => ({ t: e.textContent, w: Math.round(e.getBoundingClientRect().width), h: Math.round(e.getBoundingClientRect().height) })));
   ok(names.length > 5 && names.every((n) => n.w >= 90 && n.h <= 40), `${T}: Muskelnamen lesbar, eine Zeile (${JSON.stringify(names.slice(0, 2))})`);
   const over = await p.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);

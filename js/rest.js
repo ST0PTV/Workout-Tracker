@@ -20,6 +20,12 @@ export function effectiveRest(exercise, settings, entry = null) {
   return Number.isInteger(own) ? own : settings.restSeconds;
 }
 
+// v3.15.0: Pause nach einem Aufwärmsatz. Eine Einstellung für alle Übungen, Standard 60 s (reine Voreinstellung).
+export const WARMUP_REST_DEFAULT = 60;
+export function warmupRest(settings) {
+  return Number.isInteger(settings?.warmupRestSeconds) ? clampRest(settings.warmupRestSeconds) : WARMUP_REST_DEFAULT;
+}
+
 // 90 → "1:30", 600 → "10:00"
 export function formatDuration(sec) {
   const s = Math.max(0, Math.round(sec));

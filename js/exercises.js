@@ -2,7 +2,7 @@
 import * as store from './store.js';
 import { nowISO } from './util.js';
 import { MUSCLES, validateExercise } from './model.js';
-import { poolEntry, exerciseFromPool } from './pool.js';
+import { POOL, poolEntry, exerciseFromPool, poolRefsInLibrary } from './pool.js';
 
 // Körperregionen für Filter-Chips und Abschnitte der Liste.
 export const REGIONS = [
@@ -126,6 +126,32 @@ export function addFromPool(ref) {
     return r.ok ? { ok: true, errors: [], exercise: getExercise(existing.id), restored: true } : r;
   }
   return saveExercise(exerciseFromPool(entry));
+}
+
+// v3.15.0: Auswahl in Suchen (Training, Tagebuch, Plan): eigene Übungen plus alle Startpool-Übungen,
+// die noch nicht in der Bibliothek sind. Pool-Einträge tragen poolRef und werden erst beim Antippen übernommen.
+// Gleichnamige eigene Übungen haben Vorrang (sonst gäbe es den Namen doppelt).
+export const POOL_ID_PREFIX = 'pool:';
+export function pickableExercises() {
+  const own = listExercises();
+  const inLib = poolRefsInLibrary(own);
+  const names = new Set(own.map((e) => e.name.toLowerCase()));
+  const pool = POOL.filter((p) => !inLib.has(p.ref) && !names.has(p.name.toLowerCase())).map((p) => ({
+    id: POOL_ID_PREFIX + p.ref, poolRef: p.ref, name: p.name, kind: p.kind, note: p.note || '',
+    muscles: { primary: [...p.muscles.primary], secondary: [...p.muscles.secondary] }
+  }));
+  return [...own, ...pool];
+}
+
+// Gewählte Übung bereitstellen: eigene Übung direkt, Pool-Eintrag wird still in die Bibliothek übernommen.
+// Ergebnis: { ok, errors, exercise, added }.
+export function ensureExercise(pick) {
+  if (!pick?.poolRef) {
+    const ex = pick ? getExercise(pick.id) : null;
+    return ex ? { ok: true, errors: [], exercise: ex, added: false } : { ok: false, errors: ['Übung nicht gefunden.'] };
+  }
+  const r = addFromPool(pick.poolRef);
+  return r.ok ? { ...r, added: true } : r;
 }
 
 // v2.8.0: viele Pool-Übungen auf einmal übernehmen. Bereits aktive Übungen werden übersprungen,

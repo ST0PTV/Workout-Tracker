@@ -37,8 +37,14 @@ const isHard = (s) => s.completedAt !== null && s.type !== 'warmup';
 // Ergebnis: { weeks: [{ start, end, kw, sessions }], sessions, muscles: [{ id, name, weeks: [n…], avg, direct, indirect,
 //   main: { exerciseId, name, trend: { pct, withinNoise } | null, points } | null }], hints, uncovered, median, enough }
 export function fourWeekAnalysis(sessions, exercises, now = new Date(), weeks = WEEKS) {
+  return rangeAnalysis(sessions, exercises, weekStart(now), weeks);
+}
+
+// v3.15.0 (Rückblick): dieselbe Analyse für beliebig viele abgeschlossene Wochen vor `end` (Montag 00:00, exklusiv).
+export function rangeAnalysis(sessions, exercises, end, weeks) {
   const byId = Object.fromEntries(exercises.map((e) => [e.id, e]));
-  const cur = weekStart(now);
+  const cur = weekStart(end);
+  weeks = Math.max(1, Math.round(weeks));
   const starts = Array.from({ length: weeks }, (_, i) => addWeeks(cur, i - weeks));
   const per = starts.map((s) => weeklyMuscleSets(sessions, byId, s));
   const from = starts[0].getTime(), to = cur.getTime();
@@ -81,4 +87,90 @@ export function fourWeekAnalysis(sessions, exercises, now = new Date(), weeks = 
     sessions: inWindow.length,
     muscles, hints, uncovered, median: med, enough
   };
+}
+
+// ---------- v3.15.0: Rückblick (Zeitraum frei wählbar, Gesamtverlauf) ----------
+// Entscheidung 2026-11-22 (Nutzer): Variante A (Zeitraum-Chips über dem Raster) plus Gesamtverlauf mit Ausschnitt aus C.
+
+// Voreinstellungen in Wochen. „Alles“ = seit der Woche des ersten abgeschlossenen Trainings.
+export const PRESETS = [
+  { key: '4w', label: '4 W', weeks: 4 },
+  { key: '3m', label: '3 M', weeks: 13 },
+  { key: '6m', label: '6 M', weeks: 26 },
+  { key: '1y', label: '1 J', weeks: 52 },
+  { key: 'all', label: 'Alles', weeks: null }
+];
+export const MAX_COLUMNS = 7; // mehr Spalten passen auf 320 px nicht lesbar
+
+const isWork = (s) => s.completedAt !== null && s.type !== 'warmup';
+
+// Harte Sätze pro abgeschlossener Kalenderwoche, von der Woche des ersten Trainings bis vor `now`s Woche.
+// Cardio zählt nicht (wie in der Muskelkarte). Ergebnis: [{ start, sets, sessions }], älteste zuerst; leer ohne Daten.
+export function weeklyTotals(sessions, exercises, now = new Date()) {
+  const byId = Object.fromEntries(exercises.map((e) => [e.id, e]));
+  const end = weekStart(now).getTime();
+  const done = sessions.filter((s) => s.endedAt !== null && Date.parse(s.startedAt) < end);
+  if (!done.length) return [];
+  const first = weekStart(new Date(Math.min(...done.map((s) => Date.parse(s.startedAt)))));
+  const out = [];
+  for (let d = first; d.getTime() < end; d = addWeeks(d, 1)) out.push({ start: d, sets: 0, sessions: 0 });
+  const index = (t) => {
+    // Index über Kalenderdaten, nicht Millisekunden (Zeitumstellung)
+    let lo = 0, hi = out.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (out[mid].start.getTime() <= t) lo = mid; else hi = mid - 1; }
+    return lo;
+  };
+  for (const s of done) {
+    const w = out[index(Date.parse(s.startedAt))];
+    w.sessions += 1;
+    for (const en of s.entries) {
+      const ex = byId[en.exerciseId];
+      if (!ex || ex.kind === 'cardio') continue;
+      w.sets += en.sets.filter(isWork).length;
+    }
+  }
+  return out;
+}
+
+// Spalten für das Raster: die kleinste Einheit (Woche, Monat, Quartal, Jahr) mit höchstens MAX_COLUMNS Spalten.
+// Eine Woche gehört zu Monat/Quartal/Jahr ihres Montags. Wert je Spalte = Ø Sätze pro Woche dieser Spalte,
+// damit die Farbstufen (pro Woche) überall dasselbe bedeuten.
+export function columnsFor(weekStarts, maxCols = MAX_COLUMNS) {
+  const keyers = [
+    ['week', (d) => d.getTime()],
+    ['month', (d) => d.getFullYear() * 12 + d.getMonth()],
+    ['quarter', (d) => d.getFullYear() * 4 + Math.floor(d.getMonth() / 3)],
+    ['year', (d) => d.getFullYear()]
+  ];
+  for (const [unit, key] of keyers) {
+    const cols = [];
+    weekStarts.forEach((d, i) => {
+      const k = key(d);
+      const last = cols[cols.length - 1];
+      if (last && last.key === k) last.idx.push(i); else cols.push({ key: k, unit, start: d, idx: [i] });
+    });
+    if (cols.length <= maxCols || unit === 'year') return cols;
+  }
+  return [];
+}
+
+const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+export function columnLabel(col) {
+  const d = col.start;
+  if (col.unit === 'week') return `KW ${isoWeek(d)}`;
+  if (col.unit === 'month') return MONTHS[d.getMonth()];
+  if (col.unit === 'quarter') return `Q${Math.floor(d.getMonth() / 3) + 1}\u2009’${String(d.getFullYear()).slice(2)}`;
+  return String(d.getFullYear());
+}
+
+// Ø je Spalte aus den Wochenwerten eines Muskels.
+export function columnValues(weekValues, cols) {
+  return cols.map((c) => c.idx.reduce((a, i) => a + weekValues[i], 0) / c.idx.length);
+}
+
+// Ausschnitt [from, to) in Wochenindizes von weeklyTotals für eine Voreinstellung (am Ende ausgerichtet).
+export function presetWindow(totalWeeks, preset) {
+  const p = PRESETS.find((x) => x.key === preset) || PRESETS[0];
+  const n = p.weeks === null ? totalWeeks : Math.min(p.weeks, totalWeeks);
+  return { from: Math.max(0, totalWeeks - n), to: totalWeeks };
 }

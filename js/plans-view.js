@@ -143,7 +143,7 @@ function openExercisePicker(plan, onDone) {
   const inPlan = new Set(plan.items.map((i) => i.exerciseId));
   const chosen = [];
   const state = { query: '' };
-  const active = lib.listExercises();
+  const active = lib.pickableExercises(); // v3.15.0: mit Startpool-Übungen, übernommen erst bei „Hinzufügen“
   const listBox = h('div');
   const addBtn = h('button', { class: 'btn primary block sticky-bottom', type: 'button', disabled: true }, 'Hinzufügen');
   const updateBtn = () => {
@@ -163,13 +163,22 @@ function openExercisePicker(plan, onDone) {
         } },
         h('span', { class: `check${on ? ' on' : ''}` }, on ? h('b', {}, String(chosen.indexOf(e.id) + 1)) : null),
         h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)),
-        h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e)),
+        h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e), e.poolRef ? ' · Startpool' : ''),
           inPlan.has(e.id) ? h('small', { class: 'accent' }, 'Schon im Plan') : null));
-      })))) : [h('p', { class: 'muted empty-line' }, active.length ? 'Keine Übung passt zur Suche.' : 'Noch keine Übungen. Lege sie im Tab „Übungen“ an oder übernimm sie aus dem Startpool.')]));
+      })))) : [h('p', { class: 'muted empty-line' }, active.length ? 'Keine Übung passt zur Suche.' : 'Noch keine Übungen. Lege sie im Tab „Übungen“ an.')]));
   };
   const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });
   search.addEventListener('input', () => { state.query = search.value; draw(); });
-  addBtn.addEventListener('click', () => { sheet.close(); onDone([...chosen]); });
+  addBtn.addEventListener('click', () => {
+    // Pool-Einträge erst jetzt in die Bibliothek übernehmen; Reihenfolge bleibt.
+    const ids = [];
+    for (const id of chosen) {
+      const r = lib.ensureExercise(active.find((e) => e.id === id));
+      if (!r.ok) { toast(r.errors[0], { error: true }); return; }
+      ids.push(r.exercise.id);
+    }
+    sheet.close(); onDone(ids);
+  });
   draw(); updateBtn();
   const sheet = openSheet(h('div', {},
     h('p', { class: 'muted small' }, 'Antippen in der gewünschten Reihenfolge – die Zahl zeigt die Position.'),

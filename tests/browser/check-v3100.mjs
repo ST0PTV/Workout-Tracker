@@ -115,7 +115,7 @@ for (const devName of ['iPhone SE', 'Pixel 7']) {
     await p.evaluate(async () => { const v = await import('./js/exercises-view.js'); v.openEvidence('back-squat'); }); await p.waitForTimeout(500);
     await check('Belege Kniebeuge (Sheet)'); await p.evaluate(() => { const b = document.querySelector('.sheet .sheet-body'); if (b) b.scrollTop = b.scrollHeight; }); await check('Belege Kniebeuge unten (Sheet)'); await closeSheets();
     await go('#/progress');
-    for (const tab of ['Übungen', 'Trainings', 'Muskeln', '4 Wochen']) { await p.locator('#view [role=tab]', { hasText: tab }).first().click(); await check(`Fortschritt · ${tab}`); }
+    for (const tab of ['Übungen', 'Trainings', 'Muskeln', 'Rückblick']) { await p.locator('#view [role=tab]', { hasText: tab }).first().click(); await check(`Fortschritt · ${tab}`); }
     await shot('progress');
     await go('#/settings'); await check('Einstellungen (oben)');
     await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2)); await check('Einstellungen (Mitte)');
