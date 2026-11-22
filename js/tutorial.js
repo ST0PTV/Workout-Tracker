@@ -19,7 +19,7 @@ export const TOUR_STEPS = [
   { id: 'play', route: '/', target: ['.tb-play'], title: 'Schnellstart',
     body: 'Der Knopf in der Mitte startet direkt den nächsten Plan.' },
   { id: 'progress', route: '/progress', target: ['#view [role=tablist]', '#view .seg'], title: 'Fortschritt',
-    body: 'Verlauf je Übung, alle Trainings, die Muskelkarte und die 4-Wochen-Analyse.' },
+    body: 'Verlauf je Übung, alle Trainings, die Muskelkarte und den Rückblick.' },
   { id: 'settings', route: '/', target: ['a.dots[aria-label="Einstellungen"]', '[aria-label="Einstellungen"]'], title: 'Einstellungen',
     body: 'Backup, Pausen, Geräte, hell oder dunkel – und hier kannst du diesen Rundgang wiederholen.' }
 ];
@@ -42,7 +42,7 @@ export const TIPS = [
   { id: 'session-setnum', route: '/', target: ['#view .setrow .sn'], body: 'Tippe auf die Satznummer, um einen Satz als Aufwärm-, Drop- oder Rest-Pause-Satz zu markieren.' },
   { id: 'plans-analyse', route: '/plans', target: ['#view .btn'], match: 'Pläne analysieren', body: 'Prüft deine Pläne auf Balance, Sätze pro Muskel und Dauer – mit Vorschlägen zum Übernehmen.' },
   { id: 'plans-routines', route: '/plans', target: ['#view [role=tab]'], match: 'Routinen', body: 'Unter „Routinen“ findest du Aufwärmen, Cool-down und Mobility – auch ohne Plan startbar.' },
-  { id: 'progress-4w', route: '/progress', target: ['#view [role=tab]'], match: '4 Wochen', body: 'Unter „4 Wochen“ siehst du, welche Muskeln du zuletzt mehr oder weniger trainiert hast.' }
+  { id: 'progress-4w', route: '/progress', target: ['#view [role=tab]'], match: 'Rückblick', body: 'Unter „Rückblick“ siehst du, welche Muskeln du zuletzt oder in einem frei gewählten Zeitraum mehr oder weniger trainiert hast.' }
 ];
 
 export const TRIAL_PLAN_NAME = 'Probetraining';

@@ -275,7 +275,7 @@ for (const devName of DEVICES) {
     // 5) Fortschritt (alle vier Reiter)
     await step(`${T} Fortschritt`, async () => {
       await go(p, '#/progress');
-      for (const tab of ['Übungen', 'Trainings', 'Muskeln', '4 Wochen']) {
+      for (const tab of ['Übungen', 'Trainings', 'Muskeln', 'Rückblick']) {
         await p.getByRole('tab', { name: tab, exact: true }).first().click(); await p.waitForTimeout(350);
         await audit(p, `${T} Fortschritt ${tab}`, errs);
       }

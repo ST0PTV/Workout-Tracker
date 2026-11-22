@@ -11,6 +11,7 @@ const S = await import('../js/session.js');
 const R = await import('../js/rest.js');
 const M = await import('../js/model.js');
 const { POOL } = await import('../js/pool.js');
+const A = await import('../js/analysis.js');
 const { test, done } = runner();
 
 console.log('# v3.15.0');
@@ -112,6 +113,67 @@ test('Drop und Rest-Pause schon vor dem Abhaken; Aufwärmsätze nicht', () => {
 test('Kein Doppeltipp-Zoom: touch-action manipulation auf html', () => {
   const css = readFileSync(new URL('../css/glass.css', import.meta.url), 'utf8');
   assert.match(css, /\nhtml \{ touch-action: manipulation; \}/);
+});
+
+// ---------- Rückblick (Variante A + Gesamtverlauf aus C) ----------
+const mkS = (iso, exId, n) => M.createSession({ startedAt: iso, endedAt: iso, entries: [M.createEntry(exId, { sets: Array.from({ length: n }, () => M.createSet({ weightKg: 50, reps: 8, completedAt: iso })) })] });
+const benchEx = M.createExercise({ name: 'Testdrücken', muscles: { primary: ['chest'], secondary: ['triceps'] } });
+const cardioEx = M.createExercise({ name: 'Testrad', kind: 'cardio', muscles: { primary: [], secondary: [] } });
+const nowR = new Date(2026, 10, 18, 12); // Mi 18.11.2026 → laufende Woche ab 16.11.
+const histR = [
+  mkS(new Date(2026, 0, 7, 10).toISOString(), benchEx.id, 3), // Mi 07.01.2026 (Woche ab 05.01.)
+  mkS(new Date(2026, 9, 14, 10).toISOString(), benchEx.id, 4),
+  mkS(new Date(2026, 10, 10, 10).toISOString(), benchEx.id, 5),
+  mkS(new Date(2026, 10, 11, 10).toISOString(), cardioEx.id, 1),
+  mkS(new Date(2026, 10, 17, 10).toISOString(), benchEx.id, 6) // laufende Woche: zählt nicht
+];
+
+test('Gesamtverlauf: eine Zeile je abgeschlossener Woche seit dem ersten Training, Cardio und laufende Woche nicht', () => {
+  const t = A.weeklyTotals(histR, [benchEx, cardioEx], nowR);
+  assert.equal(t[0].start.getDate(), 5);
+  assert.equal(t[0].start.getMonth(), 0);
+  assert.equal(t[t.length - 1].start.getDate(), 9, 'letzte Woche = 09.11.');
+  assert.equal(t.length, 45);
+  assert.equal(t[0].sets, 3);
+  assert.equal(t[t.length - 1].sets, 5, 'Cardio zählt keine Sätze');
+  assert.equal(t[t.length - 1].sessions, 2);
+  assert.equal(t.reduce((a, w) => a + w.sets, 0), 12);
+  assert.deepEqual(A.weeklyTotals([], [benchEx], nowR), []);
+});
+
+test('Voreinstellungen: am Ende ausgerichtet, kürzer bei wenig Daten', () => {
+  assert.deepEqual(A.presetWindow(45, '3m'), { from: 32, to: 45 });
+  assert.deepEqual(A.presetWindow(45, '1y'), { from: 0, to: 45 });
+  assert.deepEqual(A.presetWindow(45, 'all'), { from: 0, to: 45 });
+  assert.deepEqual(A.presetWindow(10, '6m'), { from: 0, to: 10 });
+});
+
+test('Spalten: Wochen bis 7, sonst Monate, Quartale, Jahre; Werte als Ø pro Woche', () => {
+  const weeks = (n) => Array.from({ length: n }, (_, i) => new Date(2026, 0, 5 + 7 * i));
+  assert.equal(A.columnsFor(weeks(4))[0].unit, 'week');
+  assert.equal(A.columnsFor(weeks(4)).length, 4);
+  const m = A.columnsFor(weeks(13));
+  assert.equal(m[0].unit, 'month');
+  assert.ok(m.length <= A.MAX_COLUMNS);
+  assert.equal(m.reduce((a, c) => a + c.idx.length, 0), 13, 'jede Woche genau einmal');
+  assert.equal(A.columnsFor(weeks(52))[0].unit, 'quarter');
+  assert.equal(A.columnsFor(weeks(400))[0].unit, 'year');
+  assert.equal(A.columnLabel(m[0]), 'Jan');
+  assert.equal(A.columnLabel(A.columnsFor(weeks(4))[0]), 'KW 2');
+  assert.deepEqual(A.columnValues([2, 4, 6, 0], [{ idx: [0, 1] }, { idx: [2, 3] }]), [3, 3]);
+});
+
+test('rangeAnalysis: gleiche Zählung wie 4 Wochen, beliebige Länge', () => {
+  const end = new Date(2026, 10, 16); // Montag der laufenden Woche
+  const four = A.fourWeekAnalysis(histR, [benchEx], nowR);
+  const r4 = A.rangeAnalysis(histR, [benchEx], end, 4);
+  assert.deepEqual(r4.muscles.map((m) => m.avg), four.muscles.map((m) => m.avg));
+  const all = A.rangeAnalysis(histR, [benchEx], end, 45);
+  assert.equal(all.weeks.length, 45);
+  assert.equal(all.sessions, 4, 'auch das Cardio-Training zählt als Training (Sätze nicht)');
+  const chest = all.muscles.find((m) => m.id === 'chest');
+  assert.equal(chest.weeks.reduce((a, b) => a + b, 0), 12);
+  assert.ok(Math.abs(chest.avg - 12 / 45) < 1e-9);
 });
 
 done();

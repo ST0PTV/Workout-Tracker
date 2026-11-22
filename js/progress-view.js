@@ -259,7 +259,7 @@ function exerciseList() {
 
 export function progressView(rerender = () => {}) {
   const seg = h('div', { class: 'seg ex-seg', role: 'tablist', 'aria-label': 'Ansicht' },
-    [['exercises', 'Übungen'], ['sessions', 'Trainings'], ['muscles', 'Muskeln'], ['analysis', '4 Wochen']].map(([k, label]) =>
+    [['exercises', 'Übungen'], ['sessions', 'Trainings'], ['muscles', 'Muskeln'], ['analysis', 'Rückblick']].map(([k, label]) =>
       h('button', { type: 'button', role: 'tab', class: tabState.mode === k ? 'on' : '', 'aria-selected': String(tabState.mode === k),
         onclick: () => { if (tabState.mode !== k) { tabState.mode = k; rerender(); } } }, label)));
   return h('section', { class: 'progress' },

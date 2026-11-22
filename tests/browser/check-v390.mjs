@@ -110,7 +110,7 @@ for (const devName of ['iPhone SE', 'Pixel 7']) {
     // D: Tipps
     await p.evaluate(() => { location.hash = '#/progress'; }); await p.waitForTimeout(900);
     const tip = await p.evaluate(() => { const t = document.querySelector('.tt-tip'); if (!t) return null; const r = t.getBoundingClientRect(); return { text: t.innerText, inside: r.left >= 0 && r.right <= innerWidth + 0.5 && r.top >= 0 && r.bottom <= innerHeight + 0.5 }; });
-    ok(tip && /4 Wochen/.test(tip.text) && tip.inside, `${T}: Tipp „4 Wochen“ beim ersten Besuch, im Bildschirm`);
+    ok(tip && /Rückblick/.test(tip.text) && tip.inside, `${T}: Tipp „Rückblick“ beim ersten Besuch, im Bildschirm`);
     await shot('tip');
     await p.locator('.tt-tip-ok').click(); await p.waitForTimeout(300);
     await p.reload(); await p.waitForTimeout(900);

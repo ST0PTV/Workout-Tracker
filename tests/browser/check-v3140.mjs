@@ -56,7 +56,7 @@ for (const hash of ['#/plans', '#/exercises', '#/progress', '#/settings']) { awa
 await go('#/exercises');
 await p.locator('#view .ex-row, #view .row').first().click(); await p.waitForTimeout(600);
 await collect(); await closeSheets(); await p.waitForTimeout(200);
-await go('#/progress'); await p.getByRole('tab', { name: '4 Wochen' }).click(); await p.waitForTimeout(400); await collect();
+await go('#/progress'); await p.getByRole('tab', { name: 'Rückblick' }).click(); await p.waitForTimeout(400); await collect();
 await go('#/plans'); await p.getByRole('button', { name: 'Pläne analysieren' }).click(); await p.waitForTimeout(3300); await collect(); await closeSheets();
 
 // Backup-Status und Export (Download-Weg, Chromium kann keine Dateien teilen)
