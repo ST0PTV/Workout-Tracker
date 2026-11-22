@@ -128,11 +128,16 @@ function openExercisePicker(onPick) {
   const state = { query: '' };
   const listBox = h('div');
   const draw = () => {
-    const sections = lib.groupedExercises(lib.listExercises(), { query: state.query });
+    // v3.15.0: auch Startpool-Übungen (werden beim Antippen in die Bibliothek übernommen).
+    const sections = lib.groupedExercises(lib.pickableExercises(), { query: state.query });
     listBox.replaceChildren(...(sections.length ? sections.map((s) => h('section', {}, h('div', { class: 'sec' }, s.label),
-      h('div', { class: 'card list' }, s.items.map((e) => h('button', { class: 'row', type: 'button', onclick: () => { sheet.close(); onPick(e); } },
-        h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e))), icon('plus', { size: 18 }))))))
-      : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Neue Übungen legst du im Tab „Übungen“ an.')]));
+      h('div', { class: 'card list' }, s.items.map((e) => h('button', { class: 'row', type: 'button', onclick: () => {
+        const ex = lib.ensureExercise(e);
+        if (!ex.ok) { toast(ex.errors[0], { error: true }); return; }
+        sheet.close(); onPick(ex.exercise);
+      } },
+        h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e), e.poolRef ? ' · Startpool' : '')), icon('plus', { size: 18 }))))))
+      : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Eigene Übungen legst du im Tab „Übungen“ an.')]));
   };
   const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });
   search.addEventListener('input', () => { state.query = search.value; draw(); });

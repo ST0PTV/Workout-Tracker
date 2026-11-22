@@ -6,7 +6,7 @@ import { nowISO } from './util.js';
 import { createSession, createEntry, createSet, prefillSets, startSessionFromPlan, needsWarmupHint, lastPerformance, validateSession, sessionSummary, swapEntryExercise, completionError } from './model.js';
 import { getPlan } from './plans.js';
 import { isEmptySet } from './history.js';
-import { effectiveRest } from './rest.js';
+import { effectiveRest, warmupRest } from './rest.js';
 import * as SETS from './sets.js';
 import { startRest, adjustRest } from './timer.js';
 import * as PR from './progression.js';
@@ -100,6 +100,8 @@ export function completeSet(entryId, setId, values = {}) {
     const err = completionError({ ...set, ...values }, kind, isTimed(ex));
     if (err) return err;
     Object.assign(set, values, { completedAt: nowISO() });
+    // v3.15.0: nach einem Aufwärmsatz die kürzere Aufwärm-Pause, auch im Supersatz.
+    if (set.type === 'warmup') { s.restTimer = kind === 'cardio' ? null : { ...startRest(entryId, warmupRest(store.get('settings'))), warmup: true }; return; }
     // v2.30.0 (B1): im Supersatz keine Pause innerhalb der Runde, danach die längste Pause der Gruppe.
     const g = SS.afterSet(s, entryId);
     if (g && !g.rest) s.restTimer = null;
@@ -158,9 +160,10 @@ export const updateStage = (entryId, setId, index, values) => onSet(entryId, set
 export const removeStage = (entryId, setId, index) => onSet(entryId, setId, (set) => SETS.removeStage(set, index));
 export const toggleTag = (entryId, setId, tag) => onSet(entryId, setId, (set) => { SETS.toggleTag(set, tag); });
 
-// Schnellknopf (Variante C): erledigten Arbeitssatz in Drop/Rest-Pause umwandeln und die erste Folge-Stufe anlegen.
+// Schnellknopf (Variante C): Arbeitssatz in Drop/Rest-Pause umwandeln und die erste Folge-Stufe anlegen.
+// v3.15.0: geht auch vor dem Abhaken (Satz ist noch offen).
 export const quickStage = (entryId, setId, type) => onSet(entryId, setId, (set) => {
-  if (!SETS.hasStages(type) || set.completedAt === null || set.type === 'warmup') return false;
+  if (!SETS.hasStages(type) || set.type === 'warmup') return false;
   if (set.type !== type) SETS.setType(set, type);
   return SETS.addStage(set) ? undefined : false;
 });

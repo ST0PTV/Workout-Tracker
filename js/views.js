@@ -9,7 +9,7 @@ import * as backup from './backup.js';
 import { toast } from './ui.js';
 import { icon } from './icons.js';
 import { stepper, switchInput } from './controls.js';
-import { stepRest, formatDuration } from './rest.js';
+import { stepRest, formatDuration, warmupRest } from './rest.js';
 import { wakeLockSupported } from './device.js';
 import { BAR_KG_MIN, BAR_KG_MAX } from './model.js';
 import { fmtNum } from './input.js';
@@ -131,6 +131,7 @@ export function settingsView(rerender) {
     h('div', { class: 'card' },
       cardHead('Training', cardInfo('Training', [
         'Pause: gilt für Übungen ohne eigene Pause. Der Timer läuft ohne Ton und ohne Alarm.',
+        'Aufwärmpause: gilt nach jedem Aufwärmsatz, für alle Übungen.',
         'Bildschirm anlassen: nur während eines Trainings, kostet etwas Akku.',
         'Scheiben: bei Langhantel-Übungen; die Stange ist pro Übung im Editor änderbar. Eingetragen wird das Gesamtgewicht.'
       ])),
@@ -141,6 +142,17 @@ export function settingsView(rerender) {
         onStep: (v, d) => {
           const next = stepRest(v, d);
           if (!store.set('settings', { ...store.get('settings'), restSeconds: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
+          return next;
+        }
+      })),
+      // v3.15.0: eigene, kürzere Pause nach Aufwärmsätzen
+      labeled('Aufwärm\u00ADpause', stepper({ // weiches Trennzeichen: 320–375 px brechen sonst mitten im Wort
+        value: warmupRest(settings),
+        format: formatDuration,
+        label: 'Pause nach Aufwärmsatz',
+        onStep: (v, d) => {
+          const next = stepRest(v, d);
+          if (!store.set('settings', { ...store.get('settings'), warmupRestSeconds: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
           return next;
         }
       })),

@@ -75,7 +75,7 @@ test('Laufendes Training: Schnellknopf + Drop/Rest-Pause, Stufen bearbeiten, Bee
   assert.ok(S.addEntry(ext.id).ok);
   let en = S.activeSession().entries[0];
   const [first] = en.sets;
-  assert.equal(S.quickStage(en.id, first.id, 'drop').ok, false, 'nur bei erledigtem Satz');
+  // v3.15.0: geht auch vor dem Abhaken – geprüft in tests/v3150.test.js
   assert.ok(S.completeSet(en.id, first.id, { weightKg: 50, reps: 10 }).ok);
   assert.ok(S.quickStage(en.id, first.id, 'restpause').ok);
   en = S.activeSession().entries[0];

@@ -89,7 +89,7 @@ function renderRest(bar, session) {
   const exName = group.length ? `Runde ${group.map((_, i) => SS.LETTERS[i]).join(' + ')}`
     : entry ? (lib.getExercise(entry.exerciseId)?.name || '') : '';
   bar.querySelector('.rt-time').textContent = st.done ? 'Pause vorbei' : formatDuration(st.remaining);
-  bar.querySelector('.rt-sub').textContent = st.done ? `+${formatDuration(st.overtime)} · ${exName}` : `Pause · ${exName}`;
+  bar.querySelector('.rt-sub').textContent = st.done ? `+${formatDuration(st.overtime)} · ${exName}` : `${t.warmup ? 'Aufwärmpause' : 'Pause'} · ${exName}`;
   bar.querySelector('.rt-ring-fg').setAttribute('stroke-dashoffset', String(RING_LEN * (1 - st.progress)));
   bar.querySelectorAll('.rt-adj').forEach((b) => { b.hidden = st.done; });
   // v2.26.0 (A6): Pause vorbei → einmal sanft aufleuchten (kein Ton, kein Blinken; aus bei „Bewegung reduzieren“).
@@ -184,14 +184,17 @@ function openAddExercise(rerender, afterAdd) {
   const state = { query: '' };
   const listBox = h('div');
   const draw = () => {
-    const sections = lib.groupedExercises(lib.listExercises(), { query: state.query });
+    // v3.15.0: auch Startpool-Übungen, die noch nicht in der Bibliothek sind (werden beim Antippen übernommen).
+    const sections = lib.groupedExercises(lib.pickableExercises(), { query: state.query });
     listBox.replaceChildren(...(sections.length ? sections.map((s) => h('section', {}, h('div', { class: 'sec' }, s.label),
       h('div', { class: 'card list' }, s.items.map((e) => h('button', { class: 'row', type: 'button', onclick: () => {
-        const r = S.addEntry(e.id);
+        const ex = lib.ensureExercise(e);
+        if (!ex.ok) { toast(ex.errors[0], { error: true }); return; }
+        const r = S.addEntry(ex.exercise.id);
         if (!r.ok) { toast(r.errors[0], { error: true }); return; }
         sheet.close(); toast(`${e.name} hinzugefügt.`); afterAdd(); rerender();
-      } }, h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e))), icon('plus', { size: 18 }))))))
-      : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Neue Übungen legst du im Tab „Übungen“ an.')]));
+      } }, h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e), e.poolRef ? ' · Startpool' : '')), icon('plus', { size: 18 }))))))
+      : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Eigene Übungen legst du im Tab „Übungen“ an.')]));
   };
   const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });
   search.addEventListener('input', () => { state.query = search.value; draw(); });
@@ -586,7 +589,10 @@ function exercisePage(v, d, rerender) {
   const ex = d.exercise;
   const n = v.entries.length;
   let workNo = 0;
-  const quickAt = lastCompletedIndex(d.entry.sets);
+  // v3.15.0: „+ Drop“ / „+ Rest-Pause“ schon vor dem Abhaken – am nächsten offenen Arbeitssatz.
+  // Sind alle Arbeitssätze erledigt, bleiben die Knöpfe wie bisher unter dem zuletzt abgehakten.
+  const openWork = d.entry.sets.findIndex((x) => x.completedAt === null && x.type !== 'warmup');
+  const quickAt = openWork >= 0 ? openWork : lastCompletedIndex(d.entry.sets);
   const cardio = ex?.kind === 'cardio';
   const withPrev = !cardio && !!d.last?.sets?.some((x) => x.reps !== null); // v3.0.0: Spalte „Zuletzt“
   const rows = cardio ? [] : d.entry.sets.flatMap((set, i) => setRow(d, set, i, set.type === 'warmup' ? 0 : ++workNo, rerender, i === quickAt, withPrev)).filter(Boolean);
