@@ -63,7 +63,8 @@ function trendCell(m) {
 
 // Gewählter Zeitraum (nur für diese Sitzung, nicht gespeichert). from/to = Wochenindizes in weeklyTotals.
 const view = { preset: '4w', from: null, to: null };
-const TITLES = { '4w': `Letzte ${WEEKS} Wochen`, '3m': 'Letzte 3 Monate', '6m': 'Letzte 6 Monate', '1y': 'Letztes Jahr', all: 'Alles', custom: 'Eigener Zeitraum' };
+const titleOf = (preset) => (preset === 'custom' ? 'Eigener Zeitraum' : PRESETS.find((p) => p.key === preset).title);
+const UNIT_NAME = { month: 'Monat', quarter: 'Quartal', year: 'Jahr' };
 
 function currentWindow(T) {
   if (view.preset === 'custom' && view.to !== null && view.to <= T && view.from >= 0 && view.from < view.to) return { from: view.from, to: view.to };
@@ -78,11 +79,11 @@ function overview(totals, win, rerender) {
   const T = totals.length;
   const max = Math.max(1, ...totals.map((w) => w.sets));
   const bars = h('div', { class: `rb-bars${T > 80 ? ' dense' : ''}`, 'aria-hidden': 'true' },
-    totals.map((w, i) => h('span', { class: `rb-bar${i >= win.from && i < win.to ? ' in' : ''}${w.sets ? '' : ' zero'}`, style: `height:${Math.max(4, Math.round((w.sets / max) * 100))}%` })));
+    totals.map((w) => h('span', { class: `rb-bar${w.sets ? '' : ' zero'}`, style: `height:${Math.max(4, Math.round((w.sets / max) * 100))}%` })));
   const frame = h('div', { class: 'rb-win' });
   const range = h('b', { class: 'rb-range' });
   const sub = h('small', { class: 'muted' });
-  const cur = { from: Math.max(0, win.from), to: win.to };
+  const cur = { ...win }; // „in“ an den Balken setzt paint()
   const paint = () => {
     frame.style.left = `${(cur.from / T) * 100}%`;
     frame.style.width = `${((cur.to - cur.from) / T) * 100}%`;
@@ -95,7 +96,7 @@ function overview(totals, win, rerender) {
     hi.setAttribute('aria-valuenow', String(cur.to)); hi.setAttribute('aria-valuetext', fmtDY(e));
   };
   const commit = () => {
-    if (cur.from === Math.max(0, win.from) && cur.to === win.to) return;
+    if (cur.from === win.from && cur.to === win.to) return;
     view.preset = 'custom'; view.from = cur.from; view.to = cur.to; rerender();
   };
   const keys = (which) => (e) => {
@@ -162,20 +163,21 @@ export function analysisPanel(rerender) {
   const totals = weeklyTotals(sessions, exercises);
   const T = totals.length;
   const win = currentWindow(T);
-  const nWeeks = win.to - win.from;
+  const nWeeks = win.to - win.from; // 4 W kann vor der ersten Woche mit Daten beginnen
+  const shown = { from: Math.max(0, win.from), to: win.to }; // Ausschnitt im Gesamtverlauf
   const a = rangeAnalysis(sessions, exercises, addWeeks(weekStart(new Date()), win.to - T), nWeeks);
-  const setsInWin = totals.slice(Math.max(0, win.from), win.to).reduce((x, w) => x + w.sets, 0);
+  const setsInWin = totals.slice(shown.from, shown.to).reduce((x, w) => x + w.sets, 0);
 
   const chips = h('div', { class: 'chips rb-chips', role: 'group', 'aria-label': 'Zeitraum' },
     PRESETS.map((p) => h('button', { type: 'button', class: `chip${view.preset === p.key ? ' on' : ''}`, 'aria-pressed': String(view.preset === p.key),
       onclick: () => { view.preset = p.key; view.from = view.to = null; rerender(); } }, p.label)));
   // Eigener Zeitraum: kein eigener Chip (passt auf 320 px nicht), sondern Rahmen im Gesamtverlauf ziehen.
   const head = h('div', { class: 'a4-head' },
-    h('div', { class: 'wk' }, h('b', {}, TITLES[view.preset]),
+    h('div', { class: 'wk' }, h('b', {}, titleOf(view.preset)),
       h('small', {}, [T >= 2 ? null : `${fmtD(a.weeks[0].start)} – ${fmtDY(a.weeks[a.weeks.length - 1].end)}`, // mit Gesamtverlauf steht das Datum dort
         `${a.sessions} ${a.sessions === 1 ? 'Training' : 'Trainings'}`, a.sessions ? `Ø\u00a0${fmtSets(setsInWin / nWeeks)} Sätze/Woche` : null].filter(Boolean).join(' · '))),
     h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So entsteht der Rückblick', onclick: openAnalysisInfo }, icon('info', { size: 20 })));
-  const top = [chips, T >= 2 ? overview(totals, win, rerender) : null, head].filter(Boolean);
+  const top = [chips, T >= 2 ? overview(totals, shown, rerender) : null, head].filter(Boolean);
 
   if (!a.sessions) {
     return [...top, h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('progress', { size: 44 })), h('h2', {}, T ? 'Keine Trainings im Zeitraum' : 'Noch keine abgeschlossene Woche'),
@@ -200,7 +202,7 @@ export function analysisPanel(rerender) {
     ]));
   const legend = h('div', { class: 'legend' }, LEVEL_LABELS.map((t, i) => h('span', {}, h('i', { class: `sw lv${i}` }), t)), h('span', {}, 'Sätze/Woche'));
   const table = h('div', { class: 'card a4-card' },
-    hintLine(weekly ? 'Sätze je Woche · Kraft = Trend der Hauptübung (Schätzung)' : `Ø Sätze pro Woche je ${cols[0].unit === 'month' ? 'Monat' : cols[0].unit === 'quarter' ? 'Quartal' : 'Jahr'} · Kraft = Trend der Hauptübung (Schätzung)`, openAnalysisInfo),
+    hintLine(weekly ? 'Sätze je Woche · Kraft = Trend der Hauptübung (Schätzung)' : `Ø Sätze pro Woche je ${UNIT_NAME[cols[0].unit]} · Kraft = Trend der Hauptübung (Schätzung)`, openAnalysisInfo),
     grid,
     zero.length ? h('p', { class: 'muted small a4zero' }, `Nicht trainiert: ${zero.map((m) => m.name).join(', ')}`) : null);
 

@@ -23,7 +23,7 @@ export function addWeeks(start, n) {
   return d;
 }
 
-const isHard = (s) => s.completedAt !== null && s.type !== 'warmup';
+export const isHard = (s) => s.completedAt !== null && s.type !== 'warmup';
 
 // Ergebnis: { start, end, sessions, muscles: { [id]: { direct, indirect, total, exercises: [{ exerciseId, direct, indirect }] } } }
 // Nur abgeschlossene Trainings, deren Beginn in [start, start + 7 Tage) liegt. Cardio zählt nicht.

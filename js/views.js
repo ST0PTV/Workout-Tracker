@@ -113,6 +113,15 @@ export function settingsView(rerender) {
   });
   const settings = store.get('settings');
   const labeled = (label, el) => h('div', { class: 'set-line' }, h('span', { class: 'set-label' }, label), el);
+  // Pause-Stepper für einen Schlüssel der Einstellungen (Pause, Aufwärmpause)
+  const restStepper = (key, value, label) => stepper({
+    value, format: formatDuration, label,
+    onStep: (v, d) => {
+      const next = stepRest(v, d);
+      if (!store.set('settings', { ...store.get('settings'), [key]: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
+      return next;
+    }
+  });
   return h(
     'section',
     {},
@@ -135,27 +144,9 @@ export function settingsView(rerender) {
         'Bildschirm anlassen: nur während eines Trainings, kostet etwas Akku.',
         'Scheiben: bei Langhantel-Übungen; die Stange ist pro Übung im Editor änderbar. Eingetragen wird das Gesamtgewicht.'
       ])),
-      labeled('Pause', stepper({
-        value: settings.restSeconds,
-        format: formatDuration,
-        label: 'Standard-Pause',
-        onStep: (v, d) => {
-          const next = stepRest(v, d);
-          if (!store.set('settings', { ...store.get('settings'), restSeconds: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
-          return next;
-        }
-      })),
-      // v3.15.0: eigene, kürzere Pause nach Aufwärmsätzen
-      labeled('Aufwärm\u00ADpause', stepper({ // weiches Trennzeichen: 320–375 px brechen sonst mitten im Wort
-        value: warmupRest(settings),
-        format: formatDuration,
-        label: 'Pause nach Aufwärmsatz',
-        onStep: (v, d) => {
-          const next = stepRest(v, d);
-          if (!store.set('settings', { ...store.get('settings'), warmupRestSeconds: next })) { toast('Speichern fehlgeschlagen.', { error: true }); return null; }
-          return next;
-        }
-      })),
+      labeled('Pause', restStepper('restSeconds', settings.restSeconds, 'Standard-Pause')),
+      // v3.15.0: eigene, kürzere Pause nach Aufwärmsätzen; weiches Trennzeichen: 320–375 px brechen sonst mitten im Wort
+      labeled('Aufwärm\u00ADpause', restStepper('warmupRestSeconds', warmupRest(settings), 'Pause nach Aufwärmsatz')),
       onOff('Bildschirm anlassen', 'keepAwake', rerender),
       wakeLockSupported() ? null : h('p', { class: 'muted small' }, 'Auf diesem Gerät ohne Wirkung.'),
       onOff('Scheiben pro Seite', 'plateMath', rerender),

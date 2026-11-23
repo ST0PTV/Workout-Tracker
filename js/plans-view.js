@@ -144,6 +144,7 @@ function openExercisePicker(plan, onDone) {
   const chosen = [];
   const state = { query: '' };
   const active = lib.pickableExercises(); // v3.15.0: mit Startpool-Übungen, übernommen erst bei „Hinzufügen“
+  const fig = store.get('settings').figure;
   const listBox = h('div');
   const addBtn = h('button', { class: 'btn primary block sticky-bottom', type: 'button', disabled: true }, 'Hinzufügen');
   const updateBtn = () => {
@@ -162,7 +163,7 @@ function openExercisePicker(plan, onDone) {
           draw(); updateBtn();
         } },
         h('span', { class: `check${on ? ' on' : ''}` }, on ? h('b', {}, String(chosen.indexOf(e.id) + 1)) : null),
-        h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)),
+        h('span', { class: 'fig-ic' }, miniFigure(e, fig)),
         h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e), e.poolRef ? ' · Startpool' : ''),
           inPlan.has(e.id) ? h('small', { class: 'accent' }, 'Schon im Plan') : null));
       })))) : [h('p', { class: 'muted empty-line' }, active.length ? 'Keine Übung passt zur Suche.' : 'Noch keine Übungen. Lege sie im Tab „Übungen“ an.')]));

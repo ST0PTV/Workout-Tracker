@@ -7,7 +7,7 @@
 // aus Studien. Zählweise wie in der Muskelkarte (direkt 1, indirekt 0,5 – Pelland et al. 2026, siehe week.js).
 // Projektregel: keine Streaks, kein Druck. Ruhewochen werden nicht markiert; sie senken den Schnitt aller Muskeln gleich.
 import { MUSCLES } from './model.js';
-import { weeklyMuscleSets, weekStart, addWeeks } from './week.js';
+import { weeklyMuscleSets, weekStart, addWeeks, isHard } from './week.js';
 import { exerciseProgress, progressSummary } from './progress.js';
 
 export const WEEKS = 4;
@@ -31,8 +31,6 @@ export function median(values) {
   return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
 }
 
-const isHard = (s) => s.completedAt !== null && s.type !== 'warmup';
-
 // exercises: alle Übungen (auch archivierte, damit alte Trainings zählen). now: Bezugszeitpunkt.
 // Ergebnis: { weeks: [{ start, end, kw, sessions }], sessions, muscles: [{ id, name, weeks: [n…], avg, direct, indirect,
 //   main: { exerciseId, name, trend: { pct, withinNoise } | null, points } | null }], hints, uncovered, median, enough }
@@ -46,9 +44,10 @@ export function rangeAnalysis(sessions, exercises, end, weeks) {
   const cur = weekStart(end);
   weeks = Math.max(1, Math.round(weeks));
   const starts = Array.from({ length: weeks }, (_, i) => addWeeks(cur, i - weeks));
-  const per = starts.map((s) => weeklyMuscleSets(sessions, byId, s));
   const from = starts[0].getTime(), to = cur.getTime();
   const inWindow = sessions.filter((s) => s.endedAt !== null && Date.parse(s.startedAt) >= from && Date.parse(s.startedAt) < to);
+  // Nur Trainings im Zeitraum durchsuchen, nicht pro Woche die ganze Historie
+  const per = starts.map((s) => weeklyMuscleSets(inWindow, byId, s));
 
   // Harte Sätze je Übung im Zeitraum (für die Wahl der Hauptübung)
   const hardByEx = {};
@@ -94,15 +93,13 @@ export function rangeAnalysis(sessions, exercises, end, weeks) {
 
 // Voreinstellungen in Wochen. „Alles“ = seit der Woche des ersten abgeschlossenen Trainings.
 export const PRESETS = [
-  { key: '4w', label: '4 W', weeks: 4 },
-  { key: '3m', label: '3 M', weeks: 13 },
-  { key: '6m', label: '6 M', weeks: 26 },
-  { key: '1y', label: '1 J', weeks: 52 },
-  { key: 'all', label: 'Alles', weeks: null }
+  { key: '4w', label: '4 W', weeks: 4, title: `Letzte ${WEEKS} Wochen` },
+  { key: '3m', label: '3 M', weeks: 13, title: 'Letzte 3 Monate' },
+  { key: '6m', label: '6 M', weeks: 26, title: 'Letzte 6 Monate' },
+  { key: '1y', label: '1 J', weeks: 52, title: 'Letztes Jahr' },
+  { key: 'all', label: 'Alles', weeks: null, title: 'Alles' }
 ];
 export const MAX_COLUMNS = 7; // mehr Spalten passen auf 320 px nicht lesbar
-
-const isWork = (s) => s.completedAt !== null && s.type !== 'warmup';
 
 // Harte Sätze pro abgeschlossener Kalenderwoche, von der Woche des ersten Trainings bis vor `now`s Woche.
 // Cardio zählt nicht (wie in der Muskelkarte). Ergebnis: [{ start, sets, sessions }], älteste zuerst; leer ohne Daten.
@@ -126,7 +123,7 @@ export function weeklyTotals(sessions, exercises, now = new Date()) {
     for (const en of s.entries) {
       const ex = byId[en.exerciseId];
       if (!ex || ex.kind === 'cardio') continue;
-      w.sets += en.sets.filter(isWork).length;
+      w.sets += en.sets.filter(isHard).length;
     }
   }
   return out;
