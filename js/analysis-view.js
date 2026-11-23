@@ -7,10 +7,9 @@ import { infoBody, hintLine } from './info.js';
 import { openGlossary } from './glossary.js';
 import { h } from './util.js';
 import * as store from './store.js';
-import { level, fmtSets, LEVEL_LABELS, INDIRECT_FACTOR } from './week.js';
+import { level, fmtSets, LEVEL_LABELS, INDIRECT_FACTOR, weekStart, addWeeks } from './week.js';
 import { NOISE_PCT, E1RM_MAX_REPS } from './progress.js';
-import { rangeAnalysis, weeklyTotals, columnsFor, columnLabel, columnValues, presetWindow, PRESETS, WEEKS, MIN_TRAINED } from './analysis.js';
-import { weekStart, addWeeks } from './week.js';
+import { rangeAnalysis, weeklyTotals, columnsFor, columnLabel, columnValues, presetWindow, PRESETS, UNIT_NAMES, WEEKS, MIN_TRAINED } from './analysis.js';
 import { candidatesFor, addToTraining } from './muscle-pick.js';
 import { activeSession } from './session.js';
 import { openSheet } from './sheet.js';
@@ -74,15 +73,16 @@ function currentWindow(T) {
 
 // Gesamtverlauf: ein Balken je abgeschlossener Woche, darüber der Rahmen des Ausschnitts.
 // Ziehen im Rahmen verschiebt ihn, an den Griffen ändert sich Anfang oder Ende; Tippen daneben setzt ihn dorthin.
-function overview(totals, win, rerender) {
+// shown: sichtbarer Ausschnitt, schon auf vorhandene Wochen begrenzt.
+function overview(totals, shown, rerender) {
   const T = totals.length;
   const max = Math.max(1, ...totals.map((w) => w.sets));
   const bars = h('div', { class: `rb-bars${T > 80 ? ' dense' : ''}`, 'aria-hidden': 'true' },
-    totals.map((w, i) => h('span', { class: `rb-bar${i >= win.from && i < win.to ? ' in' : ''}${w.sets ? '' : ' zero'}`, style: `height:${Math.max(4, Math.round((w.sets / max) * 100))}%` })));
+    totals.map((w, i) => h('span', { class: `rb-bar${i >= shown.from && i < shown.to ? ' in' : ''}${w.sets ? '' : ' zero'}`, style: `height:${Math.max(4, Math.round((w.sets / max) * 100))}%` })));
   const frame = h('div', { class: 'rb-win' });
   const range = h('b', { class: 'rb-range' });
   const sub = h('small', { class: 'muted' });
-  const cur = { from: Math.max(0, win.from), to: win.to };
+  const cur = { ...shown };
   const paint = () => {
     frame.style.left = `${(cur.from / T) * 100}%`;
     frame.style.width = `${((cur.to - cur.from) / T) * 100}%`;
@@ -95,7 +95,7 @@ function overview(totals, win, rerender) {
     hi.setAttribute('aria-valuenow', String(cur.to)); hi.setAttribute('aria-valuetext', fmtDY(e));
   };
   const commit = () => {
-    if (cur.from === Math.max(0, win.from) && cur.to === win.to) return;
+    if (cur.from === shown.from && cur.to === shown.to) return;
     view.preset = 'custom'; view.from = cur.from; view.to = cur.to; rerender();
   };
   const keys = (which) => (e) => {
@@ -112,35 +112,38 @@ function overview(totals, win, rerender) {
   const chart = h('div', { class: 'rb-chart' }, bars, frame);
   // Ziehen (Zeiger): Modus nach dem Startpunkt – Griff links/rechts, im Rahmen verschieben, sonst Rahmen dorthin.
   let drag = null;
-  const idxAt = (x) => { const r = chart.getBoundingClientRect(); return Math.max(0, Math.min(T, ((x - r.left) / r.width) * T)); };
+  // r: Maße des Diagramms, beim Antippen einmal gelesen (kein erzwungenes Layout bei jeder Bewegung).
+  const idxAt = (x, r) => Math.max(0, Math.min(T, ((x - r.left) / r.width) * T));
   chart.addEventListener('pointerdown', (e) => {
     const r = chart.getBoundingClientRect();
     const px = (i) => r.left + (i / T) * r.width;
     const near = 22;
+    const dFrom = Math.abs(e.clientX - px(cur.from)), dTo = Math.abs(e.clientX - px(cur.to));
     let mode;
-    if (Math.abs(e.clientX - px(cur.from)) <= near && Math.abs(e.clientX - px(cur.from)) <= Math.abs(e.clientX - px(cur.to))) mode = 'from';
-    else if (Math.abs(e.clientX - px(cur.to)) <= near) mode = 'to';
+    if (dFrom <= near && dFrom <= dTo) mode = 'from';
+    else if (dTo <= near) mode = 'to';
     else if (e.clientX > px(cur.from) && e.clientX < px(cur.to)) mode = 'move';
     else {
       const n = cur.to - cur.from;
-      const c = Math.floor(idxAt(e.clientX));
+      const c = Math.floor(idxAt(e.clientX, r));
       cur.from = Math.max(0, Math.min(T - n, c - Math.floor(n / 2))); cur.to = cur.from + n;
       mode = 'move'; paint();
     }
-    drag = { mode, x0: idxAt(e.clientX), from0: cur.from, to0: cur.to };
+    drag = { mode, r, x0: idxAt(e.clientX, r), from0: cur.from, to0: cur.to };
     chart.setPointerCapture?.(e.pointerId);
     e.preventDefault();
   });
   chart.addEventListener('pointermove', (e) => {
     if (!drag) return;
-    const i = idxAt(e.clientX);
+    const i = idxAt(e.clientX, drag.r);
+    const f0 = cur.from, t0 = cur.to;
     if (drag.mode === 'from') cur.from = Math.max(0, Math.min(cur.to - 1, Math.round(i)));
     else if (drag.mode === 'to') cur.to = Math.max(cur.from + 1, Math.min(T, Math.round(i)));
     else {
       const n = drag.to0 - drag.from0;
       cur.from = Math.max(0, Math.min(T - n, drag.from0 + Math.round(i - drag.x0))); cur.to = cur.from + n;
     }
-    paint();
+    if (cur.from !== f0 || cur.to !== t0) paint(); // die meisten Bewegungen ändern nichts
   });
   const end = () => { if (!drag) return; drag = null; commit(); };
   chart.addEventListener('pointerup', end);
@@ -162,9 +165,10 @@ export function analysisPanel(rerender) {
   const totals = weeklyTotals(sessions, exercises);
   const T = totals.length;
   const win = currentWindow(T);
-  const nWeeks = win.to - win.from;
+  const nWeeks = win.to - win.from; // bei „4 W“ ohne Begrenzung (from kann < 0 sein)
+  const shown = { from: Math.max(0, win.from), to: win.to };
   const a = rangeAnalysis(sessions, exercises, addWeeks(weekStart(new Date()), win.to - T), nWeeks);
-  const setsInWin = totals.slice(Math.max(0, win.from), win.to).reduce((x, w) => x + w.sets, 0);
+  const setsInWin = totals.slice(shown.from, shown.to).reduce((x, w) => x + w.sets, 0);
 
   const chips = h('div', { class: 'chips rb-chips', role: 'group', 'aria-label': 'Zeitraum' },
     PRESETS.map((p) => h('button', { type: 'button', class: `chip${view.preset === p.key ? ' on' : ''}`, 'aria-pressed': String(view.preset === p.key),
@@ -175,7 +179,7 @@ export function analysisPanel(rerender) {
       h('small', {}, [T >= 2 ? null : `${fmtD(a.weeks[0].start)} – ${fmtDY(a.weeks[a.weeks.length - 1].end)}`, // mit Gesamtverlauf steht das Datum dort
         `${a.sessions} ${a.sessions === 1 ? 'Training' : 'Trainings'}`, a.sessions ? `Ø\u00a0${fmtSets(setsInWin / nWeeks)} Sätze/Woche` : null].filter(Boolean).join(' · '))),
     h('button', { class: 'info-btn', type: 'button', 'aria-label': 'So entsteht der Rückblick', onclick: openAnalysisInfo }, icon('info', { size: 20 })));
-  const top = [chips, T >= 2 ? overview(totals, win, rerender) : null, head].filter(Boolean);
+  const top = [chips, T >= 2 ? overview(totals, shown, rerender) : null, head].filter(Boolean);
 
   if (!a.sessions) {
     return [...top, h('div', { class: 'card empty' }, h('div', { class: 'big' }, icon('progress', { size: 44 })), h('h2', {}, T ? 'Keine Trainings im Zeitraum' : 'Noch keine abgeschlossene Woche'),
@@ -200,7 +204,7 @@ export function analysisPanel(rerender) {
     ]));
   const legend = h('div', { class: 'legend' }, LEVEL_LABELS.map((t, i) => h('span', {}, h('i', { class: `sw lv${i}` }), t)), h('span', {}, 'Sätze/Woche'));
   const table = h('div', { class: 'card a4-card' },
-    hintLine(weekly ? 'Sätze je Woche · Kraft = Trend der Hauptübung (Schätzung)' : `Ø Sätze pro Woche je ${cols[0].unit === 'month' ? 'Monat' : cols[0].unit === 'quarter' ? 'Quartal' : 'Jahr'} · Kraft = Trend der Hauptübung (Schätzung)`, openAnalysisInfo),
+    hintLine(weekly ? 'Sätze je Woche · Kraft = Trend der Hauptübung (Schätzung)' : `Ø Sätze pro Woche je ${UNIT_NAMES[cols[0].unit]} · Kraft = Trend der Hauptübung (Schätzung)`, openAnalysisInfo),
     grid,
     zero.length ? h('p', { class: 'muted small a4zero' }, `Nicht trainiert: ${zero.map((m) => m.name).join(', ')}`) : null);
 

@@ -183,6 +183,7 @@ function openNoteEditor(exercise, rerender) {
 function openAddExercise(rerender, afterAdd) {
   const state = { query: '' };
   const listBox = h('div');
+  const fig = store.get('settings').figure;
   const draw = () => {
     // v3.15.0: auch Startpool-Übungen, die noch nicht in der Bibliothek sind (werden beim Antippen übernommen).
     const sections = lib.groupedExercises(lib.pickableExercises(), { query: state.query });
@@ -193,7 +194,7 @@ function openAddExercise(rerender, afterAdd) {
         const r = S.addEntry(ex.exercise.id);
         if (!r.ok) { toast(r.errors[0], { error: true }); return; }
         sheet.close(); toast(`${e.name} hinzugefügt.`); afterAdd(); rerender();
-      } }, h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e), e.poolRef ? ' · Startpool' : '')), icon('plus', { size: 18 }))))))
+      } }, h('span', { class: 'fig-ic' }, miniFigure(e, fig)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.pickSummary(e))), icon('plus', { size: 18 }))))))
       : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Eigene Übungen legst du im Tab „Übungen“ an.')]));
   };
   const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });

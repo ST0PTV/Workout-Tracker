@@ -127,16 +127,19 @@ function readView(s) {
 function openExercisePicker(onPick) {
   const state = { query: '' };
   const listBox = h('div');
+  // v3.15.0: auch Startpool-Übungen (werden beim Antippen in die Bibliothek übernommen).
+  // Einmal beim Öffnen lesen: Die Bibliothek ändert sich erst, wenn das Sheet schon zu ist.
+  const all = lib.pickableExercises();
+  const fig = store.get('settings').figure;
   const draw = () => {
-    // v3.15.0: auch Startpool-Übungen (werden beim Antippen in die Bibliothek übernommen).
-    const sections = lib.groupedExercises(lib.pickableExercises(), { query: state.query });
+    const sections = lib.groupedExercises(all, { query: state.query });
     listBox.replaceChildren(...(sections.length ? sections.map((s) => h('section', {}, h('div', { class: 'sec' }, s.label),
       h('div', { class: 'card list' }, s.items.map((e) => h('button', { class: 'row', type: 'button', onclick: () => {
         const ex = lib.ensureExercise(e);
         if (!ex.ok) { toast(ex.errors[0], { error: true }); return; }
         sheet.close(); onPick(ex.exercise);
       } },
-        h('span', { class: 'fig-ic' }, miniFigure(e, store.get('settings').figure)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.muscleSummary(e), e.poolRef ? ' · Startpool' : '')), icon('plus', { size: 18 }))))))
+        h('span', { class: 'fig-ic' }, miniFigure(e, fig)), h('span', { class: 't' }, h('b', {}, e.name), h('small', {}, lib.pickSummary(e))), icon('plus', { size: 18 }))))))
       : [h('p', { class: 'muted empty-line' }, 'Keine Übung gefunden. Eigene Übungen legst du im Tab „Übungen“ an.')]));
   };
   const search = h('input', { type: 'search', class: 'search-input', placeholder: 'Übung suchen', 'aria-label': 'Übung suchen', autocomplete: 'off' });
