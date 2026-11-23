@@ -11,6 +11,7 @@
 import { uuid, nowISO } from './util.js';
 import { ITEM_BY_REF, TEMPLATES, PHASES } from './routine-data.js';
 import { chainGroups } from './superset.js';
+import { WARMUP_REST_DEFAULT } from './rest.js';
 
 export const SCHEMA_VERSION = 2;
 
@@ -58,7 +59,7 @@ export const DEFAULT_SETTINGS = {
   focus: ['strength'],
   weightUnit: 'kg',
   restSeconds: 120,
-  warmupRestSeconds: 60, // v3.15.0: eigene Pause nach Aufwärmsätzen (Voreinstellung, keine Empfehlung)
+  warmupRestSeconds: WARMUP_REST_DEFAULT, // v3.15.0: eigene Pause nach Aufwärmsätzen (Voreinstellung, keine Empfehlung)
   figure: 'male', // v1.4: Figur für Muskelkarte und Piktogramme ('male' | 'female'); Logik ist gleich
   keepAwake: true, // v2.26.0 (A1): Bildschirm während eines laufenden Trainings anlassen (falls das Gerät es kann)
   plateMath: true, // v2.26.0 (A4): Scheiben pro Seite bei Langhantel-Übungen anzeigen

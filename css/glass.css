@@ -294,8 +294,8 @@ body.sheet-open { overflow: hidden; }
 .seg { display: flex; padding: 4px; border-radius: 14px; background: var(--glass); border: 1px solid var(--glass-border); }
 .seg button { flex: 1; min-height: 40px; border: 0; border-radius: 10px; background: none; color: var(--muted); font-weight: 600; cursor: pointer; font-size: 14px; }
 .seg button.on { background: color-mix(in srgb, var(--text) 18%, transparent); color: var(--text); }
-.step { display: inline-flex; align-items: stretch; height: var(--tap); border-radius: 14px; overflow: hidden; border: 1px solid var(--glass-border); }
-.step { flex-shrink: 0; } /* v3.15.0: neben langen Bezeichnungen nicht schrumpfen (sonst unter 44 px) */
+/* v3.15.0: flex-shrink 0 – neben langen Bezeichnungen nicht schrumpfen (sonst unter 44 px) */
+.step { display: inline-flex; flex-shrink: 0; align-items: stretch; height: var(--tap); border-radius: 14px; overflow: hidden; border: 1px solid var(--glass-border); }
 .step button { width: 54px; border: 0; background: var(--glass); font-size: 22px; cursor: pointer; }
 .step-val { width: 54px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; background: color-mix(in srgb, var(--text) 14%, transparent); }
 .src { font-size: 13px; color: var(--muted); margin: 8px 4px 0; line-height: 1.5; }

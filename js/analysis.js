@@ -37,18 +37,19 @@ const isHard = (s) => s.completedAt !== null && s.type !== 'warmup';
 // Ergebnis: { weeks: [{ start, end, kw, sessions }], sessions, muscles: [{ id, name, weeks: [n…], avg, direct, indirect,
 //   main: { exerciseId, name, trend: { pct, withinNoise } | null, points } | null }], hints, uncovered, median, enough }
 export function fourWeekAnalysis(sessions, exercises, now = new Date(), weeks = WEEKS) {
-  return rangeAnalysis(sessions, exercises, weekStart(now), weeks);
+  return rangeAnalysis(sessions, exercises, now, weeks);
 }
 
-// v3.15.0 (Rückblick): dieselbe Analyse für beliebig viele abgeschlossene Wochen vor `end` (Montag 00:00, exklusiv).
+// v3.15.0 (Rückblick): dieselbe Analyse für beliebig viele abgeschlossene Wochen vor der Woche von `end`.
 export function rangeAnalysis(sessions, exercises, end, weeks) {
   const byId = Object.fromEntries(exercises.map((e) => [e.id, e]));
   const cur = weekStart(end);
   weeks = Math.max(1, Math.round(weeks));
   const starts = Array.from({ length: weeks }, (_, i) => addWeeks(cur, i - weeks));
-  const per = starts.map((s) => weeklyMuscleSets(sessions, byId, s));
   const from = starts[0].getTime(), to = cur.getTime();
   const inWindow = sessions.filter((s) => s.endedAt !== null && Date.parse(s.startedAt) >= from && Date.parse(s.startedAt) < to);
+  // Jede Woche liegt im Zeitraum: nur inWindow durchsuchen statt aller Trainings (wichtig bei „1 J“ und „Alles“).
+  const per = starts.map((s) => weeklyMuscleSets(inWindow, byId, s));
 
   // Harte Sätze je Übung im Zeitraum (für die Wahl der Hauptübung)
   const hardByEx = {};
@@ -102,8 +103,6 @@ export const PRESETS = [
 ];
 export const MAX_COLUMNS = 7; // mehr Spalten passen auf 320 px nicht lesbar
 
-const isWork = (s) => s.completedAt !== null && s.type !== 'warmup';
-
 // Harte Sätze pro abgeschlossener Kalenderwoche, von der Woche des ersten Trainings bis vor `now`s Woche.
 // Cardio zählt nicht (wie in der Muskelkarte). Ergebnis: [{ start, sets, sessions }], älteste zuerst; leer ohne Daten.
 export function weeklyTotals(sessions, exercises, now = new Date()) {
@@ -114,19 +113,15 @@ export function weeklyTotals(sessions, exercises, now = new Date()) {
   const first = weekStart(new Date(Math.min(...done.map((s) => Date.parse(s.startedAt)))));
   const out = [];
   for (let d = first; d.getTime() < end; d = addWeeks(d, 1)) out.push({ start: d, sets: 0, sessions: 0 });
-  const index = (t) => {
-    // Index über Kalenderdaten, nicht Millisekunden (Zeitumstellung)
-    let lo = 0, hi = out.length - 1;
-    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (out[mid].start.getTime() <= t) lo = mid; else hi = mid - 1; }
-    return lo;
-  };
+  // Zuordnung über den Montag der Woche (Kalenderdaten, daher auch über die Zeitumstellung richtig).
+  const byStart = new Map(out.map((w) => [w.start.getTime(), w]));
   for (const s of done) {
-    const w = out[index(Date.parse(s.startedAt))];
+    const w = byStart.get(weekStart(new Date(s.startedAt)).getTime());
     w.sessions += 1;
     for (const en of s.entries) {
       const ex = byId[en.exerciseId];
       if (!ex || ex.kind === 'cardio') continue;
-      w.sets += en.sets.filter(isWork).length;
+      w.sets += en.sets.filter(isHard).length;
     }
   }
   return out;
@@ -153,6 +148,9 @@ export function columnsFor(weekStarts, maxCols = MAX_COLUMNS) {
   }
   return [];
 }
+
+// Name der Einheit im Fließtext („Ø Sätze pro Woche je Monat“).
+export const UNIT_NAMES = { week: 'Woche', month: 'Monat', quarter: 'Quartal', year: 'Jahr' };
 
 const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
 export function columnLabel(col) {

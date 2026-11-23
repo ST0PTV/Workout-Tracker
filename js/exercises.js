@@ -143,6 +143,9 @@ export function pickableExercises() {
   return [...own, ...pool];
 }
 
+// Zweite Zeile in Such-Listen: Muskeln, bei Pool-Einträgen mit Hinweis „Startpool“.
+export const pickSummary = (e) => muscleSummary(e) + (e.poolRef ? ' · Startpool' : '');
+
 // Gewählte Übung bereitstellen: eigene Übung direkt, Pool-Eintrag wird still in die Bibliothek übernommen.
 // Ergebnis: { ok, errors, exercise, added }.
 export function ensureExercise(pick) {
